@@ -1,10 +1,12 @@
 :root {
-  --bg: #f7f7fb;
+  --bg: #faf7f2;
   --card: #ffffff;
-  --accent: #2563eb;
+  --accent: #6b46c1; /* gentle purple accent */
   --muted: #6b7280;
   --danger: #ef4444;
+  --glass: rgba(17, 24, 39, 0.04);
 }
+
 * {
   box-sizing: border-box;
 }
@@ -25,104 +27,277 @@ body {
     "Helvetica Neue",
     Arial;
   background: var(--bg);
-  color: #111827;
+  color: #0f172a;
   -webkit-font-smoothing: antialiased;
 }
+
 .app-root {
   min-height: 100vh;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 24px;
-  padding-top: 40px;
+  padding: 28px;
+  padding-top: 44px;
 }
+
 .todo-container {
   width: 100%;
-  max-width: 600px;
-  padding: 0;
-  background: transparent;
+  max-width: 680px;
+  background: var(--card);
+  border-radius: 24px;
+  padding: 20px 20px 24px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
 }
+
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 18px;
 }
+
 .title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #111827;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #0f172a;
+  letter-spacing: 0.2px;
 }
+
+.filter-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filter-tabs .tab {
+  background: transparent;
+  border: none;
+  padding: 6px 10px;
+  font-size: 0.95rem;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    transform 120ms ease;
+}
+.filter-tabs .tab:hover {
+  transform: translateY(-1px);
+}
+.filter-tabs .tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
 .todo-form {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   margin-bottom: 16px;
 }
+
 .todo-input {
   flex: 1;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #e6e9ef;
-  font-size: 1rem;
+  padding: 12px 18px;
+  border-radius: 40px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  font-size: 16px;
+  outline: none;
+  background: transparent;
+  transition:
+    box-shadow 160ms ease,
+    transform 120ms ease;
 }
+.todo-input::placeholder {
+  color: #9aa0a6;
+}
+.todo-input:focus {
+  box-shadow: 0 6px 18px rgba(107, 70, 193, 0.08);
+  border-color: rgba(107, 70, 193, 0.28);
+  transform: translateY(-1px);
+}
+
 .add-btn {
   padding: 10px 14px;
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent), #4c1d95);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 16px;
   cursor: pointer;
+  box-shadow: 0 6px 14px rgba(107, 70, 193, 0.12);
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
 }
-.add-btn:active {
-  transform: translateY(1px);
+.add-btn:hover {
+  transform: scale(1.03);
 }
+
 .todo-list {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 12px;
 }
+
+.empty-state {
+  text-align: center;
+  padding: 28px 12px;
+  color: var(--muted);
+}
+.empty-emoji {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+.empty-text {
+  font-size: 14px;
+}
+
 .todo-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 0;
-  border-radius: 0;
-  border: none;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(255, 255, 255, 0.9)
+  );
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease;
 }
+.todo-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.todo-item.new {
+  animation: fadeInDown 320ms ease both;
+}
+.todo-item.removing {
+  animation: fadeOutLeft 280ms ease both;
+}
+
 .todo-text {
   flex: 1;
+  font-size: 16px;
+  line-height: 1.4;
+  color: #0f172a;
 }
 .todo-text.completed {
   text-decoration: line-through;
   color: var(--muted);
+  opacity: 0.8;
 }
+
 .delete-btn {
   background: transparent;
   border: none;
-  color: var(--danger);
+  color: #9aa0a6;
   cursor: pointer;
-  font-weight: 600;
+  font-size: 18px;
+  padding: 6px;
+  border-radius: 8px;
+  transition:
+    transform 140ms ease,
+    color 160ms ease,
+    background 160ms ease;
 }
-.stats {
-  margin-top: 12px;
-  color: var(--muted);
-  font-size: 0.95rem;
+.delete-btn:hover {
+  color: var(--danger);
+  transform: translateX(-3px);
+  background: rgba(239, 68, 68, 0.06);
 }
 
-/* Responsive */
+/* custom checkbox */
+.checkbox-wrap {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.native-checkbox {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+.custom-checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  display: inline-block;
+  margin-right: 6px;
+  border: 1.5px solid rgba(15, 23, 42, 0.08);
+  background: white;
+  transition: all 180ms ease;
+  position: relative;
+}
+.custom-checkbox.checked {
+  background: linear-gradient(135deg, var(--accent), #4c1d95);
+  border-color: transparent;
+  transform: rotate(0deg) scale(1);
+}
+.custom-checkbox.checked::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 6px;
+  height: 10px;
+  border: 2px solid white;
+  border-top: 0;
+  border-left: 0;
+  transform: rotate(40deg);
+}
+
+.stats {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  text-align: right;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-24px) scale(0.98);
+  }
+}
+
+/* Responsive adjustments */
 @media (max-width: 480px) {
-  .todo-card {
-    padding: 12px;
-    border-radius: 10px;
+  .todo-container {
+    padding: 14px;
+    border-radius: 16px;
   }
   .title {
     font-size: 1rem;
   }
   .todo-input {
-    padding: 9px;
+    padding: 10px 14px;
   }
   .add-btn {
     padding: 9px 10px;
+    border-radius: 12px;
   }
 }
