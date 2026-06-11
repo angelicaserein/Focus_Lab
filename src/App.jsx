@@ -1,10 +1,13 @@
 import React from "react";
-import TodoApp from "./components/TodoApp";
+import { BrowserRouter } from "react-router-dom";
+import AppRoutes from "./routes/AppRoutes";
 
 export default function App() {
   return (
-    <div className="app-root">
-      <TodoApp />
-    </div>
+    <BrowserRouter>
+      <div className="app-root">
+        <AppRoutes />
+      </div>
+    </BrowserRouter>
   );
 }

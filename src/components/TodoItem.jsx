@@ -5,16 +5,15 @@ export default function TodoItem({ todo }) {
   const { toggleTodo, deleteTodo } = useTodos();
   const [removing, setRemoving] = useState(false);
 
-  // detect freshly added items (id is Date.now().toString())
   const isNew = useMemo(() => {
     const created = Number(todo.id);
     if (!created) return false;
     return Date.now() - created < 2000;
   }, [todo.id]);
 
-  const handleDelete = () => {
+  const handleDelete = (e) => {
+    e.stopPropagation();
     setRemoving(true);
-    // wait for animation to complete before removing from state
     setTimeout(() => deleteTodo(todo.id), 320);
   };
 

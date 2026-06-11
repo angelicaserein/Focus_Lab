@@ -40,6 +40,7 @@ export function TodoProvider({ children }) {
   const [persisted, setPersisted] = useLocalStorage(STORAGE_KEY, []);
 
   const [todos, dispatch] = useReducer(reducer, persisted);
+  const [focusedTodoId, setFocusedTodoId] = React.useState(null);
 
   // 当 todos 变化时，写回 localStorage
   useEffect(() => {
@@ -53,13 +54,24 @@ export function TodoProvider({ children }) {
   };
 
   const toggleTodo = (id) => dispatch({ type: TOGGLE, payload: id });
-  const deleteTodo = (id) => dispatch({ type: DELETE, payload: id });
+  const deleteTodo = (id) => {
+    dispatch({ type: DELETE, payload: id });
+    if (focusedTodoId === id) {
+      setFocusedTodoId(null);
+    }
+  };
+
+  const setFocusTodo = (id) => setFocusedTodoId(id);
+  const clearFocusTodo = () => setFocusedTodoId(null);
 
   const value = {
     todos,
     addTodo,
     toggleTodo,
     deleteTodo,
+    setFocusTodo,
+    clearFocusTodo,
+    focusedTodoId,
     dispatch,
   };
 
