@@ -77,10 +77,16 @@
   border-radius: 999px;
   padding: 16px 22px;
   cursor: pointer;
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.98), rgba(79, 70, 229, 0.98));
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.98),
+    rgba(79, 70, 229, 0.98)
+  );
   color: white;
   font-weight: 700;
-  transition: transform 180ms ease, opacity 180ms ease;
+  transition:
+    transform 180ms ease,
+    opacity 180ms ease;
 }
 
 .immersive-action-btn:hover:not(:disabled) {
@@ -172,7 +178,10 @@
   color: #1f2937;
   cursor: pointer;
   text-align: left;
-  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .task-pill:hover {
@@ -296,7 +305,9 @@
   background: linear-gradient(135deg, #7c3aed, #5b21b6);
   color: white;
   font-weight: 600;
-  transition: transform 180ms ease, opacity 180ms ease;
+  transition:
+    transform 180ms ease,
+    opacity 180ms ease;
 }
 
 .focus-action-btn:hover:not(:disabled) {
