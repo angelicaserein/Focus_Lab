@@ -1,26 +1,55 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { useTodos } from "../context/TodoContext";
 
 export default function TodoItem({ todo }) {
   const { toggleTodo, deleteTodo } = useTodos();
+  const [removing, setRemoving] = useState(false);
+
+  // detect freshly added items (id is Date.now().toString())
+  const isNew = useMemo(() => {
+    const created = Number(todo.id);
+    if (!created) return false;
+    return Date.now() - created < 2000;
+  }, [todo.id]);
+
+  const handleDelete = () => {
+    setRemoving(true);
+    // wait for animation to complete before removing from state
+    setTimeout(() => deleteTodo(todo.id), 320);
+  };
 
   return (
-    <div className="todo-item" role="listitem">
-      <input
-        type="checkbox"
-        checked={!!todo.completed}
-        onChange={() => toggleTodo(todo.id)}
-        aria-label={`标记 ${todo.text} 为完成`}
-      />
+    <div
+      className={`todo-item ${isNew ? "new" : ""} ${
+        removing ? "removing" : ""
+      }`}
+      role="listitem"
+      aria-label={todo.text}
+    >
+      <label className="checkbox-wrap">
+        <input
+          className="native-checkbox"
+          type="checkbox"
+          checked={!!todo.completed}
+          onChange={() => toggleTodo(todo.id)}
+          aria-label={`标记 ${todo.text} 为完成`}
+        />
+        <span
+          className={`custom-checkbox ${todo.completed ? "checked" : ""}`}
+        />
+      </label>
+
       <div className={`todo-text ${todo.completed ? "completed" : ""}`}>
         {todo.text}
       </div>
+
       <button
         className="delete-btn"
-        onClick={() => deleteTodo(todo.id)}
+        onClick={handleDelete}
         aria-label={`删除 ${todo.text}`}
+        title="删除任务"
       >
-        删除
+        ×
       </button>
     </div>
   );
