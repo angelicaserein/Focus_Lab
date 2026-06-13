@@ -6,7 +6,7 @@ export default function TodoForm() {
   const [text, setText] = useState("");
 
   const submit = (e) => {
-    e && e.preventDefault();
+    e.preventDefault();
     const t = text.trim();
     if (!t) return;
     addTodo(t);
@@ -20,18 +20,11 @@ export default function TodoForm() {
         placeholder="添加任务，按回车或点击添加"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => {
-          // 支持回车提交
-          if (e.key === "Enter") {
-            submit(e);
-          }
-        }}
         aria-label="新增任务"
       />
       <button
-        type="button"
+        type="submit"
         className="add-btn"
-        onClick={submit}
         aria-label="添加任务按钮"
       >
         添加

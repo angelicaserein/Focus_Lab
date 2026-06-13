@@ -14,6 +14,9 @@ export default function Sidebar() {
         <Link to="/focus" className={`nav-link ${isActive("/focus") ? "active" : ""}`}>
           <span className="nav-label">Focus</span>
         </Link>
+        <Link to="/history" className={`nav-link ${isActive("/history") ? "active" : ""}`}>
+          <span className="nav-label">History</span>
+        </Link>
       </nav>
     </aside>
   );

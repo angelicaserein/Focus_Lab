@@ -1,6 +1,6 @@
 import React from "react";
 import TodoApp from "../../components/TodoApp";
-import "./Home.module.css";
+import "./Home.css";
 
 export default function Home() {
   return (
