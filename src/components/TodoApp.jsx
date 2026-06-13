@@ -36,7 +36,6 @@ export default function TodoApp() {
           >
             已完成
           </button>
-          <div className="tab-indicator" />
         </div>
       </div>
 

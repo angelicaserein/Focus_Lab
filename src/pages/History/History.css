@@ -1,0 +1,384 @@
+/* ── History page layout ── */
+.page-history {
+  width: min(860px, 100%);
+  margin: 0 auto;
+  padding: 8px 0 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* Header */
+.history-headline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eyebrow-hist {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent-mid);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.72rem;
+  width: fit-content;
+}
+
+.history-headline h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 2.2vw, 2.2rem);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--text-heading);
+}
+
+.history-headline p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+/* ── Stats cards ── */
+.hist-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.hist-stat-card {
+  padding: 28px 24px;
+  border-radius: 24px;
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  box-shadow: 0 2px 12px var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hist-stat-card.accent {
+  background: var(--accent);
+  border-color: transparent;
+  box-shadow: 0 8px 28px var(--accent-glow);
+}
+
+.hist-stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.hist-stat-card.accent .hist-stat-value {
+  color: var(--card);
+}
+
+.hist-stat-label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+}
+
+.hist-stat-card.accent .hist-stat-label {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* ── Stats row 2 ── */
+.hist-stats-row2 {
+  grid-template-columns: repeat(2, 1fr);
+  margin-top: -24px;
+}
+
+/* ── Section wrapper ── */
+.hist-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hist-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hist-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: 0.01em;
+}
+
+/* ── 7-day bar chart ── */
+.hist-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 24px 20px 16px;
+  background: var(--card);
+  border-radius: 24px;
+  border: 1.5px solid var(--border-card);
+  box-shadow: 0 2px 12px var(--shadow-sm);
+  height: 160px;
+}
+
+.hist-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  height: 100%;
+}
+
+.hist-bar-top-val {
+  font-size: 0.62rem;
+  color: var(--accent);
+  font-weight: 600;
+  white-space: nowrap;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hist-bar-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.hist-bar-fill {
+  width: 100%;
+  min-height: 3px;
+  border-radius: 8px 8px 4px 4px;
+  background: var(--accent);
+  transition: height 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hist-bar-label {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ── Task breakdown ── */
+.hist-task-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 24px;
+  background: var(--card);
+  border-radius: 24px;
+  border: 1.5px solid var(--border-card);
+  box-shadow: 0 2px 12px var(--shadow-sm);
+}
+
+.hist-task-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hist-task-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hist-task-rank {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  width: 24px;
+  flex-shrink: 0;
+}
+
+.hist-task-name {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hist-task-sessions {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.hist-task-dur {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  min-width: 44px;
+  text-align: right;
+}
+
+.hist-task-track {
+  height: 6px;
+  width: 100%;
+  background: var(--accent-bg);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.hist-task-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width 500ms cubic-bezier(0.34, 1.2, 0.64, 1);
+  min-width: 6px;
+}
+
+/* ── Record list ── */
+.hist-clear-btn {
+  background: transparent;
+  border: 1.5px solid var(--border-accent);
+  color: var(--accent-mid);
+  padding: 7px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.hist-clear-btn:hover {
+  background: var(--accent-hover);
+}
+
+.hist-clear-btn.confirm {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--danger-subtle);
+}
+
+.hist-empty {
+  padding: 40px 24px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--text-muted);
+  border: 1.5px dashed var(--border-dashed);
+  font-size: 0.95rem;
+  text-align: center;
+  line-height: 1.65;
+}
+
+.hist-day-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hist-day-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding-left: 4px;
+}
+
+.hist-records {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hist-record-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  box-shadow: 0 1px 6px var(--shadow-xs);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.hist-record-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--shadow-sm);
+}
+
+.hist-record-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hist-record-task {
+  font-size: 0.97rem;
+  font-weight: 600;
+  color: var(--text-heading);
+  line-height: 1.4;
+}
+
+.hist-record-time {
+  font-size: 0.8rem;
+  color: var(--text-faint);
+}
+
+.hist-record-duration {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  padding-left: 16px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .hist-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .hist-stats > .hist-stat-card:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .hist-stats-row2 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .hist-chart {
+    height: 120px;
+    gap: 6px;
+    padding: 16px 12px 12px;
+  }
+
+  .hist-bar-val {
+    display: none;
+  }
+}
+
+@media (max-width: 400px) {
+  .hist-stats,
+  .hist-stats-row2 {
+    grid-template-columns: 1fr;
+  }
+
+  .hist-stats-row2 {
+    margin-top: -24px;
+  }
+}

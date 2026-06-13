@@ -6,10 +6,9 @@ export default function TodoItem({ todo }) {
   const [removing, setRemoving] = useState(false);
 
   const isNew = useMemo(() => {
-    const created = Number(todo.id);
-    if (!created) return false;
-    return Date.now() - created < 2000;
-  }, [todo.id]);
+    if (!todo.createdAt) return false;
+    return Date.now() - todo.createdAt < 2000;
+  }, [todo.createdAt]);
 
   const handleDelete = (e) => {
     e.stopPropagation();

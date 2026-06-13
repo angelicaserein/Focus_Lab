@@ -2,6 +2,24 @@ import React, { useReducer, useEffect, useContext } from "react";
 import useLocalStorage from "../hooks/useLocalStorage";
 
 const STORAGE_KEY = "todos_v1";
+const RECORDS_KEY = "focus_records_v1";
+const CURRENT_VERSION = 1;
+
+function loadTodos() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (parsed?.version === CURRENT_VERSION && Array.isArray(parsed.data)) {
+      return parsed.data;
+    }
+    // 旧格式（裸数组）迁移
+    if (Array.isArray(parsed)) return parsed;
+    return [];
+  } catch {
+    return [];
+  }
+}
 
 // Action types
 const ADD = "ADD";
@@ -35,21 +53,21 @@ function reducer(state, action) {
 const TodoContext = React.createContext(null);
 
 export function TodoProvider({ children }) {
-  // useLocalStorage 返回持久化 state 和 setter，但我们使用 useReducer 管理主状态，
-  // 并将 reducer 的变化写回 localStorage。这样既有 reducer 的可扩展性，又封装了持久化逻辑。
-  const [persisted, setPersisted] = useLocalStorage(STORAGE_KEY, []);
+  const [focusRecords, setFocusRecords] = useLocalStorage(RECORDS_KEY, []);
 
-  const [todos, dispatch] = useReducer(reducer, persisted);
+  const [todos, dispatch] = useReducer(reducer, null, loadTodos);
   const [focusedTodoId, setFocusedTodoId] = React.useState(null);
 
-  // 当 todos 变化时，写回 localStorage
   useEffect(() => {
-    setPersisted(todos);
-  }, [todos, setPersisted]);
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ version: CURRENT_VERSION, data: todos }),
+    );
+  }, [todos]);
 
   // 便捷 action creators
   const addTodo = (text) => {
-    const item = { id: Date.now().toString(), text, completed: false };
+    const item = { id: crypto.randomUUID(), text, completed: false, createdAt: Date.now() };
     dispatch({ type: ADD, payload: item });
   };
 
@@ -64,6 +82,21 @@ export function TodoProvider({ children }) {
   const setFocusTodo = (id) => setFocusedTodoId(id);
   const clearFocusTodo = () => setFocusedTodoId(null);
 
+  const addFocusRecord = ({ taskId, taskText, durationSecs, startedAt }) => {
+    if (durationSecs < 10) return;
+    const record = {
+      id: crypto.randomUUID(),
+      taskId,
+      taskText,
+      durationSecs,
+      startedAt,
+      endedAt: Date.now(),
+    };
+    setFocusRecords((prev) => [record, ...prev]);
+  };
+
+  const clearFocusRecords = () => setFocusRecords([]);
+
   const value = {
     todos,
     addTodo,
@@ -72,6 +105,9 @@ export function TodoProvider({ children }) {
     setFocusTodo,
     clearFocusTodo,
     focusedTodoId,
+    focusRecords,
+    addFocusRecord,
+    clearFocusRecords,
     dispatch,
   };
 
