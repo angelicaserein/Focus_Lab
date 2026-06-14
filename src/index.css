@@ -4,5 +4,6 @@
 @import "./theme.css";
 @import "./styles/global.css";
 @import "./styles/todo.css";
+@import "./styles/scenario.css";
 @import "./styles/sidebar.css";
 @import "./styles/toast.css";

@@ -17,6 +17,9 @@ export default function Sidebar() {
         <Link to="/history" className={`nav-link ${isActive("/history") ? "active" : ""}`}>
           <span className="nav-label">History</span>
         </Link>
+        <Link to="/scenario" className={`nav-link ${isActive("/scenario") ? "active" : ""}`}>
+          <span className="nav-label">Scenario</span>
+        </Link>
       </nav>
     </aside>
   );

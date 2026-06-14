@@ -6,6 +6,7 @@ import ErrorBoundary from "../components/ErrorBoundary";
 const Home = lazy(() => import("../pages/Home"));
 const Focus = lazy(() => import("../pages/Focus"));
 const History = lazy(() => import("../pages/History"));
+const Scenario = lazy(() => import("../pages/Scenario"));
 
 export default function AppRoutes() {
   return (
@@ -18,6 +19,7 @@ export default function AppRoutes() {
               <Route path="/" element={<Home />} />
               <Route path="/focus" element={<Focus />} />
               <Route path="/history" element={<History />} />
+              <Route path="/scenario" element={<Scenario />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

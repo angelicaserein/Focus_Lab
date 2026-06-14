@@ -1,0 +1,154 @@
+/* 情景模式：容器、表单、双行卡片（标题+描述）、统计。
+ * 完全复用 theme.css 既有配色 token 与 todo 的设计语言，不引入新颜色。 */
+
+.scenario-container {
+  width: 100%;
+  max-width: 680px;
+  background: var(--card);
+  border-radius: 24px;
+  padding: 20px 20px 24px;
+  border: 1px solid var(--border-input);
+}
+
+.scenario-form {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.scenario-form-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.scenario-input {
+  width: 100%;
+  padding: 12px 18px;
+  border-radius: 40px;
+  border: 1px solid var(--border-input);
+  font-size: 16px;
+  outline: none;
+  background: transparent;
+  transition:
+    border-color 180ms var(--ease),
+    transform 160ms var(--ease);
+}
+.scenario-input::placeholder {
+  color: var(--text-placeholder);
+}
+.scenario-input:focus {
+  border-color: var(--accent-glow);
+  transform: translateY(-1px);
+}
+
+.scenario-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.scenario-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--card);
+  border: 1px solid var(--border-input);
+  transition:
+    transform 180ms var(--ease),
+    background 180ms var(--ease),
+    border-color 180ms var(--ease),
+    opacity 180ms var(--ease);
+  cursor: pointer;
+  user-select: none;
+}
+.scenario-item:hover {
+  transform: translateY(-2px);
+  background: var(--accent-hover);
+  border-color: var(--accent-border);
+}
+.scenario-item:active {
+  transform: translateY(0);
+}
+.scenario-item.editing {
+  cursor: default;
+  background: var(--card);
+  border-color: var(--accent-glow);
+}
+
+/* 当前选中的情景 — 扁平高亮，无阴影 */
+.scenario-item.selected {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+.scenario-item.selected:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+
+/* 编辑按钮（铅笔）复用 todo 的 .edit-btn 基础样式，这里补充行 hover 显隐 */
+.scenario-item:hover .edit-btn {
+  opacity: 1;
+}
+
+.scenario-item.new {
+  animation: fadeInDown 320ms var(--ease) both;
+}
+.scenario-item.removing {
+  animation: fadeOutLeft 280ms var(--ease) both;
+}
+
+.scenario-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.scenario-title {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--text-body);
+}
+.scenario-desc {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+/* 内联编辑：两行输入 */
+.scenario-edit {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.scenario-edit-input {
+  width: 100%;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--text-body);
+  padding: 4px 8px;
+  border: 1px solid var(--accent-glow);
+  border-radius: 8px;
+  background: var(--card);
+  outline: none;
+  transition: border-color 160ms var(--ease);
+}
+.scenario-edit-input:focus {
+  border-color: var(--accent);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .scenario-container {
+    padding: 14px;
+    border-radius: 16px;
+  }
+}
