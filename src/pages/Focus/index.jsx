@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useTodos } from "../../context/TodoContext";
 import { useFocus } from "../../context/FocusContext";
+import { useReward } from "../../context/RewardContext";
 import useFocusTimer from "../../hooks/useFocusTimer";
 import useFocusChat from "../../hooks/useFocusChat";
 import ImmersiveView from "./ImmersiveView";
@@ -11,6 +12,7 @@ export default function FocusPage() {
   const { todos, toggleTodo, addTodo } = useTodos();
   const { focusedTodoIds, addFocusTodo, removeFocusTodo, clearFocusTodos, addFocusRecord } =
     useFocus();
+  const { addCoins } = useReward();
 
   const selectedTodos = useMemo(
     () => todos.filter((t) => focusedTodoIds.includes(t.id)),
@@ -76,7 +78,11 @@ export default function FocusPage() {
       sessionId,
       outcome,
     });
-    if (outcome === "completed" && !todo.completed) toggleTodo(todo.id);
+    if (outcome === "completed") {
+      if (!todo.completed) toggleTodo(todo.id);
+      // 完成奖励：本次专注秒数即金币数（1 秒 = 1 枚）
+      addCoins(seconds);
+    }
     removeFocusTodo(todo.id);
   };
 

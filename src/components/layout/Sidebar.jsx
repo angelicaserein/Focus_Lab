@@ -20,6 +20,9 @@ export default function Sidebar() {
         <Link to="/scenario" className={`nav-link ${isActive("/scenario") ? "active" : ""}`}>
           <span className="nav-label">Scenario</span>
         </Link>
+        <Link to="/reward" className={`nav-link ${isActive("/reward") ? "active" : ""}`}>
+          <span className="nav-label">Reward</span>
+        </Link>
       </nav>
     </aside>
   );

@@ -1,0 +1,194 @@
+/* ── Reward page layout ── */
+.page-reward {
+  width: min(860px, 100%);
+  margin: 0 auto;
+  padding: 8px 0 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* Header */
+.reward-headline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reward-headline h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 2.2vw, 2.2rem);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--text-heading);
+}
+
+/* ── 资产卡 (hero) ── */
+.reward-asset-card {
+  padding: 32px 28px;
+  border-radius: 24px;
+  background: var(--accent);
+  border: 1.5px solid transparent;
+  box-shadow: 0 8px 28px var(--accent-glow);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reward-asset-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 0.04em;
+}
+
+.reward-asset-value {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  color: var(--card);
+}
+
+.reward-coin-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.reward-coin-num {
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.reward-coin-unit {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.reward-asset-hint {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.5;
+}
+
+/* ── Section ── */
+.reward-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reward-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: 0.01em;
+}
+
+/* ── Shop grid ── */
+.reward-shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.reward-shop-card {
+  position: relative;
+  padding: 22px 20px;
+  border-radius: 24px;
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  box-shadow: 0 2px 12px var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.reward-shop-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--shadow-sm);
+}
+
+.reward-shop-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg);
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+.reward-shop-icon {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.reward-shop-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.reward-shop-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  flex: 1;
+}
+
+.reward-shop-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.reward-shop-price {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.reward-buy-btn {
+  border: none;
+  background: var(--accent);
+  color: var(--card);
+  padding: 8px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.reward-buy-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.reward-buy-btn:disabled {
+  cursor: not-allowed;
+  background: var(--accent-bg);
+  color: var(--text-faint);
+}
+
+.reward-buy-btn.owned:disabled {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .reward-shop-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
