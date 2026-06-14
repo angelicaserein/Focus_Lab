@@ -85,6 +85,7 @@ export function TodoProvider({ children }) {
   const addTodo = (text) => {
     const item = { id: crypto.randomUUID(), text, completed: false, createdAt: Date.now() };
     dispatch({ type: ADD, payload: item });
+    return item;
   };
 
   const toggleTodo = (id) => dispatch({ type: TOGGLE, payload: id });

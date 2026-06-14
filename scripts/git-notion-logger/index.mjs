@@ -103,6 +103,11 @@ const anthropic = new Anthropic({ apiKey: CONFIG.anthropicApiKey });
 const STATE_FILE = join(CONFIG.repoPath, ".git", "focus-notion-state.json");
 // A throwaway git index so we never disturb the user's real staging area.
 const TMP_INDEX = join(tmpdir(), "focus-notion-index");
+// Ref that anchors the baseline tree. Storing only a bare tree SHA (as the
+// first version did) leaves it unreachable, so `git gc` eventually prunes it
+// and the worker gets stuck forever on a "bad object" diff error. Pointing a
+// ref at the tree marks it reachable, so gc never collects it.
+const BASELINE_REF = "refs/focus-notion/baseline";
 
 // ----------------------------------------------------------------------------
 // Git helpers
@@ -148,6 +153,28 @@ function readState() {
 
 function writeState(state) {
   writeFileSync(STATE_FILE, JSON.stringify(state, null, 2), "utf8");
+}
+
+// Point BASELINE_REF at a tree so `git gc` keeps it reachable (never prunes it).
+async function anchorBaseline(tree) {
+  await git(["update-ref", BASELINE_REF, tree]);
+}
+
+// True only if the tree object still exists in the repo.
+async function treeExists(tree) {
+  if (!tree) return false;
+  try {
+    await git(["rev-parse", "--verify", "--quiet", `${tree}^{tree}`]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Persist + anchor the baseline together, so it can never become unreachable.
+async function advanceBaseline(tree) {
+  writeState({ baseTree: tree });
+  await anchorBaseline(tree);
 }
 
 // ----------------------------------------------------------------------------
@@ -322,11 +349,17 @@ async function processChanges() {
   const ts = new Date().toISOString();
   try {
     let state = readState();
-    if (!state) {
-      // First run: baseline against HEAD so the first report covers any work
-      // already in progress.
-      state = { baseTree: await headTree() };
-      writeState(state);
+    if (!state || !(await treeExists(state.baseTree))) {
+      // First run, or the stored baseline tree was garbage-collected (legacy
+      // state stored an unreachable tree). Re-baseline against HEAD so the
+      // first report covers any work already in progress, and anchor it so it
+      // survives the next gc.
+      if (state) {
+        console.log(`[${ts}] stored baseline missing (gc'd) — re-baselining from HEAD.`);
+      }
+      const base = await headTree();
+      await advanceBaseline(base);
+      state = { baseTree: base };
     }
 
     const newTree = await snapshotWorkingTree();
@@ -339,7 +372,7 @@ async function processChanges() {
     if (!diff.trim()) {
       // Tree hash changed but nothing in the watched paths changed
       // (e.g. only excluded dirs). Advance the baseline and skip.
-      writeState({ baseTree: newTree });
+      await advanceBaseline(newTree);
       console.log(`[${ts}] only excluded paths changed — skipping.`);
       return;
     }
@@ -348,7 +381,7 @@ async function processChanges() {
     const entries = await summarizeDiff(diff);
     if (entries.length === 0) {
       console.log(`[${ts}] Claude returned no entries — skipping.`);
-      writeState({ baseTree: newTree });
+      await advanceBaseline(newTree);
       return;
     }
     console.log(`[${ts}] ${entries.length} entry/entries — writing to Notion...`);
@@ -360,7 +393,7 @@ async function processChanges() {
 
     // Only advance the baseline after a fully successful write, so a failed
     // run is retried next tick rather than silently dropped.
-    writeState({ baseTree: newTree });
+    await advanceBaseline(newTree);
   } catch (err) {
     console.error(`[${ts}] error:`, err.message || err);
   }

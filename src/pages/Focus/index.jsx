@@ -2,15 +2,15 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useTodos } from "../../context/TodoContext";
 import { useFocus } from "../../context/FocusContext";
 import useFocusTimer from "../../hooks/useFocusTimer";
+import useFocusChat from "../../hooks/useFocusChat";
 import ImmersiveView from "./ImmersiveView";
 import FocusConsole from "./FocusConsole";
 import "./Focus.css";
 
-const MAX_SECS = 25 * 60;
-
 export default function FocusPage() {
-  const { todos, toggleTodo } = useTodos();
-  const { focusedTodoIds, removeFocusTodo, clearFocusTodos, addFocusRecord } = useFocus();
+  const { todos, toggleTodo, addTodo } = useTodos();
+  const { focusedTodoIds, addFocusTodo, removeFocusTodo, clearFocusTodos, addFocusRecord } =
+    useFocus();
 
   const selectedTodos = useMemo(
     () => todos.filter((t) => focusedTodoIds.includes(t.id)),
@@ -18,8 +18,29 @@ export default function FocusPage() {
   );
   const hasSelection = selectedTodos.length > 0;
 
+  // 沉浸页可挑进来的候选任务：尚未在本次专注、且未完成
+  const availableTodos = useMemo(
+    () => todos.filter((t) => !focusedTodoIds.includes(t.id) && !t.completed),
+    [todos, focusedTodoIds],
+  );
+
+  // 沉浸页任务编辑：加入已有 / 新建并加入 / 用另一个替换
+  const addToFocus = (id) => addFocusTodo(id);
+  const createAndFocus = (text) => {
+    const t = text.trim();
+    if (!t) return;
+    const item = addTodo(t);
+    if (item) addFocusTodo(item.id);
+  };
+  const replaceFocus = (oldId, newId) => {
+    // 纯交换：移出旧的、加入新的。两次 setState 同批提交，集合不会瞬空触发退出
+    removeFocusTodo(oldId);
+    addFocusTodo(newId);
+  };
+
   const { seconds, isRunning, start, togglePause, resetTimer, clearSession, getSession } =
     useFocusTimer();
+  const { messages, sending, sendUserMessage, clearChat } = useFocusChat();
   const [isImmersive, setIsImmersive] = useState(false);
 
   // 调试 / 视图微调状态（仅开发环境用到调试面板）
@@ -67,9 +88,6 @@ export default function FocusPage() {
     clearFocusTodos();
   };
 
-  const progress = Math.min(seconds / MAX_SECS, 1);
-  const displayProgress = debugMode ? debugProgress : progress;
-
   return (
     <>
       {isImmersive && (
@@ -77,10 +95,13 @@ export default function FocusPage() {
           isRunning={isRunning}
           seconds={seconds}
           selectedTodos={selectedTodos}
-          displayProgress={displayProgress}
+          availableTodos={availableTodos}
           cardVisible={cardVisible}
           animEnabled={animEnabled}
           onSettle={settleTask}
+          onAddFocus={addToFocus}
+          onCreateFocus={createAndFocus}
+          onReplaceFocus={replaceFocus}
           onTogglePause={togglePause}
           onReset={resetTimer}
           onStop={handleStop}
@@ -90,6 +111,9 @@ export default function FocusPage() {
           setDebugProgress={setDebugProgress}
           setCardVisible={setCardVisible}
           setAnimEnabled={setAnimEnabled}
+          chatMessages={messages}
+          chatSending={sending}
+          onChatSend={sendUserMessage}
         />
       )}
 
@@ -101,6 +125,8 @@ export default function FocusPage() {
         onReset={resetTimer}
         onStop={handleStop}
         onRemoveFocus={removeFocusTodo}
+        chatMessages={messages}
+        onChatClear={clearChat}
       />
     </>
   );

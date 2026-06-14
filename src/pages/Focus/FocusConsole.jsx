@@ -1,5 +1,6 @@
 import React from "react";
 import TodoApp from "../../components/TodoApp";
+import ChatHistory from "./ChatHistory";
 
 // 普通（非沉浸）视图：上方计时控制台（已选任务 chips + 开始/重置），下方任务管理。
 export default function FocusConsole({
@@ -10,10 +11,15 @@ export default function FocusConsole({
   onReset,
   onStop,
   onRemoveFocus,
+  chatMessages,
+  onChatClear,
 }) {
   return (
     <div className="page-focus">
       <div className="focus-shell">
+        <div className="focus-main">
+          {/* Left column: timer console + AI chat */}
+          <div className="focus-col-left">
         {/* Top: timer console */}
         <div className="focus-card">
           <div className="focus-card-header">
@@ -50,7 +56,7 @@ export default function FocusConsole({
             </div>
           ) : (
             <div className="focus-task-placeholder">
-              请从下方任务列表勾选要一起专注的任务（可多选）
+              从任务列表勾选要一起专注的任务（可多选）
             </div>
           )}
 
@@ -74,9 +80,14 @@ export default function FocusConsole({
           </div>
         </div>
 
-        {/* Bottom: task management (add / filter / edit / delete) */}
-        <div className="focus-todos">
-          <TodoApp />
+            {/* AI 陪伴聊天记录 */}
+            <ChatHistory messages={chatMessages} onClear={onChatClear} />
+          </div>
+
+          {/* Right column: task management (add / filter / edit / delete) */}
+          <div className="focus-col-right">
+            <TodoApp />
+          </div>
         </div>
       </div>
     </div>

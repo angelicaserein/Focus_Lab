@@ -8,6 +8,20 @@ export const OUTCOME_META = {
   ended: { label: "结束", cls: "ended" },
 };
 
+// 一次会话的真实墙钟时长 = 该会话内各任务记录中最大的 durationSecs。
+// 计时器在一次会话内单调累计，最后结算的任务即代表整段时长；
+// 多任务并行不应把各自时长叠加（否则 40s 两任务会变 80s）。
+export function totalFocusSecs(records) {
+  const bySession = new Map(); // sessionId（无则用记录自身 id）-> 会话墙钟秒数
+  for (const r of records) {
+    const key = r.sessionId ?? r.id;
+    bySession.set(key, Math.max(bySession.get(key) ?? 0, r.durationSecs));
+  }
+  let total = 0;
+  for (const secs of bySession.values()) total += secs;
+  return total;
+}
+
 // 按自然日分组，返回 [dayLabel, records][]
 export function groupByDay(records) {
   const groups = {};
@@ -36,7 +50,8 @@ export function groupBySession(records) {
     }
     const session = byId.get(key);
     session.records.push(r);
-    session.totalSecs += r.durationSecs;
+    // 会话墙钟时长取最大值，避免多任务并行重复累加
+    session.totalSecs = Math.max(session.totalSecs, r.durationSecs);
     session.startedAt = Math.min(session.startedAt, r.startedAt);
   }
   return sessions;
@@ -52,9 +67,9 @@ export function last7DaysData(records) {
     const nextD = new Date(d);
     nextD.setDate(nextD.getDate() + 1);
     const label = i === 0 ? "今天" : `${d.getMonth() + 1}/${d.getDate()}`;
-    const totalSecs = records
-      .filter((r) => r.startedAt >= d.getTime() && r.startedAt < nextD.getTime())
-      .reduce((sum, r) => sum + r.durationSecs, 0);
+    const totalSecs = totalFocusSecs(
+      records.filter((r) => r.startedAt >= d.getTime() && r.startedAt < nextD.getTime()),
+    );
     days.push({ label, totalSecs });
   }
   return days;
@@ -62,19 +77,21 @@ export function last7DaysData(records) {
 
 // 汇总 History 顶部所有统计指标，组件侧只需一个 useMemo 调用本函数。
 export function computeFocusStats(records) {
-  const totalSecs = records.reduce((s, r) => s + r.durationSecs, 0);
+  // 累计/今日时长按会话墙钟去重（多任务并行不叠加）
+  const totalSecs = totalFocusSecs(records);
 
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
-  const todaySecs = records
-    .filter((r) => r.startedAt >= todayStart.getTime())
-    .reduce((s, r) => s + r.durationSecs, 0);
+  const todaySecs = totalFocusSecs(
+    records.filter((r) => r.startedAt >= todayStart.getTime()),
+  );
 
   // 一次会话算一次专注（多任务共用一个 sessionId）；旧记录无 sessionId 各算一次
   const sessionCount = new Set(records.map((r) => r.sessionId ?? r.id)).size;
 
   const longestSecs = records.reduce((max, r) => Math.max(max, r.durationSecs), 0);
-  const avgSecs = records.length > 0 ? Math.round(totalSecs / records.length) : 0;
+  // 平均按会话数为分母，口径与 totalSecs 一致（每次会话的平均墙钟时长）
+  const avgSecs = sessionCount > 0 ? Math.round(totalSecs / sessionCount) : 0;
 
   const breakdownMap = {};
   for (const r of records) {
