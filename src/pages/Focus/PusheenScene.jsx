@@ -51,8 +51,7 @@ function PusheenModel({ animEnabled }) {
   const { scene, animations } = useGLTF(pusheenGlb);
   // useGLTF returns a shared, cached scene that the animation mixer mutates in
   // place. Clone it per-mount so each entry into the immersive view starts from
-  // a fresh, un-posed copy — otherwise <Center> re-measures a leftover pose and
-  // the model appears shifted on re-entry.
+  // a fresh copy and the model doesn't drift between sessions.
   const clonedScene = useMemo(() => cloneSkeleton(scene), [scene]);
 
   // Measure the ORIGINAL scene, not the clone: useGLTF's scene is already in its
@@ -93,20 +92,23 @@ function PusheenModel({ animEnabled }) {
   );
 }
 
-// Lifts the framing so the model sits in the upper-center of the screen, using a
-// camera view offset (lens shift). Unlike moving the model, this does not touch
-// the orbit pivot, so the model still rotates around its own center.
-function CameraRig({ verticalShift = 0.16 }) {
+// Frames the model on screen using a camera view offset (lens shift). Unlike
+// moving the model, this does not touch the orbit pivot, so the model still
+// rotates around its own center.
+//   verticalShift   > 0 → model moves up
+//   horizontalShift > 0 → model moves right
+function CameraRig({ verticalShift = 0.16, horizontalShift = 0 }) {
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
 
   useEffect(() => {
-    // Positive offsetY shifts the frustum down, so the centered model renders
-    // higher on screen. width/height stay full → this is a pure lens shift.
+    // setViewOffset shifts the frustum window; the centered model then renders
+    // in the opposite direction, so we negate to make the props read naturally.
+    // width/height stay full → this is a pure lens shift (no distortion).
     camera.setViewOffset(
       size.width,
       size.height,
-      0,
+      -size.width * horizontalShift,
       size.height * verticalShift,
       size.width,
       size.height,
@@ -116,7 +118,7 @@ function CameraRig({ verticalShift = 0.16 }) {
       camera.clearViewOffset();
       camera.updateProjectionMatrix();
     };
-  }, [camera, size.width, size.height, verticalShift]);
+  }, [camera, size.width, size.height, verticalShift, horizontalShift]);
 
   return null;
 }
@@ -126,15 +128,19 @@ export default function PusheenScene({ animEnabled }) {
   return (
     <ErrorBoundary fallback={webglFallback}>
       <Canvas
-        camera={{ position: [0, 0, 6], fov: 45 }}
+        camera={{ position: [1, 1, 6], fov: 45 }} //-2.5, 0, 5.5分别表示相机在x、y、z轴上的位置，fov表示相机的视野角度
         gl={{ alpha: true }}
         style={{ background: "transparent" }}
       >
         <ambientLight intensity={1.5} />
         <directionalLight position={[5, 8, 5]} intensity={2} />
-        <directionalLight position={[-5, 3, -3]} intensity={0.8} color="#d5c0d0" />
+        <directionalLight
+          position={[-5, 3, -3]}
+          intensity={0.8}
+          color="#d5c0d0"
+        />
         <pointLight position={[0, 4, 2]} intensity={1} color="#e0cedd" />
-        <CameraRig verticalShift={0.16} />
+        <CameraRig verticalShift={0.16} horizontalShift={0.18} />
         <Suspense fallback={null}>
           <PusheenModel animEnabled={animEnabled} />
         </Suspense>

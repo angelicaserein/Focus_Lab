@@ -437,18 +437,18 @@
 }
 
 .hist-outcome-badge.completed {
-  color: #0f9d6b;
-  background: rgba(52, 211, 153, 0.16);
+  color: var(--accent);
+  background: var(--accent-bg);
 }
 
 .hist-outcome-badge.removed {
-  color: #b0833a;
-  background: rgba(217, 164, 65, 0.16);
+  color: var(--accent-mid);
+  background: var(--accent-bg-dim);
 }
 
 .hist-outcome-badge.ended {
   color: var(--text-faint);
-  background: rgba(125, 125, 125, 0.14);
+  background: var(--accent-hover);
 }
 
 /* ── Responsive ── */
