@@ -1,0 +1,71 @@
+/* 全局：派生变量、reset、根布局，以及无障碍的减少动效。 */
+
+:root {
+  --muted: var(--accent-deep);
+  --glass: var(--accent-bg);
+  /* 统一的丝滑缓动曲线 */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial;
+  background: var(--bg);
+  color: var(--text-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 28px;
+  padding-top: 44px;
+  padding-left: 268px;
+}
+
+/* ── 无障碍：尊重系统"减少动态效果" ── */
+@media (prefers-reduced-motion: reduce) {
+  .todo-item,
+  .todo-item:hover,
+  .todo-item.new,
+  .todo-item.removing,
+  .todo-item.selected,
+  .todo-input,
+  .add-btn,
+  .custom-checkbox,
+  .delete-btn,
+  .edit-btn,
+  .todo-edit-input,
+  .toast,
+  .toast-undo,
+  .filter-tabs .tab,
+  .nav-link {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}

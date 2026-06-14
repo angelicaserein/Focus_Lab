@@ -1,17 +1,18 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
+import { FocusProvider } from "./context/FocusContext";
 import { TodoProvider } from "./context/TodoContext";
-import { ExtensionProvider } from "./context/ExtensionContext";
 import "./index.css";
 
+// FocusProvider 在外层：它只持有专注选择的 id 集合与记录，
+// 不依赖 todos，因此 TodoProvider 可作为子级反向联动（删除/撤销）。
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    {/* ExtensionProvider 为未来扩展留壳 */}
-    <ExtensionProvider>
+    <FocusProvider>
       <TodoProvider>
         <App />
       </TodoProvider>
-    </ExtensionProvider>
+    </FocusProvider>
   </React.StrictMode>,
 );

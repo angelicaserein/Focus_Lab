@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useTodos } from "../context/TodoContext";
+import { useFocus } from "../context/FocusContext";
 
 export default function TodoItem({ todo }) {
-  const { toggleTodo, deleteTodo, editTodo, focusedTodoIds, toggleFocusTodo } = useTodos();
+  const { toggleTodo, deleteTodo, editTodo } = useTodos();
+  const { focusedTodoIds, toggleFocusTodo } = useFocus();
   const [removing, setRemoving] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(todo.text);

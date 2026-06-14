@@ -1,9 +1,9 @@
 import React, { useReducer, useEffect, useContext } from "react";
-import useLocalStorage from "../hooks/useLocalStorage";
+import { useFocus } from "./FocusContext";
 
 const STORAGE_KEY = "todos_v1";
-const RECORDS_KEY = "focus_records_v1";
 const CURRENT_VERSION = 1;
+const UNDO_WINDOW_MS = 5000;
 
 function loadTodos() {
   try {
@@ -65,17 +65,14 @@ function reducer(state, action) {
 const TodoContext = React.createContext(null);
 
 export function TodoProvider({ children }) {
-  const [focusRecords, setFocusRecords] = useLocalStorage(RECORDS_KEY, []);
+  // 专注选择由外层 FocusProvider 提供；删除/撤销时与之联动
+  const { focusedTodoIds, removeFocusTodo, addFocusTodo } = useFocus();
 
   const [todos, dispatch] = useReducer(reducer, null, loadTodos);
-  // 一次专注可同时选中多件任务（共用一个会话计时器）
-  const [focusedTodoIds, setFocusedTodoIds] = React.useState([]);
 
   // 可撤销删除：暂存最近一次被删的项，供 toast 撤销
   const [pendingDelete, setPendingDelete] = React.useState(null);
   const undoTimerRef = React.useRef(null);
-
-  const UNDO_WINDOW_MS = 5000;
 
   useEffect(() => {
     localStorage.setItem(
@@ -105,7 +102,7 @@ export function TodoProvider({ children }) {
     const wasFocused = focusedTodoIds.includes(id);
 
     dispatch({ type: DELETE, payload: id });
-    if (wasFocused) setFocusedTodoIds((prev) => prev.filter((x) => x !== id));
+    if (wasFocused) removeFocusTodo(id);
 
     // 暂存供撤销；若已有待撤销项则直接被新项替换（旧的落定）
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
@@ -124,46 +121,9 @@ export function TodoProvider({ children }) {
     }
     const { item, index, wasFocused } = pendingDelete;
     dispatch({ type: RESTORE, payload: { item, index } });
-    if (wasFocused)
-      setFocusedTodoIds((prev) =>
-        prev.includes(item.id) ? prev : [...prev, item.id],
-      );
+    if (wasFocused) addFocusTodo(item.id);
     setPendingDelete(null);
   };
-
-  // 加入/移出本次专注集合（供整行点击切换）
-  const toggleFocusTodo = (id) =>
-    setFocusedTodoIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
-  // 仅移出（供 chip 的 × 与沉浸页移除）
-  const removeFocusTodo = (id) =>
-    setFocusedTodoIds((prev) => prev.filter((x) => x !== id));
-  const clearFocusTodos = () => setFocusedTodoIds([]);
-
-  const addFocusRecord = ({
-    taskId,
-    taskText,
-    durationSecs,
-    startedAt,
-    sessionId,
-    outcome,
-  }) => {
-    if (durationSecs < 10) return;
-    const record = {
-      id: crypto.randomUUID(),
-      taskId,
-      taskText,
-      durationSecs,
-      startedAt,
-      endedAt: Date.now(),
-      sessionId,
-      outcome,
-    };
-    setFocusRecords((prev) => [record, ...prev]);
-  };
-
-  const clearFocusRecords = () => setFocusRecords([]);
 
   const value = {
     todos,
@@ -173,13 +133,6 @@ export function TodoProvider({ children }) {
     deleteTodo,
     pendingDelete,
     undoDelete,
-    toggleFocusTodo,
-    removeFocusTodo,
-    clearFocusTodos,
-    focusedTodoIds,
-    focusRecords,
-    addFocusRecord,
-    clearFocusRecords,
     dispatch,
   };
 
