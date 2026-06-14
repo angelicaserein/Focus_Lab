@@ -347,6 +347,110 @@
   padding-left: 16px;
 }
 
+/* ── 一次专注会话（可能含多任务）归组卡 ── */
+.hist-session-card {
+  padding: 16px 20px;
+  border-radius: 18px;
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  box-shadow: 0 1px 6px var(--shadow-xs);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.hist-session-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--shadow-sm);
+}
+
+.hist-session-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border-card);
+}
+
+.hist-session-time {
+  font-size: 0.8rem;
+  color: var(--text-faint);
+}
+
+.hist-session-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg, rgba(0, 0, 0, 0.04));
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.hist-session-total {
+  margin-left: auto;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.hist-session-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hist-session-task {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hist-session-task-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+.hist-session-task-dur {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 单任务结果徽章 */
+.hist-outcome-badge {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+  line-height: 1.5;
+}
+
+.hist-outcome-badge.completed {
+  color: #0f9d6b;
+  background: rgba(52, 211, 153, 0.16);
+}
+
+.hist-outcome-badge.removed {
+  color: #b0833a;
+  background: rgba(217, 164, 65, 0.16);
+}
+
+.hist-outcome-badge.ended {
+  color: var(--text-faint);
+  background: rgba(125, 125, 125, 0.14);
+}
+
 /* ── Responsive ── */
 @media (max-width: 640px) {
   .hist-stats {

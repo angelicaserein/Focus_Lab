@@ -33,10 +33,10 @@ Requires Node 18+ (uses the built-in `fetch`).
 
 Create a database with three properties whose **names and types** match:
 
-| Property      | Type | Purpose                         |
-| ------------- | ---- | ------------------------------- |
-| `Name`        | Title | English verb phrase            |
-| `中文`        | Text (rich_text) | One concise Chinese line |
+| Property      | Type             | Purpose                      |
+| ------------- | ---------------- | ---------------------------- |
+| `Name`        | Title            | English verb phrase          |
+| `中文`        | Text (rich_text) | One concise Chinese line     |
 | `description` | Text (rich_text) | Detailed Chinese explanation |
 
 Share the database with your Notion integration (••• → Connections → your

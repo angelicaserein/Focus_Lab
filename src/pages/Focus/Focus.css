@@ -8,111 +8,24 @@
 }
 
 .focus-shell {
-  width: min(1160px, 100%);
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 32px;
-  align-items: start;
-}
-
-/* ── Left: task picker ── */
-.focus-left {
+  width: min(680px, 100%);
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-.focus-headline {
+.focus-todos {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  justify-content: center;
 }
 
-
-.focus-headline h1 {
-  margin: 0;
-  font-size: clamp(1.6rem, 2.2vw, 2.2rem);
-  font-weight: 800;
-  line-height: 1.15;
-  color: var(--text-heading);
-}
-
-.focus-headline p {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  line-height: 1.65;
-  max-width: 36rem;
-}
-
-/* Task cards grid */
-.task-selector {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 14px;
-}
-
-.task-pill {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  padding: 18px 18px 14px;
-  border-radius: 20px;
-  border: 1.5px solid var(--border-pill);
-  background: #ffffff;
-  color: var(--text-heading);
-  cursor: pointer;
-  text-align: left;
-  transition: transform 180ms ease, border-color 180ms ease;
-}
-
-.task-pill:hover {
-  transform: translateY(-3px);
-  border-color: var(--accent-glow);
-}
-
-.task-pill.selected {
-  background: var(--accent);
-  border-color: transparent;
-  color: #fff;
-}
-
-.task-pill-title {
-  font-size: 0.97rem;
-  font-weight: 600;
-  line-height: 1.45;
-}
-
-.task-pill-meta {
-  font-size: 0.8rem;
-  opacity: 0.6;
-}
-
-.task-pill.selected .task-pill-meta {
-  opacity: 0.75;
-  color: var(--on-accent-light);
-}
-
-.empty-state-card {
-  grid-column: 1 / -1;
-  padding: 28px 20px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.8);
-  color: var(--text-muted);
-  border: 1.5px dashed var(--border-dashed);
-  font-size: 0.95rem;
-  text-align: center;
-}
-
-/* ── Right: timer console ── */
-.focus-right {
-  position: sticky;
-  top: 24px;
-}
-
+/* ── Timer console (flat card, no shadow) ── */
 .focus-card {
-  padding: 32px 28px;
+  background: var(--card);
+  border: 1px solid var(--border-input);
+  border-radius: 24px;
+  padding: 28px 28px 26px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -167,6 +80,75 @@
   color: var(--text-faint);
   min-height: 56px;
   line-height: 1.6;
+}
+
+/* 已选任务计数徽章 */
+.focus-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  margin-left: 8px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+/* 已选任务 chip 列表（普通视图） */
+.focus-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 56px;
+  align-content: flex-start;
+}
+
+.focus-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 7px 8px 7px 12px;
+  border-radius: 14px;
+  background: var(--accent-bg);
+  border: 1.5px solid var(--border-accent);
+  color: var(--text-heading);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.focus-chip-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.focus-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--accent-mid);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.focus-chip-remove:hover {
+  background: var(--accent);
+  color: #fff;
 }
 
 
@@ -279,6 +261,10 @@
 }
 
 .immersive-eyebrow {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 360px;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.2em;
@@ -312,6 +298,87 @@
   line-height: 1.4;
   color: #f7f0f5;
   max-width: 360px;
+}
+
+/* 已运行时长读数 */
+.immersive-time {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+  color: #f7f0f5;
+}
+
+/* 沉浸页任务清单（可勾选完成 / 移除） */
+.immersive-task-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 360px;
+  max-height: 38vh;
+  overflow-y: auto;
+}
+
+.immersive-task-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.immersive-task-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f7f0f5;
+  text-align: left;
+}
+
+.immersive-task-check,
+.immersive-task-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.immersive-task-check {
+  border: 1.5px solid rgba(52, 211, 153, 0.6);
+  background: transparent;
+  color: #34d399;
+}
+
+.immersive-task-check:hover {
+  background: #34d399;
+  color: #fff;
+}
+
+.immersive-task-remove {
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.immersive-task-remove:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
 }
 
 
@@ -489,23 +556,9 @@
 }
 
 /* ── Responsive ── */
-@media (max-width: 900px) {
-  .focus-shell {
-    grid-template-columns: 1fr;
-  }
-
-  .focus-right {
-    position: static;
-  }
-}
-
 @media (max-width: 600px) {
   .page-focus {
     padding: 20px 16px;
-  }
-
-  .task-selector {
-    grid-template-columns: 1fr;
   }
 
   .focus-card {

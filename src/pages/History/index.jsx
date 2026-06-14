@@ -51,6 +51,31 @@ function groupByDay(records) {
   return Object.entries(groups);
 }
 
+// 把一天内的记录按 sessionId 归成「一次专注」；旧记录无 sessionId 时各自独立成组
+function groupBySession(records) {
+  const sessions = [];
+  const byId = new Map();
+  for (const r of records) {
+    const key = r.sessionId ?? r.id;
+    if (!byId.has(key)) {
+      const session = { key, records: [], startedAt: r.startedAt, totalSecs: 0 };
+      byId.set(key, session);
+      sessions.push(session);
+    }
+    const session = byId.get(key);
+    session.records.push(r);
+    session.totalSecs += r.durationSecs;
+    session.startedAt = Math.min(session.startedAt, r.startedAt);
+  }
+  return sessions;
+}
+
+const OUTCOME_META = {
+  completed: { label: "完成", cls: "completed" },
+  removed: { label: "移除", cls: "removed" },
+  ended: { label: "结束", cls: "ended" },
+};
+
 function last7DaysData(records) {
   const days = [];
   for (let i = 6; i >= 0; i--) {
@@ -90,6 +115,12 @@ export default function HistoryPage() {
     return focusRecords
       .filter((r) => r.startedAt >= now.getTime())
       .reduce((s, r) => s + r.durationSecs, 0);
+  }, [focusRecords]);
+
+  // 一次会话算一次专注（多任务共用一个 sessionId）；旧记录无 sessionId 各算一次
+  const sessionCount = useMemo(() => {
+    const ids = new Set(focusRecords.map((r) => r.sessionId ?? r.id));
+    return ids.size;
   }, [focusRecords]);
 
   const longestSecs = useMemo(
@@ -139,7 +170,7 @@ export default function HistoryPage() {
       {/* Stats cards — row 1 */}
       <div className="hist-stats">
         <div className="hist-stat-card">
-          <div className="hist-stat-value">{focusRecords.length}</div>
+          <div className="hist-stat-value">{sessionCount}</div>
           <div className="hist-stat-label">累计专注次数</div>
         </div>
         <div className="hist-stat-card accent">
@@ -238,15 +269,61 @@ export default function HistoryPage() {
             <div key={day} className="hist-day-group">
               <div className="hist-day-label">{day}</div>
               <div className="hist-records">
-                {records.map((r) => (
-                  <div key={r.id} className="hist-record-card">
-                    <div className="hist-record-left">
-                      <div className="hist-record-task">{r.taskText}</div>
-                      <div className="hist-record-time">{fmtDate(r.startedAt)}</div>
+                {groupBySession(records).map((session) =>
+                  session.records.length === 1 && !session.records[0].outcome ? (
+                    // 单任务且无结果（旧记录）：保持原来的紧凑卡
+                    <div key={session.key} className="hist-record-card">
+                      <div className="hist-record-left">
+                        <div className="hist-record-task">
+                          {session.records[0].taskText}
+                        </div>
+                        <div className="hist-record-time">
+                          {fmtDate(session.records[0].startedAt)}
+                        </div>
+                      </div>
+                      <div className="hist-record-duration">
+                        {fmtDuration(session.records[0].durationSecs)}
+                      </div>
                     </div>
-                    <div className="hist-record-duration">{fmtDuration(r.durationSecs)}</div>
-                  </div>
-                ))}
+                  ) : (
+                    // 一次专注（可能多任务）：归组卡，逐任务列结果徽章
+                    <div key={session.key} className="hist-session-card">
+                      <div className="hist-session-head">
+                        <span className="hist-session-time">
+                          {fmtDate(session.startedAt)}
+                        </span>
+                        {session.records.length > 1 && (
+                          <span className="hist-session-count">
+                            {session.records.length} 个任务
+                          </span>
+                        )}
+                        <span className="hist-session-total">
+                          {fmtDuration(session.totalSecs)}
+                        </span>
+                      </div>
+                      <div className="hist-session-tasks">
+                        {session.records.map((r) => {
+                          const meta = OUTCOME_META[r.outcome];
+                          return (
+                            <div key={r.id} className="hist-session-task">
+                              {meta && (
+                                <span className={`hist-outcome-badge ${meta.cls}`}>
+                                  {meta.label}
+                                </span>
+                              )}
+                              <span className="hist-session-task-name">
+                                {r.taskText}
+                              </span>
+                              <span className="hist-session-task-dur">
+                                {fmtDuration(r.durationSecs)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )
+                )}
               </div>
             </div>
           ))

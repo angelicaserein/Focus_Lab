@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import TodoForm from "./TodoForm";
 import TodoList from "./TodoList";
 import TodoStats from "./TodoStats";
+import Toast from "./Toast";
 
 export default function TodoApp() {
   const [filter, setFilter] = useState("ALL");
@@ -44,6 +45,8 @@ export default function TodoApp() {
       <TodoList filter={filter} />
 
       <TodoStats />
+
+      <Toast />
     </main>
   );
 }

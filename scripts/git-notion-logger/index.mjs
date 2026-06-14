@@ -79,6 +79,7 @@ const CONFIG = {
     name: process.env.NOTION_PROP_NAME || "Name", // title property
     chinese: process.env.NOTION_PROP_CHINESE || "中文", // rich_text
     description: process.env.NOTION_PROP_DESCRIPTION || "description", // rich_text
+    done: process.env.NOTION_PROP_DONE || "Tickbox", // checkbox (auto-checked)
   },
 };
 
@@ -167,19 +168,23 @@ async function summarizeDiff(diffText) {
       Name: {
         type: "string",
         description:
-          "One high-level English verb phrase naming this theme, e.g. " +
-          "'Improve todo list UX'. A single feature-level summary.",
+          "A short English title. For FEATURE work, keep it coarse/high-level, " +
+          "e.g. 'Improve todo list UX'. For BUG FIXES, name the specific bug " +
+          "fixed, e.g. 'Fix todo list not rendering'.",
       },
       中文: {
         type: "string",
-        description: "一句精炼中文，概括这个主题。",
+        description:
+          "一句话概括这次做了什么。功能类写大主题（如「优化待办列表的用户体验」）；" +
+          "bug 类写清修了什么 bug（如「修复待办列表无法渲染的问题」）。",
       },
       description: {
         type: "string",
         description:
-          "一个中文编号列表，列出该主题下的具体功能点（用户/产品层面），" +
-          "例如：1.增加编辑和可撤销删除 2.优化动画过渡。" +
-          "只写做了什么功能，不要提任何文件名、函数名、代码或实现细节。",
+          "功能类：一句简短的中文概括，只点出大致加了/改了什么，例如" +
+          "「加了行内编辑、可撤销删除，统一了动画过渡」，不要逐条罗列细节行为。" +
+          "bug 类：可以具体一点，说明问题是什么、怎么修的（产品/行为层面）。" +
+          "两类都不要提文件名、函数名、代码或实现方式。",
       },
     },
     required: ["Name", "中文", "description"],
@@ -192,9 +197,11 @@ async function summarizeDiff(diffText) {
       entries: {
         type: "array",
         description:
-          "One element per independent theme of work. If everything is part " +
-          "of one feature, return a single element; if the diff covers several " +
-          "unrelated features, return one element each.",
+          "Prefer a SINGLE element covering the whole session under one " +
+          "umbrella theme. Only return multiple elements if the work spans " +
+          "clearly UNRELATED areas (e.g. a feature in one place plus an " +
+          "unrelated bug fix elsewhere). Never split sub-features of the same " +
+          "area into separate elements.",
         items: entrySchema,
       },
     },
@@ -203,22 +210,23 @@ async function summarizeDiff(diffText) {
 
   const response = await anthropic.messages.create({
     model: CONFIG.model,
-    max_tokens: 2048,
+    max_tokens: 1024,
     system:
-      "You are a product-level work journal assistant. You receive a git diff " +
-      "spanning a session of work and turn it into journal entries at the " +
-      "feature/UX level — what the developer accomplished for the user, not how " +
-      "they coded it.\n" +
+      "You are a work journal assistant. You receive a git diff spanning a " +
+      "session of work and turn it into a COARSE, high-level journal entry — " +
+      "the headline of what the developer accomplished, not a detailed spec.\n" +
       "Rules:\n" +
-      "- Split the work into independent themes: one `entries` element per " +
-      "distinct feature. Related sub-points belong under ONE entry's " +
-      "description; genuinely separate features each get their own entry. " +
-      "Don't over-split, and don't cram unrelated work into one entry.\n" +
-      "- In each `description`, list that theme's concrete feature points as a " +
-      "Chinese numbered list (1. 2. 3. ...).\n" +
-      "- NEVER mention file names, function names, variables, code snippets, " +
-      "refactors, or implementation details. Describe user-facing / behavioral " +
-      "changes only.\n" +
+      "- Strongly prefer ONE entry that sums up the whole session under a " +
+      "single umbrella theme (e.g. 'Improve todo list UX'). Only produce more " +
+      "than one entry when the diff covers clearly unrelated areas. NEVER split " +
+      "the sub-features of one area into separate entries.\n" +
+      "- FEATURE work: keep `description` to ONE short sentence naming roughly " +
+      "what was added/changed; do NOT enumerate detailed behaviors or edge " +
+      "cases. BUG FIXES: the title must name the specific bug, and the " +
+      "`description` may be more specific about what was wrong and how it was " +
+      "fixed (still product/behavior level, no code).\n" +
+      "- NEVER mention file names, function names, variables, code, or " +
+      "implementation details. User-facing / high-level only.\n" +
       "- Be accurate; do not invent changes that aren't in the diff.",
     output_config: { format: { type: "json_schema", schema } },
     messages: [
@@ -257,6 +265,7 @@ async function createNotionPage({ Name, 中文, description }) {
     [CONFIG.props.name]: { title: richText(Name) },
     [CONFIG.props.chinese]: { rich_text: richText(中文) },
     [CONFIG.props.description]: { rich_text: richText(description) },
+    [CONFIG.props.done]: { checkbox: true }, // mark as done
   };
 
   const res = await fetch("https://api.notion.com/v1/pages", {
