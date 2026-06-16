@@ -63,10 +63,31 @@ export function TodoProvider({ children }) {
     );
   }, [todos]);
 
-  const addTodo = (text) => {
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const needsReset = todos.some(t => t.recurring && t.lastResetDate !== today);
+    if (!needsReset) return;
+    dispatch({
+      type: SET,
+      payload: todos.map(t =>
+        t.recurring && t.lastResetDate !== today
+          ? { ...t, completed: false, lastResetDate: today }
+          : t
+      ),
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const addTodo = (text, { recurring = false } = {}) => {
     const t = text.trim();
     if (!t) return;
-    const item = { id: crypto.randomUUID(), text: t, completed: false, createdAt: Date.now() };
+    const today = new Date().toISOString().split('T')[0];
+    const item = {
+      id: crypto.randomUUID(),
+      text: t,
+      completed: false,
+      createdAt: Date.now(),
+      ...(recurring && { recurring: true, lastResetDate: today }),
+    };
     dispatch({ type: ADD, payload: item });
     return item;
   };

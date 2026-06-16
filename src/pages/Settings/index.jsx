@@ -1,6 +1,8 @@
 import React, { useRef, useState } from "react";
 import { useReward, SHOP_ITEMS } from "../../context/RewardContext";
+import { useTodos } from "../../context/TodoContext";
 import { exportAllData, importAllData, KEY_MAP } from "../../utils/storage";
+import usePrefs from "../../hooks/usePrefs";
 import "./Settings.css";
 
 const THEME_OPTIONS = [
@@ -38,6 +40,9 @@ function getStorageInfo() {
 
 export default function SettingsPage() {
   const { isOwned, activeTheme, setTheme } = useReward();
+  const { todos, deleteTodo } = useTodos();
+  const { pomodoroMins, setPomodoroMins, animEnabled, setAnimEnabled } = usePrefs();
+  const recurringTodos = todos.filter(t => t.recurring);
   const fileInputRef = useRef(null);
   const [importMsg, setImportMsg] = useState(null);
   const [confirmClearHistory, setConfirmClearHistory] = useState(false);
@@ -126,6 +131,66 @@ export default function SettingsPage() {
             );
           })}
         </div>
+      </div>
+
+      <div className="settings-section">
+        <div className="settings-section-title">专注偏好</div>
+        <p className="settings-section-hint">更改即时生效，下次进入沉浸模式时应用。</p>
+
+        <div className="settings-pref-row">
+          <span className="settings-pref-label">番茄时长（分钟）</span>
+          <div className="settings-pill-group">
+            {[15, 20, 25, 30, 45, 60].map((mins) => (
+              <button
+                key={mins}
+                className={`settings-pill${pomodoroMins === mins ? " active" : ""}`}
+                onClick={() => setPomodoroMins(mins)}
+                aria-pressed={pomodoroMins === mins}
+              >
+                {mins}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="settings-pref-row">
+          <span className="settings-pref-label">3D 动画</span>
+          <button
+            className={`settings-toggle-btn${animEnabled ? " active" : ""}`}
+            onClick={() => setAnimEnabled((v) => !v)}
+            aria-pressed={animEnabled}
+          >
+            <span className="settings-toggle-track">
+              <span className="settings-toggle-thumb" />
+            </span>
+            {animEnabled ? "开启" : "关闭"}
+          </button>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <div className="settings-section-title">每日固定任务</div>
+        <p className="settings-section-hint">
+          这些任务每天自动重置为未完成。在任务列表中点击 ↺ 按钮可创建新的固定任务。
+        </p>
+        {recurringTodos.length === 0 ? (
+          <div className="settings-recurring-empty">暂无固定任务 — 在任务列表中勾选 ↺ 后添加</div>
+        ) : (
+          <ul className="settings-recurring-list">
+            {recurringTodos.map(t => (
+              <li key={t.id} className="settings-recurring-item">
+                <span className="settings-recurring-text">↺ {t.text}</span>
+                <button
+                  className="settings-recurring-del"
+                  onClick={() => deleteTodo(t.id)}
+                  aria-label={`删除固定任务 ${t.text}`}
+                >
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="settings-section">

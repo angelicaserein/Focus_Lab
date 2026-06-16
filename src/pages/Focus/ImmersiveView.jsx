@@ -17,6 +17,7 @@ export default function ImmersiveView({
   scenarioTitle,
   cardVisible,
   animEnabled,
+  pomodoroMins = 25,
   onSettle,
   onAddFocus,
   onCreateFocus,
@@ -73,7 +74,7 @@ export default function ImmersiveView({
   // 烧瓶进度：开发模式用 debugProgress 方便调试，生产模式按 25 分钟计
   const flaskProgress = import.meta.env.DEV
     ? debugProgress
-    : Math.min(seconds / 1500, 1);
+    : Math.min(seconds / (pomodoroMins * 60), 1);
 
   return (
     <div className="immersive-overlay">

@@ -4,13 +4,15 @@ import { useTodos } from "../context/TodoContext";
 export default function TodoForm() {
   const { addTodo } = useTodos();
   const [text, setText] = useState("");
+  const [isRecurring, setIsRecurring] = useState(false);
 
   const submit = (e) => {
     e.preventDefault();
     const t = text.trim();
     if (!t) return;
-    addTodo(t);
+    addTodo(t, { recurring: isRecurring });
     setText("");
+    setIsRecurring(false);
   };
 
   return (
@@ -22,6 +24,15 @@ export default function TodoForm() {
         onChange={(e) => setText(e.target.value)}
         aria-label="新增任务"
       />
+      <button
+        type="button"
+        className={`recurring-toggle${isRecurring ? " active" : ""}`}
+        onClick={() => setIsRecurring(v => !v)}
+        title={isRecurring ? "取消每天重复" : "设为每天重复"}
+        aria-pressed={isRecurring}
+      >
+        ↺
+      </button>
       <button
         type="submit"
         className="add-btn"

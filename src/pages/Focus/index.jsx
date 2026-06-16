@@ -6,6 +6,7 @@ import { useScenarios } from "../../context/ScenarioContext";
 import useFocusTimer from "../../hooks/useFocusTimer";
 import useFocusChat from "../../hooks/useFocusChat";
 import useLocalStorage from "../../hooks/useLocalStorage";
+import usePrefs from "../../hooks/usePrefs";
 import ImmersiveView from "./ImmersiveView";
 import FocusConsole from "./FocusConsole";
 import "./Focus.css";
@@ -81,10 +82,11 @@ export default function FocusPage() {
     ]);
   };
 
+  const { pomodoroMins, animEnabled, setAnimEnabled } = usePrefs();
+
   // 调试 / 视图微调状态（仅开发环境调试面板使用）
   const [debugMode, setDebugMode] = useState(false);
   const [debugProgress, setDebugProgress] = useState(0.5);
-  const [animEnabled, setAnimEnabled] = useState(true);
   const [cardVisible, setCardVisible] = useState(true);
 
   // 选中集合清空时：若计时器还在跑（任务被逐一勾完），先发币再归零并退出沉浸。
@@ -163,6 +165,7 @@ export default function FocusPage() {
           scenarioTitle={scenarioTitle}
           cardVisible={cardVisible}
           animEnabled={animEnabled}
+          pomodoroMins={pomodoroMins}
           onSettle={settleTask}
           onAddFocus={addToFocus}
           onCreateFocus={createAndFocus}

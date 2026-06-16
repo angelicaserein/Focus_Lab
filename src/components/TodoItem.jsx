@@ -69,7 +69,7 @@ export default function TodoItem({ todo }) {
         removing ? "removing" : ""
       } ${editing ? "editing" : ""} ${
         isFocused(todo.id) ? "selected" : ""
-      }`}
+      } ${todo.recurring ? "recurring" : ""}`}
       role="listitem"
       aria-label={todo.text}
       onClick={handleRowClick}
@@ -100,6 +100,7 @@ export default function TodoItem({ todo }) {
         />
       ) : (
         <div className={`todo-text ${todo.completed ? "completed" : ""}`}>
+          {todo.recurring && <span className="recurring-icon">↺</span>}
           {todo.text}
         </div>
       )}
