@@ -5,6 +5,7 @@ import { useTodos } from "../../context/TodoContext";
 import { useReward } from "../../context/RewardContext";
 import { computeFocusStats } from "../../utils/focusRecords";
 import { formatDuration } from "../../utils/time";
+import FocusHeatmap from "./FocusHeatmap";
 import "./Home.css";
 
 function getGreeting(todaySecs) {
@@ -51,6 +52,8 @@ export default function Home() {
           <div className="home-stat-label">金币余额</div>
         </div>
       </div>
+
+      <FocusHeatmap records={focusRecords} />
 
       <button
         className="home-quickstart"

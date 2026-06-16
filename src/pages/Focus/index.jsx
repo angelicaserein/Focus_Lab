@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTodos } from "../../context/TodoContext";
 import { useFocus } from "../../context/FocusContext";
 import { useReward } from "../../context/RewardContext";
@@ -38,18 +38,39 @@ export default function FocusPage() {
   );
   const scenarioTitle = selectedScenario?.title ?? null;
 
+  // 会话事件日志：记录本次专注中所有操作的精确时间戳
+  const sessionEventsRef = useRef([]);
+  const logEvent = (type, data = {}) => {
+    sessionEventsRef.current.push({ type, ts: Date.now(), ...data });
+  };
+
   // 沉浸页任务编辑：加入 / 新建加入 / 替换
-  const addToFocus = (id) => addFocusTodo(id);
+  const addToFocus = (id) => {
+    addFocusTodo(id);
+    const todo = todos.find((t) => t.id === id);
+    logEvent("task_added", { taskId: id, taskText: todo?.text });
+  };
   const createAndFocus = (text) => {
     const t = text.trim();
     if (!t) return;
     const item = addTodo(t);
-    if (item) addFocusTodo(item.id);
+    if (item) {
+      addFocusTodo(item.id);
+      logEvent("task_added", { taskId: item.id, taskText: item.text });
+    }
   };
   const replaceFocus = (oldId, newId) => {
+    const oldTodo = todos.find((t) => t.id === oldId);
+    const newTodo = todos.find((t) => t.id === newId);
     // React 18 批量提交，两次 setState 同步，集合不会瞬空触发退出
     removeFocusTodo(oldId);
     addFocusTodo(newId);
+    logEvent("task_replaced", {
+      oldTaskId: oldId,
+      oldTaskText: oldTodo?.text,
+      newTaskId: newId,
+      newTaskText: newTodo?.text,
+    });
   };
 
   const { seconds, isRunning, start, togglePause, resetTimer, clearSession, getSession } =
@@ -102,17 +123,43 @@ export default function FocusPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasSelection]);
 
+  const handleTogglePause = () => {
+    logEvent(isRunning ? "session_paused" : "session_resumed");
+    togglePause();
+  };
+
   const handleStart = () => {
     if (!hasSelection) return;
-    setSessionStartTs(Date.now());
+    sessionEventsRef.current = [];
+    const nowTs = Date.now();
+    setSessionStartTs(nowTs);
+    logEvent("session_start", {
+      tasks: selectedTodos.map((t) => ({ taskId: t.id, taskText: t.text })),
+    });
     start();
     setIsImmersive(true);
+  };
+
+  // 抽卡选中后自动开始：addFocusTodo 是异步 setState，需等 hasSelection 变 true 再触发
+  const [pendingAutoStart, setPendingAutoStart] = useState(false);
+  useEffect(() => {
+    if (pendingAutoStart && hasSelection) {
+      handleStart();
+      setPendingAutoStart(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAutoStart, hasSelection]);
+
+  const handleDrawerSelect = (todo) => {
+    addFocusTodo(todo.id);
+    setPendingAutoStart(true);
   };
 
   // 结算单个任务：写记录 + 打勾（如需） + 移出专注集合。不发币——统一在 handleStop
   // 或 hasSelection effect 里一次性发放整场金币，避免多任务时重复累加。
   // overrideSecs / overrideSess 供 handleStop 传入归零前的快照，防止 clearSession
   // 先于本函数执行时读到 seconds=0 / sessionId=null。
+  // eventsSnapshot: 由 handleStop 传入已截取的快照，单任务完成/移除时为 undefined（自动取当前）
   const settleTask = (
     todo,
     outcome,
@@ -121,7 +168,11 @@ export default function FocusPage() {
     coinsEarned,
     distractionCount,
     noteCount,
+    eventsSnapshot,
   ) => {
+    if (!eventsSnapshot) {
+      logEvent(`task_${outcome}`, { taskId: todo.id, taskText: todo.text });
+    }
     addFocusRecord({
       taskId: todo.id,
       taskText: todo.text,
@@ -134,6 +185,7 @@ export default function FocusPage() {
       coinsEarned,
       distractionCount,
       noteCount,
+      events: eventsSnapshot ?? [...sessionEventsRef.current],
     });
     if (outcome === "completed" && !todo.completed) toggleTodo(todo.id);
     removeFocusTodo(todo.id);
@@ -146,9 +198,15 @@ export default function FocusPage() {
     const finalDistractionCount = sessionDistractions.length;
     const finalNoteCount = sessionNotes.length;
     if (finalSecs > 0) addCoins(finalSecs);
+    // 先把所有任务结束事件 + 会话结束写入日志，再截取快照
+    selectedTodos.forEach((t) =>
+      logEvent("task_ended", { taskId: t.id, taskText: t.text })
+    );
+    logEvent("session_end");
+    const finalEvents = [...sessionEventsRef.current];
     clearSession();
     selectedTodos.forEach((t) =>
-      settleTask(t, "ended", finalSecs, finalSession, finalSecs, finalDistractionCount, finalNoteCount)
+      settleTask(t, "ended", finalSecs, finalSession, finalSecs, finalDistractionCount, finalNoteCount, finalEvents)
     );
     setIsImmersive(false);
     setSessionStartTs(null);
@@ -170,7 +228,7 @@ export default function FocusPage() {
           onAddFocus={addToFocus}
           onCreateFocus={createAndFocus}
           onReplaceFocus={replaceFocus}
-          onTogglePause={togglePause}
+          onTogglePause={handleTogglePause}
           onReset={resetTimer}
           onStop={handleStop}
           debugMode={debugMode}
@@ -200,6 +258,7 @@ export default function FocusPage() {
         onReset={resetTimer}
         onClear={clearFocusTodos}
         onRemoveFocus={removeFocusTodo}
+        onDrawerSelect={handleDrawerSelect}
         chatMessages={messages}
         onChatClear={clearChat}
         notes={notes}

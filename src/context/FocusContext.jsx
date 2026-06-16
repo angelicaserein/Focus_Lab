@@ -62,6 +62,7 @@ export function FocusProvider({ children }) {
     coinsEarned,
     distractionCount,
     noteCount,
+    events,
   }) => {
     if (durationSecs < MIN_RECORD_SECS) return;
     const record = {
@@ -77,6 +78,7 @@ export function FocusProvider({ children }) {
       ...(coinsEarned !== undefined ? { coinsEarned } : {}),
       ...(distractionCount !== undefined ? { distractionCount } : {}),
       ...(noteCount !== undefined ? { noteCount } : {}),
+      ...(events?.length ? { events } : {}),
     };
     setFocusRecords((prev) => [record, ...prev]);
   };

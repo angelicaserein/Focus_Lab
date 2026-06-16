@@ -26,6 +26,9 @@ export default function Sidebar() {
         <Link to="/settings" className={`nav-link ${isActive("/settings") ? "active" : ""}`}>
           <span className="nav-label">Settings</span>
         </Link>
+        <Link to="/research" className={`nav-link ${isActive("/research") ? "active" : ""}`}>
+          <span className="nav-label">研究记录</span>
+        </Link>
       </nav>
     </aside>
   );

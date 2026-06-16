@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useTodos } from "../context/TodoContext";
 
-export default function TodoForm() {
+export default function TodoForm({ forceRecurring = false }) {
   const { addTodo } = useTodos();
   const [text, setText] = useState("");
   const [isRecurring, setIsRecurring] = useState(false);
@@ -10,7 +10,7 @@ export default function TodoForm() {
     e.preventDefault();
     const t = text.trim();
     if (!t) return;
-    addTodo(t, { recurring: isRecurring });
+    addTodo(t, { recurring: forceRecurring || isRecurring });
     setText("");
     setIsRecurring(false);
   };
@@ -19,20 +19,22 @@ export default function TodoForm() {
     <form className="todo-form" onSubmit={submit}>
       <input
         className="todo-input"
-        placeholder="添加任务，按回车或点击添加"
+        placeholder={forceRecurring ? "添加每日固定任务…" : "添加任务，按回车或点击添加"}
         value={text}
         onChange={(e) => setText(e.target.value)}
-        aria-label="新增任务"
+        aria-label={forceRecurring ? "新增每日固定任务" : "新增任务"}
       />
-      <button
-        type="button"
-        className={`recurring-toggle${isRecurring ? " active" : ""}`}
-        onClick={() => setIsRecurring(v => !v)}
-        title={isRecurring ? "取消每天重复" : "设为每天重复"}
-        aria-pressed={isRecurring}
-      >
-        ↺
-      </button>
+      {!forceRecurring && (
+        <button
+          type="button"
+          className={`recurring-toggle${isRecurring ? " active" : ""}`}
+          onClick={() => setIsRecurring(v => !v)}
+          title={isRecurring ? "取消每天重复" : "设为每天重复"}
+          aria-pressed={isRecurring}
+        >
+          ↺
+        </button>
+      )}
       <button
         type="submit"
         className="add-btn"

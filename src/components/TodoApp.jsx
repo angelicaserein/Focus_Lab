@@ -39,10 +39,18 @@ export default function TodoApp() {
           >
             已完成
           </button>
+          <button
+            role="tab"
+            aria-selected={filter === "RECURRING"}
+            className={`tab ${filter === "RECURRING" ? "active" : ""}`}
+            onClick={() => setFilter("RECURRING")}
+          >
+            ↺ 固定
+          </button>
         </div>
       </div>
 
-      <TodoForm />
+      <TodoForm forceRecurring={filter === "RECURRING"} />
 
       <TodoList filter={filter} />
 

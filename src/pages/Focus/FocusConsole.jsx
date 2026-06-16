@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import TodoApp from "../../components/TodoApp";
 import ChatHistory from "./ChatHistory";
 import SessionSummary from "./SessionSummary";
+import RandomTaskDrawer from "./RandomTaskDrawer";
 
 // 普通（非沉浸）视图：左栏=计时控制台+情境选择+AI聊天+上次回顾，右栏=任务管理。
 export default function FocusConsole({
@@ -15,13 +16,23 @@ export default function FocusConsole({
   onReset,
   onClear,
   onRemoveFocus,
+  onDrawerSelect,
   chatMessages,
   onChatClear,
   notes = [],
   distractions = [],
 }) {
+  const [showDrawer, setShowDrawer] = useState(false);
+
   return (
     <div className="page-focus">
+      {showDrawer && (
+        <RandomTaskDrawer
+          onSelect={(todo) => onDrawerSelect(todo)}
+          onClose={() => setShowDrawer(false)}
+        />
+      )}
+
       <div className="focus-shell">
         <div className="focus-main">
           {/* Left column: timer console + AI chat + session summary */}
@@ -61,9 +72,18 @@ export default function FocusConsole({
                   ))}
                 </div>
               ) : (
-                <div className="focus-task-placeholder">
-                  从任务列表勾选要一起专注的任务（可多选）
-                </div>
+                <>
+                  <div className="focus-task-placeholder">
+                    从任务列表勾选要一起专注的任务（可多选）
+                  </div>
+                  <button
+                    type="button"
+                    className="focus-draw-btn"
+                    onClick={() => setShowDrawer(true)}
+                  >
+                    ✦ 今天做什么？
+                  </button>
+                </>
               )}
 
               {/* 情境选择：有情境时才显示 */}

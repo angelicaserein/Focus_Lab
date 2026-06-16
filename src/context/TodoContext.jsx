@@ -13,6 +13,7 @@ const DELETE = "DELETE";
 const EDIT = "EDIT";
 const RESTORE = "RESTORE";
 const SET = "SET";
+const TOGGLE_RECURRING = "TOGGLE_RECURRING";
 
 function reducer(state, action) {
   switch (action.type) {
@@ -39,6 +40,17 @@ function reducer(state, action) {
     }
     case SET: {
       return action.payload;
+    }
+    case TOGGLE_RECURRING: {
+      const today = new Date().toISOString().split('T')[0];
+      return state.map(t => {
+        if (t.id !== action.payload) return t;
+        if (t.recurring) {
+          const { recurring, lastResetDate, ...rest } = t;
+          return rest;
+        }
+        return { ...t, recurring: true, lastResetDate: today };
+      });
     }
     default:
       return state;
@@ -94,6 +106,8 @@ export function TodoProvider({ children }) {
 
   const toggleTodo = (id) => dispatch({ type: TOGGLE, payload: id });
 
+  const toggleRecurring = (id) => dispatch({ type: TOGGLE_RECURRING, payload: id });
+
   const editTodo = (id, text) => {
     const t = text.trim();
     if (!t) return;
@@ -117,6 +131,7 @@ export function TodoProvider({ children }) {
     todos,
     addTodo,
     toggleTodo,
+    toggleRecurring,
     editTodo,
     deleteTodo,
     pendingDelete,

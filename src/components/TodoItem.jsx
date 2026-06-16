@@ -3,7 +3,7 @@ import { useTodos } from "../context/TodoContext";
 import { useFocus } from "../context/FocusContext";
 
 export default function TodoItem({ todo }) {
-  const { toggleTodo, deleteTodo, editTodo } = useTodos();
+  const { toggleTodo, deleteTodo, editTodo, toggleRecurring } = useTodos();
   const { isFocused, toggleFocusTodo } = useFocus();
   const [removing, setRemoving] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -106,14 +106,24 @@ export default function TodoItem({ todo }) {
       )}
 
       {!editing && (
-        <button
-          className="edit-btn"
-          onClick={startEdit}
-          aria-label={`编辑 ${todo.text}`}
-          title="编辑任务"
-        >
-          ✎
-        </button>
+        <>
+          <button
+            className={`recurring-item-btn${todo.recurring ? " active" : ""}`}
+            onClick={(e) => { e.stopPropagation(); toggleRecurring(todo.id); }}
+            title={todo.recurring ? "取消每日重复" : "设为每日重复"}
+            aria-pressed={!!todo.recurring}
+          >
+            ↺
+          </button>
+          <button
+            className="edit-btn"
+            onClick={startEdit}
+            aria-label={`编辑 ${todo.text}`}
+            title="编辑任务"
+          >
+            ✎
+          </button>
+        </>
       )}
 
       <button

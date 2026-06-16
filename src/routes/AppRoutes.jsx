@@ -9,6 +9,7 @@ const History = lazy(() => import("../pages/History"));
 const Scenario = lazy(() => import("../pages/Scenario"));
 const Reward = lazy(() => import("../pages/Reward"));
 const Settings = lazy(() => import("../pages/Settings"));
+const Research = lazy(() => import("../pages/Research"));
 
 export default function AppRoutes() {
   return (
@@ -24,6 +25,7 @@ export default function AppRoutes() {
               <Route path="/scenario" element={<Scenario />} />
               <Route path="/reward" element={<Reward />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/research" element={<Research />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

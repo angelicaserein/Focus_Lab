@@ -265,6 +265,35 @@
   transform: scale(0.9);
 }
 
+/* ↺ 固定任务切换按钮（行内，hover 显示） */
+.recurring-item-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  font-size: 15px;
+  padding: 6px;
+  border-radius: 8px;
+  line-height: 1;
+  opacity: 0;
+  transition:
+    opacity 160ms var(--ease),
+    color 160ms var(--ease),
+    background 160ms var(--ease);
+}
+.todo-item:hover .recurring-item-btn,
+.recurring-item-btn:focus-visible,
+.recurring-item-btn.active {
+  opacity: 1;
+}
+.recurring-item-btn.active {
+  color: var(--accent);
+}
+.recurring-item-btn:hover {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
 /* 内联编辑输入框 */
 .todo-edit-input {
   flex: 1;

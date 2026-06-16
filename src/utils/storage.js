@@ -35,7 +35,8 @@ const KEY_MAP = {
   activeTheme:  { key: "active_theme_v1",       versioned: false },
   notes:        { key: "focus_notes_v1",        versioned: false },
   distractions: { key: "focus_distractions_v1", versioned: false },
-  chatHistory:  { key: "focus_chat_v1",         versioned: false },
+  chatHistory:    { key: "focus_chat_v1",         versioned: false },
+  researchDaily:  { key: "research_daily_v1",     versioned: false },
 };
 
 /**

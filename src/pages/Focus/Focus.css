@@ -95,8 +95,30 @@
   font-size: 1rem;
   font-weight: 400;
   color: var(--text-faint);
-  min-height: 56px;
+  min-height: 40px;
   line-height: 1.6;
+}
+
+/* 今天做什么？抽卡入口 */
+.focus-draw-btn {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 14px;
+  border: 1.5px dashed var(--border-dashed);
+  background: transparent;
+  color: var(--accent-mid);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.focus-draw-btn:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* 已选任务计数徽章 */
