@@ -489,6 +489,34 @@
   }
 }
 
+/* 固定任务分组 */
+.recurring-section {
+  margin-bottom: 4px;
+}
+.recurring-section + .recurring-section {
+  margin-top: 8px;
+}
+.recurring-section-header {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 6px 4px 4px;
+  border-bottom: 1px solid var(--border-input);
+  margin-bottom: 2px;
+}
+
+/* 非今天的固定任务：弱化但可操作 */
+.todo-item-wrap.other-day .todo-item {
+  opacity: 0.4;
+  transition: opacity 160ms ease;
+}
+.todo-item-wrap.other-day:hover .todo-item,
+.todo-item-wrap.other-day:focus-within .todo-item {
+  opacity: 0.8;
+}
+
 /* Responsive adjustments */
 @media (max-width: 480px) {
   .todo-container {

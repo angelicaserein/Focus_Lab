@@ -2,6 +2,8 @@ import React from "react";
 import { useTodos } from "../context/TodoContext";
 import TodoItem from "./TodoItem";
 
+const DAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
+
 export default function TodoList({ filter = "ALL" }) {
   const { todos } = useTodos();
 
@@ -27,6 +29,29 @@ export default function TodoList({ filter = "ALL" }) {
         <div className="empty-emoji">✨</div>
         <div className="empty-text">空空如也 — 添加第一个任务吧</div>
       </div>
+    );
+  }
+
+  if (filter === "RECURRING") {
+    const todayDow = new Date().getDay();
+    const todayTasks = filtered.filter(t => t.recurringDays?.includes(todayDow));
+    const otherTasks = filtered.filter(t => !t.recurringDays?.includes(todayDow));
+
+    return (
+      <section className="todo-list" aria-live="polite" data-filter={filter}>
+        {todayTasks.length > 0 && (
+          <div className="recurring-section">
+            <div className="recurring-section-header">今天 · 周{DAY_NAMES[todayDow]}</div>
+            {todayTasks.map(todo => <TodoItem key={todo.id} todo={todo} />)}
+          </div>
+        )}
+        {otherTasks.length > 0 && (
+          <div className="recurring-section recurring-section-other">
+            <div className="recurring-section-header">其他天</div>
+            {otherTasks.map(todo => <TodoItem key={todo.id} todo={todo} isOtherDay />)}
+          </div>
+        )}
+      </section>
     );
   }
 

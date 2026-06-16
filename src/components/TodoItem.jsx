@@ -3,7 +3,7 @@ import { useTodos } from "../context/TodoContext";
 import { useFocus } from "../context/FocusContext";
 import RecurringDayPicker, { recurringLabel } from "./RecurringDayPicker";
 
-export default function TodoItem({ todo }) {
+export default function TodoItem({ todo, isOtherDay = false }) {
   const { toggleTodo, deleteTodo, editTodo, toggleRecurring } = useTodos();
   const { isFocused, toggleFocusTodo } = useFocus();
   const [removing, setRemoving] = useState(false);
@@ -79,7 +79,7 @@ export default function TodoItem({ todo }) {
   const label = recurringLabel(recurringDays);
 
   return (
-    <div className={`todo-item-wrap${showDayPicker ? ' picker-open' : ''}`} ref={wrapRef}>
+    <div className={`todo-item-wrap${showDayPicker ? ' picker-open' : ''}${isOtherDay ? ' other-day' : ''}`} ref={wrapRef}>
       <div
         className={`todo-item ${isNew ? "new" : ""} ${
           removing ? "removing" : ""
