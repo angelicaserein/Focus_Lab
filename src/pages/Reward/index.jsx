@@ -1,9 +1,16 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useReward, SHOP_ITEMS } from "../../context/RewardContext";
 import "./Reward.css";
 
 export default function RewardPage() {
   const { coins, buyItem, isOwned, getRedeemCount } = useReward();
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(null), 2000);
+    return () => clearTimeout(id);
+  }, [toast]);
 
   return (
     <div className="page-reward">
@@ -49,7 +56,10 @@ export default function RewardPage() {
                   <button
                     className={`reward-buy-btn ${owned ? "owned" : ""}`}
                     disabled={disabled}
-                    onClick={() => buyItem(item)}
+                    onClick={() => {
+                      const ok = buyItem(item);
+                      if (ok) setToast({ message: `${item.name} 兑换成功！`, icon: item.icon });
+                    }}
                   >
                     {btnLabel}
                   </button>
@@ -59,6 +69,11 @@ export default function RewardPage() {
           })}
         </div>
       </div>
+      {toast && (
+        <div className="toast toast--center visible" role="status" aria-live="polite">
+          <span className="toast-text">{toast.icon} {toast.message}</span>
+        </div>
+      )}
     </div>
   );
 }

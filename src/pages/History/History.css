@@ -376,6 +376,20 @@
   color: var(--text-faint);
 }
 
+.hist-session-scenario {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent-mid);
+  background: var(--accent-bg);
+  border: 1px solid var(--border-accent);
+  padding: 2px 8px;
+  border-radius: 8px;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .hist-session-count {
   font-size: 0.72rem;
   font-weight: 700;

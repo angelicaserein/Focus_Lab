@@ -169,6 +169,39 @@
 }
 
 
+/* 情境选择行 */
+.focus-scenario-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.focus-scenario-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+
+.focus-scenario-select {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-input);
+  background: var(--card);
+  color: var(--text-body);
+  font: inherit;
+  font-size: 0.88rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 150ms ease;
+}
+
+.focus-scenario-select:focus {
+  border-color: var(--accent);
+}
+
 /* Action buttons */
 .focus-actions {
   display: grid;
@@ -239,13 +272,14 @@
   display: block;
 }
 
-/* Floating card overlay */
+/* Floating card overlay — anchored top-left */
 .immersive-card-wrap {
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 40px 0 0 40px;
   pointer-events: none;
   opacity: 0;
   transition: opacity 300ms ease;
@@ -261,6 +295,11 @@
   display: flex;
 }
 
+/* picker 面板的定位锚点；自身大小 = 主卡片大小，picker 不占位 */
+.immersive-card-row {
+  position: relative;
+}
+
 .immersive-card {
   position: relative;
   overflow: hidden;
@@ -272,7 +311,7 @@
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
-  box-shadow: 0 8px 40px var(--glass-shadow), inset 0 1px 0 var(--glass-border);
+  box-shadow: inset 0 1px 0 var(--glass-border);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -339,12 +378,12 @@
 
 .immersive-status-dot.running {
   background: var(--accent);
-  animation: dotPulse 1.4s ease-in-out infinite;
+  animation: dotPulse 1.6s ease-in-out infinite;
 }
 
 @keyframes dotPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  0%, 100% { transform: scale(1);    opacity: 1; }
+  50%       { transform: scale(1.55); opacity: 0.7; }
 }
 
 .immersive-task {
@@ -361,6 +400,32 @@
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.05em;
   color: var(--text-body);
+}
+
+/* 情境标签 */
+.immersive-scenario {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--accent-mid);
+  text-align: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  border: 1px solid var(--border-accent);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: -12px;
+}
+
+/* 烧瓶进度在卡片内居中显示 */
+.immersive-flask {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: -8px 0;
 }
 
 /* 沉浸页任务清单（可勾选完成 / 移除） */
@@ -385,6 +450,12 @@
   border-radius: 14px;
   background: var(--glass-bg-soft);
   border: 1px solid var(--glass-border);
+  animation: taskRowIn 220ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes taskRowIn {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
 }
 
 .immersive-task-text {
@@ -412,7 +483,13 @@
   cursor: pointer;
   font-size: 1rem;
   line-height: 1;
-  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease, transform 120ms ease;
+}
+
+.immersive-task-check:active,
+.immersive-task-replace:active,
+.immersive-task-remove:active {
+  transform: scale(0.88);
 }
 
 .immersive-task-check {
@@ -462,31 +539,65 @@
   align-self: center;
   padding: 8px 18px;
   border-radius: 999px;
-  border: 1px dashed var(--border-accent);
+  border: 1px solid var(--border-accent);
   background: transparent;
   color: var(--accent-deep);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+  transition: background 180ms ease, color 180ms ease, transform 120ms ease, box-shadow 180ms ease;
 }
 
-.immersive-task-add-btn:hover,
-.immersive-task-add-btn.open {
+.immersive-task-add-btn:hover {
   background: var(--accent-bg-dim);
-  border-style: solid;
   color: var(--accent-mid);
 }
 
-/* 任务选择器：玻璃小面板 */
+.immersive-task-add-btn.open {
+  background: var(--accent-bg);
+  color: var(--accent-mid);
+  box-shadow: 0 0 0 2px var(--border-accent);
+}
+
+.immersive-task-add-btn:active {
+  transform: scale(0.95);
+}
+
+/* 右侧呼出任务选择面板：absolute 脱离文档流，紧贴主卡片右侧 */
+.immersive-picker-panel {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 10px);
+  width: 288px;
+  border-radius: 28px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  box-shadow: none;
+  padding: 20px 16px 16px;
+  animation: pickerSlideIn 260ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.immersive-picker-panel.closing {
+  animation: pickerSlideOut 200ms ease both;
+}
+
+@keyframes pickerSlideIn {
+  from { opacity: 0; transform: translateX(-24px) scale(0.95); }
+  to   { opacity: 1; transform: translateX(0)     scale(1);    }
+}
+
+@keyframes pickerSlideOut {
+  from { opacity: 1; transform: translateX(0)     scale(1);    }
+  to   { opacity: 0; transform: translateX(-24px) scale(0.95); }
+}
+
+/* 任务选择器内容区（无需再有独立背景，已由 picker-panel 包裹） */
 .immersive-task-picker {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 12px;
-  border-radius: 16px;
-  background: var(--glass-bg-soft);
-  border: 1px solid var(--glass-border);
 }
 
 .immersive-picker-input {
@@ -525,6 +636,7 @@
 
 .immersive-picker-input:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 2.5px var(--accent-bg);
 }
 
 .immersive-picker-list {
@@ -552,12 +664,17 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  transition: background 150ms ease, border-color 150ms ease;
+  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
 }
 
 .immersive-picker-option:hover {
   background: var(--accent-bg-dim);
   border-color: var(--border-accent);
+  transform: translateX(3px);
+}
+
+.immersive-picker-option:active {
+  transform: translateX(3px) scale(0.98);
 }
 
 .immersive-actions {
@@ -592,6 +709,12 @@
 
 .immersive-btn:hover:not(:disabled) {
   transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(160, 120, 152, 0.22);
+}
+
+.immersive-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.96);
+  box-shadow: none;
 }
 
 .immersive-btn:disabled {
@@ -840,4 +963,368 @@
   .focus-actions {
     grid-template-columns: 1fr;
   }
+}
+
+/* ── 沉浸模式右下角工具栏：随记 + 记录分心 ── */
+.immersive-utils {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2001;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.immersive-util-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.immersive-util-btn {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+  white-space: nowrap;
+}
+
+.immersive-util-btn:hover {
+  transform: translateY(-2px);
+  background: var(--glass-bg-soft);
+  color: var(--text-body);
+}
+
+.immersive-util-btn:active {
+  transform: scale(0.95);
+}
+
+.immersive-util-btn.active {
+  background: var(--accent-bg);
+  border-color: var(--border-accent);
+  color: var(--accent-mid);
+  box-shadow: 0 0 0 2px var(--accent-bg);
+}
+
+.immersive-util-btn.distraction.feedback {
+  background: var(--accent-bg);
+  border-color: var(--border-accent);
+  color: var(--accent-mid);
+}
+
+/* 随记面板（向上弹出，与任务选择器同款玻璃样式） */
+.immersive-note-panel {
+  width: 260px;
+  border-radius: 20px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: noteSlideIn 220ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes noteSlideIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+.immersive-note-textarea {
+  width: 100%;
+  resize: none;
+  border: 1px solid var(--border-accent);
+  border-radius: 12px;
+  background: var(--glass-bg-soft);
+  color: var(--text-body);
+  font: inherit;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  padding: 10px 12px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.immersive-note-textarea::placeholder {
+  color: var(--text-placeholder);
+}
+
+.immersive-note-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2.5px var(--accent-bg);
+}
+
+.immersive-note-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.immersive-note-save {
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 150ms ease, transform 120ms ease;
+}
+
+.immersive-note-save:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.immersive-note-save:not(:disabled):hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.immersive-note-cancel {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-accent);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.immersive-note-cancel:hover {
+  background: var(--accent-hover);
+  color: var(--text-body);
+}
+
+/* 按钮上的计数徽章 */
+.immersive-util-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+/* 本次随记历史列表（面板内，输入框上方） */
+.immersive-note-history {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 150px;
+  overflow-y: auto;
+  border-bottom: 1px solid var(--border-accent);
+}
+
+.immersive-note-history::-webkit-scrollbar {
+  width: 3px;
+}
+
+.immersive-note-history::-webkit-scrollbar-thumb {
+  background: var(--border-accent);
+  border-radius: 999px;
+}
+
+.immersive-note-history-item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  animation: taskRowIn 200ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.immersive-note-history-time {
+  flex-shrink: 0;
+  color: var(--text-faint);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+
+.immersive-note-history-text {
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--text-body);
+  word-break: break-word;
+}
+
+/* ── AI 状态提示 ── */
+.focus-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-demo-note {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-faint);
+}
+
+.immersive-chat-demo-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-bottom: 4px;
+  opacity: 0.65;
+}
+
+@keyframes chatHintPulse {
+  0%   { opacity: 0;    transform: translateY(6px); }
+  30%  { opacity: 0.45; transform: translateY(0);   }
+  70%  { opacity: 0.45;                             }
+  100% { opacity: 0;                                }
+}
+
+.immersive-chat.pulsing {
+  animation: chatHintPulse 1.8s ease both;
+  pointer-events: none;
+}
+
+/* ── 历史随记 & 分心记录（左栏持久展示） ── */
+.session-summary {
+  background: var(--card);
+  border: 1px solid var(--border-input);
+  border-radius: 20px;
+  padding: 18px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.session-summary-header {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* 可滚动内容区，防止超长时撑开左栏 */
+.session-summary-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.session-summary-scroll::-webkit-scrollbar {
+  width: 3px;
+}
+
+.session-summary-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-accent);
+  border-radius: 999px;
+}
+
+/* 每个会话 = 一个分组 */
+.session-summary-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0;
+}
+
+.session-summary-group + .session-summary-group {
+  border-top: 1px solid var(--border-input);
+}
+
+/* 会话标题行：日期 + 随记 / 分心小计 */
+.session-summary-group-hd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.session-summary-date {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.session-stat {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--border-accent);
+  color: var(--accent-mid);
+}
+
+.session-stat.distraction {
+  color: var(--text-muted);
+  border-color: var(--border-input);
+}
+
+/* 每条记录行 */
+.session-summary-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.session-summary-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.session-summary-time {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+.session-summary-text {
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: var(--text-body);
+  word-break: break-word;
+}
+
+.session-summary-text.muted {
+  color: var(--text-muted);
+}
+
+/* 分心行整体略微淡化 */
+.session-summary-row.distraction .session-summary-time {
+  opacity: 0.7;
 }

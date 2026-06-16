@@ -1,9 +1,11 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useScenarios } from "../context/ScenarioContext";
 
 export default function ScenarioItem({ scenario }) {
   const { deleteScenario, editScenario, selectedIds, toggleSelect } =
     useScenarios();
+  const navigate = useNavigate();
   const [removing, setRemoving] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draftTitle, setDraftTitle] = useState(scenario.title);
@@ -63,6 +65,11 @@ export default function ScenarioItem({ scenario }) {
     }
   };
 
+  const handleQuickStart = (e) => {
+    e.stopPropagation();
+    navigate("/focus");
+  };
+
   const handleRowClick = (e) => {
     if (editing) return;
     // 忽略来自交互子元素的点击，避免误触
@@ -113,14 +120,24 @@ export default function ScenarioItem({ scenario }) {
       )}
 
       {!editing && (
-        <button
-          className="edit-btn"
-          onClick={startEdit}
-          aria-label={`编辑 ${scenario.title}`}
-          title="编辑情景"
-        >
-          ✎
-        </button>
+        <>
+          <button
+            className="scenario-quickstart-btn"
+            onClick={handleQuickStart}
+            aria-label={`开始专注 ${scenario.title}`}
+            title="创建任务并前往专注"
+          >
+            ▶
+          </button>
+          <button
+            className="edit-btn"
+            onClick={startEdit}
+            aria-label={`编辑 ${scenario.title}`}
+            title="编辑情景"
+          >
+            ✎
+          </button>
+        </>
       )}
 
       <button

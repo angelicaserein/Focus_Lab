@@ -1,25 +1,10 @@
 import React, { useReducer, useEffect, useContext } from "react";
 import { useFocus } from "./FocusContext";
+import { loadVersioned } from "../utils/storage";
+import { useUndoDelete } from "../hooks/useUndoDelete";
 
 const STORAGE_KEY = "todos_v1";
 const CURRENT_VERSION = 1;
-const UNDO_WINDOW_MS = 5000;
-
-function loadTodos() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (parsed?.version === CURRENT_VERSION && Array.isArray(parsed.data)) {
-      return parsed.data;
-    }
-    // 旧格式（裸数组）迁移
-    if (Array.isArray(parsed)) return parsed;
-    return [];
-  } catch {
-    return [];
-  }
-}
 
 // Action types
 const ADD = "ADD";
@@ -29,12 +14,10 @@ const EDIT = "EDIT";
 const RESTORE = "RESTORE";
 const SET = "SET";
 
-// reducer 管理 todos 状态。未来扩展点：可以增加 MOVE, SET_PRIORITY 等动作。
 function reducer(state, action) {
   switch (action.type) {
     case ADD: {
-      const item = action.payload;
-      return [item, ...state];
+      return [action.payload, ...state];
     }
     case TOGGLE: {
       return state.map((t) =>
@@ -65,14 +48,13 @@ function reducer(state, action) {
 const TodoContext = React.createContext(null);
 
 export function TodoProvider({ children }) {
-  // 专注选择由外层 FocusProvider 提供；删除/撤销时与之联动
   const { focusedTodoIds, removeFocusTodo, addFocusTodo } = useFocus();
 
-  const [todos, dispatch] = useReducer(reducer, null, loadTodos);
-
-  // 可撤销删除：暂存最近一次被删的项，供 toast 撤销
-  const [pendingDelete, setPendingDelete] = React.useState(null);
-  const undoTimerRef = React.useRef(null);
+  const [todos, dispatch] = useReducer(
+    reducer,
+    null,
+    () => loadVersioned(STORAGE_KEY, CURRENT_VERSION),
+  );
 
   useEffect(() => {
     localStorage.setItem(
@@ -81,9 +63,10 @@ export function TodoProvider({ children }) {
     );
   }, [todos]);
 
-  // 便捷 action creators
   const addTodo = (text) => {
-    const item = { id: crypto.randomUUID(), text, completed: false, createdAt: Date.now() };
+    const t = text.trim();
+    if (!t) return;
+    const item = { id: crypto.randomUUID(), text: t, completed: false, createdAt: Date.now() };
     dispatch({ type: ADD, payload: item });
     return item;
   };
@@ -96,35 +79,18 @@ export function TodoProvider({ children }) {
     dispatch({ type: EDIT, payload: { id, text: t } });
   };
 
-  const deleteTodo = (id) => {
-    const index = todos.findIndex((t) => t.id === id);
-    if (index === -1) return;
-    const item = todos[index];
-    const wasFocused = focusedTodoIds.includes(id);
-
-    dispatch({ type: DELETE, payload: id });
-    if (wasFocused) removeFocusTodo(id);
-
-    // 暂存供撤销；若已有待撤销项则直接被新项替换（旧的落定）
-    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
-    setPendingDelete({ item, index, wasFocused });
-    undoTimerRef.current = setTimeout(() => {
-      setPendingDelete(null);
-      undoTimerRef.current = null;
-    }, UNDO_WINDOW_MS);
-  };
-
-  const undoDelete = () => {
-    if (!pendingDelete) return;
-    if (undoTimerRef.current) {
-      clearTimeout(undoTimerRef.current);
-      undoTimerRef.current = null;
-    }
-    const { item, index, wasFocused } = pendingDelete;
-    dispatch({ type: RESTORE, payload: { item, index } });
-    if (wasFocused) addFocusTodo(item.id);
-    setPendingDelete(null);
-  };
+  const { pendingDelete, deleteFn: deleteTodo, undoDelete } = useUndoDelete({
+    items: todos,
+    dispatch,
+    onDelete: (id) => {
+      const wasFocused = focusedTodoIds.includes(id);
+      if (wasFocused) removeFocusTodo(id);
+      return { wasFocused };
+    },
+    onRestore: (item, meta) => {
+      if (meta?.wasFocused) addFocusTodo(item.id);
+    },
+  });
 
   const value = {
     todos,
@@ -134,7 +100,6 @@ export function TodoProvider({ children }) {
     deleteTodo,
     pendingDelete,
     undoDelete,
-    dispatch,
   };
 
   return <TodoContext.Provider value={value}>{children}</TodoContext.Provider>;

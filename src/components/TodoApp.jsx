@@ -3,9 +3,11 @@ import TodoForm from "./TodoForm";
 import TodoList from "./TodoList";
 import TodoStats from "./TodoStats";
 import Toast from "./Toast";
+import { useTodos } from "../context/TodoContext";
 
 export default function TodoApp() {
   const [filter, setFilter] = useState("ALL");
+  const { pendingDelete, undoDelete } = useTodos();
 
   return (
     <main className="todo-container" role="application" aria-label="Todo App">
@@ -46,7 +48,7 @@ export default function TodoApp() {
 
       <TodoStats />
 
-      <Toast />
+      <Toast pendingDelete={pendingDelete} undoDelete={undoDelete} getText={(item) => item.text} />
     </main>
   );
 }

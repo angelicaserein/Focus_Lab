@@ -145,6 +145,41 @@
   border-color: var(--accent);
 }
 
+/* 情境「快速进入专注」按钮 — 行 hover 时淡入 */
+.scenario-quickstart-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent-border);
+  background: var(--accent-bg-dim);
+  color: var(--accent-deep);
+  font-size: 0.75rem;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 160ms ease,
+    background 150ms ease,
+    transform 120ms ease;
+}
+
+.scenario-item:hover .scenario-quickstart-btn {
+  opacity: 1;
+}
+
+.scenario-quickstart-btn:hover {
+  background: var(--accent);
+  color: var(--card);
+  transform: scale(1.1);
+}
+
+.scenario-quickstart-btn:active {
+  transform: scale(0.94);
+}
+
 /* Responsive adjustments */
 @media (max-width: 480px) {
   .scenario-container {

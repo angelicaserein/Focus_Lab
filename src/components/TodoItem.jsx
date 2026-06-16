@@ -4,7 +4,7 @@ import { useFocus } from "../context/FocusContext";
 
 export default function TodoItem({ todo }) {
   const { toggleTodo, deleteTodo, editTodo } = useTodos();
-  const { focusedTodoIds, toggleFocusTodo } = useFocus();
+  const { isFocused, toggleFocusTodo } = useFocus();
   const [removing, setRemoving] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(todo.text);
@@ -68,7 +68,7 @@ export default function TodoItem({ todo }) {
       className={`todo-item ${isNew ? "new" : ""} ${
         removing ? "removing" : ""
       } ${editing ? "editing" : ""} ${
-        focusedTodoIds.includes(todo.id) ? "selected" : ""
+        isFocused(todo.id) ? "selected" : ""
       }`}
       role="listitem"
       aria-label={todo.text}

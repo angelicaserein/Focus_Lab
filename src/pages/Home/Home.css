@@ -1,3 +1,128 @@
 .page-home {
-  padding: 16px;
+  width: min(720px, 100%);
+  margin: 0 auto;
+  padding: 48px 16px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+/* ── 问候语区 ── */
+.home-greeting {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.home-greeting-title {
+  margin: 0;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 800;
+  color: var(--text-heading);
+  line-height: 1.15;
+}
+
+.home-greeting-sub {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ── 统计卡三列 ── */
+.home-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.home-stat-card {
+  background: var(--card);
+  border: 1px solid var(--border-card);
+  border-radius: 20px;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.home-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--shadow-sm);
+}
+
+/* 今日专注卡 — 主色高亮 */
+.home-stat-card.home-stat-focus {
+  background: var(--accent);
+  border-color: transparent;
+}
+
+.home-stat-card.home-stat-focus .home-stat-value {
+  color: #fff;
+}
+
+.home-stat-card.home-stat-focus .home-stat-label {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.home-stat-value {
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 800;
+  color: var(--text-heading);
+  line-height: 1.1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-stat-coin-icon {
+  font-size: 1.3rem;
+}
+
+.home-stat-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+/* ── 快速开始按钮 ── */
+.home-quickstart {
+  width: 100%;
+  padding: 18px 24px;
+  border-radius: 20px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 160ms ease, opacity 160ms ease, box-shadow 160ms ease;
+  box-shadow: 0 4px 18px var(--accent-glow);
+}
+
+.home-quickstart:hover {
+  transform: translateY(-2px);
+  opacity: 0.92;
+  box-shadow: 0 8px 24px var(--accent-glow);
+}
+
+.home-quickstart:active {
+  transform: scale(0.98);
+  box-shadow: none;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .page-home {
+    padding: 32px 16px 48px;
+    gap: 28px;
+  }
+
+  .home-stats-grid {
+    grid-template-columns: 1fr;
+  }
 }

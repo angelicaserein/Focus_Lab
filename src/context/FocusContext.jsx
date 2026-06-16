@@ -13,22 +13,42 @@ const MIN_RECORD_SECS = 10; // 过短的专注不记账
 const FocusContext = React.createContext(null);
 
 export function FocusProvider({ children }) {
-  // 一次专注可同时选中多件任务（共用一个会话计时器）
-  const [focusedTodoIds, setFocusedTodoIds] = React.useState([]);
+  // 内部用 Set 存储，O(1) 查找；对外暴露数组保持向后兼容
+  const [focusedSet, setFocusedSet] = React.useState(() => new Set());
   const [focusRecords, setFocusRecords] = useLocalStorage(RECORDS_KEY, []);
 
-  // 加入/移出本次专注集合（供整行点击切换）
+  // 对外暴露的数组，仅当 Set 变化时重新计算
+  const focusedTodoIds = React.useMemo(() => Array.from(focusedSet), [focusedSet]);
+
+  // O(1) 查找，供 TodoItem 直接使用
+  const isFocused = (id) => focusedSet.has(id);
+
   const toggleFocusTodo = (id) =>
-    setFocusedTodoIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
-  // 仅加入（供撤销删除时恢复选中状态）
+    setFocusedSet((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+
+  // 仅加入（供撤销删除时恢复选中状态）；已存在则不触发重渲染
   const addFocusTodo = (id) =>
-    setFocusedTodoIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
-  // 仅移出（供 chip 的 ×、沉浸页移除、删除任务时联动）
+    setFocusedSet((prev) => {
+      if (prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+
+  // 仅移出（供 chip 的 ×、沉浸页移除、删除任务时联动）；不存在则不触发重渲染
   const removeFocusTodo = (id) =>
-    setFocusedTodoIds((prev) => prev.filter((x) => x !== id));
-  const clearFocusTodos = () => setFocusedTodoIds([]);
+    setFocusedSet((prev) => {
+      if (!prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+
+  const clearFocusTodos = () => setFocusedSet(new Set());
 
   const addFocusRecord = ({
     taskId,
@@ -37,6 +57,11 @@ export function FocusProvider({ children }) {
     startedAt,
     sessionId,
     outcome,
+    scenarioId,
+    scenarioTitle,
+    coinsEarned,
+    distractionCount,
+    noteCount,
   }) => {
     if (durationSecs < MIN_RECORD_SECS) return;
     const record = {
@@ -48,6 +73,10 @@ export function FocusProvider({ children }) {
       endedAt: Date.now(),
       sessionId,
       outcome,
+      ...(scenarioId ? { scenarioId, scenarioTitle } : {}),
+      ...(coinsEarned !== undefined ? { coinsEarned } : {}),
+      ...(distractionCount !== undefined ? { distractionCount } : {}),
+      ...(noteCount !== undefined ? { noteCount } : {}),
     };
     setFocusRecords((prev) => [record, ...prev]);
   };
@@ -56,6 +85,7 @@ export function FocusProvider({ children }) {
 
   const value = {
     focusedTodoIds,
+    isFocused,
     toggleFocusTodo,
     addFocusTodo,
     removeFocusTodo,

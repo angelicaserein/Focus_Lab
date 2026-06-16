@@ -53,6 +53,11 @@ export default function RecordList({ records, confirmClear, onClear }) {
                       <span className="hist-session-time">
                         {formatRecordDate(session.startedAt)}
                       </span>
+                      {session.records[0]?.scenarioTitle && (
+                        <span className="hist-session-scenario">
+                          {session.records[0].scenarioTitle}
+                        </span>
+                      )}
                       {session.records.length > 1 && (
                         <span className="hist-session-count">
                           {session.records.length} 个任务

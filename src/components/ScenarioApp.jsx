@@ -2,9 +2,12 @@ import React from "react";
 import ScenarioForm from "./ScenarioForm";
 import ScenarioList from "./ScenarioList";
 import ScenarioStats from "./ScenarioStats";
-import ScenarioToast from "./ScenarioToast";
+import Toast from "./Toast";
+import { useScenarios } from "../context/ScenarioContext";
 
 export default function ScenarioApp() {
+  const { pendingDelete, undoDelete } = useScenarios();
+
   return (
     <main
       className="scenario-container"
@@ -21,7 +24,11 @@ export default function ScenarioApp() {
 
       <ScenarioStats />
 
-      <ScenarioToast />
+      <Toast
+        pendingDelete={pendingDelete}
+        undoDelete={undoDelete}
+        getText={(item) => item.title}
+      />
     </main>
   );
 }

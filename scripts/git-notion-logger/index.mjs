@@ -188,51 +188,51 @@ async function summarizeDiff(diffText) {
     truncatedNote = "\n\n[diff truncated — only the first part is shown]";
   }
 
-  const entrySchema = {
-    type: "object",
-    additionalProperties: false,
-    properties: {
-      Name: {
-        type: "string",
-        description:
-          "A short English title. For FEATURE work, keep it coarse/high-level, " +
-          "e.g. 'Improve todo list UX'. For BUG FIXES, name the specific bug " +
-          "fixed, e.g. 'Fix todo list not rendering'.",
+  const tool = {
+    name: "log_entries",
+    description:
+      "Prefer a SINGLE entry covering the whole session under one umbrella theme. " +
+      "Only return multiple entries if the work spans clearly UNRELATED areas " +
+      "(e.g. a feature in one place plus an unrelated bug fix elsewhere). " +
+      "Never split sub-features of the same area into separate entries.",
+    input_schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        entries: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              Name: {
+                type: "string",
+                description:
+                  "A short English title. For FEATURE work, keep it coarse/high-level, " +
+                  "e.g. 'Improve todo list UX'. For BUG FIXES, name the specific bug " +
+                  "fixed, e.g. 'Fix todo list not rendering'.",
+              },
+              中文: {
+                type: "string",
+                description:
+                  "一句话概括这次做了什么。功能类写大主题（如「优化待办列表的用户体验」）；" +
+                  "bug 类写清修了什么 bug（如「修复待办列表无法渲染的问题」）。",
+              },
+              description: {
+                type: "string",
+                description:
+                  "功能类：一句简短的中文概括，只点出大致加了/改了什么，例如" +
+                  "「加了行内编辑、可撤销删除，统一了动画过渡」，不要逐条罗列细节行为。" +
+                  "bug 类：可以具体一点，说明问题是什么、怎么修的（产品/行为层面）。" +
+                  "两类都不要提文件名、函数名、代码或实现方式。",
+              },
+            },
+            required: ["Name", "中文", "description"],
+          },
+        },
       },
-      中文: {
-        type: "string",
-        description:
-          "一句话概括这次做了什么。功能类写大主题（如「优化待办列表的用户体验」）；" +
-          "bug 类写清修了什么 bug（如「修复待办列表无法渲染的问题」）。",
-      },
-      description: {
-        type: "string",
-        description:
-          "功能类：一句简短的中文概括，只点出大致加了/改了什么，例如" +
-          "「加了行内编辑、可撤销删除，统一了动画过渡」，不要逐条罗列细节行为。" +
-          "bug 类：可以具体一点，说明问题是什么、怎么修的（产品/行为层面）。" +
-          "两类都不要提文件名、函数名、代码或实现方式。",
-      },
+      required: ["entries"],
     },
-    required: ["Name", "中文", "description"],
-  };
-
-  const schema = {
-    type: "object",
-    additionalProperties: false,
-    properties: {
-      entries: {
-        type: "array",
-        description:
-          "Prefer a SINGLE element covering the whole session under one " +
-          "umbrella theme. Only return multiple elements if the work spans " +
-          "clearly UNRELATED areas (e.g. a feature in one place plus an " +
-          "unrelated bug fix elsewhere). Never split sub-features of the same " +
-          "area into separate elements.",
-        items: entrySchema,
-      },
-    },
-    required: ["entries"],
   };
 
   const response = await anthropic.messages.create({
@@ -255,7 +255,8 @@ async function summarizeDiff(diffText) {
       "- NEVER mention file names, function names, variables, code, or " +
       "implementation details. User-facing / high-level only.\n" +
       "- Be accurate; do not invent changes that aren't in the diff.",
-    output_config: { format: { type: "json_schema", schema } },
+    tools: [tool],
+    tool_choice: { type: "tool", name: "log_entries" },
     messages: [
       {
         role: "user",
@@ -268,9 +269,9 @@ async function summarizeDiff(diffText) {
     ],
   });
 
-  const textBlock = response.content.find((b) => b.type === "text");
-  if (!textBlock) throw new Error("Claude returned no text block");
-  const parsed = JSON.parse(textBlock.text);
+  const toolBlock = response.content.find((b) => b.type === "tool_use");
+  if (!toolBlock) throw new Error("Claude returned no tool_use block");
+  const parsed = toolBlock.input;
   return Array.isArray(parsed.entries) ? parsed.entries : [];
 }
 

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import useLocalStorage from "../hooks/useLocalStorage";
 
 // RewardContext 管理「奖励」相关状态：
@@ -10,6 +10,7 @@ import useLocalStorage from "../hooks/useLocalStorage";
 const COINS_KEY = "coins_v1";
 const OWNED_KEY = "reward_owned_v1";
 const REDEEM_KEY = "reward_redeem_v1";
+const THEME_KEY = "active_theme_v1";
 
 // 商品目录（静态，无需持久化）。
 //   type: "unlock"     —— 买过即拥有，不可重复买。
@@ -63,11 +64,32 @@ export function RewardProvider({ children }) {
   const [coins, setCoins] = useLocalStorage(COINS_KEY, 0);
   const [owned, setOwned] = useLocalStorage(OWNED_KEY, []);
   const [redeemCounts, setRedeemCounts] = useLocalStorage(REDEEM_KEY, {});
+  const [activeTheme, setActiveTheme] = useLocalStorage(THEME_KEY, "default");
+
+  // 将 activeTheme 写入 <html data-theme>，未解锁或默认时移除属性
+  useEffect(() => {
+    if (!activeTheme || activeTheme === "default") {
+      document.documentElement.removeAttribute("data-theme");
+    } else if (owned.includes(activeTheme)) {
+      document.documentElement.setAttribute("data-theme", activeTheme.replace("theme-", ""));
+    } else {
+      // 已选主题被移除拥有权时回退默认
+      document.documentElement.removeAttribute("data-theme");
+      setActiveTheme("default");
+    }
+  }, [activeTheme, owned]);
 
   // 增加金币（供 Focus 完成任务时调用）。非正数忽略。
   const addCoins = (amount) => {
     if (!amount || amount <= 0) return;
     setCoins((prev) => prev + Math.floor(amount));
+  };
+
+  // 切换已解锁的主题（"default" 始终可用）
+  const setTheme = (themeId) => {
+    if (themeId === "default" || owned.includes(themeId)) {
+      setActiveTheme(themeId);
+    }
   };
 
   // 兑换商品：余额不足返回 false；unlock 已拥有则忽略并返回 false。
@@ -76,6 +98,8 @@ export function RewardProvider({ children }) {
     if (item.type === "unlock") {
       if (owned.includes(item.id)) return false;
       setOwned((prev) => [...prev, item.id]);
+      // 购买主题后自动切换到该主题
+      if (item.id.startsWith("theme-")) setActiveTheme(item.id);
     } else {
       setRedeemCounts((prev) => ({
         ...prev,
@@ -95,6 +119,8 @@ export function RewardProvider({ children }) {
     buyItem,
     isOwned,
     getRedeemCount,
+    activeTheme,
+    setTheme,
   };
 
   return (

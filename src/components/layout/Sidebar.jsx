@@ -23,6 +23,9 @@ export default function Sidebar() {
         <Link to="/reward" className={`nav-link ${isActive("/reward") ? "active" : ""}`}>
           <span className="nav-label">Reward</span>
         </Link>
+        <Link to="/settings" className={`nav-link ${isActive("/settings") ? "active" : ""}`}>
+          <span className="nav-label">Settings</span>
+        </Link>
       </nav>
     </aside>
   );

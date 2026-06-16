@@ -1,24 +1,9 @@
 import React, { useReducer, useEffect, useContext } from "react";
+import { loadVersioned } from "../utils/storage";
+import { useUndoDelete } from "../hooks/useUndoDelete";
 
 const STORAGE_KEY = "scenarios_v1";
 const CURRENT_VERSION = 1;
-const UNDO_WINDOW_MS = 5000;
-
-function loadScenarios() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (parsed?.version === CURRENT_VERSION && Array.isArray(parsed.data)) {
-      return parsed.data;
-    }
-    // 旧格式（裸数组）迁移
-    if (Array.isArray(parsed)) return parsed;
-    return [];
-  } catch {
-    return [];
-  }
-}
 
 // Action types
 const ADD = "ADD";
@@ -27,12 +12,11 @@ const EDIT = "EDIT";
 const RESTORE = "RESTORE";
 const SET = "SET";
 
-// reducer 管理 scenarios 状态。场景没有“完成”概念，故无 TOGGLE。
+// 场景没有"完成"概念，故无 TOGGLE。
 function reducer(state, action) {
   switch (action.type) {
     case ADD: {
-      const item = action.payload;
-      return [item, ...state];
+      return [action.payload, ...state];
     }
     case DELETE: {
       return state.filter((s) => s.id !== action.payload);
@@ -60,14 +44,14 @@ function reducer(state, action) {
 const ScenarioContext = React.createContext(null);
 
 export function ScenarioProvider({ children }) {
-  const [scenarios, dispatch] = useReducer(reducer, null, loadScenarios);
+  const [scenarios, dispatch] = useReducer(
+    reducer,
+    null,
+    () => loadVersioned(STORAGE_KEY, CURRENT_VERSION),
+  );
 
   // 选中高亮（多选）——仅本页面使用，不持久化
   const [selectedIds, setSelectedIds] = React.useState([]);
-
-  // 可撤销删除：暂存最近一次被删的项，供 toast 撤销
-  const [pendingDelete, setPendingDelete] = React.useState(null);
-  const undoTimerRef = React.useRef(null);
 
   useEffect(() => {
     localStorage.setItem(
@@ -81,7 +65,6 @@ export function ScenarioProvider({ children }) {
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
 
-  // 便捷 action creators
   const addScenario = (title, description = "") => {
     const t = title.trim();
     if (!t) return;
@@ -103,35 +86,18 @@ export function ScenarioProvider({ children }) {
     });
   };
 
-  const deleteScenario = (id) => {
-    const index = scenarios.findIndex((s) => s.id === id);
-    if (index === -1) return;
-    const item = scenarios[index];
-    const wasSelected = selectedIds.includes(id);
-
-    dispatch({ type: DELETE, payload: id });
-    if (wasSelected) setSelectedIds((prev) => prev.filter((x) => x !== id));
-
-    // 暂存供撤销；若已有待撤销项则直接被新项替换（旧的落定）
-    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
-    setPendingDelete({ item, index, wasSelected });
-    undoTimerRef.current = setTimeout(() => {
-      setPendingDelete(null);
-      undoTimerRef.current = null;
-    }, UNDO_WINDOW_MS);
-  };
-
-  const undoDelete = () => {
-    if (!pendingDelete) return;
-    if (undoTimerRef.current) {
-      clearTimeout(undoTimerRef.current);
-      undoTimerRef.current = null;
-    }
-    const { item, index, wasSelected } = pendingDelete;
-    dispatch({ type: RESTORE, payload: { item, index } });
-    if (wasSelected) setSelectedIds((prev) => [...prev, item.id]);
-    setPendingDelete(null);
-  };
+  const { pendingDelete, deleteFn: deleteScenario, undoDelete } = useUndoDelete({
+    items: scenarios,
+    dispatch,
+    onDelete: (id) => {
+      const wasSelected = selectedIds.includes(id);
+      if (wasSelected) setSelectedIds((prev) => prev.filter((x) => x !== id));
+      return { wasSelected };
+    },
+    onRestore: (item, meta) => {
+      if (meta?.wasSelected) setSelectedIds((prev) => [...prev, item.id]);
+    },
+  });
 
   const value = {
     scenarios,
@@ -142,7 +108,6 @@ export function ScenarioProvider({ children }) {
     undoDelete,
     selectedIds,
     toggleSelect,
-    dispatch,
   };
 
   return (

@@ -192,3 +192,14 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* 购买成功提示 — 居中版 Toast */
+.toast--center {
+  right: auto;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+}
+
+.toast--center.visible {
+  transform: translateX(-50%) translateY(0);
+}
