@@ -51,10 +51,13 @@
   font-weight: 600;
 }
 
+.todo-form-section {
+  margin-bottom: 16px;
+}
+
 .todo-form {
   display: flex;
   gap: 10px;
-  margin-bottom: 16px;
 }
 
 .todo-input {
@@ -95,17 +98,19 @@
 
 .recurring-toggle {
   flex-shrink: 0;
-  width: 36px;
+  min-width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: 18px;
+  padding: 0 8px;
   border: 1.5px solid var(--border-input);
   background: transparent;
   color: var(--muted);
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 3px;
   transition:
     color 160ms var(--ease),
     border-color 160ms var(--ease),
@@ -115,7 +120,7 @@
 .recurring-toggle:hover {
   color: var(--accent);
   border-color: var(--accent-border);
-  transform: scale(1.08);
+  transform: scale(1.05);
 }
 .recurring-toggle.active {
   color: var(--accent);
@@ -271,11 +276,15 @@
   border: none;
   color: var(--text-faint);
   cursor: pointer;
-  font-size: 15px;
-  padding: 6px;
+  font-size: 13px;
+  padding: 4px 6px;
   border-radius: 8px;
   line-height: 1;
   opacity: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
   transition:
     opacity 160ms var(--ease),
     color 160ms var(--ease),
@@ -292,6 +301,103 @@
 .recurring-item-btn:hover {
   color: var(--accent);
   background: var(--accent-bg);
+}
+
+.recurring-btn-label {
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+/* Wrapper for todo item + day picker panel */
+.todo-item-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.todo-item-wrap.picker-open .todo-item {
+  border-radius: 12px 12px 0 0;
+  border-bottom-color: var(--accent-border);
+}
+
+/* Day picker panel */
+.recurring-day-picker {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  flex-wrap: wrap;
+}
+
+.todo-form-section .recurring-day-picker {
+  margin-top: 6px;
+  border-top: 1px solid var(--accent-border);
+  border-radius: 12px;
+}
+
+.day-preset-btn {
+  padding: 3px 9px;
+  border-radius: 12px;
+  border: 1px solid var(--border-input);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+.day-preset-btn:hover,
+.day-preset-btn.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.day-picker-sep {
+  color: var(--border-input);
+  margin: 0 2px;
+  user-select: none;
+}
+
+.day-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border-input);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 120ms ease;
+}
+.day-btn:hover,
+.day-btn.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.day-cancel-btn {
+  margin-left: auto;
+  padding: 3px 9px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+.day-cancel-btn:hover {
+  color: var(--danger, #e57373);
+  border-color: var(--danger, #e57373);
+  background: var(--danger-subtle, rgba(229,115,115,0.08));
 }
 
 /* 内联编辑输入框 */

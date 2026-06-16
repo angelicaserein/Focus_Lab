@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useTodos } from "../context/TodoContext";
 import { useFocus } from "../context/FocusContext";
+import RecurringDayPicker, { recurringLabel } from "./RecurringDayPicker";
 
 export default function TodoItem({ todo }) {
   const { toggleTodo, deleteTodo, editTodo, toggleRecurring } = useTodos();
@@ -8,7 +9,9 @@ export default function TodoItem({ todo }) {
   const [removing, setRemoving] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(todo.text);
+  const [showDayPicker, setShowDayPicker] = useState(false);
   const inputRef = useRef(null);
+  const wrapRef = useRef(null);
 
   const isNew = useMemo(() => {
     if (!todo.createdAt) return false;
@@ -21,6 +24,17 @@ export default function TodoItem({ todo }) {
       inputRef.current.select();
     }
   }, [editing]);
+
+  useEffect(() => {
+    if (!showDayPicker) return;
+    const handler = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        setShowDayPicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showDayPicker]);
 
   const handleDelete = (e) => {
     e.stopPropagation();
@@ -57,83 +71,98 @@ export default function TodoItem({ todo }) {
 
   const handleRowClick = (e) => {
     if (editing) return;
-    // 忽略来自交互子元素（按钮 / 勾选框）的点击，避免误触
     if (e.target.closest("button") || e.target.closest(".checkbox-wrap")) return;
-    // 点击整行 = 加入/移出本次专注集合（可多选；完成状态由勾选框切换）
     toggleFocusTodo(todo.id);
   };
 
+  const recurringDays = todo.recurringDays ?? [];
+  const label = recurringLabel(recurringDays);
+
   return (
-    <div
-      className={`todo-item ${isNew ? "new" : ""} ${
-        removing ? "removing" : ""
-      } ${editing ? "editing" : ""} ${
-        isFocused(todo.id) ? "selected" : ""
-      } ${todo.recurring ? "recurring" : ""}`}
-      role="listitem"
-      aria-label={todo.text}
-      onClick={handleRowClick}
-    >
-      <label className="checkbox-wrap">
-        <input
-          className="native-checkbox"
-          type="checkbox"
-          checked={!!todo.completed}
-          onChange={() => toggleTodo(todo.id)}
-          aria-label={`标记 ${todo.text} 为完成`}
-        />
-        <span
-          className={`custom-checkbox ${todo.completed ? "checked" : ""}`}
-        />
-      </label>
-
-      {editing ? (
-        <input
-          ref={inputRef}
-          className="todo-edit-input"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onBlur={commitEdit}
-          onClick={(e) => e.stopPropagation()}
-          aria-label="编辑任务"
-        />
-      ) : (
-        <div className={`todo-text ${todo.completed ? "completed" : ""}`}>
-          {todo.recurring && <span className="recurring-icon">↺</span>}
-          {todo.text}
-        </div>
-      )}
-
-      {!editing && (
-        <>
-          <button
-            className={`recurring-item-btn${todo.recurring ? " active" : ""}`}
-            onClick={(e) => { e.stopPropagation(); toggleRecurring(todo.id); }}
-            title={todo.recurring ? "取消每日重复" : "设为每日重复"}
-            aria-pressed={!!todo.recurring}
-          >
-            ↺
-          </button>
-          <button
-            className="edit-btn"
-            onClick={startEdit}
-            aria-label={`编辑 ${todo.text}`}
-            title="编辑任务"
-          >
-            ✎
-          </button>
-        </>
-      )}
-
-      <button
-        className="delete-btn"
-        onClick={handleDelete}
-        aria-label={`删除 ${todo.text}`}
-        title="删除任务"
+    <div className={`todo-item-wrap${showDayPicker ? ' picker-open' : ''}`} ref={wrapRef}>
+      <div
+        className={`todo-item ${isNew ? "new" : ""} ${
+          removing ? "removing" : ""
+        } ${editing ? "editing" : ""} ${
+          isFocused(todo.id) ? "selected" : ""
+        } ${recurringDays.length > 0 ? "recurring" : ""}`}
+        role="listitem"
+        aria-label={todo.text}
+        onClick={handleRowClick}
       >
-        ×
-      </button>
+        <label className="checkbox-wrap">
+          <input
+            className="native-checkbox"
+            type="checkbox"
+            checked={!!todo.completed}
+            onChange={() => toggleTodo(todo.id)}
+            aria-label={`标记 ${todo.text} 为完成`}
+          />
+          <span
+            className={`custom-checkbox ${todo.completed ? "checked" : ""}`}
+          />
+        </label>
+
+        {editing ? (
+          <input
+            ref={inputRef}
+            className="todo-edit-input"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={commitEdit}
+            onClick={(e) => e.stopPropagation()}
+            aria-label="编辑任务"
+          />
+        ) : (
+          <div className={`todo-text ${todo.completed ? "completed" : ""}`}>
+            {recurringDays.length > 0 && (
+              <span className="recurring-icon" title={`固定：${label}`}>↺</span>
+            )}
+            {todo.text}
+          </div>
+        )}
+
+        {!editing && (
+          <>
+            <button
+              className={`recurring-item-btn${recurringDays.length > 0 ? " active" : ""}`}
+              onClick={(e) => { e.stopPropagation(); setShowDayPicker(v => !v); }}
+              title={recurringDays.length > 0 ? `固定：${label}` : "设为固定任务"}
+              aria-pressed={recurringDays.length > 0}
+            >
+              ↺{recurringDays.length > 0 && (
+                <span className="recurring-btn-label">{label}</span>
+              )}
+            </button>
+            <button
+              className="edit-btn"
+              onClick={startEdit}
+              aria-label={`编辑 ${todo.text}`}
+              title="编辑任务"
+            >
+              ✎
+            </button>
+          </>
+        )}
+
+        <button
+          className="delete-btn"
+          onClick={handleDelete}
+          aria-label={`删除 ${todo.text}`}
+          title="删除任务"
+        >
+          ×
+        </button>
+      </div>
+
+      {showDayPicker && (
+        <RecurringDayPicker
+          days={recurringDays}
+          onChange={(d) => toggleRecurring(todo.id, d)}
+          onClose={() => setShowDayPicker(false)}
+        />
+      )}
     </div>
   );
 }

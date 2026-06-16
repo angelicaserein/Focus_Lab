@@ -18,10 +18,21 @@
  * MIGRATIONS[i] 将 schema 从版本 i 升级到 i+1。
  */
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 const SCHEMA_META_KEY = "__focuslab_schema";
 
-const MIGRATIONS = [];
+const MIGRATIONS = [
+  null, // v0→v1: no-op placeholder
+  // v1→v2: migrate recurring:boolean → recurringDays:number[]
+  (data) => ({
+    ...data,
+    todos: (data.todos ?? []).map(t => {
+      if (!t.recurring) return t;
+      const { recurring, ...rest } = t;
+      return { ...rest, recurringDays: [0, 1, 2, 3, 4, 5, 6] };
+    }),
+  }),
+];
 
 // versioned: true  → TodoContext/ScenarioContext 的 {version, data} 格式
 // versioned: false → useLocalStorage hook 的裸 JSON 格式

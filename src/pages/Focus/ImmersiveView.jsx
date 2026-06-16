@@ -39,6 +39,10 @@ export default function ImmersiveView({
   // 随记 + 记录分心
   onAddNote,
   onDistraction,
+  onProactiveDistraction,
+  onReturnFromDistraction,
+  isProactiveDistraction = false,
+  proactiveDistractionStartTs = null,
   sessionNotes = [],
   sessionDistractionCount = 0,
 }) {
@@ -194,6 +198,11 @@ export default function ImmersiveView({
       <ImmersiveUtils
         onAddNote={onAddNote}
         onDistraction={onDistraction}
+        onProactiveDistraction={onProactiveDistraction}
+        onReturnFromDistraction={onReturnFromDistraction}
+        isProactiveDistraction={isProactiveDistraction}
+        proactiveDistractionStartTs={proactiveDistractionStartTs}
+        isRunning={isRunning}
         sessionNotes={sessionNotes}
         sessionDistractionCount={sessionDistractionCount}
       />

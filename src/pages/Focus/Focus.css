@@ -1043,6 +1043,87 @@
   color: var(--accent-mid);
 }
 
+/* 两个分心按钮竖排容器 */
+.immersive-distraction-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* "去分心一下"次级按钮 */
+.immersive-util-btn.proactive {
+  font-size: 0.78rem;
+  opacity: 0.85;
+  background: transparent;
+  border-style: dashed;
+}
+
+.immersive-util-btn.proactive:not(:disabled):hover {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: #f59e0b;
+  color: #d97706;
+  opacity: 1;
+}
+
+.immersive-util-btn.proactive:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 主动分心中：计时面板 */
+.immersive-distraction-mode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  border-radius: 20px;
+  background: rgba(251, 191, 36, 0.18);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  animation: noteSlideIn 220ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.immersive-distraction-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #b45309;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.immersive-distraction-elapsed {
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #92400e;
+  line-height: 1;
+}
+
+.immersive-return-btn {
+  padding: 8px 20px;
+  border-radius: 999px;
+  border: 1.5px solid #f59e0b;
+  background: rgba(245, 158, 11, 0.2);
+  color: #92400e;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 150ms ease, transform 120ms ease;
+}
+
+.immersive-return-btn:hover {
+  background: rgba(245, 158, 11, 0.35);
+  transform: translateY(-2px);
+}
+
+.immersive-return-btn:active {
+  transform: scale(0.95);
+}
+
 /* 随记面板（向上弹出，与任务选择器同款玻璃样式） */
 .immersive-note-panel {
   width: 260px;
@@ -1349,4 +1430,44 @@
 /* 分心行整体略微淡化 */
 .session-summary-row.distraction .session-summary-time {
   opacity: 0.7;
+}
+
+/* 分心标签行内展示 */
+.distraction-tag-inline {
+  color: var(--accent-mid);
+  font-weight: 600;
+}
+
+.distraction-note-inline {
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+/* 分心洞察行 */
+.distraction-insight-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.distraction-insight-item {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
+.distraction-insight-item.tag {
+  color: var(--accent-mid);
+  background: var(--accent-bg);
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.distraction-insight-item.diff.better {
+  color: #4e9d7a;
+}
+
+.distraction-insight-item.diff.worse {
+  color: var(--text-muted);
 }

@@ -9,7 +9,7 @@ export default function TodoList({ filter = "ALL" }) {
     if (filter === "ALL") return true;
     if (filter === "ACTIVE") return !t.completed;
     if (filter === "COMPLETED") return !!t.completed;
-    if (filter === "RECURRING") return !!t.recurring;
+    if (filter === "RECURRING") return !!t.recurringDays?.length;
     return true;
   });
 

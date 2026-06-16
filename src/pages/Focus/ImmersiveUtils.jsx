@@ -5,16 +5,28 @@ function fmtTime(ts) {
   return d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
 }
 
-// 沉浸模式右下角工具栏：随记 + 记录分心
+function fmtElapsed(secs) {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+// 沉浸模式右下角工具栏：随记 + 记录分心（被动/主动）
 export default function ImmersiveUtils({
   onAddNote,
   onDistraction,
+  onProactiveDistraction,
+  onReturnFromDistraction,
+  isProactiveDistraction = false,
+  proactiveDistractionStartTs = null,
+  isRunning = false,
   sessionNotes = [],
   sessionDistractionCount = 0,
 }) {
   const [noteOpen, setNoteOpen] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [distractionFeedback, setDistractionFeedback] = useState(false);
+  const [distractionElapsed, setDistractionElapsed] = useState(0);
   const textareaRef = useRef(null);
   const historyEndRef = useRef(null);
   const feedbackTimerRef = useRef(null);
@@ -27,6 +39,19 @@ export default function ImmersiveUtils({
   useEffect(() => {
     if (noteOpen) historyEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [sessionNotes.length, noteOpen]);
+
+  // 主动分心中：每秒更新已过时长
+  useEffect(() => {
+    if (!isProactiveDistraction || !proactiveDistractionStartTs) {
+      setDistractionElapsed(0);
+      return undefined;
+    }
+    const tick = () =>
+      setDistractionElapsed(Math.floor((Date.now() - proactiveDistractionStartTs) / 1000));
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [isProactiveDistraction, proactiveDistractionStartTs]);
 
   const saveNote = () => {
     const t = noteText.trim();
@@ -56,6 +81,25 @@ export default function ImmersiveUtils({
   };
 
   const distractionCount = sessionDistractionCount;
+
+  // 分心中状态：显示计时器 + 回来按钮
+  if (isProactiveDistraction) {
+    return (
+      <div className="immersive-utils">
+        <div className="immersive-distraction-mode">
+          <div className="immersive-distraction-label">分心中</div>
+          <div className="immersive-distraction-elapsed">{fmtElapsed(distractionElapsed)}</div>
+          <button
+            type="button"
+            className="immersive-return-btn"
+            onClick={onReturnFromDistraction}
+          >
+            我回来了
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="immersive-utils">
@@ -110,17 +154,28 @@ export default function ImmersiveUtils({
             <span className="immersive-util-badge">{sessionNotes.length}</span>
           )}
         </button>
-        <button
-          type="button"
-          className={`immersive-util-btn distraction${distractionFeedback ? " feedback" : ""}`}
-          onClick={handleDistraction}
-          title="记录一次分心"
-        >
-          {distractionFeedback ? "已记录 ✓" : "⚡ 分心了"}
-          {distractionCount > 0 && (
-            <span className="immersive-util-badge">{distractionCount}</span>
-          )}
-        </button>
+        <div className="immersive-distraction-btns">
+          <button
+            type="button"
+            className={`immersive-util-btn distraction${distractionFeedback ? " feedback" : ""}`}
+            onClick={handleDistraction}
+            title="记录一次刚刚发生的分心"
+          >
+            {distractionFeedback ? "已记录 ✓" : "⚡ 刚刚分心了"}
+            {distractionCount > 0 && (
+              <span className="immersive-util-badge">{distractionCount}</span>
+            )}
+          </button>
+          <button
+            type="button"
+            className="immersive-util-btn proactive"
+            onClick={onProactiveDistraction}
+            disabled={!isRunning}
+            title="暂停专注，去处理别的事"
+          >
+            🚶 去分心一下
+          </button>
+        </div>
       </div>
     </div>
   );

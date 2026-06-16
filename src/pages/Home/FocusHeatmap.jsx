@@ -87,6 +87,18 @@ export default function FocusHeatmap({ records }) {
       </div>
 
       <div className="heatmap-body">
+        {/* corner spacer */}
+        <div />
+
+        {/* Month labels row */}
+        <div className="heatmap-month-row">
+          {monthLabels.map((label, i) => (
+            <span key={i} className="heatmap-month-label">
+              {label ?? ""}
+            </span>
+          ))}
+        </div>
+
         {/* Left day-of-week labels */}
         <div className="heatmap-day-labels">
           {DAY_ROW_LABELS.map((label, i) => (
@@ -96,53 +108,40 @@ export default function FocusHeatmap({ records }) {
           ))}
         </div>
 
-        <div className="heatmap-right">
-          <div className="heatmap-scroll">
-            {/* Month labels row */}
-            <div className="heatmap-month-row">
-              {monthLabels.map((label, i) => (
-                <span key={i} className="heatmap-month-label">
-                  {label ?? ""}
-                </span>
-              ))}
-            </div>
-
-            {/* Heatmap grid */}
-            <div className="heatmap-grid">
-              {weeks.map((week, wi) =>
-                week.map((cell, di) => {
-                  const level = cell.isFuture ? "future" : getLevel(cell.secs);
-                  const dateStr = cell.date.toLocaleDateString("zh-CN", {
-                    month: "long",
-                    day: "numeric",
-                  });
-                  const title = cell.isFuture
-                    ? ""
-                    : cell.secs > 0
-                      ? `${dateStr} · 专注 ${formatDuration(cell.secs)}`
-                      : `${dateStr} · 无记录`;
-                  return (
-                    <div
-                      key={`${wi}-${di}`}
-                      className="heatmap-cell"
-                      data-level={level}
-                      title={title}
-                    />
-                  );
-                }),
-              )}
-            </div>
-          </div>
-
-          {/* Legend */}
-          <div className="heatmap-footer">
-            <span className="heatmap-legend-label">少</span>
-            {[0, 1, 2, 3, 4].map((l) => (
-              <div key={l} className="heatmap-legend-cell" data-level={l} />
-            ))}
-            <span className="heatmap-legend-label">多</span>
-          </div>
+        {/* Heatmap grid */}
+        <div className="heatmap-grid">
+          {weeks.map((week, wi) =>
+            week.map((cell, di) => {
+              const level = cell.isFuture ? "future" : getLevel(cell.secs);
+              const dateStr = cell.date.toLocaleDateString("zh-CN", {
+                month: "long",
+                day: "numeric",
+              });
+              const title = cell.isFuture
+                ? ""
+                : cell.secs > 0
+                  ? `${dateStr} · 专注 ${formatDuration(cell.secs)}`
+                  : `${dateStr} · 无记录`;
+              return (
+                <div
+                  key={`${wi}-${di}`}
+                  className="heatmap-cell"
+                  data-level={level}
+                  title={title}
+                />
+              );
+            }),
+          )}
         </div>
+      </div>
+
+      {/* Legend */}
+      <div className="heatmap-footer">
+        <span className="heatmap-legend-label">少</span>
+        {[0, 1, 2, 3, 4].map((l) => (
+          <div key={l} className="heatmap-legend-cell" data-level={l} />
+        ))}
+        <span className="heatmap-legend-label">多</span>
       </div>
     </div>
   );

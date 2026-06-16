@@ -440,6 +440,52 @@
   white-space: nowrap;
 }
 
+/* 分心次数徽章 */
+.hist-distraction-badge {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: var(--accent-bg-dim);
+}
+
+/* 专注质量标签 */
+.hist-quality-badge {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.hist-quality-badge.deep {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.hist-quality-badge.good {
+  color: var(--accent-mid);
+  background: var(--accent-bg-dim);
+}
+
+.hist-quality-badge.scattered {
+  color: var(--text-muted);
+  background: var(--accent-hover);
+}
+
+/* 净专注时间标签（扣除主动分心时长） */
+.hist-net-focus {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 8px;
+  color: #b45309;
+  background: rgba(251, 191, 36, 0.15);
+}
+
 /* 单任务结果徽章 */
 .hist-outcome-badge {
   flex-shrink: 0;

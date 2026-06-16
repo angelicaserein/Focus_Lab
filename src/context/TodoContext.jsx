@@ -43,13 +43,14 @@ function reducer(state, action) {
     }
     case TOGGLE_RECURRING: {
       const today = new Date().toISOString().split('T')[0];
+      const { id, days } = action.payload;
       return state.map(t => {
-        if (t.id !== action.payload) return t;
-        if (t.recurring) {
-          const { recurring, lastResetDate, ...rest } = t;
+        if (t.id !== id) return t;
+        if (!days?.length) {
+          const { recurringDays, lastResetDate, ...rest } = t;
           return rest;
         }
-        return { ...t, recurring: true, lastResetDate: today };
+        return { ...t, recurringDays: days, lastResetDate: today };
       });
     }
     default:
@@ -77,19 +78,22 @@ export function TodoProvider({ children }) {
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
-    const needsReset = todos.some(t => t.recurring && t.lastResetDate !== today);
+    const todayDow = new Date().getDay();
+    const needsReset = todos.some(
+      t => t.recurringDays?.includes(todayDow) && t.lastResetDate !== today
+    );
     if (!needsReset) return;
     dispatch({
       type: SET,
       payload: todos.map(t =>
-        t.recurring && t.lastResetDate !== today
+        t.recurringDays?.includes(todayDow) && t.lastResetDate !== today
           ? { ...t, completed: false, lastResetDate: today }
           : t
       ),
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const addTodo = (text, { recurring = false } = {}) => {
+  const addTodo = (text, { recurringDays = null } = {}) => {
     const t = text.trim();
     if (!t) return;
     const today = new Date().toISOString().split('T')[0];
@@ -98,7 +102,7 @@ export function TodoProvider({ children }) {
       text: t,
       completed: false,
       createdAt: Date.now(),
-      ...(recurring && { recurring: true, lastResetDate: today }),
+      ...(recurringDays?.length && { recurringDays, lastResetDate: today }),
     };
     dispatch({ type: ADD, payload: item });
     return item;
@@ -106,7 +110,7 @@ export function TodoProvider({ children }) {
 
   const toggleTodo = (id) => dispatch({ type: TOGGLE, payload: id });
 
-  const toggleRecurring = (id) => dispatch({ type: TOGGLE_RECURRING, payload: id });
+  const toggleRecurring = (id, days) => dispatch({ type: TOGGLE_RECURRING, payload: { id, days } });
 
   const editTodo = (id, text) => {
     const t = text.trim();

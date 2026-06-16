@@ -9,6 +9,7 @@ import useLocalStorage from "../../hooks/useLocalStorage";
 import usePrefs from "../../hooks/usePrefs";
 import ImmersiveView from "./ImmersiveView";
 import FocusConsole from "./FocusConsole";
+import DistractionModal from "./DistractionModal";
 import "./Focus.css";
 
 export default function FocusPage() {
@@ -80,6 +81,12 @@ export default function FocusPage() {
 
   const [notes, setNotes] = useLocalStorage("focus_notes_v1", []);
   const [distractions, setDistractions] = useLocalStorage("focus_distractions_v1", []);
+  const [pendingDistractionId, setPendingDistractionId] = useState(null);
+
+  // 主动分心模式状态
+  const [isProactiveDistraction, setIsProactiveDistraction] = useState(false);
+  const [proactiveDistractionStartTs, setProactiveDistractionStartTs] = useState(null);
+  const [proactiveDistractionId, setProactiveDistractionId] = useState(null);
 
   // 记录本次沉浸会话的起始时间，用于筛选「本次」的随记和分心条目
   const [sessionStartTs, setSessionStartTs] = useState(null);
@@ -97,10 +104,57 @@ export default function FocusPage() {
 
   const recordDistraction = () => {
     const { sessionId } = getSession();
+    const id = crypto.randomUUID();
     setDistractions((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), ts: Date.now(), sessionId, taskIds: [...focusedTodoIds] },
+      { id, ts: Date.now(), sessionId, taskIds: [...focusedTodoIds], tag: null, note: null, type: "reactive" },
     ]);
+    setPendingDistractionId(id);
+  };
+
+  const startProactiveDistraction = () => {
+    if (!isRunning || isProactiveDistraction) return;
+    const { sessionId } = getSession();
+    const id = crypto.randomUUID();
+    const now = Date.now();
+    setDistractions((prev) => [
+      ...prev,
+      { id, ts: now, sessionId, taskIds: [...focusedTodoIds], tag: null, note: null, type: "proactive", durationSecs: null },
+    ]);
+    setProactiveDistractionId(id);
+    setProactiveDistractionStartTs(now);
+    setIsProactiveDistraction(true);
+    togglePause();
+  };
+
+  const endProactiveDistraction = () => {
+    const durationSecs = Math.round((Date.now() - proactiveDistractionStartTs) / 1000);
+    setDistractions((prev) =>
+      prev.map((d) => (d.id === proactiveDistractionId ? { ...d, durationSecs } : d)),
+    );
+    setPendingDistractionId(proactiveDistractionId);
+    setIsProactiveDistraction(false);
+    setProactiveDistractionStartTs(null);
+    setProactiveDistractionId(null);
+    togglePause();
+  };
+
+  const handleDistractionTag = (tag, note) => {
+    if (pendingDistractionId) {
+      setDistractions((prev) =>
+        prev.map((d) =>
+          d.id === pendingDistractionId ? { ...d, tag: tag || null, note: note || null } : d,
+        ),
+      );
+    }
+    setPendingDistractionId(null);
+  };
+
+  const handleDistractionUndo = () => {
+    if (pendingDistractionId) {
+      setDistractions((prev) => prev.filter((d) => d.id !== pendingDistractionId));
+    }
+    setPendingDistractionId(null);
   };
 
   const { pomodoroMins, animEnabled, setAnimEnabled } = usePrefs();
@@ -169,6 +223,7 @@ export default function FocusPage() {
     distractionCount,
     noteCount,
     eventsSnapshot,
+    distractionSecs,
   ) => {
     if (!eventsSnapshot) {
       logEvent(`task_${outcome}`, { taskId: todo.id, taskText: todo.text });
@@ -184,6 +239,7 @@ export default function FocusPage() {
       scenarioTitle: scenarioTitle ?? undefined,
       coinsEarned,
       distractionCount,
+      distractionSecs,
       noteCount,
       events: eventsSnapshot ?? [...sessionEventsRef.current],
     });
@@ -192,11 +248,30 @@ export default function FocusPage() {
   };
 
   const handleStop = () => {
+    // 若处于主动分心中，先结束分心计时（不弹 Modal）
+    let extraDistSecs = 0;
+    if (isProactiveDistraction && proactiveDistractionStartTs) {
+      extraDistSecs = Math.round((Date.now() - proactiveDistractionStartTs) / 1000);
+      const pdId = proactiveDistractionId;
+      setDistractions((prev) =>
+        prev.map((d) => (d.id === pdId ? { ...d, durationSecs: extraDistSecs } : d)),
+      );
+      setIsProactiveDistraction(false);
+      setProactiveDistractionStartTs(null);
+      setProactiveDistractionId(null);
+    }
+
     // 先捕获当前计时状态，再归零——确保 hasSelection effect 读到 seconds=0 不重复发币
     const finalSecs = seconds;
     const finalSession = getSession();
     const finalDistractionCount = sessionDistractions.length;
     const finalNoteCount = sessionNotes.length;
+    // 计算主动分心总时长（已完成的 + 本次中断的）
+    const finalDistractionSecs =
+      sessionDistractions
+        .filter((d) => d.type === "proactive" && d.durationSecs != null)
+        .reduce((sum, d) => sum + d.durationSecs, 0) + extraDistSecs;
+
     if (finalSecs > 0) addCoins(finalSecs);
     // 先把所有任务结束事件 + 会话结束写入日志，再截取快照
     selectedTodos.forEach((t) =>
@@ -206,7 +281,7 @@ export default function FocusPage() {
     const finalEvents = [...sessionEventsRef.current];
     clearSession();
     selectedTodos.forEach((t) =>
-      settleTask(t, "ended", finalSecs, finalSession, finalSecs, finalDistractionCount, finalNoteCount, finalEvents)
+      settleTask(t, "ended", finalSecs, finalSession, finalSecs, finalDistractionCount, finalNoteCount, finalEvents, finalDistractionSecs)
     );
     setIsImmersive(false);
     setSessionStartTs(null);
@@ -214,6 +289,13 @@ export default function FocusPage() {
 
   return (
     <>
+      {pendingDistractionId && (
+        <DistractionModal
+          onTag={handleDistractionTag}
+          onUndo={handleDistractionUndo}
+          onClose={() => setPendingDistractionId(null)}
+        />
+      )}
       {isImmersive && (
         <ImmersiveView
           isRunning={isRunning}
@@ -242,6 +324,10 @@ export default function FocusPage() {
           onChatSend={sendUserMessage}
           onAddNote={addNote}
           onDistraction={recordDistraction}
+          onProactiveDistraction={startProactiveDistraction}
+          onReturnFromDistraction={endProactiveDistraction}
+          isProactiveDistraction={isProactiveDistraction}
+          proactiveDistractionStartTs={proactiveDistractionStartTs}
           sessionNotes={sessionNotes}
           sessionDistractionCount={sessionDistractions.length}
         />

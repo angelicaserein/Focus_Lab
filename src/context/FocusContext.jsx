@@ -61,6 +61,7 @@ export function FocusProvider({ children }) {
     scenarioTitle,
     coinsEarned,
     distractionCount,
+    distractionSecs,
     noteCount,
     events,
   }) => {
@@ -77,6 +78,7 @@ export function FocusProvider({ children }) {
       ...(scenarioId ? { scenarioId, scenarioTitle } : {}),
       ...(coinsEarned !== undefined ? { coinsEarned } : {}),
       ...(distractionCount !== undefined ? { distractionCount } : {}),
+      ...(distractionSecs !== undefined ? { distractionSecs } : {}),
       ...(noteCount !== undefined ? { noteCount } : {}),
       ...(events?.length ? { events } : {}),
     };

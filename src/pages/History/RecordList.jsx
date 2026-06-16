@@ -63,6 +63,34 @@ export default function RecordList({ records, confirmClear, onClear }) {
                           {session.records.length} 个任务
                         </span>
                       )}
+                      {(() => {
+                        const dCount = session.records[0]?.distractionCount;
+                        if (!dCount) return null;
+                        const distSecs = session.records[0]?.distractionSecs ?? 0;
+                        const netSecs = Math.max(0, session.totalSecs - distSecs);
+                        const rate = netSecs > 0
+                          ? dCount / (netSecs / 3600)
+                          : null;
+                        const quality = rate === null ? null
+                          : rate <= 1 ? { label: "深度专注", cls: "deep" }
+                          : rate <= 3 ? { label: "专注良好", cls: "good" }
+                          : { label: "容易分心", cls: "scattered" };
+                        return (
+                          <>
+                            <span className="hist-distraction-badge">⚡ {dCount}</span>
+                            {quality && (
+                              <span className={`hist-quality-badge ${quality.cls}`}>
+                                {quality.label}
+                              </span>
+                            )}
+                            {distSecs > 0 && (
+                              <span className="hist-net-focus" title={`主动分心 ${formatDuration(distSecs)}，净专注时间`}>
+                                净 {formatDuration(netSecs)}
+                              </span>
+                            )}
+                          </>
+                        );
+                      })()}
                       <span className="hist-session-total">
                         {formatDuration(session.totalSecs)}
                       </span>
