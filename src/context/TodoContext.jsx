@@ -1,5 +1,4 @@
 import React, { useReducer, useEffect, useContext } from "react";
-import { useFocus } from "./FocusContext";
 import { loadVersioned } from "../utils/storage";
 import { useUndoDelete } from "../hooks/useUndoDelete";
 
@@ -14,6 +13,7 @@ const EDIT = "EDIT";
 const RESTORE = "RESTORE";
 const SET = "SET";
 const TOGGLE_RECURRING = "TOGGLE_RECURRING";
+const EDIT_TAGS = "EDIT_TAGS";
 
 function reducer(state, action) {
   switch (action.type) {
@@ -53,6 +53,17 @@ function reducer(state, action) {
         return { ...t, recurringDays: days, lastResetDate: today };
       });
     }
+    case EDIT_TAGS: {
+      const { id, tags } = action.payload;
+      return state.map(t => {
+        if (t.id !== id) return t;
+        if (!tags?.length) {
+          const { tags: _tags, ...rest } = t;
+          return rest;
+        }
+        return { ...t, tags };
+      });
+    }
     default:
       return state;
   }
@@ -61,8 +72,6 @@ function reducer(state, action) {
 const TodoContext = React.createContext(null);
 
 export function TodoProvider({ children }) {
-  const { focusedTodoIds, removeFocusTodo, addFocusTodo } = useFocus();
-
   const [todos, dispatch] = useReducer(
     reducer,
     null,
@@ -118,17 +127,13 @@ export function TodoProvider({ children }) {
     dispatch({ type: EDIT, payload: { id, text: t } });
   };
 
+  const editTodoTags = (id, tags) => {
+    dispatch({ type: EDIT_TAGS, payload: { id, tags } });
+  };
+
   const { pendingDelete, deleteFn: deleteTodo, undoDelete } = useUndoDelete({
     items: todos,
     dispatch,
-    onDelete: (id) => {
-      const wasFocused = focusedTodoIds.includes(id);
-      if (wasFocused) removeFocusTodo(id);
-      return { wasFocused };
-    },
-    onRestore: (item, meta) => {
-      if (meta?.wasFocused) addFocusTodo(item.id);
-    },
   });
 
   const value = {
@@ -137,6 +142,7 @@ export function TodoProvider({ children }) {
     toggleTodo,
     toggleRecurring,
     editTodo,
+    editTodoTags,
     deleteTodo,
     pendingDelete,
     undoDelete,

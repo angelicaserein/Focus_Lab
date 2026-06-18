@@ -1,16 +1,20 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useScenarios } from "../context/ScenarioContext";
+import { useScenarios } from "../../context/ScenarioContext";
+import ScenarioSettings from "./ScenarioSettings";
 
 export default function ScenarioItem({ scenario }) {
   const { deleteScenario, editScenario, selectedIds, toggleSelect } =
     useScenarios();
   const navigate = useNavigate();
+
   const [removing, setRemoving] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [draftTitle, setDraftTitle] = useState(scenario.title);
   const [draftDesc, setDraftDesc] = useState(scenario.description || "");
   const titleInputRef = useRef(null);
+  const wrapRef = useRef(null);
 
   const isNew = useMemo(() => {
     if (!scenario.createdAt) return false;
@@ -23,6 +27,17 @@ export default function ScenarioItem({ scenario }) {
       titleInputRef.current.select();
     }
   }, [editing]);
+
+  useEffect(() => {
+    if (!showSettings) return;
+    const handler = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        setShowSettings(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showSettings]);
 
   const handleDelete = (e) => {
     e.stopPropagation();
@@ -67,17 +82,26 @@ export default function ScenarioItem({ scenario }) {
 
   const handleQuickStart = (e) => {
     e.stopPropagation();
-    navigate("/focus");
+    navigate("/focus", { state: { scenarioId: scenario.id } });
   };
 
   const handleRowClick = (e) => {
     if (editing) return;
-    // 忽略来自交互子元素的点击，避免误触
     if (e.target.closest("button")) return;
     toggleSelect(scenario.id);
   };
 
+  const hasSettings =
+    scenario.settings &&
+    (scenario.settings.devices?.length > 0 ||
+      scenario.settings.communication ||
+      scenario.settings.taskTypes?.length > 0);
+
   return (
+    <div
+      className={`scenario-item-wrap${showSettings ? " settings-open" : ""}`}
+      ref={wrapRef}
+    >
     <div
       className={`scenario-item ${isNew ? "new" : ""} ${
         removing ? "removing" : ""
@@ -130,6 +154,15 @@ export default function ScenarioItem({ scenario }) {
             ▶
           </button>
           <button
+            className={`scenario-settings-btn${hasSettings ? " active" : ""}${showSettings ? " open" : ""}`}
+            onClick={(e) => { e.stopPropagation(); setShowSettings((v) => !v); }}
+            aria-label="情景设置"
+            aria-pressed={showSettings}
+            title="情景设置"
+          >
+            ⚙
+          </button>
+          <button
             className="edit-btn"
             onClick={startEdit}
             aria-label={`编辑 ${scenario.title}`}
@@ -148,6 +181,9 @@ export default function ScenarioItem({ scenario }) {
       >
         ×
       </button>
+    </div>
+
+    {showSettings && <ScenarioSettings scenario={scenario} />}
     </div>
   );
 }

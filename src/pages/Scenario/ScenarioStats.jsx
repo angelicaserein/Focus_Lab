@@ -1,5 +1,5 @@
 import React from "react";
-import { useScenarios } from "../context/ScenarioContext";
+import { useScenarios } from "../../context/ScenarioContext";
 
 export default function ScenarioStats() {
   const { scenarios } = useScenarios();

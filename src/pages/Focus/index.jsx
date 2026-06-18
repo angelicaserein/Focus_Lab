@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useTodos } from "../../context/TodoContext";
 import { useFocus } from "../../context/FocusContext";
 import { useReward } from "../../context/RewardContext";
@@ -7,12 +8,13 @@ import useFocusTimer from "../../hooks/useFocusTimer";
 import useFocusChat from "../../hooks/useFocusChat";
 import useLocalStorage from "../../hooks/useLocalStorage";
 import usePrefs from "../../hooks/usePrefs";
-import ImmersiveView from "./ImmersiveView";
+import ImmersiveView from "./Immersive";
 import FocusConsole from "./FocusConsole";
 import DistractionModal from "./DistractionModal";
 import "./Focus.css";
 
 export default function FocusPage() {
+  const location = useLocation();
   const { todos, toggleTodo, addTodo } = useTodos();
   const { focusedTodoIds, addFocusTodo, removeFocusTodo, clearFocusTodos, addFocusRecord } =
     useFocus();
@@ -38,6 +40,26 @@ export default function FocusPage() {
     [scenarios, selectedScenarioId],
   );
   const scenarioTitle = selectedScenario?.title ?? null;
+  const scenarioDescription = selectedScenario?.description || null;
+
+  // 从情景页快速启动时，通过 router state 预选情境
+  useEffect(() => {
+    const sid = location.state?.scenarioId;
+    if (sid) {
+      setSelectedScenarioId(sid);
+      window.history.replaceState({}, document.title);
+    }
+    // 仅在挂载时执行一次
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 当 todos 变化时，清理已不存在的 focusedTodoId（todo 被删除后同步移出 focus 列表）
+  useEffect(() => {
+    const todoIdSet = new Set(todos.map((t) => t.id));
+    focusedTodoIds.forEach((id) => {
+      if (!todoIdSet.has(id)) removeFocusTodo(id);
+    });
+  }, [todos]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 会话事件日志：记录本次专注中所有操作的精确时间戳
   const sessionEventsRef = useRef([]);
@@ -303,6 +325,7 @@ export default function FocusPage() {
           selectedTodos={selectedTodos}
           availableTodos={availableTodos}
           scenarioTitle={scenarioTitle}
+          scenarioDescription={scenarioDescription}
           cardVisible={cardVisible}
           animEnabled={animEnabled}
           pomodoroMins={pomodoroMins}
@@ -339,6 +362,7 @@ export default function FocusPage() {
         canReset={hasSelection && seconds > 0}
         scenarios={scenarios}
         selectedScenarioId={selectedScenarioId}
+        scenarioDescription={scenarioDescription}
         onScenarioChange={setSelectedScenarioId}
         onStart={handleStart}
         onReset={resetTimer}

@@ -198,7 +198,6 @@
 }
 
 .todo-text {
-  flex: 1;
   font-size: 16px;
   line-height: 1.4;
   color: var(--text-body);
@@ -308,15 +307,125 @@
   opacity: 0.85;
 }
 
+/* todo-text + tag chips stacked vertically */
+.todo-text-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Tag chips on todo items (read-only display) */
+.todo-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.todo-tag-chip {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: var(--accent-bg);
+  color: var(--accent-deep);
+  border: 1px solid var(--accent-border);
+  white-space: nowrap;
+}
+
+/* 🏷 tag picker toggle button */
+.tag-item-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  line-height: 1;
+  opacity: 0;
+  transition:
+    opacity 160ms var(--ease),
+    color 160ms var(--ease),
+    background 160ms var(--ease);
+}
+.todo-item:hover .tag-item-btn,
+.tag-item-btn:focus-visible,
+.tag-item-btn.active {
+  opacity: 1;
+}
+.tag-item-btn.active {
+  color: var(--accent);
+}
+.tag-item-btn:hover {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
 /* Wrapper for todo item + day picker panel */
 .todo-item-wrap {
   display: flex;
   flex-direction: column;
 }
 
-.todo-item-wrap.picker-open .todo-item {
+.todo-item-wrap.picker-open .todo-item,
+.todo-item-wrap.tags-open .todo-item {
   border-radius: 12px 12px 0 0;
   border-bottom-color: var(--accent-border);
+}
+
+/* Task tag picker panel — same visual as recurring-day-picker */
+.task-tag-picker {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  flex-wrap: wrap;
+}
+
+/* Tag buttons inside picker are wider than day buttons */
+.task-tag-picker .day-btn {
+  width: auto;
+  height: auto;
+  border-radius: 12px;
+  padding: 3px 9px;
+  font-size: 12px;
+}
+
+/* Scenario filter badge */
+.scenario-filter-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 12px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+}
+.scenario-filter-label {
+  font-size: 13px;
+  color: var(--accent-deep);
+  font-weight: 500;
+}
+.scenario-filter-clear {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  transition: color 120ms ease, background 120ms ease;
+}
+.scenario-filter-clear:hover {
+  color: var(--danger, #e57373);
+  background: var(--danger-subtle, rgba(229,115,115,0.08));
 }
 
 /* Day picker panel */
@@ -467,27 +576,6 @@
   text-align: right;
 }
 
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeOutLeft {
-  from {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(-24px) scale(0.98);
-  }
-}
 
 /* 固定任务分组 */
 .recurring-section {

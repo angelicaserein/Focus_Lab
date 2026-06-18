@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import PusheenScene from "./PusheenScene";
-import DebugTweaks from "./DebugTweaks";
+import "../FocusImmersive.css";
+import PusheenScene from "../PusheenScene";
+import DebugTweaks from "../DebugTweaks";
 import ImmersiveChat from "./ImmersiveChat";
 import ImmersiveTaskPicker from "./ImmersiveTaskPicker";
 import ImmersiveUtils from "./ImmersiveUtils";
-import FocusFlask from "./FocusFlask";
-import useDraggable from "../../hooks/useDraggable";
-import { formatClock } from "../../utils/time";
+import FocusFlask from "../FocusFlask";
+import useDraggable from "../../../hooks/useDraggable";
+import { formatClock } from "../../../utils/time";
 
 // 沉浸式专注遮罩：全屏 3D 模型 + 可拖动的液态玻璃卡片（状态、任务、操作）。
 export default function ImmersiveView({
@@ -15,6 +16,7 @@ export default function ImmersiveView({
   selectedTodos,
   availableTodos,
   scenarioTitle,
+  scenarioDescription,
   cardVisible,
   animEnabled,
   pomodoroMins = 25,
@@ -101,6 +103,9 @@ export default function ImmersiveView({
               {/* 情境标签 */}
               {scenarioTitle && (
                 <div className="immersive-scenario">{scenarioTitle}</div>
+              )}
+              {scenarioDescription && (
+                <div className="immersive-scenario-desc">{scenarioDescription}</div>
               )}
 
               {/* 烧瓶进度（25 分钟满瓶） */}

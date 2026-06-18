@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { hasApiKey } from "../../utils/aiChat";
+import { hasApiKey } from "../../../utils/aiChat";
 
 // 沉浸式专注页左下角的极简 AI 陪伴对话：无框 / 无气泡 / 无背景，
 // 只有文字和一个输入框。默认隐藏，鼠标靠近左下角（hover）或正在

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useScenarios } from "../context/ScenarioContext";
+import { useScenarios } from "../../context/ScenarioContext";
 
 export default function ScenarioForm() {
   const { addScenario } = useScenarios();
