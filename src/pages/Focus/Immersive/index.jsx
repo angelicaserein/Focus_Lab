@@ -48,7 +48,7 @@ export default function ImmersiveView({
   sessionNotes = [],
   sessionDistractionCount = 0,
 }) {
-  const { nodeRef, handlers } = useDraggable();
+  const { nodeRef, handlers, position } = useDraggable();
 
   // 任务选择器：null = 收起；"add" = 添加；其它字符串 = 正在替换的那一行 todo id
   const [picker, setPicker] = useState(null);
@@ -224,6 +224,7 @@ export default function ImmersiveView({
           setCardVisible={setCardVisible}
           animEnabled={animEnabled}
           setAnimEnabled={setAnimEnabled}
+          cardPosition={position}
         />
       )}
     </div>

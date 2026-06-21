@@ -23,6 +23,9 @@ export default function Sidebar() {
         <Link to="/scenario-stats" className={`nav-link ${isActive("/scenario-stats") ? "active" : ""}`}>
           <span className="nav-label">情景统计</span>
         </Link>
+        <Link to="/analytics" className={`nav-link ${isActive("/analytics") ? "active" : ""}`}>
+          <span className="nav-label">数据分析</span>
+        </Link>
         <Link to="/reward" className={`nav-link ${isActive("/reward") ? "active" : ""}`}>
           <span className="nav-label">Reward</span>
         </Link>

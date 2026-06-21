@@ -11,6 +11,7 @@ const Reward = lazy(() => import("../pages/Reward"));
 const Settings = lazy(() => import("../pages/Settings"));
 const Research = lazy(() => import("../pages/Research"));
 const ScenarioStats = lazy(() => import("../pages/ScenarioStats"));
+const Analytics = lazy(() => import("../pages/Analytics"));
 
 export default function AppRoutes() {
   return (
@@ -28,6 +29,7 @@ export default function AppRoutes() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/research" element={<Research />} />
               <Route path="/scenario-stats" element={<ScenarioStats />} />
+              <Route path="/analytics" element={<Analytics />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
