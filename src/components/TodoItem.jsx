@@ -5,6 +5,8 @@ import RecurringDayPicker, { recurringLabel } from "./RecurringDayPicker";
 import TaskTagPicker from "./TaskTagPicker";
 import { TASK_TYPE_OPTIONS } from "../utils/scenarioConstants";
 
+const TAG_MAP = Object.fromEntries(TASK_TYPE_OPTIONS.map((o) => [o.id, o]));
+
 export default function TodoItem({ todo, isOtherDay = false }) {
   const { toggleTodo, deleteTodo, editTodo, toggleRecurring, editTodoTags } = useTodos();
   const { isFocused, toggleFocusTodo } = useFocus();
@@ -83,7 +85,6 @@ export default function TodoItem({ todo, isOtherDay = false }) {
   const label = recurringLabel(recurringDays);
 
   const todoTags = todo.tags ?? [];
-  const tagMap = Object.fromEntries(TASK_TYPE_OPTIONS.map((o) => [o.id, o]));
 
   return (
     <div className={`todo-item-wrap${showDayPicker ? ' picker-open' : ''}${showTagPicker ? ' tags-open' : ''}${isOtherDay ? ' other-day' : ''}`} ref={wrapRef}>
@@ -131,9 +132,9 @@ export default function TodoItem({ todo, isOtherDay = false }) {
             </div>
             {todoTags.length > 0 && (
               <div className="todo-tags">
-                {todoTags.map((id) => tagMap[id] && (
+                {todoTags.map((id) => TAG_MAP[id] && (
                   <span key={id} className="todo-tag-chip">
-                    {tagMap[id].icon} {tagMap[id].label}
+                    {TAG_MAP[id].icon} {TAG_MAP[id].label}
                   </span>
                 ))}
               </div>

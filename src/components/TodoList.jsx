@@ -11,8 +11,8 @@ export default function TodoList({ filter = "ALL", scenarioFilter = null }) {
     if (filter === "ACTIVE" && t.completed) return false;
     if (filter === "COMPLETED" && !t.completed) return false;
     if (filter === "RECURRING" && !t.recurringDays?.length) return false;
-    if (scenarioFilter && t.tags?.length > 0) {
-      return t.tags.some((tag) => scenarioFilter.includes(tag));
+    if (scenarioFilter) {
+      return t.tags?.some((tag) => scenarioFilter.includes(tag)) ?? false;
     }
     return true;
   });

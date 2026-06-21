@@ -10,8 +10,9 @@ export function hourlyFocusData(records) {
   }));
 
   for (const r of records) {
-    const hour = new Date(r.startedAt).getHours();
+    const hour = r.startedAt ? new Date(r.startedAt).getHours() : NaN;
     const slot = slots[hour];
+    if (!slot) continue;
     const key = r.sessionId ?? r.id;
     slot.sessionMaxSecs.set(key, Math.max(slot.sessionMaxSecs.get(key) ?? 0, r.durationSecs));
     slot.totalCount++;
@@ -111,6 +112,7 @@ export function distractionByHour(distractions) {
   const tagTally = {};
 
   for (const d of distractions) {
+    if (!d.ts) continue;
     const hour = new Date(d.ts).getHours();
     counts[hour]++;
     if (d.tag) tagTally[d.tag] = (tagTally[d.tag] ?? 0) + 1;
