@@ -18,7 +18,7 @@
  * MIGRATIONS[i] 将 schema 从版本 i 升级到 i+1。
  */
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 const SCHEMA_META_KEY = "__focuslab_schema";
 
 const MIGRATIONS = [
@@ -32,6 +32,8 @@ const MIGRATIONS = [
       return { ...rest, recurringDays: [0, 1, 2, 3, 4, 5, 6] };
     }),
   }),
+  // v2→v3: todos gain optional tags[], scenarios gain optional settings — no transform needed
+  (data) => data,
 ];
 
 // versioned: true  → TodoContext/ScenarioContext 的 {version, data} 格式

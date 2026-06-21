@@ -1,0 +1,170 @@
+/* ── Scenario Stats page ── */
+.scs-page {
+  width: min(860px, 100%);
+  margin: 0 auto;
+  padding: 8px 0 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.scs-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.scs-header h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 2.2vw, 2.2rem);
+  font-weight: 800;
+  color: var(--text-heading);
+  line-height: 1.15;
+}
+
+.scs-back-link {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-mid);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.scs-back-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Ranking table ── */
+.scs-ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scs-ranking-header {
+  display: grid;
+  grid-template-columns: 1fr 60px 80px 90px;
+  gap: 8px;
+  padding: 0 16px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.scs-row-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.scs-row {
+  display: grid;
+  grid-template-columns: 1fr 60px 80px 90px;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  box-shadow: 0 1px 6px var(--shadow-xs);
+  cursor: pointer;
+  text-align: left;
+  transition: background 150ms ease, box-shadow 150ms ease, transform 120ms ease;
+}
+
+.scs-row:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px var(--shadow-sm);
+}
+
+.scs-row.open {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-color: transparent;
+  background: var(--accent-bg);
+}
+
+.scs-row-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scs-chevron {
+  font-size: 0.8rem;
+  color: var(--accent-mid);
+  flex-shrink: 0;
+  width: 12px;
+}
+
+.scs-row-sessions {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.scs-row-dur {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.scs-row-last {
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+/* ── Detail panel ── */
+.scs-detail {
+  padding: 20px 20px 24px;
+  border: 1.5px solid var(--border-card);
+  border-top: none;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  background: var(--card);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.scs-detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.scs-mini-chart {
+  height: 120px;
+}
+
+.scs-tasks {
+  box-shadow: none;
+  border: 1.5px solid var(--border-card);
+}
+
+/* ── Responsive ── */
+@media (max-width: 560px) {
+  .scs-ranking-header,
+  .scs-row {
+    grid-template-columns: 1fr 50px 70px;
+  }
+
+  .scs-ranking-header span:last-child,
+  .scs-row-last {
+    display: none;
+  }
+}

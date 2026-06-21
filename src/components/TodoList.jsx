@@ -4,14 +4,16 @@ import TodoItem from "./TodoItem";
 
 const DAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
-export default function TodoList({ filter = "ALL" }) {
+export default function TodoList({ filter = "ALL", scenarioFilter = null }) {
   const { todos } = useTodos();
 
   const filtered = todos.filter((t) => {
-    if (filter === "ALL") return true;
-    if (filter === "ACTIVE") return !t.completed;
-    if (filter === "COMPLETED") return !!t.completed;
-    if (filter === "RECURRING") return !!t.recurringDays?.length;
+    if (filter === "ACTIVE" && t.completed) return false;
+    if (filter === "COMPLETED" && !t.completed) return false;
+    if (filter === "RECURRING" && !t.recurringDays?.length) return false;
+    if (scenarioFilter && t.tags?.length > 0) {
+      return t.tags.some((tag) => scenarioFilter.includes(tag));
+    }
     return true;
   });
 

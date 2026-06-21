@@ -11,6 +11,7 @@ const DELETE = "DELETE";
 const EDIT = "EDIT";
 const RESTORE = "RESTORE";
 const SET = "SET";
+const UPDATE_SETTINGS = "UPDATE_SETTINGS";
 
 // 场景没有"完成"概念，故无 TOGGLE。
 function reducer(state, action) {
@@ -35,6 +36,10 @@ function reducer(state, action) {
     }
     case SET: {
       return action.payload;
+    }
+    case UPDATE_SETTINGS: {
+      const { id, settings } = action.payload;
+      return state.map((s) => (s.id === id ? { ...s, settings } : s));
     }
     default:
       return state;
@@ -64,6 +69,12 @@ export function ScenarioProvider({ children }) {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
+
+  const clearSelection = () => setSelectedIds([]);
+
+  const updateScenarioSettings = (id, settings) => {
+    dispatch({ type: UPDATE_SETTINGS, payload: { id, settings } });
+  };
 
   const addScenario = (title, description = "") => {
     const t = title.trim();
@@ -104,10 +115,12 @@ export function ScenarioProvider({ children }) {
     addScenario,
     editScenario,
     deleteScenario,
+    updateScenarioSettings,
     pendingDelete,
     undoDelete,
     selectedIds,
     toggleSelect,
+    clearSelection,
   };
 
   return (

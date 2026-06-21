@@ -11,6 +11,7 @@ export default function FocusConsole({
   canReset,
   scenarios = [],
   selectedScenarioId,
+  scenarioDescription,
   onScenarioChange,
   onStart,
   onReset,
@@ -105,6 +106,9 @@ export default function FocusConsole({
                       </option>
                     ))}
                   </select>
+                  {scenarioDescription && (
+                    <div className="focus-scenario-desc">{scenarioDescription}</div>
+                  )}
                 </div>
               )}
 

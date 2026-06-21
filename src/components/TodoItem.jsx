@@ -2,14 +2,17 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useTodos } from "../context/TodoContext";
 import { useFocus } from "../context/FocusContext";
 import RecurringDayPicker, { recurringLabel } from "./RecurringDayPicker";
+import TaskTagPicker from "./TaskTagPicker";
+import { TASK_TYPE_OPTIONS } from "../utils/scenarioConstants";
 
 export default function TodoItem({ todo, isOtherDay = false }) {
-  const { toggleTodo, deleteTodo, editTodo, toggleRecurring } = useTodos();
+  const { toggleTodo, deleteTodo, editTodo, toggleRecurring, editTodoTags } = useTodos();
   const { isFocused, toggleFocusTodo } = useFocus();
   const [removing, setRemoving] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(todo.text);
   const [showDayPicker, setShowDayPicker] = useState(false);
+  const [showTagPicker, setShowTagPicker] = useState(false);
   const inputRef = useRef(null);
   const wrapRef = useRef(null);
 
@@ -26,15 +29,16 @@ export default function TodoItem({ todo, isOtherDay = false }) {
   }, [editing]);
 
   useEffect(() => {
-    if (!showDayPicker) return;
+    if (!showDayPicker && !showTagPicker) return;
     const handler = (e) => {
       if (wrapRef.current && !wrapRef.current.contains(e.target)) {
         setShowDayPicker(false);
+        setShowTagPicker(false);
       }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [showDayPicker]);
+  }, [showDayPicker, showTagPicker]);
 
   const handleDelete = (e) => {
     e.stopPropagation();
@@ -78,8 +82,11 @@ export default function TodoItem({ todo, isOtherDay = false }) {
   const recurringDays = todo.recurringDays ?? [];
   const label = recurringLabel(recurringDays);
 
+  const todoTags = todo.tags ?? [];
+  const tagMap = Object.fromEntries(TASK_TYPE_OPTIONS.map((o) => [o.id, o]));
+
   return (
-    <div className={`todo-item-wrap${showDayPicker ? ' picker-open' : ''}${isOtherDay ? ' other-day' : ''}`} ref={wrapRef}>
+    <div className={`todo-item-wrap${showDayPicker ? ' picker-open' : ''}${showTagPicker ? ' tags-open' : ''}${isOtherDay ? ' other-day' : ''}`} ref={wrapRef}>
       <div
         className={`todo-item ${isNew ? "new" : ""} ${
           removing ? "removing" : ""
@@ -115,11 +122,22 @@ export default function TodoItem({ todo, isOtherDay = false }) {
             aria-label="编辑任务"
           />
         ) : (
-          <div className={`todo-text ${todo.completed ? "completed" : ""}`}>
-            {recurringDays.length > 0 && (
-              <span className="recurring-icon" title={`固定：${label}`}>↺</span>
+          <div className="todo-text-wrap">
+            <div className={`todo-text ${todo.completed ? "completed" : ""}`}>
+              {recurringDays.length > 0 && (
+                <span className="recurring-icon" title={`固定：${label}`}>↺</span>
+              )}
+              {todo.text}
+            </div>
+            {todoTags.length > 0 && (
+              <div className="todo-tags">
+                {todoTags.map((id) => tagMap[id] && (
+                  <span key={id} className="todo-tag-chip">
+                    {tagMap[id].icon} {tagMap[id].label}
+                  </span>
+                ))}
+              </div>
             )}
-            {todo.text}
           </div>
         )}
 
@@ -127,13 +145,21 @@ export default function TodoItem({ todo, isOtherDay = false }) {
           <>
             <button
               className={`recurring-item-btn${recurringDays.length > 0 ? " active" : ""}`}
-              onClick={(e) => { e.stopPropagation(); setShowDayPicker(v => !v); }}
+              onClick={(e) => { e.stopPropagation(); setShowDayPicker(v => !v); setShowTagPicker(false); }}
               title={recurringDays.length > 0 ? `固定：${label}` : "设为固定任务"}
               aria-pressed={recurringDays.length > 0}
             >
               ↺{recurringDays.length > 0 && (
                 <span className="recurring-btn-label">{label}</span>
               )}
+            </button>
+            <button
+              className={`tag-item-btn${todoTags.length > 0 ? " active" : ""}`}
+              onClick={(e) => { e.stopPropagation(); setShowTagPicker(v => !v); setShowDayPicker(false); }}
+              title="任务标签"
+              aria-pressed={showTagPicker}
+            >
+              🏷
             </button>
             <button
               className="edit-btn"
@@ -161,6 +187,14 @@ export default function TodoItem({ todo, isOtherDay = false }) {
           days={recurringDays}
           onChange={(d) => toggleRecurring(todo.id, d)}
           onClose={() => setShowDayPicker(false)}
+        />
+      )}
+
+      {showTagPicker && (
+        <TaskTagPicker
+          tags={todoTags}
+          onChange={(tags) => editTodoTags(todo.id, tags)}
+          onClose={() => setShowTagPicker(false)}
         />
       )}
     </div>
