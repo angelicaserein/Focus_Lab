@@ -18,7 +18,9 @@
  * MIGRATIONS[i] 将 schema 从版本 i 升级到 i+1。
  */
 
-export const SCHEMA_VERSION = 3;
+import { STORAGE_KEYS } from "./storageKeys";
+
+export const SCHEMA_VERSION = 5;
 const SCHEMA_META_KEY = "__focuslab_schema";
 
 const MIGRATIONS = [
@@ -34,22 +36,42 @@ const MIGRATIONS = [
   }),
   // v2→v3: todos gain optional tags[], scenarios gain optional settings — no transform needed
   (data) => data,
+  // v3→v4: todos gain optional priority, dueDate, estimatedMins, notes — no transform needed
+  (data) => data,
+  // v4→v5: 将 todo 的平铺属性字段迁移到 attrs: {} 对象
+  (data) => ({
+    ...data,
+    todos: (data.todos ?? []).map(t => {
+      const { priority, tags, dueDate, estimatedMins, notes, ...rest } = t;
+      const attrs = { ...(t.attrs ?? {}) };
+      if (priority !== undefined) attrs.priority = priority;
+      if (tags?.length)           attrs.tags = tags;
+      if (dueDate !== undefined)  attrs.dueDate = dueDate;
+      if (estimatedMins !== undefined) attrs.estimatedMins = estimatedMins;
+      if (notes !== undefined)    attrs.notes = notes;
+      return Object.keys(attrs).length ? { ...rest, attrs } : rest;
+    }),
+  }),
 ];
+
+// versioned 数据格式的包装版本号（与 SCHEMA_VERSION 无关，固定为 1）
+const VERSIONED_WRAPPER_VERSION = 1;
 
 // versioned: true  → TodoContext/ScenarioContext 的 {version, data} 格式
 // versioned: false → useLocalStorage hook 的裸 JSON 格式
 const KEY_MAP = {
-  todos:        { key: "todos_v1",             versioned: true  },
-  scenarios:    { key: "scenarios_v1",          versioned: true  },
-  focusRecords: { key: "focus_records_v1",      versioned: false },
-  coins:        { key: "coins_v1",              versioned: false },
-  ownedRewards: { key: "reward_owned_v1",       versioned: false },
-  redeemCounts: { key: "reward_redeem_v1",      versioned: false },
-  activeTheme:  { key: "active_theme_v1",       versioned: false },
-  notes:        { key: "focus_notes_v1",        versioned: false },
-  distractions: { key: "focus_distractions_v1", versioned: false },
-  chatHistory:    { key: "focus_chat_v1",         versioned: false },
-  researchDaily:  { key: "research_daily_v1",     versioned: false },
+  todos:        { key: STORAGE_KEYS.TODOS,            versioned: true  },
+  scenarios:    { key: STORAGE_KEYS.SCENARIOS,        versioned: true  },
+  focusRecords: { key: STORAGE_KEYS.FOCUS_RECORDS,    versioned: false },
+  coins:        { key: STORAGE_KEYS.COINS,            versioned: false },
+  ownedRewards: { key: STORAGE_KEYS.REWARD_OWNED,     versioned: false },
+  redeemCounts: { key: STORAGE_KEYS.REWARD_REDEEM,    versioned: false },
+  activeTheme:  { key: STORAGE_KEYS.ACTIVE_THEME,     versioned: false },
+  notes:        { key: STORAGE_KEYS.NOTES,            versioned: false },
+  distractions: { key: STORAGE_KEYS.DISTRACTIONS,     versioned: false },
+  chatHistory:  { key: STORAGE_KEYS.CHAT,             versioned: false },
+  researchDaily:{ key: STORAGE_KEYS.RESEARCH_RECORDS, versioned: false },
+  taskAttrs:    { key: STORAGE_KEYS.TASK_ATTRS,       versioned: false },
 };
 
 /**
@@ -102,7 +124,7 @@ export function runMigrations() {
         const val = current[name];
         localStorage.setItem(
           key,
-          JSON.stringify(versioned ? { version: 1, data: val } : val),
+          JSON.stringify(versioned ? { version: VERSIONED_WRAPPER_VERSION, data: val } : val),
         );
       } catch { /* 配额溢出时局部失败 */ }
     }
@@ -159,7 +181,7 @@ export function importAllData(jsonString) {
     if (!(name in data)) continue;
     try {
       const val = data[name];
-      localStorage.setItem(key, JSON.stringify(versioned ? { version: 1, data: val } : val));
+      localStorage.setItem(key, JSON.stringify(versioned ? { version: VERSIONED_WRAPPER_VERSION, data: val } : val));
       writtenKeys.push(key);
     } catch { /* 配额溢出时局部失败 */ }
   }

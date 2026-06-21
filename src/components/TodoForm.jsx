@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTodos } from "../context/TodoContext";
 import RecurringDayPicker, { recurringLabel } from "./RecurringDayPicker";
+import useOutsideClick from "../hooks/useOutsideClick";
 
 const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
 
@@ -16,16 +17,7 @@ export default function TodoForm({ forceRecurring = false }) {
     setShowDayPicker(false);
   }, [forceRecurring]);
 
-  useEffect(() => {
-    if (!showDayPicker) return;
-    const handler = (e) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
-        setShowDayPicker(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [showDayPicker]);
+  useOutsideClick(wrapRef, () => setShowDayPicker(false), showDayPicker);
 
   const submit = (e) => {
     e.preventDefault();

@@ -1,4 +1,5 @@
 // 数据分析 —— 专注效率洞察的纯函数。与 React 无关。
+import { sessionKey, sessionMaxSecsMap } from "./focusRecords";
 
 // ── 1. 按小时聚合专注数据 (返回 hours[0..23]) ──────────────────────────────
 export function hourlyFocusData(records) {
@@ -12,7 +13,7 @@ export function hourlyFocusData(records) {
   for (const r of records) {
     const hour = new Date(r.startedAt).getHours();
     const slot = slots[hour];
-    const key = r.sessionId ?? r.id;
+    const key = sessionKey(r);
     slot.sessionMaxSecs.set(key, Math.max(slot.sessionMaxSecs.get(key) ?? 0, r.durationSecs));
     slot.totalCount++;
     if (r.outcome === "completed") slot.completedCount++;
@@ -64,31 +65,26 @@ export function timeBlockStats(hourlyData) {
 }
 
 // ── 3. 专注时长分布（按会话去重） ─────────────────────────────────────────
+export const DURATION_BUCKETS = [
+  { label: "< 15分钟", min: 0,    max: 900 },
+  { label: "15–30分",  min: 900,  max: 1800 },
+  { label: "30–60分",  min: 1800, max: 3600 },
+  { label: "1–2小时",  min: 3600, max: 7200 },
+  { label: "> 2小时",  min: 7200, max: Infinity },
+];
+
 export function sessionDurationBuckets(records) {
-  const buckets = [
-    { label: "< 15分钟", min: 0, max: 900 },
-    { label: "15–30分", min: 900, max: 1800 },
-    { label: "30–60分", min: 1800, max: 3600 },
-    { label: "1–2小时", min: 3600, max: 7200 },
-    { label: "> 2小时", min: 7200, max: Infinity },
-  ];
-
-  const sessionMap = new Map();
-  for (const r of records) {
-    const key = r.sessionId ?? r.id;
-    sessionMap.set(key, Math.max(sessionMap.get(key) ?? 0, r.durationSecs));
-  }
-
-  const counts = new Array(buckets.length).fill(0);
-  for (const secs of sessionMap.values()) {
-    const idx = buckets.findIndex((b) => secs >= b.min && secs < b.max);
+  const counts = new Array(DURATION_BUCKETS.length).fill(0);
+  for (const secs of sessionMaxSecsMap(records).values()) {
+    const idx = DURATION_BUCKETS.findIndex((b) => secs >= b.min && secs < b.max);
     if (idx >= 0) counts[idx]++;
   }
-
-  return buckets.map((b, i) => ({ ...b, count: counts[i] }));
+  return DURATION_BUCKETS.map((b, i) => ({ ...b, count: counts[i] }));
 }
 
 // ── 4. 任务难度排行（按未完成率从高到低，≥ minN 次才统计） ─────────────────
+const MAX_DIFFICULTY_TASKS = 10;
+
 export function taskDifficultyRanking(records, minN = 2) {
   const map = {};
   for (const r of records) {
@@ -102,7 +98,7 @@ export function taskDifficultyRanking(records, minN = 2) {
     .filter((t) => t.total >= minN)
     .map((t) => ({ ...t, failRate: 1 - t.completed / t.total }))
     .sort((a, b) => b.failRate - a.failRate)
-    .slice(0, 10);
+    .slice(0, MAX_DIFFICULTY_TASKS);
 }
 
 // ── 5. 分心高峰（按小时） ─────────────────────────────────────────────────

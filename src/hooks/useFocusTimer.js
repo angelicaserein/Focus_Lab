@@ -81,5 +81,11 @@ export default function useFocusTimer() {
     sessionId: sessionIdRef.current,
   });
 
-  return { seconds, isRunning, start, togglePause, resetTimer, clearSession, getSession };
+  // 调试用：快速跳增指定秒数（不影响 sessionId / 起始时间）
+  const jumpSeconds = (delta) => {
+    accSecsRef.current = Math.max(0, accSecsRef.current + delta);
+    setSeconds(calcSeconds());
+  };
+
+  return { seconds, isRunning, start, togglePause, resetTimer, clearSession, getSession, jumpSeconds };
 }

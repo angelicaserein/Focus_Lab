@@ -16,7 +16,7 @@ const UNDO_WINDOW_MS = 5000;
  *   deleteFn(id)  - 替代原来的 deleteTodo / deleteScenario
  *   undoDelete()  - 传给 Toast 的撤销按钮
  */
-export function useUndoDelete({ items, dispatch, onDelete, onRestore }) {
+export default function useUndoDelete({ items, dispatch, onDelete, onRestore }) {
   const [pendingDelete, setPendingDelete] = useState(null);
   const timerRef = useRef(null);
 

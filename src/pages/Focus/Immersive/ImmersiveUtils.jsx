@@ -1,15 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
+import { formatTimestamp, formatClock } from "../../../utils/time";
 
-function fmtTime(ts) {
-  const d = new Date(ts);
-  return d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
-}
-
-function fmtElapsed(secs) {
-  const m = Math.floor(secs / 60);
-  const s = secs % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
+const DISTRACTION_FEEDBACK_MS = 1200;
 
 // 沉浸模式右下角工具栏：随记 + 记录分心（被动/主动）
 export default function ImmersiveUtils({
@@ -77,10 +69,8 @@ export default function ImmersiveUtils({
     onDistraction();
     clearTimeout(feedbackTimerRef.current);
     setDistractionFeedback(true);
-    feedbackTimerRef.current = setTimeout(() => setDistractionFeedback(false), 1200);
+    feedbackTimerRef.current = setTimeout(() => setDistractionFeedback(false), DISTRACTION_FEEDBACK_MS);
   };
-
-  const distractionCount = sessionDistractionCount;
 
   // 分心中状态：显示计时器 + 回来按钮
   if (isProactiveDistraction) {
@@ -88,7 +78,7 @@ export default function ImmersiveUtils({
       <div className="immersive-utils">
         <div className="immersive-distraction-mode">
           <div className="immersive-distraction-label">分心中</div>
-          <div className="immersive-distraction-elapsed">{fmtElapsed(distractionElapsed)}</div>
+          <div className="immersive-distraction-elapsed">{formatClock(distractionElapsed)}</div>
           <button
             type="button"
             className="immersive-return-btn"
@@ -109,7 +99,7 @@ export default function ImmersiveUtils({
             <ul className="immersive-note-history">
               {sessionNotes.map((n) => (
                 <li key={n.id} className="immersive-note-history-item">
-                  <span className="immersive-note-history-time">{fmtTime(n.ts)}</span>
+                  <span className="immersive-note-history-time">{formatTimestamp(n.ts)}</span>
                   <span className="immersive-note-history-text">{n.text}</span>
                 </li>
               ))}
@@ -162,8 +152,8 @@ export default function ImmersiveUtils({
             title="记录一次刚刚发生的分心"
           >
             {distractionFeedback ? "已记录 ✓" : "⚡ 刚刚分心了"}
-            {distractionCount > 0 && (
-              <span className="immersive-util-badge">{distractionCount}</span>
+            {sessionDistractionCount > 0 && (
+              <span className="immersive-util-badge">{sessionDistractionCount}</span>
             )}
           </button>
           <button

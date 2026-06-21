@@ -1,7 +1,9 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useScenarios } from "../../context/ScenarioContext";
 import ScenarioSettings from "./ScenarioSettings";
+import useOutsideClick from "../../hooks/useOutsideClick";
+import useEditMode from "../../hooks/useEditMode";
 
 export default function ScenarioItem({ scenario }) {
   const { deleteScenario, editScenario, selectedIds, toggleSelect } =
@@ -9,35 +11,19 @@ export default function ScenarioItem({ scenario }) {
   const navigate = useNavigate();
 
   const [removing, setRemoving] = useState(false);
-  const [editing, setEditing] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [draftTitle, setDraftTitle] = useState(scenario.title);
   const [draftDesc, setDraftDesc] = useState(scenario.description || "");
-  const titleInputRef = useRef(null);
   const wrapRef = useRef(null);
+
+  const { editing, draft: draftTitle, setDraft: setDraftTitle, startEdit, commitEdit, cancelEdit, inputRef: titleInputRef } =
+    useEditMode(scenario.title);
 
   const isNew = useMemo(() => {
     if (!scenario.createdAt) return false;
     return Date.now() - scenario.createdAt < 2000;
   }, [scenario.createdAt]);
 
-  useEffect(() => {
-    if (editing && titleInputRef.current) {
-      titleInputRef.current.focus();
-      titleInputRef.current.select();
-    }
-  }, [editing]);
-
-  useEffect(() => {
-    if (!showSettings) return;
-    const handler = (e) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
-        setShowSettings(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [showSettings]);
+  useOutsideClick(wrapRef, () => setShowSettings(false), showSettings);
 
   const handleDelete = (e) => {
     e.stopPropagation();
@@ -45,39 +31,27 @@ export default function ScenarioItem({ scenario }) {
     setTimeout(() => deleteScenario(scenario.id), 320);
   };
 
-  const startEdit = (e) => {
-    e.stopPropagation();
-    setDraftTitle(scenario.title);
+  const handleStartEdit = (e) => {
     setDraftDesc(scenario.description || "");
-    setEditing(true);
+    startEdit(e);
   };
 
-  const commitEdit = () => {
-    const t = draftTitle.trim();
-    if (!t) {
-      cancelEdit();
-      return;
-    }
-    if (t !== scenario.title || draftDesc.trim() !== (scenario.description || "")) {
-      editScenario(scenario.id, t, draftDesc);
-    }
-    setEditing(false);
-  };
+  const handleCommitEdit = () =>
+    commitEdit((title) => {
+      if (!title) { cancelEdit(); return; }
+      if (title !== scenario.title || draftDesc.trim() !== (scenario.description || "")) {
+        editScenario(scenario.id, title, draftDesc);
+      }
+    });
 
-  const cancelEdit = () => {
-    setDraftTitle(scenario.title);
+  const handleCancelEdit = () => {
     setDraftDesc(scenario.description || "");
-    setEditing(false);
+    cancelEdit();
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      commitEdit();
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      cancelEdit();
-    }
+    if (e.key === "Enter") { e.preventDefault(); handleCommitEdit(); }
+    else if (e.key === "Escape") { e.preventDefault(); handleCancelEdit(); }
   };
 
   const handleQuickStart = (e) => {
@@ -129,7 +103,7 @@ export default function ScenarioItem({ scenario }) {
             placeholder="描述（选填）"
             onChange={(e) => setDraftDesc(e.target.value)}
             onKeyDown={handleKeyDown}
-            onBlur={commitEdit}
+            onBlur={handleCommitEdit}
             onClick={(e) => e.stopPropagation()}
             aria-label="编辑情景描述"
           />
@@ -164,7 +138,7 @@ export default function ScenarioItem({ scenario }) {
           </button>
           <button
             className="edit-btn"
-            onClick={startEdit}
+            onClick={handleStartEdit}
             aria-label={`编辑 ${scenario.title}`}
             title="编辑情景"
           >

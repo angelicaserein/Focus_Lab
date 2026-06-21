@@ -2,25 +2,10 @@ import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useScenarios } from "../../context/ScenarioContext";
 import { useFocus } from "../../context/FocusContext";
-import { totalFocusSecs, last7DaysData } from "../../utils/focusRecords";
-import { formatDuration } from "../../utils/time";
+import { totalFocusSecs, last7DaysData, sessionKey } from "../../utils/focusRecords";
+import { formatDuration, formatRelativeTime } from "../../utils/time";
 import "../History/History.css";
 import "./ScenarioStats.css";
-
-function relativeTime(ts) {
-  if (!ts) return "—";
-  const diff = Date.now() - ts;
-  const mins = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-  if (mins < 1) return "刚刚";
-  if (mins < 60) return `${mins}分钟前`;
-  if (hours < 24) return `${hours}小时前`;
-  if (days === 1) return "昨天";
-  if (days < 7) return `${days}天前`;
-  if (days < 30) return `${Math.floor(days / 7)}周前`;
-  return `${Math.floor(days / 30)}个月前`;
-}
 
 function buildScenarioStats(records, scenarioId) {
   const recs = scenarioId
@@ -28,7 +13,7 @@ function buildScenarioStats(records, scenarioId) {
     : records.filter((r) => !r.scenarioId);
   if (!recs.length) return null;
 
-  const sessions = new Set(recs.map((r) => r.sessionId ?? r.id)).size;
+  const sessions = new Set(recs.map((r) => sessionKey(r))).size;
   const secs = totalFocusSecs(recs);
   const lastUsed = Math.max(...recs.map((r) => r.endedAt ?? r.startedAt));
 
@@ -74,7 +59,7 @@ export default function ScenarioStatsPage() {
     const allWithScenario = focusRecords.filter((r) => r.scenarioId);
     return {
       secs: totalFocusSecs(allWithScenario),
-      sessions: new Set(allWithScenario.map((r) => r.sessionId ?? r.id)).size,
+      sessions: new Set(allWithScenario.map((r) => sessionKey(r))).size,
       scenarioCount: rows.filter((r) => r.id !== "__unclassified__").length,
     };
   }, [focusRecords, rows]);
@@ -143,7 +128,7 @@ export default function ScenarioStatsPage() {
                 </span>
                 <span className="scs-row-sessions">{row.sessions}次</span>
                 <span className="scs-row-dur">{formatDuration(row.secs)}</span>
-                <span className="scs-row-last">{relativeTime(row.lastUsed)}</span>
+                <span className="scs-row-last">{formatRelativeTime(row.lastUsed)}</span>
               </button>
 
               {isOpen && (

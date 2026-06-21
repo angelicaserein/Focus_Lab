@@ -1,8 +1,9 @@
 import React, { useReducer, useEffect, useContext } from "react";
 import { loadVersioned } from "../utils/storage";
-import { useUndoDelete } from "../hooks/useUndoDelete";
+import useUndoDelete from "../hooks/useUndoDelete";
+import useScenarioSelection from "../hooks/useScenarioSelection";
+import { STORAGE_KEYS } from "../utils/storageKeys";
 
-const STORAGE_KEY = "scenarios_v1";
 const CURRENT_VERSION = 1;
 
 // Action types
@@ -48,29 +49,24 @@ function reducer(state, action) {
 
 const ScenarioContext = React.createContext(null);
 
+// selectedIds（场景多选）放在 Context 而非 page 级，是因为 Scenario 页选中后
+// 需要在 Focus 页中过滤可用场景，两者跨路由共享同一选中状态。
 export function ScenarioProvider({ children }) {
   const [scenarios, dispatch] = useReducer(
     reducer,
     null,
-    () => loadVersioned(STORAGE_KEY, CURRENT_VERSION),
+    () => loadVersioned(STORAGE_KEYS.SCENARIOS, CURRENT_VERSION),
   );
 
-  // 选中高亮（多选）——仅本页面使用，不持久化
-  const [selectedIds, setSelectedIds] = React.useState([]);
+  const { selectedIds, toggleSelect, clearSelection, removeFromSelection, restoreToSelection } =
+    useScenarioSelection();
 
   useEffect(() => {
     localStorage.setItem(
-      STORAGE_KEY,
+      STORAGE_KEYS.SCENARIOS,
       JSON.stringify({ version: CURRENT_VERSION, data: scenarios }),
     );
   }, [scenarios]);
-
-  const toggleSelect = (id) =>
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
-
-  const clearSelection = () => setSelectedIds([]);
 
   const updateScenarioSettings = (id, settings) => {
     dispatch({ type: UPDATE_SETTINGS, payload: { id, settings } });
@@ -102,11 +98,11 @@ export function ScenarioProvider({ children }) {
     dispatch,
     onDelete: (id) => {
       const wasSelected = selectedIds.includes(id);
-      if (wasSelected) setSelectedIds((prev) => prev.filter((x) => x !== id));
+      if (wasSelected) removeFromSelection(id);
       return { wasSelected };
     },
     onRestore: (item, meta) => {
-      if (meta?.wasSelected) setSelectedIds((prev) => [...prev, item.id]);
+      if (meta?.wasSelected) restoreToSelection(item.id);
     },
   });
 

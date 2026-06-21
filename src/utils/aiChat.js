@@ -15,6 +15,7 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || "";
 const IS_PROD = import.meta.env.PROD;
+const AI_MODEL = "claude-haiku-4-5-20251001";
 
 const SYSTEM_PROMPT =
   "你是一个温柔、简洁的 ADHD 专注陪伴助手。每次回复不超过 2 句话，用中文，语气轻松鼓励。";
@@ -69,7 +70,7 @@ export async function getAiReply(messages) {
   try {
     const client = new Anthropic({ apiKey: API_KEY, dangerouslyAllowBrowser: true });
     const resp = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model: AI_MODEL,
       max_tokens: 256,
       system: SYSTEM_PROMPT,
       messages: messages.map((m) => ({

@@ -1,95 +1,30 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext } from "react";
 import useLocalStorage from "../hooks/useLocalStorage";
+import { STORAGE_KEYS } from "../utils/storageKeys";
+import { useTheme } from "./ThemeContext";
+
+// SHOP_ITEMS 已迁移到 utils/shopConfig.js，此处 re-export 以保持向后兼容。
+export { SHOP_ITEMS } from "../utils/shopConfig";
 
 // RewardContext 管理「奖励」相关状态：
 //   1. coins —— 金币余额，完成专注任务时按秒发放（1 秒 = 1 枚）。
 //   2. owned —— 已永久解锁的商品 id 集合。
 //   3. redeemCounts —— 可重复兑换商品 id → 已兑换次数。
-// 放在 Provider 树最外层，任意页面都能消费。
-
-const COINS_KEY = "coins_v1";
-const OWNED_KEY = "reward_owned_v1";
-const REDEEM_KEY = "reward_redeem_v1";
-const THEME_KEY = "active_theme_v1";
-
-// 商品目录（静态，无需持久化）。
-//   type: "unlock"     —— 买过即拥有，不可重复买。
-//   type: "consumable" —— 可反复兑换，记录次数。
-export const SHOP_ITEMS = [
-  {
-    id: "theme-pink",
-    name: "粉色主题",
-    icon: "🌸",
-    price: 30,
-    type: "unlock",
-    desc: "解锁一套柔和的粉色界面皮肤",
-  },
-  {
-    id: "theme-night",
-    name: "暗夜皮肤",
-    icon: "🌙",
-    price: 50,
-    type: "unlock",
-    desc: "解锁深色护眼的暗夜界面",
-  },
-  {
-    id: "milk-tea",
-    name: "奶茶券",
-    icon: "🧋",
-    price: 10,
-    type: "consumable",
-    desc: "奖励自己一杯奶茶",
-  },
-  {
-    id: "dessert",
-    name: "甜点奖励",
-    icon: "🍰",
-    price: 20,
-    type: "consumable",
-    desc: "来块蛋糕犒劳一下",
-  },
-  {
-    id: "game-time",
-    name: "游戏 30 分钟",
-    icon: "🎮",
-    price: 60,
-    type: "consumable",
-    desc: "心安理得地玩 30 分钟",
-  },
-];
+// 主题切换逻辑已迁移至 ThemeContext（src/context/ThemeContext.jsx）。
+// 放在 Provider 树 ThemeProvider 内层，以便 buyItem 可调用 useTheme().setTheme。
 
 const RewardContext = React.createContext(null);
 
 export function RewardProvider({ children }) {
-  const [coins, setCoins] = useLocalStorage(COINS_KEY, 0);
-  const [owned, setOwned] = useLocalStorage(OWNED_KEY, []);
-  const [redeemCounts, setRedeemCounts] = useLocalStorage(REDEEM_KEY, {});
-  const [activeTheme, setActiveTheme] = useLocalStorage(THEME_KEY, "default");
-
-  // 将 activeTheme 写入 <html data-theme>，未解锁或默认时移除属性
-  useEffect(() => {
-    if (!activeTheme || activeTheme === "default") {
-      document.documentElement.removeAttribute("data-theme");
-    } else if (owned.includes(activeTheme)) {
-      document.documentElement.setAttribute("data-theme", activeTheme.replace("theme-", ""));
-    } else {
-      // 已选主题被移除拥有权时回退默认
-      document.documentElement.removeAttribute("data-theme");
-      setActiveTheme("default");
-    }
-  }, [activeTheme, owned]);
+  const [coins, setCoins] = useLocalStorage(STORAGE_KEYS.COINS, 0);
+  const [owned, setOwned] = useLocalStorage(STORAGE_KEYS.REWARD_OWNED, []);
+  const [redeemCounts, setRedeemCounts] = useLocalStorage(STORAGE_KEYS.REWARD_REDEEM, {});
+  const { setTheme } = useTheme();
 
   // 增加金币（供 Focus 完成任务时调用）。非正数忽略。
   const addCoins = (amount) => {
     if (!amount || amount <= 0) return;
     setCoins((prev) => prev + Math.floor(amount));
-  };
-
-  // 切换已解锁的主题（"default" 始终可用）
-  const setTheme = (themeId) => {
-    if (themeId === "default" || owned.includes(themeId)) {
-      setActiveTheme(themeId);
-    }
   };
 
   // 兑换商品：余额不足返回 false；unlock 已拥有则忽略并返回 false。
@@ -99,11 +34,11 @@ export function RewardProvider({ children }) {
       if (owned.includes(item.id)) return false;
       setOwned((prev) => [...prev, item.id]);
       // 购买主题后自动切换到该主题
-      if (item.id.startsWith("theme-")) setActiveTheme(item.id);
+      if (item.id.startsWith("theme-")) setTheme(item.id);
     } else {
       setRedeemCounts((prev) => ({
         ...prev,
-        [item.id]: (prev[item.id] || 0) + 1,
+        [item.id]: (prev[item.id] ?? 0) + 1,
       }));
     }
     setCoins((prev) => prev - item.price);
@@ -111,7 +46,7 @@ export function RewardProvider({ children }) {
   };
 
   const isOwned = (id) => owned.includes(id);
-  const getRedeemCount = (id) => redeemCounts[id] || 0;
+  const getRedeemCount = (id) => redeemCounts[id] ?? 0;
 
   const value = {
     coins,
@@ -119,8 +54,6 @@ export function RewardProvider({ children }) {
     buyItem,
     isOwned,
     getRedeemCount,
-    activeTheme,
-    setTheme,
   };
 
   return (

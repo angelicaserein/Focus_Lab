@@ -1,6 +1,8 @@
 import React, { useMemo } from "react";
 import { useFocus } from "../../context/FocusContext";
 import useLocalStorage from "../../hooks/useLocalStorage";
+import { STORAGE_KEYS } from "../../utils/storageKeys";
+import { sessionKey, totalFocusSecs } from "../../utils/focusRecords";
 import {
   hourlyFocusData,
   timeBlockStats,
@@ -8,17 +10,8 @@ import {
   taskDifficultyRanking,
   distractionByHour,
 } from "../../utils/analyticsUtils";
+import { formatDurationChinese as fmt } from "../../utils/time";
 import "./Analytics.css";
-
-// 秒数 → 中文时长（分析页专用，带小时单位）
-function fmt(secs) {
-  if (!secs || secs <= 0) return "0分钟";
-  if (secs < 60) return `${secs}秒`;
-  if (secs < 3600) return `${Math.floor(secs / 60)}分钟`;
-  const h = Math.floor(secs / 3600);
-  const m = Math.floor((secs % 3600) / 60);
-  return m > 0 ? `${h}小时${m}分` : `${h}小时`;
-}
 
 // 只在关键刻度显示小时标签
 const HOUR_TICK = { 0: "0时", 6: "6时", 12: "12时", 18: "18时", 23: "23时" };
@@ -34,7 +27,7 @@ function SectionHead({ title, badge }) {
 
 export default function AnalyticsPage() {
   const { focusRecords } = useFocus();
-  const [distractions] = useLocalStorage("focus_distractions_v1", []);
+  const [distractions] = useLocalStorage(STORAGE_KEYS.DISTRACTIONS, []);
 
   // ── 计算 ──────────────────────────────────────────────────────────────────
   const hourly = useMemo(() => hourlyFocusData(focusRecords), [focusRecords]);
@@ -44,21 +37,14 @@ export default function AnalyticsPage() {
   const distData = useMemo(() => distractionByHour(distractions), [distractions]);
 
   const sessionCount = useMemo(
-    () => new Set(focusRecords.map((r) => r.sessionId ?? r.id)).size,
+    () => new Set(focusRecords.map((r) => sessionKey(r))).size,
     [focusRecords],
   );
 
-  const avgSessionSecs = useMemo(() => {
-    if (sessionCount === 0) return 0;
-    const m = new Map();
-    for (const r of focusRecords) {
-      const k = r.sessionId ?? r.id;
-      m.set(k, Math.max(m.get(k) ?? 0, r.durationSecs));
-    }
-    let sum = 0;
-    for (const s of m.values()) sum += s;
-    return Math.round(sum / sessionCount);
-  }, [focusRecords, sessionCount]);
+  const avgSessionSecs = useMemo(
+    () => (sessionCount > 0 ? Math.round(totalFocusSecs(focusRecords) / sessionCount) : 0),
+    [focusRecords, sessionCount],
+  );
 
   // ── 衍生值 ───────────────────────────────────────────────────────────────
   const hourlyMax = Math.max(...hourly.map((h) => h.totalSecs), 1);

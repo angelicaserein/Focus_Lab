@@ -1,40 +1,29 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 
-export default function Sidebar() {
-  const location = useLocation();
-  const isActive = (path) => location.pathname === path;
+const NAV_ITEMS = [
+  { to: "/",              label: "主页" },
+  { to: "/focus",         label: "专注" },
+  { to: "/tasks",         label: "任务库" },
+  { to: "/history",       label: "历史记录" },
+  { to: "/scenario",      label: "情景管理" },
+  { to: "/scenario-stats", label: "情景统计" },
+  { to: "/analytics",     label: "数据分析" },
+  { to: "/reward",        label: "奖励" },
+  { to: "/settings",      label: "设置" },
+  { to: "/research",      label: "研究记录" },
+];
 
+export default function Sidebar() {
+  const { pathname } = useLocation();
   return (
     <aside className="sidebar">
       <nav className="sidebar-nav">
-        <Link to="/" className={`nav-link ${isActive("/") ? "active" : ""}`}>
-          <span className="nav-label">Home</span>
-        </Link>
-        <Link to="/focus" className={`nav-link ${isActive("/focus") ? "active" : ""}`}>
-          <span className="nav-label">Focus</span>
-        </Link>
-        <Link to="/history" className={`nav-link ${isActive("/history") ? "active" : ""}`}>
-          <span className="nav-label">History</span>
-        </Link>
-        <Link to="/scenario" className={`nav-link ${isActive("/scenario") ? "active" : ""}`}>
-          <span className="nav-label">Scenario</span>
-        </Link>
-        <Link to="/scenario-stats" className={`nav-link ${isActive("/scenario-stats") ? "active" : ""}`}>
-          <span className="nav-label">情景统计</span>
-        </Link>
-        <Link to="/analytics" className={`nav-link ${isActive("/analytics") ? "active" : ""}`}>
-          <span className="nav-label">数据分析</span>
-        </Link>
-        <Link to="/reward" className={`nav-link ${isActive("/reward") ? "active" : ""}`}>
-          <span className="nav-label">Reward</span>
-        </Link>
-        <Link to="/settings" className={`nav-link ${isActive("/settings") ? "active" : ""}`}>
-          <span className="nav-label">Settings</span>
-        </Link>
-        <Link to="/research" className={`nav-link ${isActive("/research") ? "active" : ""}`}>
-          <span className="nav-label">研究记录</span>
-        </Link>
+        {NAV_ITEMS.map(({ to, label }) => (
+          <Link key={to} to={to} className={`nav-link${pathname === to ? " active" : ""}`}>
+            <span className="nav-label">{label}</span>
+          </Link>
+        ))}
       </nav>
     </aside>
   );
