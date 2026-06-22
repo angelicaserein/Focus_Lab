@@ -1,0 +1,204 @@
+.ddl-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: ddl-overlay-in 0.2s ease;
+}
+
+@keyframes ddl-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.ddl-modal {
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  border-radius: 20px;
+  padding: 28px 28px 22px;
+  width: min(480px, calc(100vw - 48px));
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: ddl-modal-in 0.22s cubic-bezier(0.34, 1.26, 0.64, 1);
+}
+
+@keyframes ddl-modal-in {
+  from { opacity: 0; transform: translateY(18px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── 弹窗头部 ── */
+.ddl-modal-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.ddl-modal-icon {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ddl-modal-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  line-height: 1.2;
+}
+
+.ddl-modal-sub {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+/* ── 提醒列表 ── */
+.ddl-modal-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.ddl-modal-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--text-muted) 5%, transparent);
+  border-radius: 10px;
+  border: 1px solid var(--border-card);
+  transition: background 0.12s;
+}
+
+.ddl-modal-item:hover {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.ddl-modal-check {
+  background: none;
+  border: 1.5px solid var(--text-muted);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.ddl-modal-check:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.ddl-modal-item-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.ddl-modal-task {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+.ddl-modal-arrow {
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.ddl-modal-msg {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* ── 倒计时标签 ── */
+.ddl-modal-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 99px;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--text-muted) 10%, transparent);
+  color: var(--text-muted);
+}
+
+.ddl-modal-tag.urgent {
+  background: color-mix(in srgb, #f97316 15%, transparent);
+  color: #f97316;
+}
+
+.ddl-modal-tag.overdue {
+  background: color-mix(in srgb, #ef4444 12%, transparent);
+  color: #ef4444;
+  font-weight: 700;
+}
+
+/* ── 空状态（调试模式）── */
+.ddl-modal-empty {
+  font-size: 0.85rem;
+  color: var(--text-faint);
+  text-align: center;
+  padding: 16px 0 8px;
+}
+
+/* ── 操作按钮 ── */
+.ddl-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.ddl-modal-go {
+  padding: 8px 20px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.ddl-modal-go:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.ddl-modal-dismiss {
+  padding: 8px 18px;
+  background: none;
+  border: 1.5px solid var(--border-card);
+  border-radius: 10px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.ddl-modal-dismiss:hover {
+  border-color: var(--text-muted);
+}

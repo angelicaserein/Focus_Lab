@@ -1,12 +1,8 @@
-import React, { useRef } from "react";
-import useOutsideClick from "../../../hooks/useOutsideClick";
+import React from "react";
 
-export default function AttrCellSelect({ attrDef, value, onSelect, onClose }) {
-  const ref = useRef(null);
-  useOutsideClick(ref, onClose, true);
-
+export default function AttrCellSelect({ attrDef, value, onSelect }) {
   return (
-    <div className="attr-popup attr-select-popup" ref={ref} onClick={e => e.stopPropagation()}>
+    <div className="attr-popup attr-select-popup">
       {(attrDef.options ?? []).map(opt => (
         <button
           key={opt.id}

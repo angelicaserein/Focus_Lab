@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "./DebugTweaks.css";
 import { formatClock } from "../../utils/time";
 import { useFocusSession } from "./FocusSessionContext";
 import { STORAGE_KEYS } from "../../utils/storageKeys";
@@ -44,6 +45,9 @@ export default function DebugTweaks({
   const [distrFeedback, setDistrFeedback] = useState(false);
   const [storageOpen, setStorageOpen] = useState(false);
 
+  // 调试面板仅在开发环境出现；生产构建里不渲染（与本文件注释意图一致）
+  if (!import.meta.env.DEV) return null;
+
   const ANCHOR = { x: 40, y: 40 };
   const absX = ANCHOR.x + Math.round(cardPosition.x);
   const absY = ANCHOR.y + Math.round(cardPosition.y);
@@ -69,7 +73,8 @@ export default function DebugTweaks({
     setTimeout(() => setNoteFeedback(false), 1200);
   };
 
-  const { rows: storageRows, totalBytes, activeCount } = getStorageStats();
+  // 仅在调试面板展开时扫描 localStorage，避免每次渲染都遍历所有 key
+  const storageStats = debugMode ? getStorageStats() : null;
 
   return (
     <div className="immersive-tweaks">
@@ -190,11 +195,11 @@ export default function DebugTweaks({
             onClick={() => setStorageOpen((o) => !o)}
           >
             <span className="tweaks-anim-dot" />
-            {activeCount} 键 / {(totalBytes / 1024).toFixed(1)} KB
+            {storageStats.activeCount} 键 / {(storageStats.totalBytes / 1024).toFixed(1)} KB
           </button>
           {storageOpen && (
             <div className="tweaks-storage-list">
-              {storageRows.map(({ key, size, exists }) => (
+              {storageStats.rows.map(({ key, size, exists }) => (
                 <div key={key} className={`tweaks-storage-row${exists ? "" : " empty"}`}>
                   <span className="tweaks-storage-key">{key.replace(/_v\d+$/, "")}</span>
                   <span className="tweaks-storage-size">{exists ? `${(size / 1024).toFixed(1)}K` : "—"}</span>

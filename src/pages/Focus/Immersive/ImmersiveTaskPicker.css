@@ -1,0 +1,113 @@
+/* 右侧呼出任务选择面板：absolute 脱离文档流，紧贴主卡片右侧 */
+.immersive-picker-panel {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 10px);
+  width: 288px;
+  border-radius: 28px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  box-shadow: none;
+  padding: 20px 16px 16px;
+  animation: pickerSlideIn 260ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.immersive-picker-panel.closing {
+  animation: pickerSlideOut 200ms ease both;
+}
+
+@keyframes pickerSlideIn {
+  from { opacity: 0; transform: translateX(-24px) scale(0.95); }
+  to   { opacity: 1; transform: translateX(0)     scale(1);    }
+}
+
+@keyframes pickerSlideOut {
+  from { opacity: 1; transform: translateX(0)     scale(1);    }
+  to   { opacity: 0; transform: translateX(-24px) scale(0.95); }
+}
+
+/* 任务选择器内容区（无需再有独立背景，已由 picker-panel 包裹） */
+.immersive-task-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.immersive-picker-input {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-accent);
+  background: var(--glass-bg-soft);
+  color: var(--text-body);
+  font: inherit;
+  font-size: 0.92rem;
+  outline: none;
+}
+
+.immersive-picker-input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.immersive-picker-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  text-align: left;
+  padding: 0 2px;
+}
+
+.immersive-picker-empty {
+  margin: 0;
+  padding: 4px 2px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: left;
+}
+
+.immersive-picker-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2.5px var(--accent-bg);
+}
+
+.immersive-picker-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 28vh;
+  overflow-y: auto;
+}
+
+.immersive-picker-option {
+  width: 100%;
+  text-align: left;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-body);
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+
+.immersive-picker-option:hover {
+  background: var(--accent-bg-dim);
+  border-color: var(--border-accent);
+  transform: translateX(3px);
+}
+
+.immersive-picker-option:active {
+  transform: translateX(3px) scale(0.98);
+}

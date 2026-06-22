@@ -1,5 +1,6 @@
 // 专注记录的纯数据处理 —— 分组、近 7 天聚合、统计汇总。
 // 与 React 无关，便于复用与单测。
+/** @import { FocusRecord } from '../types' */
 
 // 会话唯一键：有 sessionId 时用它，旧记录无 sessionId 则退化到记录自身 id
 export const sessionKey = (r) => r.sessionId ?? r.id;
@@ -14,6 +15,7 @@ export const OUTCOME_META = {
 // 构建 sessionKey → 墙钟时长 映射。
 // 计时器在一次会话内单调累计，最后结算的任务 durationSecs 代表整段时长；
 // 取 max 而非 sum，避免多任务并行时重复累加（如 40s 两任务不应变 80s）。
+/** @param {FocusRecord[]} records */
 export function sessionMaxSecsMap(records) {
   const map = new Map();
   for (const r of records) {
@@ -24,6 +26,7 @@ export function sessionMaxSecsMap(records) {
 }
 
 // 所有记录的真实累计专注时长（按会话去重）
+/** @param {FocusRecord[]} records @returns {number} */
 export function totalFocusSecs(records) {
   let total = 0;
   for (const secs of sessionMaxSecsMap(records).values()) total += secs;
@@ -31,6 +34,7 @@ export function totalFocusSecs(records) {
 }
 
 // 按自然日分组，返回 [dayLabel, records][]
+/** @param {FocusRecord[]} records */
 export function groupByDay(records) {
   const groups = {};
   for (const r of records) {
@@ -46,6 +50,7 @@ export function groupByDay(records) {
 }
 
 // 把一天内的记录按 sessionId 归成「一次专注」；旧记录无 sessionId 时各自独立成组
+/** @param {FocusRecord[]} records */
 export function groupBySession(records) {
   const sessions = [];
   const byId = new Map();
@@ -68,6 +73,7 @@ export function groupBySession(records) {
 // 近 7 天每日专注时长（今天在最右），返回 [{ label, totalSecs }]
 const PAST_DAYS = 6; // 加上今天共 7 天
 
+/** @param {FocusRecord[]} records */
 export function last7DaysData(records) {
   const days = [];
   for (let i = PAST_DAYS; i >= 0; i--) {
@@ -86,6 +92,7 @@ export function last7DaysData(records) {
 }
 
 // 汇总 History 顶部所有统计指标，组件侧只需一个 useMemo 调用本函数。
+/** @param {FocusRecord[]} records */
 export function computeFocusStats(records) {
   // 累计/今日时长按会话墙钟去重（多任务并行不叠加）
   const totalSecs = totalFocusSecs(records);

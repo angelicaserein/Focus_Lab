@@ -6,7 +6,8 @@ import { RewardProvider } from "./context/RewardContext";
 import { FocusProvider } from "./context/FocusContext";
 import { TodoProvider } from "./context/TodoContext";
 import { ScenarioProvider } from "./context/ScenarioContext";
-import { TaskAttrProvider } from "./context/TaskAttrContext";
+import { DatabaseProvider } from "./context/DatabaseContext";
+import { DDLProvider } from "./context/DDLContext";
 import { runMigrations } from "./utils/storage";
 import "./index.css";
 
@@ -21,13 +22,15 @@ createRoot(document.getElementById("root")).render(
     <ThemeProvider>
       <RewardProvider>
         <FocusProvider>
-          <TaskAttrProvider>
+          <DatabaseProvider>
             <TodoProvider>
               <ScenarioProvider>
-                <App />
+                <DDLProvider>
+                  <App />
+                </DDLProvider>
               </ScenarioProvider>
             </TodoProvider>
-          </TaskAttrProvider>
+          </DatabaseProvider>
         </FocusProvider>
       </RewardProvider>
     </ThemeProvider>

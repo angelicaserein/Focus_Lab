@@ -1,0 +1,348 @@
+/* Floating card overlay — anchored top-left */
+.immersive-card-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 40px 0 0 40px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.immersive-card-wrap.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 拖动层：承载平移量，与卡片自身的入场缩放动画解耦 */
+.immersive-card-drag {
+  display: flex;
+}
+
+/* picker 面板的定位锚点；自身大小 = 主卡片大小，picker 不占位 */
+.immersive-card-row {
+  position: relative;
+}
+
+.immersive-card {
+  position: relative;
+  overflow: hidden;
+  width: min(440px, calc(100% - 48px));
+  padding: 44px 36px;
+  border-radius: 36px;
+  /* 苹果液态玻璃：清透白底 + 轻模糊 + 提色，能看到后面背景 */
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  box-shadow: inset 0 1px 0 var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  text-align: center;
+  transform: scale(0.96) translateY(10px);
+  transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 顶部反光高光，强化「液态玻璃」质感 */
+.immersive-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 45%;
+  background: linear-gradient(to bottom, var(--glass-sheen), transparent);
+  pointer-events: none;
+}
+
+/* 让正文内容浮在反光高光之上 */
+.immersive-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.immersive-card-wrap.visible .immersive-card {
+  transform: scale(1) translateY(0);
+}
+
+.immersive-eyebrow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 360px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.immersive-eyebrow:active {
+  cursor: grabbing;
+}
+
+/* 拖动中关掉过渡，避免卡片「追」着指针有延迟感 */
+.immersive-card-drag {
+  will-change: transform;
+}
+
+.immersive-status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.immersive-status-dot.running {
+  background: var(--accent);
+  animation: dotPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1);    opacity: 1; }
+  50%       { transform: scale(1.55); opacity: 0.7; }
+}
+
+.immersive-task {
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text-heading);
+  max-width: 360px;
+}
+
+/* 已运行时长读数 */
+.immersive-time {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+  color: var(--text-body);
+}
+
+/* 情境标签 */
+.immersive-scenario {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--accent-mid);
+  text-align: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  border: 1px solid var(--border-accent);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: -12px;
+}
+
+.immersive-scenario-desc {
+  font-size: 0.68rem;
+  color: var(--muted);
+  text-align: center;
+  max-width: 220px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: -4px;
+}
+
+/* 烧瓶进度在卡片内居中显示 */
+.immersive-flask {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: -8px 0;
+}
+
+/* 沉浸页任务清单（可勾选完成 / 移除） */
+.immersive-task-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 360px;
+  max-height: 38vh;
+  overflow-y: auto;
+}
+
+.immersive-task-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--glass-bg-soft);
+  border: 1px solid var(--glass-border);
+  animation: taskRowIn 220ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes taskRowIn {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+
+.immersive-task-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-body);
+  text-align: left;
+}
+
+.immersive-task-check,
+.immersive-task-replace,
+.immersive-task-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease, transform 120ms ease;
+}
+
+.immersive-task-check:active,
+.immersive-task-replace:active,
+.immersive-task-remove:active {
+  transform: scale(0.88);
+}
+
+.immersive-task-check {
+  border: 1.5px solid var(--border-accent);
+  background: transparent;
+  color: var(--accent-deep);
+}
+
+.immersive-task-check:hover {
+  background: var(--accent);
+  color: var(--card);
+}
+
+.immersive-task-replace {
+  border: 1.5px solid var(--border-accent);
+  background: transparent;
+  color: var(--accent-deep);
+  font-size: 0.95rem;
+}
+
+.immersive-task-replace:hover {
+  background: var(--accent-bg-dim);
+  color: var(--accent-mid);
+}
+
+.immersive-task-remove {
+  border: 1.5px solid var(--border-accent);
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.immersive-task-remove:hover {
+  background: var(--accent-hover);
+  color: var(--text-body);
+}
+
+/* 添加 / 替换任务区 */
+.immersive-task-add {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.immersive-task-add-btn {
+  align-self: center;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border-accent);
+  background: transparent;
+  color: var(--accent-deep);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 180ms ease, color 180ms ease, transform 120ms ease, box-shadow 180ms ease;
+}
+
+.immersive-task-add-btn:hover {
+  background: var(--accent-bg-dim);
+  color: var(--accent-mid);
+}
+
+.immersive-task-add-btn.open {
+  background: var(--accent-bg);
+  color: var(--accent-mid);
+  box-shadow: 0 0 0 2px var(--border-accent);
+}
+
+.immersive-task-add-btn:active {
+  transform: scale(0.95);
+}
+
+.immersive-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.immersive-btn {
+  min-width: 120px;
+  padding: 14px 20px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 700;
+  transition: transform 160ms ease, opacity 160ms ease, box-shadow 160ms ease;
+}
+
+.immersive-btn.primary {
+  background: var(--accent);
+  color: var(--card);
+}
+
+.immersive-btn.ghost {
+  background: var(--accent-bg-dim);
+  border: 1px solid var(--border-accent);
+  color: var(--accent-deep);
+}
+
+.immersive-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(160, 120, 152, 0.22);
+}
+
+.immersive-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.96);
+  box-shadow: none;
+}
+
+.immersive-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}

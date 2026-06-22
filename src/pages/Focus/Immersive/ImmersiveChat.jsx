@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import "./ImmersiveChat.css";
 import { hasApiKey } from "../../../utils/aiChat";
 
 // 沉浸式专注页左下角的极简 AI 陪伴对话：无框 / 无气泡 / 无背景，

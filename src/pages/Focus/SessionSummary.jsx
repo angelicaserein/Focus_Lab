@@ -1,4 +1,5 @@
 import React from "react";
+import "./SessionSummary.css";
 import { useFocus } from "../../context/FocusContext";
 import { formatTimestamp, formatSessionDate, formatDuration } from "../../utils/time";
 import { buildSessions, enrichDistractionSessions } from "../../utils/sessionSummaryUtils";

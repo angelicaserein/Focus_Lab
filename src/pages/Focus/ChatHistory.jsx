@@ -1,4 +1,5 @@
 import React from "react";
+import "./Immersive/ImmersiveChat.css";
 import { hasApiKey } from "../../utils/aiChat";
 
 // Focus 页面（非沉浸）上的聊天历史区：展示与 AI 陪伴的全部对话，

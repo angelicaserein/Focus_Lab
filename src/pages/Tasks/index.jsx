@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useTodos } from "../../context/TodoContext";
-import { useTaskAttrs } from "../../context/TaskAttrContext";
+import { useTaskAttrs, useDatabases } from "../../context/DatabaseContext";
 import { buildSortWeightMap } from "../../utils/taskAttrUtils";
 import AttrHeaderEditor from "./AttrHeaderEditor";
+import DatabaseTabs from "./DatabaseTabs";
 import TodoRow from "./TodoRow";
 import useTaskFilter from "./useTaskFilter";
 import "./Tasks.css";
@@ -31,6 +32,12 @@ const SORT_OPTS = [
 export default function Tasks() {
   const { todos, addTodo, toggleTodo, editTodo, setTodoAttr, deleteTodo } = useTodos();
   const { taskAttrs } = useTaskAttrs();
+  const { activeDatabaseId } = useDatabases();
+
+  const dbTodos = useMemo(
+    () => todos.filter(t => (t.databaseId ?? "default") === activeDatabaseId),
+    [todos, activeDatabaseId],
+  );
 
   const visibleAttrs = useMemo(
     () => [...taskAttrs].filter(a => a.visible).sort((a, b) => a.order - b.order),
@@ -56,15 +63,19 @@ export default function Tasks() {
 
   // null = closed, "new" = adding new attr, attrId string = editing existing
   const [editingAttrId, setEditingAttrId] = useState(null);
+  const [attrAnchorEl,  setAttrAnchorEl]  = useState(null);
+
+  const openAttrEditor = (id, anchor) => { setEditingAttrId(id); setAttrAnchorEl(anchor); };
+  const closeAttrEditor = () => { setEditingAttrId(null); setAttrAnchorEl(null); };
 
   useEffect(() => {
     if (showNewRow) newInputRef.current?.focus();
   }, [showNewRow]);
 
-  const filtered = useTaskFilter({ todos, statusFilter, priorityFilter, tagFilter, search, sortBy, sortDir, prioritySortMap });
+  const filtered = useTaskFilter({ todos: dbTodos, statusFilter, priorityFilter, tagFilter, search, sortBy, sortDir, prioritySortMap });
 
   function commitNewTask() {
-    if (newTaskText.trim()) addTodo(newTaskText.trim());
+    if (newTaskText.trim()) addTodo(newTaskText.trim(), { databaseId: activeDatabaseId });
     setNewTaskText("");
     setShowNewRow(false);
   }
@@ -98,6 +109,8 @@ export default function Tasks() {
         </div>
         <button className="tasks-add-btn" onClick={() => setShowNewRow(true)}>+ 新建任务</button>
       </div>
+
+      <DatabaseTabs />
 
       <div className="tasks-toolbar">
         <div className="tasks-search-wrap">
@@ -167,6 +180,7 @@ export default function Tasks() {
       </div>
 
       <div className="tasks-table-wrap">
+        <div className="tasks-table-scroll">
         <table className="tasks-table">
           <thead>
             <tr>
@@ -189,26 +203,18 @@ export default function Tasks() {
                       <button
                         className="th-edit-btn"
                         title="编辑属性"
-                        onClick={e => { e.stopPropagation(); setEditingAttrId(attr.id); }}
+                        onClick={e => { e.stopPropagation(); openAttrEditor(attr.id, e.currentTarget.closest("th")); }}
                       >⚙</button>
                     </div>
-                    {editingAttrId === attr.id && (
-                      <AttrHeaderEditor
-                        attrDef={attr}
-                        onClose={() => setEditingAttrId(null)}
-                      />
-                    )}
                   </th>
                 );
               })}
               <th className="th-add-col">
-                <button className="th-add-btn" title="添加属性" onClick={() => setEditingAttrId("new")}>+</button>
-                {editingAttrId === "new" && (
-                  <AttrHeaderEditor
-                    attrDef={null}
-                    onClose={() => setEditingAttrId(null)}
-                  />
-                )}
+                <button
+                  className="th-add-btn"
+                  title="添加属性"
+                  onClick={e => openAttrEditor("new", e.currentTarget.closest("th"))}
+                >+</button>
               </th>
               <th className="th-del"></th>
             </tr>
@@ -228,7 +234,7 @@ export default function Tasks() {
             {showNewRow && (
               <tr className="tasks-new-row">
                 <td></td>
-                <td colSpan={visibleAttrs.length + 1}>
+                <td colSpan={visibleAttrs.length + 2}>
                   <input
                     ref={newInputRef}
                     className="new-task-input"
@@ -246,10 +252,11 @@ export default function Tasks() {
             )}
           </tbody>
         </table>
+        </div>
 
         {filtered.length === 0 && !showNewRow && (
           <div className="tasks-empty">
-            {todos.length === 0
+            {dbTodos.length === 0
               ? "还没有任务，点击下方「+ 新建任务」开始吧"
               : "没有符合条件的任务"}
           </div>
@@ -261,6 +268,14 @@ export default function Tasks() {
           </button>
         )}
       </div>
+
+      {editingAttrId && (
+        <AttrHeaderEditor
+          attrDef={editingAttrId === "new" ? null : taskAttrs.find(a => a.id === editingAttrId) ?? null}
+          anchorEl={attrAnchorEl}
+          onClose={closeAttrEditor}
+        />
+      )}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import "../types";
 import React, { useContext } from "react";
 import useLocalStorage from "../hooks/useLocalStorage";
 import { STORAGE_KEYS } from "../utils/storageKeys";

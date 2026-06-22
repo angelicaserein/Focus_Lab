@@ -74,6 +74,15 @@ export function formatRelativeTime(ts) {
   return `${Math.floor(days / 30)}个月前`;
 }
 
+// "YYYY-MM-DD" → 距今天数（正=未来，0=今天，负=已过期）
+export function getDaysUntil(dueDateStr) {
+  if (!dueDateStr) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(dueDateStr + "T00:00:00");
+  return Math.round((due - today) / MS_PER_DAY);
+}
+
 // ── 分组导出（namespace 访问） ──────────────────────────────────────────────
 export const clock = { formatClock, formatDuration, formatDurationChinese };
 export const dates = { formatTimestamp, formatSessionDate, formatRelativeTime, formatRecordDate, getTodayStr };

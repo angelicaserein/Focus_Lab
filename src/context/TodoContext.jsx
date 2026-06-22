@@ -1,3 +1,4 @@
+import "../types";
 import React, { useReducer, useEffect, useRef, useContext } from "react";
 import { loadVersioned } from "../utils/storage";
 import useUndoDelete from "../hooks/useUndoDelete";
@@ -10,6 +11,7 @@ const CURRENT_VERSION = 1;
 const ADD = "ADD";
 const TOGGLE = "TOGGLE";
 const DELETE = "DELETE";
+const DELETE_BY_DB = "DELETE_BY_DB";
 const EDIT = "EDIT";
 const RESTORE = "RESTORE";
 const SET = "SET";
@@ -29,6 +31,9 @@ function reducer(state, action) {
     }
     case DELETE: {
       return state.filter((t) => t.id !== action.payload);
+    }
+    case DELETE_BY_DB: {
+      return state.filter((t) => (t.databaseId ?? "default") !== action.payload);
     }
     case EDIT: {
       const { id, text } = action.payload;
@@ -72,7 +77,9 @@ function reducer(state, action) {
         } else {
           attrs[attrId] = value;
         }
-        return Object.keys(attrs).length ? { ...t, attrs } : (() => { const { attrs: _a, ...rest } = t; return rest; })();
+        if (Object.keys(attrs).length) return { ...t, attrs };
+        const { attrs: _drop, ...rest } = t;
+        return rest;
       });
     }
     default:
@@ -130,7 +137,7 @@ export function TodoProvider({ children }) {
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const addTodo = (text, { recurringDays = null } = {}) => {
+  const addTodo = (text, { recurringDays = null, databaseId = "default" } = {}) => {
     const t = text.trim();
     if (!t) return;
     const today = getTodayStr();
@@ -139,11 +146,16 @@ export function TodoProvider({ children }) {
       text: t,
       completed: false,
       createdAt: Date.now(),
+      databaseId,
       ...(recurringDays?.length && { recurringDays, lastResetDate: today }),
     };
     dispatch({ type: ADD, payload: item });
     return item;
   };
+
+  // 删除某 database 时连带清掉其下所有任务（由 Tasks 页在 deleteDatabase 时调用）
+  const deleteTodosByDatabase = (databaseId) =>
+    dispatch({ type: DELETE_BY_DB, payload: databaseId });
 
   const toggleTodo = (id) => dispatch({ type: TOGGLE, payload: id });
 
@@ -177,6 +189,7 @@ export function TodoProvider({ children }) {
     updateTodoProps,
     setTodoAttr,
     deleteTodo,
+    deleteTodosByDatabase,
     pendingDelete,
     undoDelete,
   };

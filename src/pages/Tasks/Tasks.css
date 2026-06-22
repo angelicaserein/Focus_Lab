@@ -195,11 +195,19 @@
   border: 1.5px solid var(--border-card);
   border-radius: 16px;
   box-shadow: 0 2px 12px var(--shadow-sm);
-  overflow: visible;
+  overflow: hidden;
+}
+
+/* Horizontal scroll lives here so many columns scroll inside the card
+   instead of overflowing it. Popups are portaled to <body>, so this
+   container clipping its overflow no longer hides them. */
+.tasks-table-scroll {
+  overflow-x: auto;
 }
 
 .tasks-table {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
 }
@@ -208,12 +216,35 @@
 .tasks-table .th-check,
 .tasks-table .td-check { width: 44px; }
 .tasks-table .th-text,
-.tasks-table .td-text  { /* auto */ }
-.tasks-table .th-attr  { position: relative; overflow: visible; }
+.tasks-table .td-text  { width: 220px; min-width: 220px; }
+.tasks-table .th-attr  { position: relative; }
 .tasks-table .td-attr  { position: relative; }
-.tasks-table .th-add-col { width: 36px; text-align: center; position: relative; overflow: visible; }
+.tasks-table .th-add-col { width: 36px; text-align: center; position: relative; }
 .tasks-table .th-del,
 .tasks-table .td-del { width: 40px; }
+
+/* ── Frozen left columns (checkbox + task name) ── */
+.tasks-table .th-check,
+.tasks-table .td-check {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+.tasks-table .th-text,
+.tasks-table .td-text {
+  position: sticky;
+  left: 44px;
+  z-index: 2;
+  border-right: 1.5px solid var(--border-input);
+}
+/* Frozen body cells need an opaque background to cover scrolled content */
+.tasks-table .td-check,
+.tasks-table .td-text { background: var(--card); }
+.tasks-row:hover .td-check,
+.tasks-row:hover .td-text { background: var(--accent-hover); }
+/* Header frozen cells sit above body frozen cells */
+.tasks-table thead .th-check,
+.tasks-table thead .th-text { z-index: 3; }
 
 /* Header */
 .tasks-table thead tr {
@@ -346,11 +377,25 @@
 .attr-multiselect-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 2px;
+  gap: 3px;
+  align-items: center;
 }
 .attr-multiselect-chip {
   font-size: 1rem;
   line-height: 1;
+}
+/* Colored pill for custom multiselect options (icon optional) */
+.attr-ms-pill {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--badge-color) 14%, transparent);
+  color: var(--badge-color);
+  border: 1px solid color-mix(in srgb, var(--badge-color) 30%, transparent);
 }
 
 /* Legacy aliases kept for backward compatibility with any remaining usage */
@@ -781,3 +826,33 @@
   transition: all 0.15s;
 }
 .attr-editor-cancel:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Portal popover layer (Popover.jsx) ──
+   The layer itself is position:fixed (set inline). Reset the inner panels'
+   own absolute positioning so they sit at the layer origin. */
+.popover-layer .attr-popup,
+.popover-layer .attr-editor {
+  position: static;
+  top: auto;
+  left: auto;
+}
+
+/* Column reorder / hide actions inside the header editor */
+.attr-col-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.attr-col-btn {
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-dark);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.attr-col-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.attr-col-btn:disabled { opacity: 0.4; cursor: default; }

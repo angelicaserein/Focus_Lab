@@ -19,8 +19,9 @@
  */
 
 import { STORAGE_KEYS } from "./storageKeys";
+import { TASK_ATTR_DEFAULTS } from "./taskAttrDefaults";
 
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 7;
 const SCHEMA_META_KEY = "__focuslab_schema";
 
 const MIGRATIONS = [
@@ -52,26 +53,49 @@ const MIGRATIONS = [
       return Object.keys(attrs).length ? { ...rest, attrs } : rest;
     }),
   }),
+  // v5→v6: 所有 localStorage key 统一使用 { version, data } 包装格式。
+  // 数据结构本身无变化；格式转换由 runMigrations 的写回逻辑自动完成。
+  (data) => data,
+  // v6→v7: 引入多 database。把原全局 taskAttrs 折叠进默认库（id="default"），
+  // 并给每个 todo 补 databaseId="default"。原 task_attrs_v1 不再读取（保留以兼容导入导出）。
+  (data) => {
+    const hadTodos = Array.isArray(data.todos) && data.todos.length;
+    const existingAttrs =
+      Array.isArray(data.taskAttrs) && data.taskAttrs.length
+        ? data.taskAttrs
+        : (hadTodos ? TASK_ATTR_DEFAULTS : []);
+    const defaultDb = {
+      id: "default",
+      name: "任务",
+      order: 0,
+      attrs: existingAttrs.map(a => ({ ...a, system: false })),
+    };
+    return {
+      ...data,
+      databases: [defaultDb],
+      todos: (data.todos ?? []).map(t => ({ databaseId: "default", ...t })),
+    };
+  },
 ];
 
-// versioned 数据格式的包装版本号（与 SCHEMA_VERSION 无关，固定为 1）
+// 所有 key 统一使用 { version: N, data: T } 包装格式（v6 起）。
+// useLocalStorage hook 和 TaskAttrContext 均负责读写时的解包/包装。
 const VERSIONED_WRAPPER_VERSION = 1;
 
-// versioned: true  → TodoContext/ScenarioContext 的 {version, data} 格式
-// versioned: false → useLocalStorage hook 的裸 JSON 格式
 const KEY_MAP = {
-  todos:        { key: STORAGE_KEYS.TODOS,            versioned: true  },
-  scenarios:    { key: STORAGE_KEYS.SCENARIOS,        versioned: true  },
-  focusRecords: { key: STORAGE_KEYS.FOCUS_RECORDS,    versioned: false },
-  coins:        { key: STORAGE_KEYS.COINS,            versioned: false },
-  ownedRewards: { key: STORAGE_KEYS.REWARD_OWNED,     versioned: false },
-  redeemCounts: { key: STORAGE_KEYS.REWARD_REDEEM,    versioned: false },
-  activeTheme:  { key: STORAGE_KEYS.ACTIVE_THEME,     versioned: false },
-  notes:        { key: STORAGE_KEYS.NOTES,            versioned: false },
-  distractions: { key: STORAGE_KEYS.DISTRACTIONS,     versioned: false },
-  chatHistory:  { key: STORAGE_KEYS.CHAT,             versioned: false },
-  researchDaily:{ key: STORAGE_KEYS.RESEARCH_RECORDS, versioned: false },
-  taskAttrs:    { key: STORAGE_KEYS.TASK_ATTRS,       versioned: false },
+  todos:         { key: STORAGE_KEYS.TODOS            },
+  scenarios:     { key: STORAGE_KEYS.SCENARIOS        },
+  focusRecords:  { key: STORAGE_KEYS.FOCUS_RECORDS    },
+  coins:         { key: STORAGE_KEYS.COINS            },
+  ownedRewards:  { key: STORAGE_KEYS.REWARD_OWNED     },
+  redeemCounts:  { key: STORAGE_KEYS.REWARD_REDEEM    },
+  activeTheme:   { key: STORAGE_KEYS.ACTIVE_THEME     },
+  notes:         { key: STORAGE_KEYS.NOTES            },
+  distractions:  { key: STORAGE_KEYS.DISTRACTIONS     },
+  chatHistory:   { key: STORAGE_KEYS.CHAT             },
+  researchDaily: { key: STORAGE_KEYS.RESEARCH_RECORDS },
+  taskAttrs:     { key: STORAGE_KEYS.TASK_ATTRS       },
+  databases:     { key: STORAGE_KEYS.DATABASES        },
 };
 
 /**
@@ -94,7 +118,7 @@ export function loadVersioned(key, version, defaultValue = []) {
 
 /**
  * 在 app 启动时调用一次（main.jsx），在任何 Context 读取数据前执行。
- * 读取所有数据 → 顺序执行迁移函数 → 写回 → 更新 schema 版本号。
+ * 读取所有数据 → 顺序执行迁移函数 → 写回（统一 versioned 格式）→ 更新 schema 版本号。
  */
 export function runMigrations() {
   try {
@@ -102,12 +126,15 @@ export function runMigrations() {
     if (stored >= SCHEMA_VERSION) return;
 
     const data = {};
-    for (const [name, { key, versioned }] of Object.entries(KEY_MAP)) {
+    for (const [name, { key }] of Object.entries(KEY_MAP)) {
       const raw = localStorage.getItem(key);
       if (raw === null) continue;
       try {
         const parsed = JSON.parse(raw);
-        data[name] = versioned ? (parsed?.data ?? parsed) : parsed;
+        // 兼容旧格式（裸 JSON）和已有的 versioned 格式
+        data[name] = (parsed !== null && typeof parsed === "object" && "data" in parsed)
+          ? parsed.data
+          : parsed;
       } catch { /* 跳过损坏的键 */ }
     }
 
@@ -118,13 +145,12 @@ export function runMigrations() {
       }
     }
 
-    for (const [name, { key, versioned }] of Object.entries(KEY_MAP)) {
+    for (const [name, { key }] of Object.entries(KEY_MAP)) {
       if (!(name in current)) continue;
       try {
-        const val = current[name];
         localStorage.setItem(
           key,
-          JSON.stringify(versioned ? { version: VERSIONED_WRAPPER_VERSION, data: val } : val),
+          JSON.stringify({ version: VERSIONED_WRAPPER_VERSION, data: current[name] }),
         );
       } catch { /* 配额溢出时局部失败 */ }
     }
@@ -137,12 +163,15 @@ export function runMigrations() {
 
 export function exportAllData() {
   const data = {};
-  for (const [name, { key, versioned }] of Object.entries(KEY_MAP)) {
+  for (const [name, { key }] of Object.entries(KEY_MAP)) {
     try {
       const raw = localStorage.getItem(key);
       if (raw === null) continue;
       const parsed = JSON.parse(raw);
-      data[name] = versioned ? (parsed?.data ?? parsed) : parsed;
+      // 解包 versioned 格式
+      data[name] = (parsed !== null && typeof parsed === "object" && "data" in parsed)
+        ? parsed.data
+        : parsed;
     } catch { /* 跳过损坏键 */ }
   }
   const json = JSON.stringify(
@@ -177,11 +206,13 @@ export function importAllData(jsonString) {
   }
 
   const writtenKeys = [];
-  for (const [name, { key, versioned }] of Object.entries(KEY_MAP)) {
+  for (const [name, { key }] of Object.entries(KEY_MAP)) {
     if (!(name in data)) continue;
     try {
-      const val = data[name];
-      localStorage.setItem(key, JSON.stringify(versioned ? { version: VERSIONED_WRAPPER_VERSION, data: val } : val));
+      localStorage.setItem(
+        key,
+        JSON.stringify({ version: VERSIONED_WRAPPER_VERSION, data: data[name] }),
+      );
       writtenKeys.push(key);
     } catch { /* 配额溢出时局部失败 */ }
   }

@@ -1,12 +1,11 @@
-import React, { useState, useRef } from "react";
-import { useTaskAttrs } from "../../context/TaskAttrContext";
-import useOutsideClick from "../../hooks/useOutsideClick";
+import React, { useState } from "react";
+import { useTaskAttrs } from "../../context/DatabaseContext";
+import Popover from "../../components/Popover";
 import { ATTR_TYPE_OPTIONS, ATTR_COLOR_SWATCHES } from "../../utils/editorConstants";
 
-export default function AttrHeaderEditor({ attrDef, onClose }) {
-  const { addTaskAttr, updateTaskAttr, deleteTaskAttr } = useTaskAttrs();
-  const isNew    = !attrDef;
-  const isSystem = !!attrDef?.system;
+export default function AttrHeaderEditor({ attrDef, anchorEl, onClose }) {
+  const { taskAttrs, addTaskAttr, updateTaskAttr, deleteTaskAttr, reorderTaskAttrs } = useTaskAttrs();
+  const isNew = !attrDef;
 
   const [name,    setName]    = useState(attrDef?.name ?? "新属性");
   const [type,    setType]    = useState(attrDef?.type ?? "text");
@@ -16,8 +15,26 @@ export default function AttrHeaderEditor({ attrDef, onClose }) {
   );
   const [openColorFor, setOpenColorFor] = useState(null);
 
-  const ref = useRef(null);
-  useOutsideClick(ref, onClose, true);
+  // 按 order 排序的完整 id 列表，用于左右移动重排序
+  const orderedIds = [...taskAttrs].sort((a, b) => a.order - b.order).map(a => a.id);
+  const curIdx = attrDef ? orderedIds.indexOf(attrDef.id) : -1;
+  const canMoveLeft  = curIdx > 0;
+  const canMoveRight = curIdx >= 0 && curIdx < orderedIds.length - 1;
+
+  const move = (dir) => {
+    const j = curIdx + dir;
+    if (j < 0 || j >= orderedIds.length) return;
+    const next = [...orderedIds];
+    [next[curIdx], next[j]] = [next[j], next[curIdx]];
+    reorderTaskAttrs(next);
+    onClose();
+  };
+
+  const hideColumn = () => {
+    if (!attrDef) return;
+    updateTaskAttr(attrDef.id, { visible: false });
+    onClose();
+  };
 
   const hasOptions = type === "select" || type === "multiselect";
 
@@ -50,8 +67,7 @@ export default function AttrHeaderEditor({ attrDef, onClose }) {
         hasOptions ? options : undefined,
       );
     } else {
-      const patch = { name: trimmed };
-      if (!isSystem) patch.type = type;
+      const patch = { name: trimmed, type };
       if (type === "number") patch.unit = unit.trim() || undefined;
       if (hasOptions) patch.options = options;
       updateTaskAttr(attrDef.id, patch);
@@ -60,7 +76,7 @@ export default function AttrHeaderEditor({ attrDef, onClose }) {
   };
 
   const handleDelete = () => {
-    if (!attrDef || isSystem) return;
+    if (!attrDef) return;
     if (window.confirm(`删除属性「${attrDef.name}」？所有任务的该字段数据将丢失。`)) {
       deleteTaskAttr(attrDef.id);
       onClose();
@@ -68,7 +84,8 @@ export default function AttrHeaderEditor({ attrDef, onClose }) {
   };
 
   return (
-    <div className="attr-editor" ref={ref} onClick={e => e.stopPropagation()}>
+    <Popover anchorEl={anchorEl} onClose={onClose}>
+    <div className="attr-editor" onClick={e => e.stopPropagation()}>
       <div className="attr-editor-title">{isNew ? "添加属性" : "编辑属性"}</div>
 
       {/* Name */}
@@ -92,14 +109,10 @@ export default function AttrHeaderEditor({ attrDef, onClose }) {
             <button
               key={t.id}
               className={`type-opt${type === t.id ? " active" : ""}`}
-              onClick={() => { if (!isSystem) setType(t.id); }}
-              title={isSystem ? "内置属性类型不可更改" : undefined}
+              onClick={() => setType(t.id)}
             >{t.label}</button>
           ))}
         </div>
-        {isSystem && (
-          <p className="attr-editor-hint">内置属性类型固定，不可更改</p>
-        )}
       </div>
 
       {/* Unit (number only) */}
@@ -156,16 +169,39 @@ export default function AttrHeaderEditor({ attrDef, onClose }) {
         </div>
       )}
 
+      {/* Column actions (existing attrs only): reorder + hide */}
+      {!isNew && (
+        <div className="attr-editor-field">
+          <label className="attr-editor-label">列操作</label>
+          <div className="attr-col-actions">
+            <button
+              className="attr-col-btn"
+              onClick={() => move(-1)}
+              disabled={!canMoveLeft}
+              title="左移此列"
+            >← 左移</button>
+            <button
+              className="attr-col-btn"
+              onClick={() => move(1)}
+              disabled={!canMoveRight}
+              title="右移此列"
+            >右移 →</button>
+            <button className="attr-col-btn" onClick={hideColumn} title="在任务库中隐藏此列">隐藏</button>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <div className="attr-editor-footer">
         <button className="attr-editor-save" onClick={handleSave}>
           {isNew ? "添加" : "保存"}
         </button>
-        {!isNew && !isSystem && (
+        {!isNew && (
           <button className="attr-editor-delete" onClick={handleDelete}>删除</button>
         )}
         <button className="attr-editor-cancel" onClick={onClose}>取消</button>
       </div>
     </div>
+    </Popover>
   );
 }

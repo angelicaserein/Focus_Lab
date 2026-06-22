@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "./ImmersiveCard.css";
 import FocusFlask from "../FocusFlask";
 import DebugTweaks from "../DebugTweaks";
 import ImmersiveTaskPicker from "./ImmersiveTaskPicker";

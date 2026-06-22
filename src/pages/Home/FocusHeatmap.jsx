@@ -14,45 +14,55 @@ function getLevel(secs) {
   return 4;
 }
 
+// 按本地日历日期 "YYYY-MM-DD" 把记录分组
+function groupRecordsByDay(records) {
+  const map = new Map();
+  for (const r of records) {
+    const d = new Date(r.startedAt);
+    d.setHours(0, 0, 0, 0);
+    const key = d.toISOString().slice(0, 10);
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(r);
+  }
+  return map;
+}
+
+// 构建 53 周 × 7 天网格，最右一列为本周；返回 { weeks, startDate }
+function buildWeekGrid(dayRecordsMap, today) {
+  // 本周一（Mon=0, Sun=6）
+  const dow = (today.getDay() + 6) % 7;
+  const thisMonday = new Date(today);
+  thisMonday.setDate(today.getDate() - dow);
+
+  // 网格从本周一往前 52 周开始（共 53 列）
+  const startDate = new Date(thisMonday);
+  startDate.setDate(thisMonday.getDate() - 52 * 7);
+
+  const weeks = [];
+  for (let w = 0; w < 53; w++) {
+    const week = [];
+    for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + w * 7 + dayOfWeek);
+      const isFuture = date > today;
+      const key = date.toISOString().slice(0, 10);
+      const dayRecs = dayRecordsMap.get(key) ?? [];
+      const secs = isFuture ? 0 : totalFocusSecs(dayRecs);
+      week.push({ date, secs, isFuture });
+    }
+    weeks.push(week);
+  }
+
+  return { weeks, startDate };
+}
+
 export default function FocusHeatmap({ records }) {
   const { weeks, totalSecs } = useMemo(() => {
-    // Group records by calendar date key "YYYY-MM-DD"
-    const dayRecordsMap = new Map();
-    for (const r of records) {
-      const d = new Date(r.startedAt);
-      d.setHours(0, 0, 0, 0);
-      const key = d.toISOString().slice(0, 10);
-      if (!dayRecordsMap.has(key)) dayRecordsMap.set(key, []);
-      dayRecordsMap.get(key).push(r);
-    }
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Find Monday of the current week (Mon=0, Sun=6)
-    const dow = (today.getDay() + 6) % 7;
-    const thisMonday = new Date(today);
-    thisMonday.setDate(today.getDate() - dow);
-
-    // Grid starts 52 weeks before this Monday (53 columns total)
-    const startDate = new Date(thisMonday);
-    startDate.setDate(thisMonday.getDate() - 52 * 7);
-
-    // Build 53 week columns × 7 days
-    const weeks = [];
-    for (let w = 0; w < 53; w++) {
-      const week = [];
-      for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
-        const date = new Date(startDate);
-        date.setDate(startDate.getDate() + w * 7 + dayOfWeek);
-        const isFuture = date > today;
-        const key = date.toISOString().slice(0, 10);
-        const dayRecs = dayRecordsMap.get(key) ?? [];
-        const secs = isFuture ? 0 : totalFocusSecs(dayRecs);
-        week.push({ date, secs, isFuture });
-      }
-      weeks.push(week);
-    }
+    const dayRecordsMap = groupRecordsByDay(records);
+    const { weeks, startDate } = buildWeekGrid(dayRecordsMap, today);
 
     const totalSecs = totalFocusSecs(
       records.filter((r) => r.startedAt >= startDate.getTime()),

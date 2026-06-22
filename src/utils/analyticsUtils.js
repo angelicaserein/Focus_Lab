@@ -1,7 +1,9 @@
 // 数据分析 —— 专注效率洞察的纯函数。与 React 无关。
+/** @import { FocusRecord, DistractionRecord } from '../types' */
 import { sessionKey, sessionMaxSecsMap } from "./focusRecords";
 
 // ── 1. 按小时聚合专注数据 (返回 hours[0..23]) ──────────────────────────────
+/** @param {FocusRecord[]} records */
 export function hourlyFocusData(records) {
   const slots = Array.from({ length: 24 }, (_, i) => ({
     hour: i,
@@ -73,6 +75,7 @@ export const DURATION_BUCKETS = [
   { label: "> 2小时",  min: 7200, max: Infinity },
 ];
 
+/** @param {FocusRecord[]} records */
 export function sessionDurationBuckets(records) {
   const counts = new Array(DURATION_BUCKETS.length).fill(0);
   for (const secs of sessionMaxSecsMap(records).values()) {
@@ -85,6 +88,7 @@ export function sessionDurationBuckets(records) {
 // ── 4. 任务难度排行（按未完成率从高到低，≥ minN 次才统计） ─────────────────
 const MAX_DIFFICULTY_TASKS = 10;
 
+/** @param {FocusRecord[]} records @param {number} [minN] */
 export function taskDifficultyRanking(records, minN = 2) {
   const map = {};
   for (const r of records) {
@@ -102,6 +106,7 @@ export function taskDifficultyRanking(records, minN = 2) {
 }
 
 // ── 5. 分心高峰（按小时） ─────────────────────────────────────────────────
+/** @param {DistractionRecord[]} distractions */
 export function distractionByHour(distractions) {
   const counts = new Array(24).fill(0);
   const tagTally = {};

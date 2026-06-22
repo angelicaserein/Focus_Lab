@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import "./ImmersiveUtils.css";
 import { formatTimestamp, formatClock } from "../../../utils/time";
 
 const DISTRACTION_FEEDBACK_MS = 1200;

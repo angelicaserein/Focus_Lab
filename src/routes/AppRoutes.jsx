@@ -13,6 +13,7 @@ const Research = lazy(() => import("../pages/Research"));
 const ScenarioStats = lazy(() => import("../pages/ScenarioStats"));
 const Analytics = lazy(() => import("../pages/Analytics"));
 const Tasks = lazy(() => import("../pages/Tasks"));
+const DDLReminders = lazy(() => import("../pages/DDLReminders"));
 
 export default function AppRoutes() {
   return (
@@ -32,6 +33,7 @@ export default function AppRoutes() {
               <Route path="/scenario-stats" element={<ScenarioStats />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/tasks" element={<Tasks />} />
+              <Route path="/ddl" element={<DDLReminders />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

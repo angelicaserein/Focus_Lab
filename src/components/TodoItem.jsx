@@ -3,10 +3,10 @@ import { useTodos } from "../context/TodoContext";
 import { useFocus } from "../context/FocusContext";
 import RecurringDayPicker from "./RecurringDayPicker";
 import TaskTagPicker from "./TaskTagPicker";
-import { TASK_TYPE_OPTIONS } from "../utils/scenarioConstants";
 import useOutsideClick from "../hooks/useOutsideClick";
 import useEditMode from "../hooks/useEditMode";
 import TodoItemActions from "./TodoItemActions";
+import TodoItemDisplay from "./TodoItemDisplay";
 
 export default function TodoItem({ todo, isOtherDay = false }) {
   const { toggleTodo, deleteTodo, editTodo, toggleRecurring, setTodoAttr } = useTodos();
@@ -49,7 +49,6 @@ export default function TodoItem({ todo, isOtherDay = false }) {
 
   const recurringDays = todo.recurringDays ?? [];
   const todoTags = todo.attrs?.tags ?? [];
-  const tagMap = Object.fromEntries(TASK_TYPE_OPTIONS.map((o) => [o.id, o]));
 
   return (
     <div
@@ -66,17 +65,6 @@ export default function TodoItem({ todo, isOtherDay = false }) {
         aria-label={todo.text}
         onClick={handleRowClick}
       >
-        <label className="checkbox-wrap">
-          <input
-            className="native-checkbox"
-            type="checkbox"
-            checked={!!todo.completed}
-            onChange={() => toggleTodo(todo.id)}
-            aria-label={`标记 ${todo.text} 为完成`}
-          />
-          <span className={`custom-checkbox ${todo.completed ? "checked" : ""}`} />
-        </label>
-
         {editing ? (
           <input
             ref={inputRef}
@@ -89,23 +77,12 @@ export default function TodoItem({ todo, isOtherDay = false }) {
             aria-label="编辑任务"
           />
         ) : (
-          <div className="todo-text-wrap">
-            <div className={`todo-text ${todo.completed ? "completed" : ""}`}>
-              {recurringDays.length > 0 && (
-                <span className="recurring-icon" title={`固定：${recurringDays.join(",")}`}>↺</span>
-              )}
-              {todo.text}
-            </div>
-            {todoTags.length > 0 && (
-              <div className="todo-tags">
-                {todoTags.map((id) => tagMap[id] && (
-                  <span key={id} className="todo-tag-chip">
-                    {tagMap[id].icon} {tagMap[id].label}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
+          <TodoItemDisplay
+            todo={todo}
+            recurringDays={recurringDays}
+            todoTags={todoTags}
+            onToggle={() => toggleTodo(todo.id)}
+          />
         )}
 
         {!editing && (

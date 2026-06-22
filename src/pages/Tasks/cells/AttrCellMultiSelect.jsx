@@ -1,10 +1,6 @@
-import React, { useRef } from "react";
-import useOutsideClick from "../../../hooks/useOutsideClick";
+import React from "react";
 
 export default function AttrCellMultiSelect({ attrDef, value = [], onChange, onClose }) {
-  const ref = useRef(null);
-  useOutsideClick(ref, onClose, true);
-
   const toggle = (id) => {
     const next = value.includes(id)
       ? value.filter(v => v !== id)
@@ -13,11 +9,12 @@ export default function AttrCellMultiSelect({ attrDef, value = [], onChange, onC
   };
 
   return (
-    <div className="attr-popup attr-multiselect-popup" ref={ref} onClick={e => e.stopPropagation()}>
+    <div className="attr-popup attr-multiselect-popup">
       {(attrDef.options ?? []).map(opt => (
         <button
           key={opt.id}
           className={`popup-opt${value.includes(opt.id) ? " selected" : ""}`}
+          style={{ "--opt-color": opt.color }}
           onClick={() => toggle(opt.id)}
         >
           {opt.icon && <span className="opt-icon">{opt.icon}</span>}
