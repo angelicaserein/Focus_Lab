@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { unwrapVersioned } from "../utils/storage";
 
 // 封装 localStorage 读写，写入有去抖以减少 I/O 压力。
 // 在页面隐藏/关闭时立即 flush，防止 debounce 窗口内关闭标签页丢失数据。
@@ -9,24 +10,11 @@ import { useState, useEffect, useRef } from "react";
 const STORAGE_WRITE_DELAY_MS = 300;
 const WRAPPER_VERSION = 1;
 
-// 检测并解包 { version: N, data: T } 格式；否则原样返回（兼容迁移前的裸数据）。
-function unwrapValue(parsed) {
-  if (
-    parsed !== null &&
-    typeof parsed === "object" &&
-    typeof parsed.version === "number" &&
-    "data" in parsed
-  ) {
-    return parsed.data;
-  }
-  return parsed;
-}
-
 export default function useLocalStorage(key, initialValue) {
   const [state, setState] = useState(() => {
     try {
       const raw = localStorage.getItem(key);
-      return raw ? unwrapValue(JSON.parse(raw)) : initialValue;
+      return raw ? unwrapVersioned(JSON.parse(raw)) : initialValue;
     } catch {
       return initialValue;
     }

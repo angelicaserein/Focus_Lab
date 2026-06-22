@@ -99,6 +99,22 @@ const KEY_MAP = {
 };
 
 /**
+ * 解包 { version: N, data: T } 存储格式；否则原样返回（兼容迁移前的裸数据）。
+ * 同时被 useLocalStorage.js 引用，确保两处解包逻辑完全一致。
+ */
+export function unwrapVersioned(parsed) {
+  if (
+    parsed !== null &&
+    typeof parsed === "object" &&
+    typeof parsed.version === "number" &&
+    "data" in parsed
+  ) {
+    return parsed.data;
+  }
+  return parsed;
+}
+
+/**
  * 从 localStorage 读取带版本号的 JSON 数组。
  * 存储格式: { version: number, data: T[] }
  * 兼容旧格式（裸数组）。
@@ -130,11 +146,7 @@ export function runMigrations() {
       const raw = localStorage.getItem(key);
       if (raw === null) continue;
       try {
-        const parsed = JSON.parse(raw);
-        // 兼容旧格式（裸 JSON）和已有的 versioned 格式
-        data[name] = (parsed !== null && typeof parsed === "object" && "data" in parsed)
-          ? parsed.data
-          : parsed;
+        data[name] = unwrapVersioned(JSON.parse(raw));
       } catch { /* 跳过损坏的键 */ }
     }
 
@@ -167,11 +179,7 @@ export function exportAllData() {
     try {
       const raw = localStorage.getItem(key);
       if (raw === null) continue;
-      const parsed = JSON.parse(raw);
-      // 解包 versioned 格式
-      data[name] = (parsed !== null && typeof parsed === "object" && "data" in parsed)
-        ? parsed.data
-        : parsed;
+      data[name] = unwrapVersioned(JSON.parse(raw));
     } catch { /* 跳过损坏键 */ }
   }
   const json = JSON.stringify(

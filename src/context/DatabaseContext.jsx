@@ -1,4 +1,4 @@
-import React, { useReducer, useState, useEffect, useContext } from "react";
+import React, { useReducer, useState, useEffect, useContext, useMemo, useCallback } from "react";
 import { STORAGE_KEYS } from "../utils/storageKeys";
 import { loadVersioned } from "../utils/storage";
 import { DATABASE_TEMPLATES } from "../utils/databaseTemplates";
@@ -11,7 +11,6 @@ const ADD_DB     = "ADD_DB";
 const RENAME_DB  = "RENAME_DB";
 const DELETE_DB  = "DELETE_DB";
 const REORDER_DB = "REORDER_DB";
-const SET_DBS    = "SET_DBS";
 // 按 dbId 作用域的列（属性）CRUD
 const ADD_ATTR     = "ADD_ATTR";
 const UPDATE_ATTR  = "UPDATE_ATTR";
@@ -34,9 +33,6 @@ function reducer(state, action) {
       const map = Object.fromEntries(state.map(d => [d.id, d]));
       return action.payload.filter(id => map[id]).map((id, i) => ({ ...map[id], order: i }));
     }
-    case SET_DBS:
-      return action.payload;
-
     case ADD_ATTR:
       return mapDbAttrs(state, action.dbId, attrs => [...attrs, action.payload]);
     case UPDATE_ATTR: {
@@ -101,10 +97,13 @@ export function DatabaseProvider({ children }) {
     );
   }, [activeDatabaseId]);
 
-  const activeDatabase = databases.find(d => d.id === activeDatabaseId) ?? databases[0];
+  const activeDatabase = useMemo(
+    () => databases.find(d => d.id === activeDatabaseId) ?? databases[0],
+    [databases, activeDatabaseId],
+  );
 
   // ---- database CRUD ----
-  const addDatabase = (name, templateId) => {
+  const addDatabase = useCallback((name, templateId) => {
     const tpl = DATABASE_TEMPLATES.find(t => t.id === templateId);
     const id = crypto.randomUUID();
     const maxOrder = databases.reduce((m, d) => Math.max(m, d.order), -1);
@@ -119,26 +118,29 @@ export function DatabaseProvider({ children }) {
     });
     setActiveDatabaseId(id);
     return id;
-  };
+  }, [databases]);
 
-  const renameDatabase = (id, name) => {
+  const renameDatabase = useCallback((id, name) => {
     const trimmed = name.trim();
     if (!trimmed) return;
     dispatch({ type: RENAME_DB, payload: { id, name: trimmed } });
-  };
+  }, []);
 
-  const deleteDatabase = (id) => {
+  const deleteDatabase = useCallback((id) => {
     if (id === DEFAULT_DB_ID) return; // 默认库不可删除
     dispatch({ type: DELETE_DB, payload: id });
     if (activeDatabaseId === id) setActiveDatabaseId(DEFAULT_DB_ID);
-  };
+  }, [activeDatabaseId]);
 
-  const setActiveDatabase = (id) => setActiveDatabaseId(id);
+  const setActiveDatabase = useCallback((id) => setActiveDatabaseId(id), []);
 
-  const reorderDatabases = (orderedIds) => dispatch({ type: REORDER_DB, payload: orderedIds });
+  const reorderDatabases = useCallback(
+    (orderedIds) => dispatch({ type: REORDER_DB, payload: orderedIds }),
+    [],
+  );
 
   // ---- 列（属性）CRUD，作用于指定库（默认 active 库）----
-  const addTaskAttr = (name, type, options, dbId = activeDatabaseId) => {
+  const addTaskAttr = useCallback((name, type, options, dbId = activeDatabaseId) => {
     const db = databases.find(d => d.id === dbId);
     const maxOrder = (db?.attrs ?? []).reduce((m, a) => Math.max(m, a.order), -1);
     dispatch({
@@ -154,18 +156,18 @@ export function DatabaseProvider({ children }) {
         ...(options ? { options } : {}),
       },
     });
-  };
+  }, [databases, activeDatabaseId]);
 
-  const updateTaskAttr = (id, patch, dbId = activeDatabaseId) =>
-    dispatch({ type: UPDATE_ATTR, dbId, payload: { id, patch } });
+  const updateTaskAttr = useCallback((id, patch, dbId = activeDatabaseId) =>
+    dispatch({ type: UPDATE_ATTR, dbId, payload: { id, patch } }), [activeDatabaseId]);
 
-  const deleteTaskAttr = (id, dbId = activeDatabaseId) =>
-    dispatch({ type: DELETE_ATTR, dbId, payload: id });
+  const deleteTaskAttr = useCallback((id, dbId = activeDatabaseId) =>
+    dispatch({ type: DELETE_ATTR, dbId, payload: id }), [activeDatabaseId]);
 
-  const reorderTaskAttrs = (orderedIds, dbId = activeDatabaseId) =>
-    dispatch({ type: REORDER_ATTRS, dbId, payload: orderedIds });
+  const reorderTaskAttrs = useCallback((orderedIds, dbId = activeDatabaseId) =>
+    dispatch({ type: REORDER_ATTRS, dbId, payload: orderedIds }), [activeDatabaseId]);
 
-  const value = {
+  const value = useMemo(() => ({
     databases,
     activeDatabaseId,
     activeDatabase,
@@ -178,7 +180,20 @@ export function DatabaseProvider({ children }) {
     updateTaskAttr,
     deleteTaskAttr,
     reorderTaskAttrs,
-  };
+  }), [
+    databases,
+    activeDatabaseId,
+    activeDatabase,
+    addDatabase,
+    renameDatabase,
+    deleteDatabase,
+    setActiveDatabase,
+    reorderDatabases,
+    addTaskAttr,
+    updateTaskAttr,
+    deleteTaskAttr,
+    reorderTaskAttrs,
+  ]);
 
   return <DatabaseContext.Provider value={value}>{children}</DatabaseContext.Provider>;
 }
