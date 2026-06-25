@@ -1,0 +1,73 @@
+/* ── Task breakdown ── */
+.hist-task-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 24px;
+  background: var(--card);
+  border-radius: 24px;
+  border: 1.5px solid var(--border-card);
+  box-shadow: 0 2px 12px var(--shadow-sm);
+}
+
+.hist-task-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hist-task-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hist-task-rank {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  width: 24px;
+  flex-shrink: 0;
+}
+
+.hist-task-name {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hist-task-sessions {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.hist-task-dur {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  min-width: 44px;
+  text-align: right;
+}
+
+.hist-task-track {
+  height: 6px;
+  width: 100%;
+  background: var(--accent-bg);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.hist-task-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width 500ms cubic-bezier(0.34, 1.2, 0.64, 1);
+  min-width: 6px;
+}

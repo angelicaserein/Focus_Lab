@@ -1,0 +1,241 @@
+/* ── Focus page layout ── */
+.page-focus {
+  width: 100%;
+  padding: 8px 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.focus-shell {
+  width: min(1080px, 100%);
+  margin: 0 auto;
+}
+
+/* 两栏：左=计时控制台+AI聊天（窄），右=任务管理（宽） */
+.focus-main {
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.focus-col-left {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: sticky;
+  top: 8px;
+}
+
+.focus-col-right {
+  min-width: 0;
+}
+
+/* 右栏待办容器撑满整列 */
+.focus-col-right .todo-container {
+  max-width: 100%;
+}
+
+/* ── Timer console (flat card, no shadow) ── */
+.focus-card {
+  background: var(--card);
+  border: 1px solid var(--border-input);
+  border-radius: 24px;
+  padding: 28px 28px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.focus-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.clear-focus {
+  background: transparent;
+  border: 1.5px solid var(--border-accent);
+  color: var(--accent-mid);
+  padding: 7px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.clear-focus:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.clear-focus:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.focus-task-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text-heading);
+  min-height: 56px;
+}
+
+.focus-task-placeholder {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--text-faint);
+  min-height: 56px;
+  line-height: 1.6;
+}
+
+/* 已选任务计数徽章 */
+.focus-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  margin-left: 8px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+/* 已选任务 chip 列表（普通视图） */
+.focus-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 56px;
+  align-content: flex-start;
+}
+
+.focus-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 7px 8px 7px 12px;
+  border-radius: 14px;
+  background: var(--accent-bg);
+  border: 1.5px solid var(--border-accent);
+  color: var(--text-heading);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.focus-chip-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.focus-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--accent-mid);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.focus-chip-remove:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+
+/* Action buttons */
+.focus-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.focus-action-btn {
+  padding: 13px 16px;
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.focus-action-btn.primary {
+  background: var(--accent);
+  color: #fff;
+  grid-column: 1 / -1;
+}
+
+.focus-action-btn.secondary {
+  background: var(--accent-bg-dim);
+  color: var(--accent-deep);
+  border: 1.5px solid var(--accent-border);
+}
+
+.focus-action-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.focus-action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Responsive ── */
+/* 窄屏：两栏收起为单栏，左栏取消 sticky */
+@media (max-width: 1100px) {
+  .focus-main {
+    grid-template-columns: 1fr;
+  }
+
+  .focus-col-left {
+    position: static;
+    top: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .page-focus {
+    padding: 20px 16px;
+  }
+
+  .focus-card {
+    padding: 22px 18px;
+  }
+
+  .focus-actions {
+    grid-template-columns: 1fr;
+  }
+}

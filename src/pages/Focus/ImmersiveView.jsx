@@ -5,34 +5,36 @@ import ImmersiveChat from "./ImmersiveChat";
 import ImmersiveTaskPicker from "./ImmersiveTaskPicker";
 import useDraggable from "../../hooks/useDraggable";
 import { formatClock } from "../../utils/time";
+import { useImmersive } from "./ImmersiveContext";
 
 // 沉浸式专注遮罩：全屏 3D 模型 + 可拖动的液态玻璃卡片（状态、任务、操作）。
-export default function ImmersiveView({
-  isRunning,
-  seconds,
-  selectedTodos,
-  availableTodos,
-  cardVisible,
-  animEnabled,
-  onSettle,
-  onAddFocus,
-  onCreateFocus,
-  onReplaceFocus,
-  onTogglePause,
-  onReset,
-  onStop,
-  // 调试相关（仅开发环境使用）
-  debugMode,
-  setDebugMode,
-  debugProgress,
-  setDebugProgress,
-  setCardVisible,
-  setAnimEnabled,
-  // AI 陪伴对话
-  chatMessages,
-  chatSending,
-  onChatSend,
-}) {
+// 所有数据来自 ImmersiveContext，子组件按现状以 props 接收（保持其纯粹/可复用）。
+export default function ImmersiveView() {
+  const {
+    isRunning,
+    seconds,
+    selectedTodos,
+    availableTodos,
+    cardVisible,
+    animEnabled,
+    onSettle,
+    onAddFocus,
+    onCreateFocus,
+    onReplaceFocus,
+    onTogglePause,
+    onReset,
+    onStop,
+    debugMode,
+    setDebugMode,
+    debugProgress,
+    setDebugProgress,
+    setCardVisible,
+    setAnimEnabled,
+    chatMessages,
+    chatSending,
+    onChatSend,
+  } = useImmersive();
+
   const { nodeRef, handlers } = useDraggable();
 
   // 任务选择器：null = 收起；"add" = 添加；其它字符串 = 正在替换的那一行 todo id
