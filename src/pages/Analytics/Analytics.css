@@ -1,0 +1,340 @@
+/* ── Analytics page layout ── */
+.page-analytics {
+  width: min(860px, 100%);
+  margin: 0 auto;
+  padding: 8px 0 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* ── 页头 ── */
+.ana-headline {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ana-headline h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 2.2vw, 2.2rem);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--text-heading);
+}
+
+.ana-headline p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* ── Section ── */
+.ana-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ana-section-hd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ana-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.ana-insight-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent-mid);
+  background: var(--accent-bg);
+  border: 1px solid var(--border-accent);
+  padding: 2px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* ── Generic card ── */
+.ana-card {
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  border-radius: 24px;
+  box-shadow: 0 2px 12px var(--shadow-sm);
+  padding: 20px 24px;
+}
+
+/* ── 24-hour bar chart ── */
+.ana-hourly-wrap {
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  border-radius: 24px;
+  box-shadow: 0 2px 12px var(--shadow-sm);
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 120px;
+  padding: 14px 20px 10px;
+}
+
+.ana-hour-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+}
+
+.ana-hour-bar-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.ana-hour-bar {
+  width: 100%;
+  min-height: 3px;
+  border-radius: 3px 3px 2px 2px;
+  background: var(--accent);
+  transition: height 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ana-hour-bar.distraction {
+  background: #f59e0b;
+}
+
+.ana-hour-label {
+  font-size: 0.58rem;
+  color: var(--text-faint);
+  white-space: nowrap;
+  height: 13px;
+  line-height: 13px;
+}
+
+/* ── Time blocks row ── */
+.ana-blocks-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.ana-block-card {
+  padding: 16px 14px;
+  border-radius: 18px;
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  box-shadow: 0 1px 6px var(--shadow-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ana-block-card.best {
+  background: var(--accent);
+  border-color: transparent;
+  box-shadow: 0 6px 20px var(--accent-glow);
+}
+
+.ana-block-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ana-block-card.best .ana-block-name {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.ana-block-secs {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ana-block-card.best .ana-block-secs {
+  color: var(--card);
+}
+
+.ana-block-rate {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
+.ana-block-card.best .ana-block-rate {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ── Duration distribution ── */
+.ana-dur-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ana-dur-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ana-dur-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  width: 72px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.ana-dur-track {
+  flex: 1;
+  height: 8px;
+  background: var(--accent-bg);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.ana-dur-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width 500ms cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+.ana-dur-count {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  width: 32px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── Task difficulty ── */
+.ana-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.ana-task-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ana-task-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ana-task-rank {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  width: 22px;
+  flex-shrink: 0;
+}
+
+.ana-task-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ana-task-rate {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.ana-task-rate.hard {
+  color: #b45309;
+}
+
+.ana-task-track {
+  height: 6px;
+  background: var(--accent-bg);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.ana-task-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width 500ms cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+.ana-task-fill.hard {
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+}
+
+.ana-task-sub {
+  font-size: 0.7rem;
+  color: var(--text-faint);
+  padding-left: 30px;
+}
+
+/* ── Insight row (distraction tag) ── */
+.ana-insight-row {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 10px 18px;
+  background: var(--accent-bg);
+  border: 1px solid var(--border-accent);
+  border-radius: 14px;
+}
+
+.ana-insight-row strong {
+  color: var(--accent-mid);
+  font-weight: 700;
+}
+
+/* ── Empty tip ── */
+.ana-empty-tip {
+  font-size: 0.88rem;
+  color: var(--text-faint);
+  text-align: center;
+  padding: 28px;
+  background: var(--card);
+  border: 1.5px dashed var(--border-dashed);
+  border-radius: 18px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .ana-blocks-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ana-hourly-wrap {
+    height: 90px;
+    gap: 1px;
+    padding: 10px 12px 8px;
+  }
+}
+
+@media (max-width: 400px) {
+  .ana-blocks-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}

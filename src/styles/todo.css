@@ -51,10 +51,13 @@
   font-weight: 600;
 }
 
+.todo-form-section {
+  margin-bottom: 16px;
+}
+
 .todo-form {
   display: flex;
   gap: 10px;
-  margin-bottom: 16px;
 }
 
 .todo-input {
@@ -91,6 +94,41 @@
 }
 .add-btn:active {
   transform: scale(0.97);
+}
+
+.recurring-toggle {
+  flex-shrink: 0;
+  min-width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  padding: 0 8px;
+  border: 1.5px solid var(--border-input);
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  transition:
+    color 160ms var(--ease),
+    border-color 160ms var(--ease),
+    background 160ms var(--ease),
+    transform 140ms var(--ease);
+}
+.recurring-toggle:hover {
+  color: var(--accent);
+  border-color: var(--accent-border);
+  transform: scale(1.05);
+}
+.recurring-toggle.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+.recurring-toggle:active {
+  transform: scale(0.93);
 }
 
 .todo-list {
@@ -160,7 +198,6 @@
 }
 
 .todo-text {
-  flex: 1;
   font-size: 16px;
   line-height: 1.4;
   color: var(--text-body);
@@ -169,6 +206,16 @@
   text-decoration: line-through;
   color: var(--muted);
   opacity: 0.8;
+}
+
+.todo-item.recurring .todo-text:not(.completed) {
+  opacity: 0.78;
+}
+.recurring-icon {
+  margin-right: 5px;
+  opacity: 0.45;
+  font-size: 0.82em;
+  display: inline-block;
 }
 
 .delete-btn {
@@ -220,6 +267,246 @@
 }
 .edit-btn:active {
   transform: scale(0.9);
+}
+
+/* ↺ 固定任务切换按钮（行内，hover 显示） */
+.recurring-item-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  line-height: 1;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+  transition:
+    opacity 160ms var(--ease),
+    color 160ms var(--ease),
+    background 160ms var(--ease);
+}
+.todo-item:hover .recurring-item-btn,
+.recurring-item-btn:focus-visible,
+.recurring-item-btn.active {
+  opacity: 1;
+}
+.recurring-item-btn.active {
+  color: var(--accent);
+}
+.recurring-item-btn:hover {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.recurring-btn-label {
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+/* todo-text + tag chips stacked vertically */
+.todo-text-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Tag chips on todo items (read-only display) */
+.todo-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.todo-tag-chip {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: var(--accent-bg);
+  color: var(--accent-deep);
+  border: 1px solid var(--accent-border);
+  white-space: nowrap;
+}
+
+/* 🏷 tag picker toggle button */
+.tag-item-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  line-height: 1;
+  opacity: 0;
+  transition:
+    opacity 160ms var(--ease),
+    color 160ms var(--ease),
+    background 160ms var(--ease);
+}
+.todo-item:hover .tag-item-btn,
+.tag-item-btn:focus-visible,
+.tag-item-btn.active {
+  opacity: 1;
+}
+.tag-item-btn.active {
+  color: var(--accent);
+}
+.tag-item-btn:hover {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+/* Wrapper for todo item + day picker panel */
+.todo-item-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.todo-item-wrap.picker-open .todo-item,
+.todo-item-wrap.tags-open .todo-item {
+  border-radius: 12px 12px 0 0;
+  border-bottom-color: var(--accent-border);
+}
+
+/* Task tag picker panel — same visual as recurring-day-picker */
+.task-tag-picker {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  flex-wrap: wrap;
+}
+
+/* Tag buttons inside picker are wider than day buttons */
+.task-tag-picker .day-btn {
+  width: auto;
+  height: auto;
+  border-radius: 12px;
+  padding: 3px 9px;
+  font-size: 12px;
+}
+
+/* Scenario filter badge */
+.scenario-filter-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 12px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+}
+.scenario-filter-label {
+  font-size: 13px;
+  color: var(--accent-deep);
+  font-weight: 500;
+}
+.scenario-filter-clear {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  transition: color 120ms ease, background 120ms ease;
+}
+.scenario-filter-clear:hover {
+  color: var(--danger, #e57373);
+  background: var(--danger-subtle, rgba(229,115,115,0.08));
+}
+
+/* Day picker panel */
+.recurring-day-picker {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  flex-wrap: wrap;
+}
+
+.todo-form-section .recurring-day-picker {
+  margin-top: 6px;
+  border-top: 1px solid var(--accent-border);
+  border-radius: 12px;
+}
+
+.day-preset-btn {
+  padding: 3px 9px;
+  border-radius: 12px;
+  border: 1px solid var(--border-input);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+.day-preset-btn:hover,
+.day-preset-btn.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.day-picker-sep {
+  color: var(--border-input);
+  margin: 0 2px;
+  user-select: none;
+}
+
+.day-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border-input);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 120ms ease;
+}
+.day-btn:hover,
+.day-btn.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.day-cancel-btn {
+  margin-left: auto;
+  padding: 3px 9px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+.day-cancel-btn:hover {
+  color: var(--danger, #e57373);
+  border-color: var(--danger, #e57373);
+  background: var(--danger-subtle, rgba(229,115,115,0.08));
 }
 
 /* 内联编辑输入框 */
@@ -289,26 +576,33 @@
   text-align: right;
 }
 
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+
+/* 固定任务分组 */
+.recurring-section {
+  margin-bottom: 4px;
+}
+.recurring-section + .recurring-section {
+  margin-top: 8px;
+}
+.recurring-section-header {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 6px 4px 4px;
+  border-bottom: 1px solid var(--border-input);
+  margin-bottom: 2px;
 }
 
-@keyframes fadeOutLeft {
-  from {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(-24px) scale(0.98);
-  }
+/* 非今天的固定任务：弱化但可操作 */
+.todo-item-wrap.other-day .todo-item {
+  opacity: 0.4;
+  transition: opacity 160ms ease;
+}
+.todo-item-wrap.other-day:hover .todo-item,
+.todo-item-wrap.other-day:focus-within .todo-item {
+  opacity: 0.8;
 }
 
 /* Responsive adjustments */

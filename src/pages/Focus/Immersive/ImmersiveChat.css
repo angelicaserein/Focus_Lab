@@ -1,0 +1,127 @@
+/* ──────────────────────────────────────────────────────────
+   沉浸式左下角 AI 对话（无框 / 无气泡 / 无背景，纯文字 + 输入框）
+   常驻隐藏，鼠标靠近（hover）或正在打字（focus-within）时淡出。
+   背景是浅色 (--immersive-bg-edge)，所以文字用深色才看得清。
+   ────────────────────────────────────────────────────────── */
+.immersive-chat {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 2001; /* 高于浮层卡片，保证鼠标能 hover 到 */
+  /* 一整块左下角透明热区：鼠标「靠近角落」即可唤出 */
+  width: min(380px, 50vw);
+  height: min(260px, 40vh);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end; /* 内容贴在底部 */
+  gap: 10px;
+  padding: 0 24px 24px 24px;
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+.immersive-chat:hover,
+.immersive-chat:focus-within {
+  opacity: 1;
+}
+
+.immersive-chat-log {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.immersive-chat-line {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.immersive-chat-line.user {
+  color: var(--accent-mid);
+}
+
+.immersive-chat-line.ai {
+  color: var(--accent);
+}
+
+.immersive-chat-line.typing {
+  letter-spacing: 0.2em;
+}
+
+.immersive-chat-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  padding: 4px 0;
+  font: inherit;
+  font-size: 0.92rem;
+  color: var(--accent-mid);
+  caret-color: var(--accent);
+}
+
+.immersive-chat-input::placeholder {
+  color: var(--text-placeholder);
+}
+
+/* ── Focus 页面 AI 聊天记录区 ── */
+.chat-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.chat-history-line {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.chat-history-line.user {
+  color: var(--accent-mid);
+}
+
+.chat-history-line.ai {
+  color: var(--accent);
+}
+
+/* ── AI 状态提示 ── */
+.focus-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-demo-note {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-faint);
+}
+
+.immersive-chat-demo-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-bottom: 4px;
+  opacity: 0.65;
+}
+
+@keyframes chatHintPulse {
+  0%   { opacity: 0;    transform: translateY(6px); }
+  30%  { opacity: 0.45; transform: translateY(0);   }
+  70%  { opacity: 0.45;                             }
+  100% { opacity: 0;                                }
+}
+
+.immersive-chat.pulsing {
+  animation: chatHintPulse 1.8s ease both;
+  pointer-events: none;
+}

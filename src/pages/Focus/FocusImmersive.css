@@ -1,0 +1,52 @@
+/* ── Immersive overlay (fixed, covers everything) ── */
+.immersive-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: var(--immersive-bg-edge);
+  animation: overlayIn 300ms ease both;
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 3D model canvas — full screen */
+.immersive-model-area {
+  position: absolute;
+  inset: 0;
+}
+
+.immersive-model-area canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* ── Responsive ── */
+/* 窄屏：两栏收起为单栏，左栏取消 sticky */
+@media (max-width: 1100px) {
+  .focus-main {
+    grid-template-columns: 1fr;
+  }
+
+  .focus-col-left {
+    position: static;
+    top: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .page-focus {
+    padding: 20px 16px;
+  }
+
+  .focus-card {
+    padding: 22px 18px;
+  }
+
+  .focus-actions {
+    grid-template-columns: 1fr;
+  }
+}

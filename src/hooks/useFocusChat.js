@@ -1,17 +1,18 @@
 import { useCallback, useState } from "react";
 import useLocalStorage from "./useLocalStorage";
 import { getAiReply } from "../utils/aiChat";
+import { STORAGE_KEYS } from "../utils/storageKeys";
 
 // 专注页 AI 陪伴对话的状态。消息持久化到 localStorage，
 // 沉浸式左下角对话框与 Focus 页「聊天记录」共用同一份数据。
 // 消息结构：{ id, role: 'user' | 'ai', text, ts }
 export default function useFocusChat() {
-  const [messages, setMessages] = useLocalStorage("focus_chat_v1", []);
+  const [messages, setMessages] = useLocalStorage(STORAGE_KEYS.CHAT, []);
   const [sending, setSending] = useState(false);
 
   const sendUserMessage = useCallback(
-    async (raw) => {
-      const text = raw.trim();
+    async (input) => {
+      const text = input.trim();
       if (!text || sending) return;
 
       const userMsg = { id: `u-${Date.now()}`, role: "user", text, ts: Date.now() };

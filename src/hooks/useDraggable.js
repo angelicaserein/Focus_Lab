@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 // 通用拖动 hook —— 为「手感」而生：
 //   · 拖动时直接改 DOM 的 transform（imperative），不触发 React 重渲染 → 不掉帧。
@@ -10,6 +10,7 @@ export default function useDraggable() {
   const offsetRef = useRef({ x: 0, y: 0 }); // 已累计偏移
   const startRef = useRef(null); // 本次拖动的指针起点（已减去累计偏移）
   const frameRef = useRef(0);
+  const [position, setPosition] = useState({ x: 0, y: 0 }); // 松手后快照，供调试读取
 
   const apply = useCallback(() => {
     const node = nodeRef.current;
@@ -39,6 +40,7 @@ export default function useDraggable() {
     startRef.current = null;
     document.body.style.cursor = "";
     document.body.style.userSelect = "";
+    setPosition({ ...offsetRef.current }); // 松手时记录最终偏移
   }, []);
 
   const onPointerDown = useCallback(
@@ -72,5 +74,5 @@ export default function useDraggable() {
     };
   }, []);
 
-  return { nodeRef, handlers };
+  return { nodeRef, handlers, position };
 }

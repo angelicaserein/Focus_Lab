@@ -1,0 +1,147 @@
+/* ── DistractionModal 分心标签浮层 ── */
+.distraction-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.28);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 88px;
+  animation: dm-backdrop-in 150ms ease both;
+}
+
+@keyframes dm-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.distraction-modal {
+  width: min(380px, 92vw);
+  background: var(--card);
+  border-radius: 20px;
+  border: 1.5px solid var(--border-card);
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.18), 0 4px 16px var(--accent-glow);
+  padding: 20px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: dm-slide-in 220ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes dm-slide-in {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.distraction-modal-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.distraction-countdown {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-faint);
+  background: var(--accent-bg);
+  border-radius: 999px;
+  padding: 1px 9px;
+}
+
+.distraction-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.distraction-tag-btn {
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-accent);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+  line-height: 1.4;
+}
+
+.distraction-tag-btn:hover {
+  background: var(--accent-bg);
+  color: var(--accent-mid);
+  border-color: var(--accent-mid);
+}
+
+.distraction-tag-btn.selected {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.distraction-note-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 13px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-input);
+  background: var(--bg);
+  color: var(--text-body);
+  font-size: 0.88rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 150ms ease;
+}
+
+.distraction-note-input:focus {
+  border-color: var(--accent);
+}
+
+.distraction-note-input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.distraction-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.distraction-undo-btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-accent);
+  background: transparent;
+  color: var(--accent-mid);
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.distraction-undo-btn:hover {
+  background: var(--accent-bg-dim);
+}
+
+.distraction-done-btn {
+  padding: 8px 22px;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+}
+
+.distraction-done-btn:hover {
+  opacity: 0.88;
+}

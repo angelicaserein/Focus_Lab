@@ -1,69 +1,122 @@
-import React, { useContext } from "react";
-import useUndoableList from "../hooks/useUndoableList";
+import React, { useReducer, useEffect, useContext } from "react";
+import { loadVersioned } from "../utils/storage";
+import useUndoDelete from "../hooks/useUndoDelete";
+import useScenarioSelection from "../hooks/useScenarioSelection";
+import { STORAGE_KEYS } from "../utils/storageKeys";
 
-const STORAGE_KEY = "scenarios_v1";
 const CURRENT_VERSION = 1;
+
+// Action types
+const ADD = "ADD";
+const DELETE = "DELETE";
+const EDIT = "EDIT";
+const RESTORE = "RESTORE";
+const SET = "SET";
+const UPDATE_SETTINGS = "UPDATE_SETTINGS";
+
+// 场景没有"完成"概念，故无 TOGGLE。
+function reducer(state, action) {
+  switch (action.type) {
+    case ADD: {
+      return [action.payload, ...state];
+    }
+    case DELETE: {
+      return state.filter((s) => s.id !== action.payload);
+    }
+    case EDIT: {
+      const { id, title, description } = action.payload;
+      return state.map((s) =>
+        s.id === id ? { ...s, title, description } : s,
+      );
+    }
+    case RESTORE: {
+      const { item, index } = action.payload;
+      const next = state.slice();
+      next.splice(Math.min(index, next.length), 0, item);
+      return next;
+    }
+    case SET: {
+      return action.payload;
+    }
+    case UPDATE_SETTINGS: {
+      const { id, settings } = action.payload;
+      return state.map((s) => (s.id === id ? { ...s, settings } : s));
+    }
+    default:
+      return state;
+  }
+}
 
 const ScenarioContext = React.createContext(null);
 
+// selectedIds（场景多选）放在 Context 而非 page 级，是因为 Scenario 页选中后
+// 需要在 Focus 页中过滤可用场景，两者跨路由共享同一选中状态。
 export function ScenarioProvider({ children }) {
-  // 选中高亮（多选）——仅本页面使用，不持久化
-  const [selectedIds, setSelectedIds] = React.useState([]);
+  const [scenarios, dispatch] = useReducer(
+    reducer,
+    null,
+    () => loadVersioned(STORAGE_KEYS.SCENARIOS, CURRENT_VERSION),
+  );
 
-  const {
-    items: scenarios,
-    add,
-    patch,
-    remove,
-    undoDelete,
-    pendingDelete,
-  } = useUndoableList({
-    storageKey: STORAGE_KEY,
-    version: CURRENT_VERSION,
-    // 删除时若该情景被选中则取消选中；撤销时恢复选中状态
-    onRemove: (item, meta) => {
-      if (meta.wasSelected) setSelectedIds((prev) => prev.filter((x) => x !== item.id));
-    },
-    onRestore: (item, meta) => {
-      if (meta.wasSelected) setSelectedIds((prev) => [...prev, item.id]);
-    },
-  });
+  const { selectedIds, toggleSelect, clearSelection, removeFromSelection, restoreToSelection } =
+    useScenarioSelection();
 
-  const toggleSelect = (id) =>
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+  useEffect(() => {
+    localStorage.setItem(
+      STORAGE_KEYS.SCENARIOS,
+      JSON.stringify({ version: CURRENT_VERSION, data: scenarios }),
     );
+  }, [scenarios]);
+
+  const updateScenarioSettings = (id, settings) => {
+    dispatch({ type: UPDATE_SETTINGS, payload: { id, settings } });
+  };
 
   const addScenario = (title, description = "") => {
     const t = title.trim();
     if (!t) return;
-    add({
+    const item = {
       id: crypto.randomUUID(),
       title: t,
       description: description.trim(),
       createdAt: Date.now(),
-    });
+    };
+    dispatch({ type: ADD, payload: item });
   };
 
   const editScenario = (id, title, description = "") => {
     const t = title.trim();
     if (!t) return;
-    patch(id, { title: t, description: description.trim() });
+    dispatch({
+      type: EDIT,
+      payload: { id, title: t, description: description.trim() },
+    });
   };
 
-  const deleteScenario = (id) => {
-    remove(id, { wasSelected: selectedIds.includes(id) });
-  };
+  const { pendingDelete, deleteFn: deleteScenario, undoDelete } = useUndoDelete({
+    items: scenarios,
+    dispatch,
+    onDelete: (id) => {
+      const wasSelected = selectedIds.includes(id);
+      if (wasSelected) removeFromSelection(id);
+      return { wasSelected };
+    },
+    onRestore: (item, meta) => {
+      if (meta?.wasSelected) restoreToSelection(item.id);
+    },
+  });
 
   const value = {
     scenarios,
     addScenario,
     editScenario,
     deleteScenario,
+    updateScenarioSettings,
     pendingDelete,
     undoDelete,
     selectedIds,
     toggleSelect,
+    clearSelection,
   };
 
   return (

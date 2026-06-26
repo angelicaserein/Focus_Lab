@@ -1,0 +1,576 @@
+.ddl-page {
+  width: min(760px, 100%);
+  margin: 0 auto;
+  padding: 8px 0 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── 页面标题 ───────────────────────────────────────────────────────────────── */
+.ddl-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ddl-title {
+  font-size: clamp(1.5rem, 2vw, 2rem);
+  font-weight: 800;
+  color: var(--text-heading);
+  margin: 0;
+}
+
+.ddl-subtitle {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ── 空状态 ─────────────────────────────────────────────────────────────────── */
+.ddl-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 60px 24px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.ddl-empty-icon {
+  font-size: 2.4rem;
+}
+
+.ddl-empty-text {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+/* ── 今日提醒 ───────────────────────────────────────────────────────────────── */
+.ddl-today {
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+  border: 1.5px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ddl-today-hd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ddl-today-icon {
+  font-size: 1rem;
+  color: #f97316;
+}
+
+.ddl-today-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.ddl-today-count {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border-radius: 99px;
+  padding: 1px 8px;
+}
+
+.ddl-today-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ddl-today-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--card);
+  border-radius: 10px;
+  border: 1px solid var(--border-card);
+}
+
+.ddl-today-check {
+  background: none;
+  border: 1.5px solid var(--text-muted);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.ddl-today-check:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.ddl-today-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.ddl-today-task {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ddl-today-sep {
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.ddl-today-msg {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* ── DDL 列表 ───────────────────────────────────────────────────────────────── */
+.ddl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── 任务卡片 ───────────────────────────────────────────────────────────────── */
+.ddl-card {
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 2px 8px var(--shadow-sm);
+  transition: border-color 0.15s;
+}
+
+.ddl-card.card-overdue {
+  border-color: color-mix(in srgb, #ef4444 40%, transparent);
+}
+
+.ddl-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ddl-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  flex: 1;
+  min-width: 0;
+}
+
+.ddl-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ddl-card-date {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* ── 倒计时标签 ─────────────────────────────────────────────────────────────── */
+.ddl-countdown {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--text-muted) 10%, transparent);
+  color: var(--text-muted);
+}
+
+.ddl-countdown.urgent {
+  background: color-mix(in srgb, #f97316 15%, transparent);
+  color: #f97316;
+}
+
+.ddl-countdown.overdue {
+  background: color-mix(in srgb, #ef4444 12%, transparent);
+  color: #ef4444;
+  font-weight: 700;
+}
+
+/* ── 节点列表 ───────────────────────────────────────────────────────────────── */
+.ddl-checkpoints {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 4px;
+}
+
+.ddl-cp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  transition: background 0.12s;
+}
+
+.ddl-cp:hover {
+  background: color-mix(in srgb, var(--text-muted) 6%, transparent);
+}
+
+.ddl-cp.due {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.ddl-cp.done .ddl-cp-msg,
+.ddl-cp.done .ddl-cp-days {
+  text-decoration: line-through;
+  color: var(--text-faint);
+}
+
+.ddl-cp-check {
+  background: none;
+  border: 1.5px solid var(--text-muted);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.ddl-cp.done .ddl-cp-check {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.ddl-cp-check:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.ddl-cp-days {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  min-width: 36px;
+  flex-shrink: 0;
+}
+
+.ddl-cp-msg {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--text-heading);
+}
+
+.ddl-cp-del {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--text-faint);
+  padding: 0 2px;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.ddl-cp:hover .ddl-cp-del {
+  opacity: 1;
+}
+
+.ddl-cp-del:hover {
+  color: #ef4444;
+}
+
+/* ── 添加节点按钮 ────────────────────────────────────────────────────────────── */
+.ddl-add-cp-btn {
+  background: none;
+  border: 1.5px dashed var(--border-card);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  text-align: left;
+}
+
+.ddl-add-cp-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── 添加节点表单 ────────────────────────────────────────────────────────────── */
+.ddl-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--text-muted) 5%, transparent);
+  border-radius: 10px;
+  border: 1px solid var(--border-card);
+}
+
+.ddl-add-form-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ddl-add-days-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.ddl-add-prefix,
+.ddl-add-suffix {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.ddl-add-days {
+  width: 56px;
+  padding: 4px 8px;
+  border: 1.5px solid var(--border-card);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--text-heading);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.ddl-add-days:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.ddl-quick-days {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.ddl-quick-btn {
+  padding: 3px 8px;
+  border: 1.5px solid var(--border-card);
+  border-radius: 99px;
+  background: none;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+
+.ddl-quick-btn:hover,
+.ddl-quick-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.ddl-add-msg {
+  flex: 1;
+  min-width: 160px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--border-card);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--text-heading);
+  font-size: 0.85rem;
+}
+
+.ddl-add-msg:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.ddl-add-form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ddl-save-btn {
+  padding: 5px 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.ddl-save-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ddl-cancel-btn {
+  padding: 5px 14px;
+  background: none;
+  border: 1.5px solid var(--border-card);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.ddl-cancel-btn:hover {
+  border-color: var(--text-muted);
+}
+
+/* ── 调试面板 ────────────────────────────────────────────────────────────────── */
+.ddl-debug-wrap {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.ddl-debug-toggle {
+  padding: 6px 14px;
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  border-radius: 99px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  box-shadow: 0 2px 8px var(--shadow-sm);
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.ddl-debug-toggle:hover,
+.ddl-debug-toggle.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.ddl-debug-panel {
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  border-radius: 16px;
+  padding: 16px 18px;
+  width: 480px;
+  max-width: calc(100vw - 280px);
+  max-height: 70vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ddl-debug-section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ddl-debug-divider {
+  height: 1px;
+  background: var(--border-card);
+  margin: 2px 0;
+}
+
+.ddl-debug-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ddl-debug-mock-today {
+  pointer-events: none;
+}
+
+.ddl-debug-mock-cps {
+  background: color-mix(in srgb, var(--text-muted) 4%, transparent);
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+
+.ddl-debug-cp-tag {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-faint);
+  padding: 1px 6px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--text-muted) 10%, transparent);
+  flex-shrink: 0;
+}
+
+.ddl-cp.due .ddl-debug-cp-tag {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.ddl-debug-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ddl-debug-mock-card {
+  box-shadow: none;
+}
+
+.ddl-debug-modal-btn {
+  width: 100%;
+  padding: 7px 12px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: 8px;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ddl-debug-modal-btn:hover {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}

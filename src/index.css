@@ -3,6 +3,7 @@
  * @import 必须位于所有规则之前，顺序即层叠顺序。 */
 @import "./theme.css";
 @import "./styles/global.css";
+@import "./styles/animations.css";
 @import "./styles/todo.css";
 @import "./styles/scenario.css";
 @import "./styles/sidebar.css";

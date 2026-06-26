@@ -121,6 +121,14 @@
   color: var(--muted);
 }
 
+.scenario-focus-stats {
+  font-size: 11px;
+  color: var(--accent-mid);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
 /* 内联编辑：两行输入 */
 .scenario-edit {
   flex: 1;
@@ -143,6 +151,158 @@
 }
 .scenario-edit-input:focus {
   border-color: var(--accent);
+}
+
+/* 情境「快速进入专注」按钮 — 行 hover 时淡入 */
+.scenario-quickstart-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent-border);
+  background: var(--accent-bg-dim);
+  color: var(--accent-deep);
+  font-size: 0.75rem;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 160ms ease,
+    background 150ms ease,
+    transform 120ms ease;
+}
+
+.scenario-item:hover .scenario-quickstart-btn {
+  opacity: 1;
+}
+
+.scenario-quickstart-btn:hover {
+  background: var(--accent);
+  color: var(--card);
+  transform: scale(1.1);
+}
+
+.scenario-quickstart-btn:active {
+  transform: scale(0.94);
+}
+
+/* Wrapper for scenario item + settings panel */
+.scenario-item-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.scenario-item-wrap.settings-open .scenario-item {
+  border-radius: 12px 12px 0 0;
+  border-bottom-color: var(--accent-border);
+}
+
+/* ⚙ 情景设置切换按钮 */
+.scenario-settings-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 15px;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 160ms var(--ease),
+    color 160ms var(--ease),
+    background 160ms var(--ease),
+    transform 140ms var(--ease);
+}
+.scenario-item:hover .scenario-settings-btn,
+.scenario-settings-btn:focus-visible,
+.scenario-settings-btn.active,
+.scenario-settings-btn.open {
+  opacity: 1;
+}
+.scenario-settings-btn.active {
+  color: var(--accent);
+}
+.scenario-settings-btn.open {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+.scenario-settings-btn:hover {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+/* Settings panel — connected below scenario-item */
+.scenario-settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.settings-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.settings-chip {
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border-input);
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 120ms ease;
+  white-space: nowrap;
+}
+.settings-chip:hover {
+  border-color: var(--accent-border);
+  color: var(--accent);
+  background: var(--card);
+}
+.settings-chip.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.scenario-stats-link {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent-mid);
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.scenario-stats-link:hover {
+  text-decoration: underline;
 }
 
 /* Responsive adjustments */

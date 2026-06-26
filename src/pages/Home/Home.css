@@ -1,3 +1,43 @@
 .page-home {
-  padding: 16px;
+  width: min(860px, 100%);
+  margin: 0 auto;
+  padding: 48px 24px 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+/* ── 快速开始按钮 ── */
+.home-quickstart {
+  width: 100%;
+  max-width: 480px;
+  padding: 20px 24px;
+  border-radius: 20px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 160ms ease, opacity 160ms ease, box-shadow 160ms ease;
+  box-shadow: 0 4px 18px var(--accent-glow);
+}
+
+.home-quickstart:hover {
+  transform: translateY(-2px);
+  opacity: 0.92;
+  box-shadow: 0 8px 24px var(--accent-glow);
+}
+
+.home-quickstart:active {
+  transform: scale(0.98);
+  box-shadow: none;
+}
+
+@media (max-width: 600px) {
+  .page-home {
+    padding: 32px 16px 48px;
+  }
 }

@@ -153,3 +153,57 @@
   /* 沉浸式全屏遮罩背景色 */
   --immersive-bg-edge: #e8e6e0;
 }
+
+/* ══════════════════════════════════════════════════════════
+   暗夜皮肤（奖励商城可购，购后 <html data-theme="night">）
+   ══════════════════════════════════════════════════════════ */
+:root[data-theme="night"] {
+  --bg:           #0f0f1a;
+  --card:         #1a1a2e;
+  --text-heading: #e8e0f0;
+  --text-body:    #c9c0d8;
+  --text-muted:   #8a80a0;
+  --text-faint:   #5a5070;
+  --text-placeholder: #4a4060;
+
+  --border-dark:     rgba(255, 255, 255, 0.08);
+  --border-input:    rgba(255, 255, 255, 0.06);
+  --border-card:     rgba(160, 120, 152, 0.18);
+  --border-checkbox: rgba(255, 255, 255, 0.08);
+  --border-dashed:   rgba(160, 120, 152, 0.22);
+  --border-pill:     rgba(160, 120, 152, 0.18);
+  --border-accent:   rgba(160, 120, 152, 0.22);
+
+  --shadow-xs: rgba(0, 0, 0, 0.25);
+  --shadow-sm: rgba(0, 0, 0, 0.35);
+
+  --immersive-bg-edge: #0d0d1f;
+}
+
+/* ══════════════════════════════════════════════════════════
+   粉色主题（奖励商城可购，购后 <html data-theme="pink">）
+   ══════════════════════════════════════════════════════════ */
+:root[data-theme="pink"] {
+  --bg:   #fff0f8;
+  --card: #fff5fa;
+
+  /* 主色改为更暖的粉，RGB = 224, 117, 168 */
+  --accent:      #e075a8;
+  --accent-mid:  #c0507e;
+  --accent-deep: #d05090;
+
+  --accent-bg:     rgba(224, 117, 168, 0.10);
+  --accent-bg-dim: rgba(224, 117, 168, 0.08);
+  --accent-hover:  rgba(224, 117, 168, 0.07);
+  --accent-border: rgba(224, 117, 168, 0.14);
+  --accent-glow:   rgba(224, 117, 168, 0.28);
+
+  --timer-track:  rgba(224, 117, 168, 0.10);
+  --border-card:  rgba(224, 117, 168, 0.15);
+  --border-pill:  rgba(224, 117, 168, 0.14);
+  --border-accent: rgba(224, 117, 168, 0.18);
+  --border-dashed: rgba(224, 117, 168, 0.22);
+
+  --text-heading: #3d1030;
+  --on-accent-light: #fce8f3;
+}
