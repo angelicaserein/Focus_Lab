@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { buildFocusRecord } from "../utils/focusRecords";
 
 // 结算单个任务：写 focus record + 打勾（如需）+ 移出专注集合。
 // overrideSecs / overrideSess 由 handleStop 传入归零前的快照，
@@ -30,21 +31,18 @@ export default function useTaskSettlement({
     if (!eventsSnapshot) {
       logEvent(`task_${outcome}`, { taskId: todo.id, taskText: todo.text });
     }
-    addFocusRecord({
-      taskId: todo.id,
-      taskText: todo.text,
+    addFocusRecord(buildFocusRecord(todo, outcome, {
       durationSecs: overrideSecs,
-      startedAt: overrideSess.startedAt ?? Date.now() - overrideSecs * 1000,
+      startedAt: overrideSess.startedAt,
       sessionId: overrideSess.sessionId,
-      outcome,
-      scenarioId: selectedScenarioId ?? undefined,
-      scenarioTitle: scenarioTitle ?? undefined,
+      scenarioId: selectedScenarioId,
+      scenarioTitle,
       coinsEarned,
       distractionCount,
       distractionSecs,
       noteCount,
       events: eventsSnapshot ?? getSnapshot(),
-    });
+    }));
     if (outcome === "completed" && !todo.completed) toggleTodo(todo.id);
     removeFocusTodo(todo.id);
   }, [seconds, getSession, logEvent, addFocusRecord, selectedScenarioId, scenarioTitle, getSnapshot, toggleTodo, removeFocusTodo]);

@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useMemo, useState } from "react";
 import { useTodos } from "../../context/TodoContext";
 import { useFocus } from "../../context/FocusContext";
 import { useReward } from "../../context/RewardContext";
@@ -12,6 +11,10 @@ import useDistractionTracking from "../../hooks/useDistractionTracking";
 import useSessionLifecycle from "../../hooks/useSessionLifecycle";
 import useSessionNotes from "../../hooks/useSessionNotes";
 import useFocusSelection from "../../hooks/useFocusSelection";
+import useScenarioFromRoute from "../../hooks/useScenarioFromRoute";
+import usePruneDeletedFocus from "../../hooks/usePruneDeletedFocus";
+import useAutoStopOnEmpty from "../../hooks/useAutoStopOnEmpty";
+import { filterSinceSession } from "../../utils/focusRecords";
 import { FocusSessionContext } from "./FocusSessionContext";
 import ImmersiveView from "./Immersive";
 import FocusConsole from "./FocusConsole";
@@ -19,7 +22,6 @@ import DistractionModal from "./DistractionModal";
 import "./Focus.css";
 
 export default function FocusPage() {
-  const location = useLocation();
   const { todos, toggleTodo, addTodo } = useTodos();
   const { focusedTodoIds, addFocusTodo, removeFocusTodo, clearFocusTodos, addFocusRecord } =
     useFocus();
@@ -48,24 +50,8 @@ export default function FocusPage() {
   const scenarioTitle = selectedScenario?.title ?? null;
   const scenarioDescription = selectedScenario?.description || null;
 
-  // 从情景页快速启动时，通过 router state 预选情境
-  useEffect(() => {
-    const sid = location.state?.scenarioId;
-    if (sid) {
-      setSelectedScenarioId(sid);
-      window.history.replaceState({}, document.title);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // todos 变化时清理已不存在的 focusedTodoId（todo 被删除后同步移出 focus 列表）
-  useEffect(() => {
-    const todoIdSet = new Set(todos.map((t) => t.id));
-    focusedTodoIds.forEach((id) => {
-      if (!todoIdSet.has(id)) removeFocusTodo(id);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [todos]);
+  useScenarioFromRoute(setSelectedScenarioId);
+  usePruneDeletedFocus(todos, focusedTodoIds, removeFocusTodo);
 
   const { logEvent, resetEvents, getSnapshot } = useSessionEvents();
   const { seconds, isRunning, start, togglePause, resetTimer, clearSession, getSession, jumpSeconds } =
@@ -94,7 +80,7 @@ export default function FocusPage() {
   const { notes, sessionNotes, addNote } = useSessionNotes({ sessionStartTs, getSession, focusedTodoIds });
 
   const sessionDistractions = useMemo(
-    () => distractions.filter((d) => sessionStartTs && d.ts >= sessionStartTs),
+    () => filterSinceSession(distractions, sessionStartTs),
     [distractions, sessionStartTs],
   );
 
@@ -124,56 +110,63 @@ export default function FocusPage() {
     hasSelection,
   });
 
-  // 选中集合清空时：若计时器还在跑（任务被逐一勾完），先发币再归零并退出沉浸。
-  // handleStop 先调 clearSession()（seconds 归零），所以此处 seconds>0 只在
-  // 「逐一勾完」路径下成立，不会与 handleStop 的发币重复。
-  useEffect(() => {
-    if (!hasSelection) {
-      if (seconds > 0) addCoins(seconds);
-      clearSession();
-      setIsImmersive(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasSelection]);
+  useAutoStopOnEmpty(hasSelection, {
+    seconds,
+    addCoins,
+    clearSession,
+    onStop: () => setIsImmersive(false),
+  });
 
   const handleTogglePause = () => {
     logEvent(isRunning ? "session_paused" : "session_resumed");
     togglePause();
   };
 
-  const sessionCtxValue = {
-    isRunning,
-    seconds,
-    selectedTodos,
-    availableTodos,
-    scenarioTitle,
-    scenarioDescription,
-    sessionStartTs,
-    cardVisible,
-    animEnabled,
-    pomodoroMins,
-    onSettle: settleTask,
-    onAddFocus: addToFocus,
-    onCreateFocus: createAndFocus,
-    onReplaceFocus: replaceFocus,
-    onTogglePause: handleTogglePause,
-    onReset: resetTimer,
-    onStop: handleStop,
-    setCardVisible,
-    setAnimEnabled,
-    chatMessages: messages,
-    chatSending: sending,
-    onChatSend: sendUserMessage,
-    onAddNote: addNote,
-    onDistraction: recordDistraction,
-    onProactiveDistraction: startProactiveDistraction,
-    onReturnFromDistraction: endProactiveDistraction,
-    isProactiveDistraction,
-    proactiveDistractionStartTs,
-    sessionNotes,
-    sessionDistractionCount: sessionDistractions.length,
-    jumpSeconds,
-  };
+  const sessionCtxValue = useMemo(
+    () => ({
+      isRunning,
+      seconds,
+      selectedTodos,
+      availableTodos,
+      scenarioTitle,
+      scenarioDescription,
+      sessionStartTs,
+      cardVisible,
+      animEnabled,
+      pomodoroMins,
+      onSettle: settleTask,
+      onAddFocus: addToFocus,
+      onCreateFocus: createAndFocus,
+      onReplaceFocus: replaceFocus,
+      onTogglePause: handleTogglePause,
+      onReset: resetTimer,
+      onStop: handleStop,
+      setCardVisible,
+      setAnimEnabled,
+      chatMessages: messages,
+      chatSending: sending,
+      onChatSend: sendUserMessage,
+      onAddNote: addNote,
+      onDistraction: recordDistraction,
+      onProactiveDistraction: startProactiveDistraction,
+      onReturnFromDistraction: endProactiveDistraction,
+      isProactiveDistraction,
+      proactiveDistractionStartTs,
+      sessionNotes,
+      sessionDistractionCount: sessionDistractions.length,
+      jumpSeconds,
+    }),
+    // handleTogglePause / addNote 每渲染重建但消费方为事件回调，不影响正确性
+    [
+      isRunning, seconds, selectedTodos, availableTodos, scenarioTitle, scenarioDescription,
+      sessionStartTs, cardVisible, animEnabled, pomodoroMins,
+      settleTask, addToFocus, createAndFocus, replaceFocus, resetTimer, handleStop,
+      setCardVisible, setAnimEnabled, messages, sending, sendUserMessage,
+      recordDistraction, startProactiveDistraction, endProactiveDistraction,
+      isProactiveDistraction, proactiveDistractionStartTs, sessionNotes,
+      sessionDistractions.length, jumpSeconds,
+    ],
+  );
 
   return (
     <FocusSessionContext.Provider value={sessionCtxValue}>

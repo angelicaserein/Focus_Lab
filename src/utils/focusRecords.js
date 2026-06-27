@@ -5,6 +5,55 @@
 // 会话唯一键：有 sessionId 时用它，旧记录无 sessionId 则退化到记录自身 id
 export const sessionKey = (r) => r.sessionId ?? r.id;
 
+// 从带 ts 的条目列表中筛出「本次会话」的子集（随记 / 分心共用）。
+// sessionStartTs 为空（未开始）时返回空数组，避免把历史条目误算进本次。
+export function filterSinceSession(items, sessionStartTs) {
+  return sessionStartTs ? items.filter((x) => x.ts >= sessionStartTs) : [];
+}
+
+// 构造一条带会话归属的条目（随记 / 分心记录共用的公共字段）。
+// extra 提供各自特有字段（如随记的 text、分心的 type/tag）。
+export function makeSessionEntry(extra, { sessionId, focusedTodoIds }) {
+  return {
+    id: crypto.randomUUID(),
+    ts: Date.now(),
+    sessionId,
+    taskIds: [...focusedTodoIds],
+    ...extra,
+  };
+}
+
+// 构造写入历史的 focus record（纯数据，副作用留在调用方）。
+// startedAt 缺省时按 durationSecs 反推，兼容无会话起始时间的极端路径。
+export function buildFocusRecord(todo, outcome, {
+  durationSecs,
+  startedAt,
+  sessionId,
+  scenarioId,
+  scenarioTitle,
+  coinsEarned,
+  distractionCount,
+  distractionSecs,
+  noteCount,
+  events,
+}) {
+  return {
+    taskId: todo.id,
+    taskText: todo.text,
+    durationSecs,
+    startedAt: startedAt ?? Date.now() - durationSecs * 1000,
+    sessionId,
+    outcome,
+    scenarioId: scenarioId ?? undefined,
+    scenarioTitle: scenarioTitle ?? undefined,
+    coinsEarned,
+    distractionCount,
+    distractionSecs,
+    noteCount,
+    events,
+  };
+}
+
 // 结果徽章元信息（History 渲染用）
 export const OUTCOME_META = {
   completed: { label: "完成", cls: "completed" },

@@ -2,20 +2,22 @@ import { useCallback, useReducer } from "react";
 import useLocalStorage from "./useLocalStorage";
 import { STORAGE_KEYS } from "../utils/storageKeys";
 import { getElapsedSecs } from "../utils/time";
+import { makeSessionEntry } from "../utils/focusRecords";
 
 // 状态机定义：
 //   idle              — 无进行中的分心
 //   reactive-pending  — 刚记录了被动分心，弹窗等待打标签
 //   proactive-running — 主动暂停中（计时器已暂停）
 //   proactive-pending — 主动暂停结束，弹窗等待打标签
-const initialPhaseState = {
+export const initialPhaseState = {
   phase: "idle",       // 'idle' | 'reactive-pending' | 'proactive-running' | 'proactive-pending'
   pendingId: null,     // 等待打标签的分心记录 id
   proactiveId: null,   // 当前主动分心记录 id
   proactiveStartTs: null,
 };
 
-function reducer(state, action) {
+// 分心状态机（具名导出便于单测）
+export function reducer(state, action) {
   switch (action.type) {
     case "RECORD_REACTIVE":
       return { ...initialPhaseState, phase: "reactive-pending", pendingId: action.id };
@@ -41,24 +43,24 @@ export default function useDistractionTracking({ getSession, focusedTodoIds, isR
 
   const recordDistraction = useCallback(() => {
     const { sessionId } = getSession();
-    const id = crypto.randomUUID();
-    setDistractions((prev) => [
-      ...prev,
-      { id, ts: Date.now(), sessionId, taskIds: [...focusedTodoIds], tag: null, note: null, type: "reactive" },
-    ]);
-    dispatch({ type: "RECORD_REACTIVE", id });
+    const entry = makeSessionEntry(
+      { tag: null, note: null, type: "reactive" },
+      { sessionId, focusedTodoIds },
+    );
+    setDistractions((prev) => [...prev, entry]);
+    dispatch({ type: "RECORD_REACTIVE", id: entry.id });
   }, [getSession, focusedTodoIds, setDistractions]);
 
   const startProactiveDistraction = useCallback(() => {
     if (!isRunning || phase === "proactive-running") return;
     const { sessionId } = getSession();
-    const id = crypto.randomUUID();
-    const now = Date.now();
-    setDistractions((prev) => [
-      ...prev,
-      { id, ts: now, sessionId, taskIds: [...focusedTodoIds], tag: null, note: null, type: "proactive", durationSecs: null },
-    ]);
-    dispatch({ type: "START_PROACTIVE", id, now });
+    const entry = makeSessionEntry(
+      { tag: null, note: null, type: "proactive", durationSecs: null },
+      { sessionId, focusedTodoIds },
+    );
+    setDistractions((prev) => [...prev, entry]);
+    // 用条目自身 ts 作为主动分心起点，保证 filter 与时长计算口径一致
+    dispatch({ type: "START_PROACTIVE", id: entry.id, now: entry.ts });
     togglePause();
   }, [isRunning, phase, getSession, focusedTodoIds, setDistractions, togglePause]);
 

@@ -5,7 +5,10 @@ import SessionSummary from "./SessionSummary";
 import RandomTaskDrawer from "./RandomTaskDrawer";
 
 // 普通（非沉浸）视图：左栏=计时控制台+情境选择+AI聊天+上次回顾，右栏=任务管理。
-export default function FocusConsole({
+// React.memo：计时器每 500ms tick 会让 FocusPage 重渲染，但本组件不消费 seconds，
+// props 引用稳定（计时器回调已 useCallback，context 方法来自不随 tick 重渲染的祖先），
+// memo 后即可在 tick 时跳过，连带跳过内部的 TodoApp 任务列表。
+function FocusConsole({
   selectedTodos,
   hasSelection,
   canReset,
@@ -148,3 +151,5 @@ export default function FocusConsole({
     </div>
   );
 }
+
+export default React.memo(FocusConsole);
