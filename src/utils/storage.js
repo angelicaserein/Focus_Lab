@@ -79,8 +79,25 @@ const MIGRATIONS = [
 ];
 
 // 所有 key 统一使用 { version: N, data: T } 包装格式（v6 起）。
-// useLocalStorage hook 和 TaskAttrContext 均负责读写时的解包/包装。
-const VERSIONED_WRAPPER_VERSION = 1;
+// 包装/解包统一走 wrapVersioned / unwrapVersioned，避免各处重复内联判断。
+export const WRAPPER_VERSION = 1;
+
+export function wrapVersioned(data) {
+  return { version: WRAPPER_VERSION, data };
+}
+
+// 解包 { version: number, data: T } 包装；裸数据（迁移前的旧格式）原样返回。
+export function unwrapVersioned(parsed) {
+  if (
+    parsed !== null &&
+    typeof parsed === "object" &&
+    typeof parsed.version === "number" &&
+    "data" in parsed
+  ) {
+    return parsed.data;
+  }
+  return parsed;
+}
 
 const KEY_MAP = {
   todos:         { key: STORAGE_KEYS.TODOS            },
@@ -97,6 +114,30 @@ const KEY_MAP = {
   taskAttrs:     { key: STORAGE_KEYS.TASK_ATTRS       },
   databases:     { key: STORAGE_KEYS.DATABASES        },
 };
+
+// 顺序执行迁移函数，把 schema 从 fromVersion 升级到 SCHEMA_VERSION。
+function applyMigrations(data, fromVersion) {
+  let current = data;
+  for (let v = fromVersion; v < SCHEMA_VERSION; v++) {
+    if (typeof MIGRATIONS[v] === "function") {
+      current = MIGRATIONS[v](current) ?? current;
+    }
+  }
+  return current;
+}
+
+// 将 data 中每个已知 key 以 versioned 格式写回 localStorage，返回成功写入的 key 列表。
+function writeAllVersioned(data) {
+  const writtenKeys = [];
+  for (const [name, { key }] of Object.entries(KEY_MAP)) {
+    if (!(name in data)) continue;
+    try {
+      localStorage.setItem(key, JSON.stringify(wrapVersioned(data[name])));
+      writtenKeys.push(key);
+    } catch { /* 配额溢出时局部失败 */ }
+  }
+  return writtenKeys;
+}
 
 /**
  * 从 localStorage 读取带版本号的 JSON 数组。
@@ -130,30 +171,12 @@ export function runMigrations() {
       const raw = localStorage.getItem(key);
       if (raw === null) continue;
       try {
-        const parsed = JSON.parse(raw);
         // 兼容旧格式（裸 JSON）和已有的 versioned 格式
-        data[name] = (parsed !== null && typeof parsed === "object" && "data" in parsed)
-          ? parsed.data
-          : parsed;
+        data[name] = unwrapVersioned(JSON.parse(raw));
       } catch { /* 跳过损坏的键 */ }
     }
 
-    let current = data;
-    for (let v = stored; v < SCHEMA_VERSION; v++) {
-      if (typeof MIGRATIONS[v] === "function") {
-        current = MIGRATIONS[v](current) ?? current;
-      }
-    }
-
-    for (const [name, { key }] of Object.entries(KEY_MAP)) {
-      if (!(name in current)) continue;
-      try {
-        localStorage.setItem(
-          key,
-          JSON.stringify({ version: VERSIONED_WRAPPER_VERSION, data: current[name] }),
-        );
-      } catch { /* 配额溢出时局部失败 */ }
-    }
+    writeAllVersioned(applyMigrations(data, stored));
 
     localStorage.setItem(SCHEMA_META_KEY, String(SCHEMA_VERSION));
   } catch (e) {
@@ -167,11 +190,8 @@ export function exportAllData() {
     try {
       const raw = localStorage.getItem(key);
       if (raw === null) continue;
-      const parsed = JSON.parse(raw);
       // 解包 versioned 格式
-      data[name] = (parsed !== null && typeof parsed === "object" && "data" in parsed)
-        ? parsed.data
-        : parsed;
+      data[name] = unwrapVersioned(JSON.parse(raw));
     } catch { /* 跳过损坏键 */ }
   }
   const json = JSON.stringify(
@@ -198,24 +218,8 @@ export function importAllData(jsonString) {
     return { success: false, error: "文件格式无效" };
 
   // 对导入数据执行迁移（文件来自旧版本时）
-  let data = parsed.data;
-  for (let v = fileSchemaVersion; v < SCHEMA_VERSION; v++) {
-    if (typeof MIGRATIONS[v] === "function") {
-      data = MIGRATIONS[v](data) ?? data;
-    }
-  }
-
-  const writtenKeys = [];
-  for (const [name, { key }] of Object.entries(KEY_MAP)) {
-    if (!(name in data)) continue;
-    try {
-      localStorage.setItem(
-        key,
-        JSON.stringify({ version: VERSIONED_WRAPPER_VERSION, data: data[name] }),
-      );
-      writtenKeys.push(key);
-    } catch { /* 配额溢出时局部失败 */ }
-  }
+  const data = applyMigrations(parsed.data, fileSchemaVersion);
+  const writtenKeys = writeAllVersioned(data);
 
   localStorage.setItem(SCHEMA_META_KEY, String(SCHEMA_VERSION));
   return { success: true, keys: writtenKeys };

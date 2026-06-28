@@ -1,11 +1,10 @@
 import "../types";
 import React, { useReducer, useEffect, useRef, useContext } from "react";
-import { loadVersioned } from "../utils/storage";
+import { loadVersioned, WRAPPER_VERSION } from "../utils/storage";
 import useUndoDelete from "../hooks/useUndoDelete";
+import usePersistedWrite from "../hooks/usePersistedWrite";
 import { STORAGE_KEYS } from "../utils/storageKeys";
 import { getTodayStr } from "../utils/time";
-
-const CURRENT_VERSION = 1;
 
 // Action types
 const ADD = "ADD";
@@ -93,19 +92,14 @@ export function TodoProvider({ children }) {
   const [todos, dispatch] = useReducer(
     reducer,
     null,
-    () => loadVersioned(STORAGE_KEYS.TODOS, CURRENT_VERSION),
+    () => loadVersioned(STORAGE_KEYS.TODOS, WRAPPER_VERSION),
   );
+
+  usePersistedWrite(STORAGE_KEYS.TODOS, todos);
 
   // 保持 todosRef 指向最新 todos，供 visibilitychange 回调读取（避免 stale closure）
   const todosRef = useRef(todos);
   useEffect(() => { todosRef.current = todos; }, [todos]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.TODOS,
-      JSON.stringify({ version: CURRENT_VERSION, data: todos }),
-    );
-  }, [todos]);
 
   useEffect(() => {
     // mount 时及页面重新可见时检查循环任务是否需要重置，

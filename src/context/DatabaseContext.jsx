@@ -1,9 +1,9 @@
-import React, { useReducer, useState, useEffect, useContext } from "react";
+import React, { useReducer, useState, useContext } from "react";
 import { STORAGE_KEYS } from "../utils/storageKeys";
-import { loadVersioned } from "../utils/storage";
+import { loadVersioned, WRAPPER_VERSION } from "../utils/storage";
+import usePersistedWrite from "../hooks/usePersistedWrite";
 import { DATABASE_TEMPLATES } from "../utils/databaseTemplates";
 
-const WRAPPER_VERSION = 1;
 export const DEFAULT_DB_ID = "default";
 
 // database CRUD
@@ -87,19 +87,8 @@ export function DatabaseProvider({ children }) {
   const [databases, dispatch] = useReducer(reducer, undefined, loadDatabases);
   const [activeDatabaseId, setActiveDatabaseId] = useState(() => loadActiveDbId(loadDatabases()));
 
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.DATABASES,
-      JSON.stringify({ version: WRAPPER_VERSION, data: databases }),
-    );
-  }, [databases]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.ACTIVE_DB,
-      JSON.stringify({ version: WRAPPER_VERSION, data: activeDatabaseId }),
-    );
-  }, [activeDatabaseId]);
+  usePersistedWrite(STORAGE_KEYS.DATABASES, databases);
+  usePersistedWrite(STORAGE_KEYS.ACTIVE_DB, activeDatabaseId);
 
   const activeDatabase = databases.find(d => d.id === activeDatabaseId) ?? databases[0];
 

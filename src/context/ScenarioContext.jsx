@@ -1,10 +1,9 @@
-import React, { useReducer, useEffect, useContext } from "react";
-import { loadVersioned } from "../utils/storage";
+import React, { useReducer, useContext } from "react";
+import { loadVersioned, WRAPPER_VERSION } from "../utils/storage";
 import useUndoDelete from "../hooks/useUndoDelete";
+import usePersistedWrite from "../hooks/usePersistedWrite";
 import useScenarioSelection from "../hooks/useScenarioSelection";
 import { STORAGE_KEYS } from "../utils/storageKeys";
-
-const CURRENT_VERSION = 1;
 
 // Action types
 const ADD = "ADD";
@@ -55,18 +54,13 @@ export function ScenarioProvider({ children }) {
   const [scenarios, dispatch] = useReducer(
     reducer,
     null,
-    () => loadVersioned(STORAGE_KEYS.SCENARIOS, CURRENT_VERSION),
+    () => loadVersioned(STORAGE_KEYS.SCENARIOS, WRAPPER_VERSION),
   );
+
+  usePersistedWrite(STORAGE_KEYS.SCENARIOS, scenarios);
 
   const { selectedIds, toggleSelect, clearSelection, removeFromSelection, restoreToSelection } =
     useScenarioSelection();
-
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.SCENARIOS,
-      JSON.stringify({ version: CURRENT_VERSION, data: scenarios }),
-    );
-  }, [scenarios]);
 
   const updateScenarioSettings = (id, settings) => {
     dispatch({ type: UPDATE_SETTINGS, payload: { id, settings } });
