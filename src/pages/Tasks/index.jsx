@@ -4,8 +4,10 @@ import { useTaskAttrs, useDatabases } from "../../context/DatabaseContext";
 import { buildSortWeightMap } from "../../utils/taskAttrUtils";
 import AttrHeaderEditor from "./AttrHeaderEditor";
 import DatabaseTabs from "./DatabaseTabs";
+import TasksToolbar from "./TasksToolbar";
 import TodoRow from "./TodoRow";
 import useTaskFilter from "./useTaskFilter";
+import useTaskFilters from "./useTaskFilters";
 import "./Tasks.css";
 
 const TYPE_COL_WIDTHS = {
@@ -15,19 +17,6 @@ const TYPE_COL_WIDTHS = {
   number:      "82px",
   text:        "160px",
 };
-
-const STATUS_OPTS = [
-  { id: "all",       label: "全部" },
-  { id: "active",    label: "待办" },
-  { id: "completed", label: "已完成" },
-];
-
-const SORT_OPTS = [
-  { id: "createdAt", label: "创建时间" },
-  { id: "dueDate",   label: "截止日期" },
-  { id: "priority",  label: "优先级" },
-  { id: "text",      label: "任务名" },
-];
 
 export default function Tasks() {
   const { todos, addTodo, toggleTodo, editTodo, setTodoAttr, deleteTodo } = useTodos();
@@ -50,12 +39,7 @@ export default function Tasks() {
   const tagsOpts     = tagsAttr?.options ?? [];
   const prioritySortMap = useMemo(() => buildSortWeightMap(priorityAttr), [priorityAttr]);
 
-  const [statusFilter,   setStatusFilter]   = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState([]);
-  const [tagFilter,      setTagFilter]      = useState([]);
-  const [search,         setSearch]         = useState("");
-  const [sortBy,         setSortBy]         = useState("createdAt");
-  const [sortDir,        setSortDir]        = useState("desc");
+  const filters = useTaskFilters();
 
   const [showNewRow,   setShowNewRow]   = useState(false);
   const [newTaskText,  setNewTaskText]  = useState("");
@@ -72,7 +56,16 @@ export default function Tasks() {
     if (showNewRow) newInputRef.current?.focus();
   }, [showNewRow]);
 
-  const filtered = useTaskFilter({ todos: dbTodos, statusFilter, priorityFilter, tagFilter, search, sortBy, sortDir, prioritySortMap });
+  const filtered = useTaskFilter({
+    todos: dbTodos,
+    statusFilter:   filters.statusFilter,
+    priorityFilter: filters.priorityFilter,
+    tagFilter:      filters.tagFilter,
+    search:         filters.search,
+    sortBy:         filters.sortBy,
+    sortDir:        filters.sortDir,
+    prioritySortMap,
+  });
 
   function commitNewTask() {
     if (newTaskText.trim()) addTodo(newTaskText.trim(), { databaseId: activeDatabaseId });
@@ -85,20 +78,7 @@ export default function Tasks() {
     if (e.key === "Escape") { setNewTaskText(""); setShowNewRow(false); }
   }
 
-  function togglePFilter(pid) {
-    setPriorityFilter(p => p.includes(pid) ? p.filter(x => x !== pid) : [...p, pid]);
-  }
-  function toggleTFilter(tid) {
-    setTagFilter(t => t.includes(tid) ? t.filter(x => x !== tid) : [...t, tid]);
-  }
-
-  function handleSortClick(field) {
-    if (sortBy === field) setSortDir(d => d === "desc" ? "asc" : "desc");
-    else { setSortBy(field); setSortDir("desc"); }
-  }
-
-  const arrow = f => sortBy === f ? (sortDir === "desc" ? " ↓" : " ↑") : "";
-  const hasFilter = priorityFilter.length || tagFilter.length || statusFilter !== "all" || search;
+  const { handleSortClick, arrow } = filters;
 
   return (
     <div className="tasks-page">
@@ -112,72 +92,7 @@ export default function Tasks() {
 
       <DatabaseTabs />
 
-      <div className="tasks-toolbar">
-        <div className="tasks-search-wrap">
-          <input
-            className="tasks-search"
-            placeholder="搜索任务或备注…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-          {search && <button className="search-clear" onClick={() => setSearch("")}>×</button>}
-        </div>
-
-        <div className="toolbar-row">
-          <div className="filter-group status-group">
-            {STATUS_OPTS.map(s => (
-              <button
-                key={s.id}
-                className={`flt-btn${statusFilter === s.id ? " active" : ""}`}
-                onClick={() => setStatusFilter(s.id)}
-              >{s.label}</button>
-            ))}
-          </div>
-
-          {priorityOpts.length > 0 && (
-            <div className="filter-group">
-              {priorityOpts.map(p => (
-                <button
-                  key={p.id}
-                  className={`flt-btn priority-pill${priorityFilter.includes(p.id) ? " active" : ""}`}
-                  style={{ "--pill": p.color }}
-                  onClick={() => togglePFilter(p.id)}
-                >{p.label}</button>
-              ))}
-            </div>
-          )}
-
-          {tagsOpts.length > 0 && (
-            <div className="filter-group">
-              {tagsOpts.map(t => (
-                <button
-                  key={t.id}
-                  className={`flt-btn tag-pill${tagFilter.includes(t.id) ? " active" : ""}`}
-                  title={t.label}
-                  onClick={() => toggleTFilter(t.id)}
-                >{t.icon ?? t.label}</button>
-              ))}
-            </div>
-          )}
-
-          {hasFilter && (
-            <button className="flt-clear" onClick={() => {
-              setPriorityFilter([]); setTagFilter([]); setStatusFilter("all"); setSearch("");
-            }}>清除筛选</button>
-          )}
-
-          <div className="sort-group">
-            <span className="sort-label">排序</span>
-            {SORT_OPTS.map(s => (
-              <button
-                key={s.id}
-                className={`sort-btn${sortBy === s.id ? " active" : ""}`}
-                onClick={() => handleSortClick(s.id)}
-              >{s.label}{arrow(s.id)}</button>
-            ))}
-          </div>
-        </div>
-      </div>
+      <TasksToolbar filters={filters} priorityOpts={priorityOpts} tagsOpts={tagsOpts} />
 
       <div className="tasks-table-wrap">
         <div className="tasks-table-scroll">
@@ -279,4 +194,3 @@ export default function Tasks() {
     </div>
   );
 }
-
