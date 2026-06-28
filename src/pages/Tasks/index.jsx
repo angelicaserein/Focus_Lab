@@ -140,10 +140,10 @@ export default function Tasks() {
                 key={todo.id}
                 todo={todo}
                 visibleAttrs={visibleAttrs}
-                onSaveAttr={(attrId, value) => setTodoAttr(todo.id, attrId, value)}
-                onEditText={(text) => { if (text.trim()) editTodo(todo.id, text.trim()); }}
-                onToggle={() => toggleTodo(todo.id)}
-                onDelete={() => deleteTodo(todo.id)}
+                onSaveAttr={setTodoAttr}
+                onEditText={editTodo}
+                onToggle={toggleTodo}
+                onDelete={deleteTodo}
               />
             ))}
             {showNewRow && (
