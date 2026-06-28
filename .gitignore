@@ -21,3 +21,8 @@ Thumbs.db
 
 # 本地待办 / 临时笔记（不进版本库）
 待办/
+
+# 论文编辑产生的临时 / 备份文件（不进版本库）
+*.bak
+paper_change_summary.txt
+paper_debug_excerpt.txt
