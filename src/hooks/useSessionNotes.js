@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import useLocalStorage from "./useLocalStorage";
 import { STORAGE_KEYS } from "../utils/storageKeys";
 import { filterSinceSession, makeSessionEntry } from "../utils/focusRecords";
@@ -13,10 +13,10 @@ export default function useSessionNotes({ sessionStartTs, getSession, focusedTod
     [notes, sessionStartTs],
   );
 
-  const addNote = (text) => {
+  const addNote = useCallback((text) => {
     const { sessionId } = getSession();
     setNotes((prev) => [...prev, makeSessionEntry({ text }, { sessionId, focusedTodoIds })]);
-  };
+  }, [getSession, focusedTodoIds, setNotes]);
 
   return { notes, sessionNotes, addNote };
 }

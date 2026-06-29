@@ -39,9 +39,10 @@ export default function useFocusTimer() {
 
   // 开启一次新会话：记录开始时间与 sessionId 并开始计时
   const start = useCallback(() => {
+    const now = Date.now();
     accSecsRef.current = 0;
-    runStartRef.current = Date.now();
-    sessionStartRef.current = Date.now();
+    runStartRef.current = now;
+    sessionStartRef.current = now;
     sessionIdRef.current = crypto.randomUUID();
     setSeconds(0);
     setIsRunning(true);

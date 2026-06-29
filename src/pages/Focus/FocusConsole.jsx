@@ -32,7 +32,7 @@ function FocusConsole({
     <div className="page-focus">
       {showDrawer && (
         <RandomTaskDrawer
-          onSelect={(todo) => onDrawerSelect(todo)}
+          onSelect={onDrawerSelect}
           onClose={() => setShowDrawer(false)}
         />
       )}
