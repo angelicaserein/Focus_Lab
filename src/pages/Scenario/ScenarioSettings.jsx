@@ -4,12 +4,13 @@ import {
   DEVICE_OPTIONS,
   COMM_OPTIONS,
   TASK_TYPE_OPTIONS,
+  DEFAULT_SCENARIO_SETTINGS,
 } from "../../utils/scenarioConstants";
 
 export default function ScenarioSettings({ scenario }) {
   const { updateScenarioSettings } = useScenarios();
 
-  const settings = scenario.settings ?? { devices: [], communication: "", taskTypes: [] };
+  const settings = scenario.settings ?? DEFAULT_SCENARIO_SETTINGS;
 
   const toggleDevice = (id) => {
     const devices = settings.devices.includes(id)

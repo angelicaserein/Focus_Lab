@@ -186,6 +186,124 @@
   color: var(--accent);
 }
 
+/* ── 自定义商品：编辑 / 删除操作 ── */
+.reward-shop-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 4px;
+}
+
+.reward-shop-action {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent-bg);
+  font-size: 0.82rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.reward-shop-action:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+/* ── 自定义商品：添加表单 ── */
+.reward-custom-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.reward-custom-input {
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+  color: var(--text-heading);
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  transition: border-color 150ms ease;
+}
+
+.reward-custom-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.reward-custom-input::placeholder {
+  color: var(--text-faint);
+}
+
+.reward-custom-name {
+  flex: 1 1 140px;
+}
+
+.reward-custom-price {
+  width: 96px;
+}
+
+.reward-custom-desc {
+  flex: 2 1 180px;
+}
+
+.reward-custom-add {
+  border: none;
+  background: var(--accent);
+  color: var(--card);
+  padding: 10px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.reward-custom-add:hover:not(:disabled) {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.reward-custom-add:disabled {
+  cursor: not-allowed;
+  background: var(--accent-bg);
+  color: var(--text-faint);
+}
+
+.reward-custom-cancel {
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+  color: var(--text-muted);
+  padding: 10px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+
+.reward-custom-cancel:hover {
+  border-color: var(--accent);
+  color: var(--text-heading);
+}
+
+.reward-custom-empty {
+  padding: 28px 20px;
+  border-radius: 16px;
+  border: 1.5px dashed var(--border-card);
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
 /* ── Responsive ── */
 @media (max-width: 480px) {
   .reward-shop-grid {

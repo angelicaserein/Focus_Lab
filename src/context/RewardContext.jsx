@@ -10,6 +10,7 @@ export { SHOP_ITEMS } from "../utils/shopConfig";
 //   1. coins —— 金币余额，完成专注任务时按秒发放（1 秒 = 1 枚）。
 //   2. owned —— 已永久解锁的商品 id 集合。
 //   3. redeemCounts —— 可重复兑换商品 id → 已兑换次数。
+//   4. customItems —— 用户自定义商品（名称 / 图标 / 花费），均按 consumable 处理。
 // 主题切换逻辑已迁移至 ThemeContext（src/context/ThemeContext.jsx）。
 // 放在 Provider 树 ThemeProvider 内层，以便 buyItem 可调用 useTheme().setTheme。
 
@@ -19,6 +20,7 @@ export function RewardProvider({ children }) {
   const [coins, setCoins] = useLocalStorage(STORAGE_KEYS.COINS, 0);
   const [owned, setOwned] = useLocalStorage(STORAGE_KEYS.REWARD_OWNED, []);
   const [redeemCounts, setRedeemCounts] = useLocalStorage(STORAGE_KEYS.REWARD_REDEEM, {});
+  const [customItems, setCustomItems] = useLocalStorage(STORAGE_KEYS.REWARD_CUSTOM, []);
   const { setTheme } = useTheme();
 
   // 增加金币（供 Focus 完成任务时调用）。非正数忽略。
@@ -48,12 +50,68 @@ export function RewardProvider({ children }) {
   const isOwned = (id) => owned.includes(id);
   const getRedeemCount = (id) => redeemCounts[id] ?? 0;
 
+  // 添加用户自定义商品。名称为空或花费非正数则忽略，返回 false。
+  const addCustomItem = ({ name, price, icon, desc }) => {
+    const trimmed = (name ?? "").trim();
+    const cost = Math.floor(Number(price));
+    if (!trimmed || !Number.isFinite(cost) || cost <= 0) return false;
+    setCustomItems((prev) => [
+      ...prev,
+      {
+        id: `custom-${Date.now()}`,
+        name: trimmed,
+        icon: (icon ?? "").trim() || "🎁",
+        price: cost,
+        type: "consumable",
+        desc: (desc ?? "").trim(),
+        custom: true,
+      },
+    ]);
+    return true;
+  };
+
+  // 编辑一个已有的自定义商品。名称为空或花费非正数则忽略，返回 false。
+  const updateCustomItem = (id, { name, price, icon, desc }) => {
+    const trimmed = (name ?? "").trim();
+    const cost = Math.floor(Number(price));
+    if (!trimmed || !Number.isFinite(cost) || cost <= 0) return false;
+    setCustomItems((prev) =>
+      prev.map((it) =>
+        it.id === id
+          ? {
+              ...it,
+              name: trimmed,
+              icon: (icon ?? "").trim() || "🎁",
+              price: cost,
+              desc: (desc ?? "").trim(),
+            }
+          : it
+      )
+    );
+    return true;
+  };
+
+  // 删除一个自定义商品（同时清理它的兑换次数记录）。
+  const removeCustomItem = (id) => {
+    setCustomItems((prev) => prev.filter((it) => it.id !== id));
+    setRedeemCounts((prev) => {
+      if (!(id in prev)) return prev;
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  };
+
   const value = {
     coins,
     addCoins,
     buyItem,
     isOwned,
     getRedeemCount,
+    customItems,
+    addCustomItem,
+    updateCustomItem,
+    removeCustomItem,
   };
 
   return (

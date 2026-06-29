@@ -1,9 +1,17 @@
 /* 情景模式：容器、表单、双行卡片（标题+描述）、统计。
  * 完全复用 theme.css 既有配色 token 与 todo 的设计语言，不引入新颜色。 */
 
-.scenario-container {
+/* 页面：透明布局容器，纵向排两张独立的白底卡片（列表 + 配置） */
+.scenario-page {
   width: 100%;
   max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 白底卡片基类（列表卡片 / 配置卡片共用） */
+.scenario-card {
   background: var(--card);
   border-radius: 24px;
   padding: 20px 20px 24px;
@@ -188,15 +196,55 @@
   transform: scale(0.94);
 }
 
-/* Wrapper for scenario item + settings panel */
-.scenario-item-wrap {
+/* 配置卡片 — 列表下方独立白底卡片（白底由 .scenario-card 提供），⚙ 选中的情境在此配置 */
+.scenario-config-head {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.scenario-item-wrap.settings-open .scenario-item {
-  border-radius: 12px 12px 0 0;
-  border-bottom-color: var(--accent-border);
+.scenario-config-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-body);
+  letter-spacing: 0.2px;
+}
+
+.scenario-config-close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 160ms var(--ease),
+    background 160ms var(--ease);
+}
+.scenario-config-close:hover {
+  color: var(--accent);
+  background: var(--card);
+}
+
+.scenario-config-subtitle {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent-deep);
+}
+
+.scenario-config-empty {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
 }
 
 /* ⚙ 情景设置切换按钮 */
@@ -238,16 +286,12 @@
   background: var(--accent-bg);
 }
 
-/* Settings panel — connected below scenario-item */
+/* Settings panel — flush inside .scenario-config-card */
 .scenario-settings-panel {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 12px 14px;
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
-  border-top: none;
-  border-radius: 0 0 12px 12px;
+  margin-top: 12px;
 }
 
 .settings-section {
@@ -307,7 +351,7 @@
 
 /* Responsive adjustments */
 @media (max-width: 480px) {
-  .scenario-container {
+  .scenario-card {
     padding: 14px;
     border-radius: 16px;
   }

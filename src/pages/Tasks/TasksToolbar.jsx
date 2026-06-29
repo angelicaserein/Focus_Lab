@@ -15,7 +15,7 @@ const SORT_OPTS = [
 
 // 任务库工具栏：搜索 + 状态/优先级/标签筛选 + 排序。
 // 状态来自 useTaskFilters，本组件纯渲染。
-export default function TasksToolbar({ filters, priorityOpts, tagsOpts }) {
+export default function TasksToolbar({ filters, priorityOpts, tagsOpts, scenario = null }) {
   const {
     statusFilter, setStatusFilter,
     priorityFilter, togglePriority,
@@ -38,6 +38,18 @@ export default function TasksToolbar({ filters, priorityOpts, tagsOpts }) {
       </div>
 
       <div className="toolbar-row">
+        {scenario && (
+          <button
+            className={`flt-btn scenario-pill${scenario.on ? " active" : ""}`}
+            onClick={scenario.toggle}
+            title={scenario.on
+              ? `仅显示「${scenario.name}」相关任务，点击查看全部`
+              : `点击只看「${scenario.name}」相关任务`}
+          >
+            🎯 {scenario.name}{scenario.on ? " ✕" : ""}
+          </button>
+        )}
+
         <div className="filter-group status-group">
           {STATUS_OPTS.map(s => (
             <button

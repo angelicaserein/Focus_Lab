@@ -1,19 +1,16 @@
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useScenarios } from "../../context/ScenarioContext";
-import ScenarioSettings from "./ScenarioSettings";
-import useOutsideClick from "../../hooks/useOutsideClick";
 import useEditMode from "../../hooks/useEditMode";
+import { hasScenarioSettings } from "../../utils/scenarioConstants";
 
-export default function ScenarioItem({ scenario }) {
-  const { deleteScenario, editScenario, selectedIds, toggleSelect } =
+export default function ScenarioItem({ scenario, settingsOpen, onToggleSettings }) {
+  const { deleteScenario, editScenario, activeScenarioId, setActiveScenario } =
     useScenarios();
   const navigate = useNavigate();
 
   const [removing, setRemoving] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [draftDesc, setDraftDesc] = useState(scenario.description || "");
-  const wrapRef = useRef(null);
 
   const { editing, draft: draftTitle, setDraft: setDraftTitle, startEdit, commitEdit, cancelEdit, inputRef: titleInputRef } =
     useEditMode(scenario.title);
@@ -22,8 +19,6 @@ export default function ScenarioItem({ scenario }) {
     if (!scenario.createdAt) return false;
     return Date.now() - scenario.createdAt < 2000;
   }, [scenario.createdAt]);
-
-  useOutsideClick(wrapRef, () => setShowSettings(false), showSettings);
 
   const handleDelete = (e) => {
     e.stopPropagation();
@@ -62,28 +57,22 @@ export default function ScenarioItem({ scenario }) {
   const handleRowClick = (e) => {
     if (editing) return;
     if (e.target.closest("button")) return;
-    toggleSelect(scenario.id);
+    // 点当前情景再点一次 = 退出（回到「无情景」）。
+    setActiveScenario(activeScenarioId === scenario.id ? null : scenario.id);
   };
 
-  const hasSettings =
-    scenario.settings &&
-    (scenario.settings.devices?.length > 0 ||
-      scenario.settings.communication ||
-      scenario.settings.taskTypes?.length > 0);
+  const hasSettings = hasScenarioSettings(scenario);
 
   return (
-    <div
-      className={`scenario-item-wrap${showSettings ? " settings-open" : ""}`}
-      ref={wrapRef}
-    >
     <div
       className={`scenario-item ${isNew ? "new" : ""} ${
         removing ? "removing" : ""
       } ${editing ? "editing" : ""} ${
-        selectedIds.includes(scenario.id) ? "selected" : ""
+        activeScenarioId === scenario.id ? "selected" : ""
       }`}
       role="listitem"
       aria-label={scenario.title}
+      aria-pressed={activeScenarioId === scenario.id}
       onClick={handleRowClick}
     >
       {editing ? (
@@ -122,16 +111,16 @@ export default function ScenarioItem({ scenario }) {
           <button
             className="scenario-quickstart-btn"
             onClick={handleQuickStart}
-            aria-label={`开始专注 ${scenario.title}`}
-            title="创建任务并前往专注"
+            aria-label={`前往专注，预选情景 ${scenario.title}`}
+            title="前往专注（预选此情景）"
           >
             ▶
           </button>
           <button
-            className={`scenario-settings-btn${hasSettings ? " active" : ""}${showSettings ? " open" : ""}`}
-            onClick={(e) => { e.stopPropagation(); setShowSettings((v) => !v); }}
+            className={`scenario-settings-btn${hasSettings ? " active" : ""}${settingsOpen ? " open" : ""}`}
+            onClick={(e) => { e.stopPropagation(); onToggleSettings(); }}
             aria-label="情景设置"
-            aria-pressed={showSettings}
+            aria-pressed={settingsOpen}
             title="情景设置"
           >
             ⚙
@@ -155,9 +144,6 @@ export default function ScenarioItem({ scenario }) {
       >
         ×
       </button>
-    </div>
-
-    {showSettings && <ScenarioSettings scenario={scenario} />}
     </div>
   );
 }

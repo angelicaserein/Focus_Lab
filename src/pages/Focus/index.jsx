@@ -14,6 +14,7 @@ import useFocusSelection from "../../hooks/useFocusSelection";
 import useScenarioFromRoute from "../../hooks/useScenarioFromRoute";
 import usePruneDeletedFocus from "../../hooks/usePruneDeletedFocus";
 import useAutoStopOnEmpty from "../../hooks/useAutoStopOnEmpty";
+import usePomodoroNotify from "../../hooks/usePomodoroNotify";
 import { filterSinceSession } from "../../utils/focusRecords";
 import { FocusSessionContext } from "./FocusSessionContext";
 import ImmersiveView from "./Immersive";
@@ -26,7 +27,7 @@ export default function FocusPage() {
   const { focusedTodoIds, addFocusTodo, removeFocusTodo, clearFocusTodos, addFocusRecord } =
     useFocus();
   const { addCoins } = useReward();
-  const { scenarios } = useScenarios();
+  const { scenarios, activeScenarioId, activeScenario, setActiveScenario } = useScenarios();
 
   // 当前专注任务列表
   const selectedTodos = useMemo(
@@ -41,16 +42,11 @@ export default function FocusPage() {
     [todos, focusedTodoIds],
   );
 
-  // 情境选择（会话结束后保留，方便连续专注同一情境）
-  const [selectedScenarioId, setSelectedScenarioId] = useState(null);
-  const selectedScenario = useMemo(
-    () => scenarios.find((s) => s.id === selectedScenarioId) ?? null,
-    [scenarios, selectedScenarioId],
-  );
-  const scenarioTitle = selectedScenario?.title ?? null;
-  const scenarioDescription = selectedScenario?.description || null;
+  // 情境取自全局「当前情景」（贯穿待办/专注/情景页，持久化，会话结束后自然保留）
+  const scenarioTitle = activeScenario?.title ?? null;
+  const scenarioDescription = activeScenario?.description || null;
 
-  useScenarioFromRoute(setSelectedScenarioId);
+  useScenarioFromRoute(setActiveScenario);
   usePruneDeletedFocus(todos, focusedTodoIds, removeFocusTodo);
 
   const { logEvent, resetEvents, getSnapshot } = useSessionEvents();
@@ -84,7 +80,10 @@ export default function FocusPage() {
     [distractions, sessionStartTs],
   );
 
-  const { pomodoroMins, animEnabled, setAnimEnabled, cardVisible, setCardVisible } = usePrefs();
+  const { pomodoroMins, animEnabled, setAnimEnabled, cardVisible, setCardVisible, notifyEnabled } = usePrefs();
+
+  // 番茄到点（烧瓶注满）弹系统通知，仅在开启「桌面通知」偏好时生效
+  usePomodoroNotify({ seconds, pomodoroMins, isRunning, enabled: notifyEnabled });
 
   // useSessionLifecycle 先于 useFocusSelection：后者需要 handleStart 作为 onAutoStart 回调
   const { handleStart, settleTask, handleStop } = useSessionLifecycle({
@@ -94,7 +93,7 @@ export default function FocusPage() {
     sessionDistractions,
     sessionNotes,
     addFocusRecord, addCoins, removeFocusTodo, toggleTodo,
-    selectedTodos, selectedScenarioId, scenarioTitle,
+    selectedTodos, selectedScenarioId: activeScenarioId, scenarioTitle,
     setSessionStartTs,
     onStart: () => setIsImmersive(true),
     onStop: () => setIsImmersive(false),
@@ -184,9 +183,9 @@ export default function FocusPage() {
         hasSelection={hasSelection}
         canReset={hasSelection && seconds > 0}
         scenarios={scenarios}
-        selectedScenarioId={selectedScenarioId}
+        selectedScenarioId={activeScenarioId}
         scenarioDescription={scenarioDescription}
-        onScenarioChange={setSelectedScenarioId}
+        onScenarioChange={setActiveScenario}
         onStart={handleStart}
         onReset={resetTimer}
         onClear={clearFocusTodos}

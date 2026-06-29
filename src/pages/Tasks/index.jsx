@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useTodos } from "../../context/TodoContext";
 import { useTaskAttrs, useDatabases } from "../../context/DatabaseContext";
+import { useScenarios } from "../../context/ScenarioContext";
 import { buildSortWeightMap } from "../../utils/taskAttrUtils";
 import AttrHeaderEditor from "./AttrHeaderEditor";
 import DatabaseTabs from "./DatabaseTabs";
@@ -22,6 +23,14 @@ export default function Tasks() {
   const { todos, addTodo, toggleTodo, editTodo, setTodoAttr, deleteTodo } = useTodos();
   const { taskAttrs } = useTaskAttrs();
   const { activeDatabaseId } = useDatabases();
+  const { activeScenario } = useScenarios();
+
+  // 当前情景筛选：进入时默认开（贯穿全局），可一键关掉看全部；切换情景时恢复默认开。
+  const scenarioTypes = activeScenario?.settings?.taskTypes ?? [];
+  const hasScenarioFilter = scenarioTypes.length > 0;
+  const [scenarioFilterOn, setScenarioFilterOn] = useState(true);
+  useEffect(() => { setScenarioFilterOn(true); }, [activeScenario?.id]);
+  const scenarioFilter = hasScenarioFilter && scenarioFilterOn ? scenarioTypes : null;
 
   const dbTodos = useMemo(
     () => todos.filter(t => (t.databaseId ?? "default") === activeDatabaseId),
@@ -61,6 +70,7 @@ export default function Tasks() {
     statusFilter:   filters.statusFilter,
     priorityFilter: filters.priorityFilter,
     tagFilter:      filters.tagFilter,
+    scenarioFilter,
     search:         filters.search,
     sortBy:         filters.sortBy,
     sortDir:        filters.sortDir,
@@ -92,7 +102,16 @@ export default function Tasks() {
 
       <DatabaseTabs />
 
-      <TasksToolbar filters={filters} priorityOpts={priorityOpts} tagsOpts={tagsOpts} />
+      <TasksToolbar
+        filters={filters}
+        priorityOpts={priorityOpts}
+        tagsOpts={tagsOpts}
+        scenario={
+          hasScenarioFilter
+            ? { name: activeScenario.title, on: scenarioFilterOn, toggle: () => setScenarioFilterOn(v => !v) }
+            : null
+        }
+      />
 
       <div className="tasks-table-wrap">
         <div className="tasks-table-scroll">

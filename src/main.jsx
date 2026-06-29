@@ -9,10 +9,14 @@ import { ScenarioProvider } from "./context/ScenarioContext";
 import { DatabaseProvider } from "./context/DatabaseContext";
 import { DDLProvider } from "./context/DDLContext";
 import { runMigrations } from "./utils/storage";
+import registerSW from "./utils/registerSW";
 import "./index.css";
 
 // 在任何 Context 读取 localStorage 前执行数据迁移
 runMigrations();
+
+// 注册 PWA service worker（仅生产环境生效）
+registerSW();
 
 // ThemeProvider 最外层：主题写入 <html data-theme>，RewardProvider 内部可调用 useTheme().setTheme。
 // RewardProvider 次层：金币/资产与具体业务解耦，任意页面均可消费。

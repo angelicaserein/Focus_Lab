@@ -108,6 +108,7 @@ const KEY_MAP = {
   redeemCounts:  { key: STORAGE_KEYS.REWARD_REDEEM    },
   activeTheme:   { key: STORAGE_KEYS.ACTIVE_THEME     },
   notes:         { key: STORAGE_KEYS.NOTES            },
+  memos:         { key: STORAGE_KEYS.MEMOS            },
   distractions:  { key: STORAGE_KEYS.DISTRACTIONS     },
   chatHistory:   { key: STORAGE_KEYS.CHAT             },
   researchDaily: { key: STORAGE_KEYS.RESEARCH_RECORDS },

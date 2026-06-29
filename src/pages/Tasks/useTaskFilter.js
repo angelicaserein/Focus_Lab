@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-export default function useTaskFilter({ todos, statusFilter, priorityFilter, tagFilter, search, sortBy, sortDir, prioritySortMap }) {
+export default function useTaskFilter({ todos, statusFilter, priorityFilter, tagFilter, scenarioFilter, search, sortBy, sortDir, prioritySortMap }) {
   return useMemo(() => {
     let list = todos;
     if (statusFilter === "active")    list = list.filter(t => !t.completed);
@@ -9,6 +9,11 @@ export default function useTaskFilter({ todos, statusFilter, priorityFilter, tag
       list = list.filter(t => priorityFilter.includes(t.attrs?.priority ?? "none"));
     if (tagFilter.length)
       list = list.filter(t => tagFilter.some(tag => t.attrs?.tags?.includes(tag)));
+    // 当前情景筛选：保留无标签任务（避免「任务消失」），只筛掉明确标了别的类型的。
+    if (scenarioFilter?.length)
+      list = list.filter(t =>
+        !(t.attrs?.tags?.length) || t.attrs.tags.some(tag => scenarioFilter.includes(tag)),
+      );
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(t =>
@@ -31,5 +36,5 @@ export default function useTaskFilter({ todos, statusFilter, priorityFilter, tag
       }
       return sortDir === "desc" ? -cmp : cmp;
     });
-  }, [todos, statusFilter, priorityFilter, tagFilter, search, sortBy, sortDir, prioritySortMap]);
+  }, [todos, statusFilter, priorityFilter, tagFilter, scenarioFilter, search, sortBy, sortDir, prioritySortMap]);
 }

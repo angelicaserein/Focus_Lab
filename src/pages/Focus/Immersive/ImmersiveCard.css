@@ -13,12 +13,17 @@
 
 .immersive-card-wrap.visible {
   opacity: 1;
-  pointer-events: auto;
 }
 
-/* 拖动层：承载平移量，与卡片自身的入场缩放动画解耦 */
+/* 拖动层：承载平移量，与卡片自身的入场缩放动画解耦。
+   只让卡片本身接收指针事件，wrap 周围的空白区域保持穿透，
+   这样卡片显示时仍能在背景上拖动旋转 3D 模型。 */
 .immersive-card-drag {
   display: flex;
+}
+
+.immersive-card-wrap.visible .immersive-card-drag {
+  pointer-events: auto;
 }
 
 /* picker 面板的定位锚点；自身大小 = 主卡片大小，picker 不占位 */

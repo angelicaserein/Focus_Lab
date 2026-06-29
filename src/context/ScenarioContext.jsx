@@ -1,9 +1,9 @@
-import React, { useReducer, useContext } from "react";
+import React, { useReducer, useState, useContext, useCallback } from "react";
 import { loadVersioned, WRAPPER_VERSION } from "../utils/storage";
 import useUndoDelete from "../hooks/useUndoDelete";
 import usePersistedWrite from "../hooks/usePersistedWrite";
-import useScenarioSelection from "../hooks/useScenarioSelection";
 import { STORAGE_KEYS } from "../utils/storageKeys";
+import { DEFAULT_SCENARIO_SETTINGS } from "../utils/scenarioConstants";
 
 // Action types
 const ADD = "ADD";
@@ -48,8 +48,24 @@ function reducer(state, action) {
 
 const ScenarioContext = React.createContext(null);
 
-// selectedIds（场景多选）放在 Context 而非 page 级，是因为 Scenario 页选中后
-// 需要在 Focus 页中过滤可用场景，两者跨路由共享同一选中状态。
+// 从 localStorage 读取「当前情景」id（标量，非数组），兼容旧裸格式与 versioned 包装。
+function loadActiveScenarioId() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.ACTIVE_SCENARIO);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const id = parsed?.data ?? parsed;
+      if (typeof id === "string") return id;
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
+// activeScenarioId 是全局唯一的「当前情景」（单选，持久化）：
+//   · 情景页点选 = 切换当前情景
+//   · 待办页按其 settings.taskTypes 过滤任务
+//   · 专注页会话归属于它
+// 情景与待办是多对多松耦合（经由 taskType tag 匹配），情景并不"拥有"待办。
 export function ScenarioProvider({ children }) {
   const [scenarios, dispatch] = useReducer(
     reducer,
@@ -57,10 +73,18 @@ export function ScenarioProvider({ children }) {
     () => loadVersioned(STORAGE_KEYS.SCENARIOS, WRAPPER_VERSION),
   );
 
-  usePersistedWrite(STORAGE_KEYS.SCENARIOS, scenarios);
+  const [activeScenarioId, setActiveScenarioId] = useState(loadActiveScenarioId);
 
-  const { selectedIds, toggleSelect, clearSelection, removeFromSelection, restoreToSelection } =
-    useScenarioSelection();
+  usePersistedWrite(STORAGE_KEYS.SCENARIOS, scenarios);
+  usePersistedWrite(STORAGE_KEYS.ACTIVE_SCENARIO, activeScenarioId);
+
+  // 已被删除的情景 id 不应再是「当前情景」；派生时校验，避免悬空引用。
+  const activeScenario =
+    scenarios.find((s) => s.id === activeScenarioId) ?? null;
+
+  // 直接设置当前情景（传 null = 无情景）。"再点一次退出"之类的切换逻辑由调用方处理。
+  const setActiveScenario = useCallback((id) => setActiveScenarioId(id ?? null), []);
+  const clearActiveScenario = useCallback(() => setActiveScenarioId(null), []);
 
   const updateScenarioSettings = (id, settings) => {
     dispatch({ type: UPDATE_SETTINGS, payload: { id, settings } });
@@ -74,6 +98,7 @@ export function ScenarioProvider({ children }) {
       title: t,
       description: description.trim(),
       createdAt: Date.now(),
+      settings: { ...DEFAULT_SCENARIO_SETTINGS },
     };
     dispatch({ type: ADD, payload: item });
   };
@@ -91,12 +116,12 @@ export function ScenarioProvider({ children }) {
     items: scenarios,
     dispatch,
     onDelete: (id) => {
-      const wasSelected = selectedIds.includes(id);
-      if (wasSelected) removeFromSelection(id);
-      return { wasSelected };
+      const wasActive = activeScenarioId === id;
+      if (wasActive) setActiveScenarioId(null);
+      return { wasActive };
     },
     onRestore: (item, meta) => {
-      if (meta?.wasSelected) restoreToSelection(item.id);
+      if (meta?.wasActive) setActiveScenarioId(item.id);
     },
   });
 
@@ -108,9 +133,10 @@ export function ScenarioProvider({ children }) {
     updateScenarioSettings,
     pendingDelete,
     undoDelete,
-    selectedIds,
-    toggleSelect,
-    clearSelection,
+    activeScenarioId,
+    activeScenario,
+    setActiveScenario,
+    clearActiveScenario,
   };
 
   return (

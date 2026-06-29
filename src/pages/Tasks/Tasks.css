@@ -147,6 +147,18 @@
   font-size: 0.9rem;
 }
 
+/* 当前情景筛选 chip：醒目、置于工具栏最前，提示「全站正按此情景筛选」 */
+.flt-btn.scenario-pill {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent-mid);
+  font-weight: 600;
+}
+.flt-btn.scenario-pill.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .flt-clear {
   padding: 4px 12px;
   border-radius: 999px;

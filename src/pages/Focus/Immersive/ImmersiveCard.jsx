@@ -18,7 +18,7 @@ export default function ImmersiveCard({ flaskProgress }) {
     onTogglePause, onReset, onStop,
   } = useFocusSession();
 
-  const { nodeRef, handlers, position } = useDraggable();
+  const { nodeRef, handlers, position } = useDraggable({ x: 193, y: 28 });
 
   // picker: null = 收起；"add" = 添加；其它字符串 = 正在替换的 todo id
   const [picker, setPicker] = useState(null);

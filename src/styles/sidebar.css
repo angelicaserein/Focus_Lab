@@ -14,11 +14,71 @@
   box-shadow: 2px 0 8px var(--shadow-sm);
 }
 
+/* 全局「当前情景」指示器/切换器，置于导航上方，任何页面都可见。 */
+.sidebar-scenario {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 16px 20px 16px;
+  margin: 0 12px 8px 12px;
+  border-bottom: 1px solid var(--border-dark);
+}
+
+.sidebar-scenario-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.sidebar-scenario-select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border-dark);
+  background: var(--glass);
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.sidebar-scenario-select:hover {
+  border-color: var(--accent);
+}
+
+.sidebar-scenario-select.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 24px;
   padding: 0 12px;
+}
+
+.nav-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-section-title {
+  margin: 0 0 2px 0;
+  padding: 0 16px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.6;
 }
 
 .nav-link {

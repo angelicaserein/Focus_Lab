@@ -1,0 +1,414 @@
+/* 懒加载页面占位骨架屏。
+ *
+ * 每个页面布局不同，骨架屏按路由画出各自轮廓（见 PageSkeleton.jsx）。
+ * 这里的容器宽度 / 网格 / 卡片 / 图表尺寸刻意复刻各页面真实 CSS 的关键数值，
+ * 因为页面自身的 CSS 还在懒加载 chunk 里、此刻尚未到位，必须自带一份。
+ * 配色全部走主题 token，自动适配三套皮肤。 */
+
+/* 延迟现身：骨架屏挂载后先隐身约 220ms，再淡入。
+ * 页面 chunk 通常加载很快、会在这之前完成，骨架屏还没显形就被真实内容替换，
+ * 从而消除「闪一下」的 bug 感；只有真正慢的加载才会看到骨架屏。 */
+.sk-root {
+  width: 100%;
+  animation: skReveal 160ms ease-out 220ms both;
+}
+
+@keyframes skReveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 减少动态效果时仍保留「延迟」，只是不做淡入过渡 */
+@media (prefers-reduced-motion: reduce) {
+  .sk-root {
+    animation: skRevealStep 0s 220ms both;
+  }
+  @keyframes skRevealStep {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+.sk-page {
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── 各页面容器宽度 / 纵向间距（对齐真实页面） ── */
+.skp-home,
+.skp-history,
+.skp-reward,
+.skp-settings,
+.skp-research,
+.skp-analytics,
+.skp-scs,
+.skp-generic {
+  width: min(860px, 100%);
+}
+.skp-home,
+.skp-history,
+.skp-reward,
+.skp-settings {
+  gap: 40px;
+}
+.skp-research,
+.skp-analytics,
+.skp-generic {
+  gap: 28px;
+}
+.skp-scs {
+  gap: 32px;
+}
+.skp-focus {
+  width: min(1080px, 100%);
+}
+.skp-tasks {
+  width: min(980px, 100%);
+  gap: 20px;
+}
+.skp-ddl {
+  width: min(760px, 100%);
+  gap: 24px;
+}
+
+/* ── 行布局工具 ── */
+.sk-headline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sk-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sk-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sk-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sk-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.sk-actions {
+  display: flex;
+  gap: 12px;
+}
+.sk-actions--fill > .sk-block {
+  flex: 1;
+}
+.sk-titlegroup {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.sk-gap-sm {
+  gap: 8px;
+}
+.sk-wrap {
+  flex-wrap: wrap;
+}
+
+/* ── 通用卡片 ── */
+.sk-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px 24px;
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  border-radius: 20px;
+  box-shadow: 0 2px 12px var(--shadow-sm);
+}
+
+/* 主色卡（历史/情景统计的首张统计卡、奖励资产 hero） */
+.sk-card--accent {
+  background: var(--accent);
+  border-color: transparent;
+  box-shadow: 0 8px 28px var(--accent-glow);
+}
+
+/* 柔和提示块（DDL 今日提醒） */
+.sk-card--soft {
+  background: var(--accent-bg-dim);
+  border-style: dashed;
+}
+
+/* ── 首页热力图 ── */
+.sk-heatmap-months {
+  display: flex;
+  gap: 38px;
+  padding-left: 4px;
+  overflow: hidden;
+}
+.sk-heatmap {
+  display: flex;
+  gap: 3px;
+  overflow: hidden;
+}
+.sk-heatmap-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.skp-home-btn {
+  align-self: center;
+  width: 100%;
+  max-width: 480px;
+}
+
+/* ── 专注两栏 ── */
+.skp-focus-main {
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.skp-focus-col {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+@media (max-width: 860px) {
+  .skp-focus-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── 统计卡网格（历史 / 情景统计） ── */
+.sk-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.sk-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 28px 24px;
+  border-radius: 24px;
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  box-shadow: 0 2px 12px var(--shadow-sm);
+}
+.sk-stats--row2 {
+  grid-template-columns: repeat(2, 1fr);
+  margin-top: -24px;
+}
+@media (max-width: 640px) {
+  .sk-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ── 设置：主题卡排 + 危险区 ── */
+.sk-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.sk-theme-card {
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  gap: 10px;
+}
+.sk-card--danger {
+  border-style: dashed;
+  border-color: var(--border-accent);
+}
+@media (max-width: 640px) {
+  .sk-theme-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── 柱状图 ── */
+.sk-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 160px;
+  padding: 24px 20px 16px;
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  border-radius: 24px;
+  box-shadow: 0 2px 12px var(--shadow-sm);
+}
+.sk-chart--hourly {
+  gap: 3px;
+  padding: 20px 16px 12px;
+}
+.sk-bar {
+  flex: 1;
+}
+
+/* ── 段卡行（数据分析高峰时段下的 4 张小卡） ── */
+.sk-blocks {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.sk-blockcard {
+  padding: 16px;
+  gap: 8px;
+}
+@media (max-width: 640px) {
+  .sk-blocks {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ── 商城卡片网格（奖励） ── */
+.sk-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 32px 28px;
+  border-radius: 24px;
+}
+.sk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+.sk-shop {
+  border-radius: 24px;
+}
+@media (max-width: 480px) {
+  .sk-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ── 排行列表（情景统计） ── */
+.sk-rank {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sk-rank-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  border-radius: 14px;
+}
+.sk-rank-head {
+  background: var(--accent-bg-dim);
+  border-style: dashed;
+}
+
+/* ── 情景模式：单张大卡本身就是容器 ── */
+.skp-scenario {
+  gap: 16px;
+  padding: 20px;
+  background: var(--card);
+  border: 1px solid var(--border-input);
+  border-radius: 24px;
+}
+
+/* ── 任务库表格 ── */
+.sk-tabs {
+  flex-wrap: wrap;
+}
+.sk-toolbar {
+  flex-wrap: wrap;
+}
+.sk-table {
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  border-radius: 16px;
+  box-shadow: 0 2px 12px var(--shadow-sm);
+  overflow: hidden;
+}
+.sk-trow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-card);
+}
+.sk-trow:last-child {
+  border-bottom: none;
+}
+.sk-trow--head {
+  background: var(--accent-bg-dim);
+}
+
+/* ── 占位灰块：底色 + 流动微光 ── */
+.sk-block {
+  --sk-base: var(--accent-bg-dim);
+  --sk-sheen: var(--accent-hover);
+  flex-shrink: 0;
+  background: linear-gradient(
+    90deg,
+    var(--sk-base) 0%,
+    var(--sk-sheen) 50%,
+    var(--sk-base) 100%
+  );
+  background-size: 200% 100%;
+  animation: skShimmer 1.4s var(--ease) infinite;
+}
+
+/* 主色卡内的灰块换成半透明白，避免在主色底上发闷 */
+.sk-card--accent .sk-block {
+  --sk-base: rgba(255, 255, 255, 0.22);
+  --sk-sheen: rgba(255, 255, 255, 0.42);
+}
+
+@keyframes skShimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* 暗夜皮肤下用中性浅色 */
+:root[data-theme="night"] .sk-block {
+  --sk-base: rgba(255, 255, 255, 0.05);
+  --sk-sheen: rgba(255, 255, 255, 0.11);
+}
+
+/* 视觉隐藏但保留给屏幕阅读器 */
+.sk-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 无障碍：尊重系统「减少动态效果」，关掉流动微光只留静态灰块 */
+@media (prefers-reduced-motion: reduce) {
+  .sk-block {
+    animation: none;
+    background: var(--sk-base);
+  }
+}

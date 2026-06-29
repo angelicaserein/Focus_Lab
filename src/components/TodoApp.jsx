@@ -12,13 +12,12 @@ const typeLabel = Object.fromEntries(TASK_TYPE_OPTIONS.map((o) => [o.id, `${o.ic
 export default function TodoApp() {
   const [filter, setFilter] = useState("ALL");
   const { pendingDelete, undoDelete } = useTodos();
-  const { scenarios, selectedIds, clearSelection } = useScenarios();
+  const { activeScenario, clearActiveScenario } = useScenarios();
 
   const scenarioFilter = useMemo(() => {
-    const selected = scenarios.filter((s) => selectedIds.includes(s.id));
-    const types = [...new Set(selected.flatMap((s) => s.settings?.taskTypes ?? []))];
+    const types = activeScenario?.settings?.taskTypes ?? [];
     return types.length > 0 ? types : null;
-  }, [scenarios, selectedIds]);
+  }, [activeScenario]);
 
   return (
     <main className="todo-container" role="application" aria-label="Todo App">
@@ -64,14 +63,14 @@ export default function TodoApp() {
       {scenarioFilter && (
         <div className="scenario-filter-badge">
           <span className="scenario-filter-label">
-            情景筛选：{scenarioFilter.map((id) => typeLabel[id]).join(" · ")}
+            {activeScenario.title}：{scenarioFilter.map((id) => typeLabel[id]).join(" · ")}
           </span>
           <button
             className="scenario-filter-clear"
-            onClick={clearSelection}
-            aria-label="清除情景筛选"
+            onClick={clearActiveScenario}
+            aria-label="退出当前情景"
           >
-            × 清除
+            × 退出情景
           </button>
         </div>
       )}

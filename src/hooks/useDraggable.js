@@ -5,12 +5,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 //   · 用 setPointerCapture，指针移出元素/卡片也能持续跟手。
 //   · 偏移累加保存在 ref 里，多次拖动可接力。
 // 用法：把 nodeRef 挂在「要移动的元素」上，把 onPointerDown 挂在「拖动把手」上。
-export default function useDraggable() {
+export default function useDraggable(initialOffset = { x: 0, y: 0 }) {
   const nodeRef = useRef(null); // 被移动的元素
-  const offsetRef = useRef({ x: 0, y: 0 }); // 已累计偏移
+  const offsetRef = useRef({ ...initialOffset }); // 已累计偏移（含初始偏移）
   const startRef = useRef(null); // 本次拖动的指针起点（已减去累计偏移）
   const frameRef = useRef(0);
-  const [position, setPosition] = useState({ x: 0, y: 0 }); // 松手后快照，供调试读取
+  const [position, setPosition] = useState({ ...initialOffset }); // 松手后快照，供调试读取
 
   const apply = useCallback(() => {
     const node = nodeRef.current;
@@ -66,13 +66,15 @@ export default function useDraggable() {
     onPointerCancel: endDrag,
   };
 
+  // 挂载时把初始偏移写进 transform，让卡片以指定位置出场
   useEffect(() => {
+    apply();
     return () => {
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
     };
-  }, []);
+  }, [apply]);
 
   return { nodeRef, handlers, position };
 }

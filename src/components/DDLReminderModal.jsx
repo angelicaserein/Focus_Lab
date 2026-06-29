@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTodos } from "../context/TodoContext";
 import { useDDL } from "../context/DDLContext";
+import usePrefs from "../hooks/usePrefs";
+import useDDLNotify from "../hooks/useDDLNotify";
 import { getTodayStr } from "../utils/time";
 import { collectDueReminders, countdownLabel, countdownClass } from "../utils/ddlUtils";
 import { STORAGE_KEYS } from "../utils/storageKeys";
@@ -10,7 +12,11 @@ import "./DDLReminderModal.css";
 export default function DDLReminderModal() {
   const { todos } = useTodos();
   const { checkpointsMap, toggleCheckpointDone, modalForcedOpen, setModalForcedOpen } = useDDL();
+  const { notifyEnabled } = usePrefs();
   const navigate = useNavigate();
+
+  // 后台/最小化时由系统通知兜底（每天一次），与下方前台弹窗互补
+  useDDLNotify({ todos, checkpointsMap, enabled: notifyEnabled });
 
   const [open, setOpen] = useState(false);
 

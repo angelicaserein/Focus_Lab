@@ -1,0 +1,324 @@
+.page-memo {
+  width: min(720px, 100%);
+  margin: 0 auto;
+  padding: 8px 0 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ─── 标题 ─────────────────────────────────────────────── */
+
+.memo-headline h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+
+.memo-subtitle {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+/* ─── 新建备忘 ─────────────────────────────────────────── */
+
+.memo-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  box-shadow: 0 2px 10px var(--shadow-sm);
+}
+
+.memo-compose-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border-input);
+  background: var(--card);
+  color: var(--text-body);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+}
+
+.memo-compose-input:focus {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.memo-compose-add {
+  align-self: flex-end;
+  padding: 9px 24px;
+  border-radius: 99px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 160ms var(--ease), box-shadow 160ms var(--ease);
+  box-shadow: 0 4px 14px var(--accent-glow);
+}
+
+.memo-compose-add:hover:not(:disabled) {
+  opacity: 0.88;
+  box-shadow: 0 6px 20px var(--accent-glow);
+}
+
+.memo-compose-add:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ─── 筛选 ─────────────────────────────────────────────── */
+
+.memo-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.memo-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 16px;
+  border-radius: 99px;
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 160ms var(--ease), background 160ms var(--ease),
+    color 160ms var(--ease);
+}
+
+.memo-filter-chip:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.memo-filter-chip.active {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.memo-filter-count {
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 99px;
+  background: var(--accent-hover);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.memo-filter-chip.active .memo-filter-count {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ─── 空态 ─────────────────────────────────────────────── */
+
+.memo-empty {
+  padding: 36px 24px;
+  border-radius: 18px;
+  border: 1.5px dashed var(--border-card);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* ─── 时间线 ───────────────────────────────────────────── */
+
+.memo-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.memo-day {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.memo-day-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding-left: 2px;
+}
+
+.memo-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.memo-item {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  box-shadow: 0 2px 8px var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 专注随记：左侧强调条以做区分 */
+.memo-item.focus {
+  border-left: 4px solid var(--accent-border);
+}
+
+.memo-item-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.memo-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* 专注随记徽章用更中性的色，与手动备忘明显区分 */
+.memo-badge.focus {
+  background: var(--accent-hover);
+  color: var(--text-muted);
+}
+
+.memo-item-time {
+  font-size: 0.76rem;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.memo-item-actions {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 140ms var(--ease);
+}
+
+.memo-item:hover .memo-item-actions {
+  opacity: 1;
+}
+
+.memo-item-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 140ms var(--ease), color 140ms var(--ease);
+}
+
+.memo-item-btn:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.memo-item-btn.danger:hover {
+  background: rgba(220, 80, 80, 0.12);
+  color: #d65656;
+}
+
+.memo-item-text {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--text-body);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ─── 内联编辑 ─────────────────────────────────────────── */
+
+.memo-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.memo-edit-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1.5px solid var(--accent-border);
+  background: var(--card);
+  color: var(--text-body);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+}
+
+.memo-edit-input:focus {
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.memo-edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.memo-edit-save {
+  padding: 6px 18px;
+  border-radius: 99px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.memo-edit-save:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.memo-edit-cancel {
+  padding: 6px 16px;
+  border-radius: 99px;
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.memo-edit-cancel:hover {
+  border-color: var(--accent-border);
+}

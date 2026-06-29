@@ -2,7 +2,8 @@
 .immersive-tweaks {
   position: absolute;
   top: 20px;
-  right: 20px;
+  /* 右移让位给全屏开关（top:24 right:24，约 75px 宽），避免「调试」按钮与其重叠 */
+  right: 112px;
   z-index: 2002;
   display: flex;
   flex-direction: column;

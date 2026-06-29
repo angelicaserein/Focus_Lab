@@ -4,6 +4,7 @@ import PusheenScene from "../PusheenScene";
 import ImmersiveChat from "./ImmersiveChat";
 import ImmersiveUtils from "./ImmersiveUtils";
 import ImmersiveCard from "./ImmersiveCard";
+import ImmersiveFullscreen from "./ImmersiveFullscreen";
 import { useFocusSession } from "../FocusSessionContext";
 
 // 沉浸式专注遮罩：3D 模型背景 + 可拖动悬浮卡（含 DebugTweaks）+ AI 陪伴 + 工具栏。
@@ -25,6 +26,8 @@ export default function ImmersiveView() {
       <div className="immersive-model-area">
         <PusheenScene animEnabled={animEnabled} />
       </div>
+
+      <ImmersiveFullscreen />
 
       <ImmersiveCard flaskProgress={flaskProgress} />
 

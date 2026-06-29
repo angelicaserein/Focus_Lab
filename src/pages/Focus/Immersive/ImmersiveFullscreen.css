@@ -1,0 +1,60 @@
+/* ── 沉浸模式右上角全屏开关 ── */
+.immersive-fullscreen-btn {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 2001;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.immersive-fullscreen-btn:hover {
+  transform: translateY(-2px);
+  background: var(--glass-bg-soft);
+  color: var(--text-body);
+}
+
+.immersive-fullscreen-btn:active {
+  transform: scale(0.95);
+}
+
+.immersive-fullscreen-btn svg {
+  display: block;
+}
+
+/* 快捷键提示徽标：平时收窄淡出，hover 时展开提示「F」 */
+.immersive-fullscreen-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 5px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-soft);
+  font-size: 0.66rem;
+  font-weight: 700;
+  font-family: inherit;
+  line-height: 1;
+  color: var(--text-faint);
+  opacity: 0.7;
+  transition: opacity 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.immersive-fullscreen-btn:hover .immersive-fullscreen-key {
+  opacity: 1;
+  color: var(--text-muted);
+  border-color: var(--border-accent);
+}
