@@ -429,6 +429,33 @@
   color: #ef4444;
   font-weight: 700;
 }
+/* 关掉截止开关：日期只作普通信息，淡化展示 */
+.due-badge.inactive {
+  color: var(--text-muted);
+  opacity: 0.55;
+  font-weight: 500;
+}
+
+/* 截止日期开关：⚑ 已设为 DDL / ⚐ 仅日期 */
+.ddl-toggle {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 5px;
+  padding: 0 2px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.82rem;
+  line-height: 1;
+  color: var(--text-muted);
+  opacity: 0.5;
+  transition: opacity 0.15s, color 0.15s;
+}
+.ddl-toggle:hover { opacity: 1; }
+.ddl-toggle.active {
+  color: #ef4444;
+  opacity: 0.95;
+}
 
 /* Estimated mins */
 .est-value {

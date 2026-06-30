@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
+import { LanguageProvider } from "./context/LanguageContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { RewardProvider } from "./context/RewardContext";
 import { FocusProvider } from "./context/FocusContext";
@@ -23,6 +24,7 @@ registerSW();
 // FocusProvider 再次：只持有专注选择 id 集合与记录，TodoProvider 可作为子级反向联动。
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
+    <LanguageProvider>
     <ThemeProvider>
       <RewardProvider>
         <FocusProvider>
@@ -38,5 +40,6 @@ createRoot(document.getElementById("root")).render(
         </FocusProvider>
       </RewardProvider>
     </ThemeProvider>
+    </LanguageProvider>
   </React.StrictMode>,
 );

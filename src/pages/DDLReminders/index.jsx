@@ -8,6 +8,7 @@ import {
   formatDueDate,
   isCheckpointDue,
   collectDueReminders,
+  isActiveDeadline,
 } from "../../utils/ddlUtils";
 import DDLDebugPanel from "./DDLDebugPanel";
 import "./DDLReminders.css";
@@ -207,7 +208,7 @@ export default function DDLRemindersPage() {
   const todosWithDueDate = useMemo(
     () =>
       todos
-        .filter((t) => !t.completed && t.attrs?.dueDate)
+        .filter((t) => !t.completed && isActiveDeadline(t))
         .sort((a, b) => a.attrs.dueDate.localeCompare(b.attrs.dueDate)),
     [todos]
   );

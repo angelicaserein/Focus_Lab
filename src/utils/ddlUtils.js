@@ -33,13 +33,20 @@ export function isCheckpointDue(cp, daysLeft) {
   return !cp.done && daysLeft !== null && daysLeft <= cp.daysBeforeDeadline;
 }
 
+// 任务的日期是否「真正的截止日期」：填了日期 且 截止开关没关闭。
+// dueDateActive 缺省（老数据 / 新填日期）视为开启，只有显式 false 才算关闭。
+// 这是主页截止图、DDL 提醒、Sidebar 角标判断「是否 DDL」的单一标准。
+export function isActiveDeadline(todo) {
+  return !!todo.attrs?.dueDate && todo.attrs?.dueDateActive !== false;
+}
+
 // 遍历所有任务，收集今日到期的提醒节点。
 // 作为 Sidebar badge / DDL 页今日提醒 / 弹窗列表的单一数据源。
 // 返回 [{ todo, checkpoint, daysLeft }]。
 export function collectDueReminders(todos, checkpointsMap) {
   const result = [];
   for (const todo of todos) {
-    if (todo.completed || !todo.attrs?.dueDate) continue;
+    if (todo.completed || !isActiveDeadline(todo)) continue;
     const cps = checkpointsMap[todo.id] || [];
     const daysLeft = getDaysUntil(todo.attrs.dueDate);
     for (const cp of cps) {

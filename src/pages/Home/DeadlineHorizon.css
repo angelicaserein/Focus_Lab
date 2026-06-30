@@ -1,0 +1,214 @@
+/* ── 截止临近感 ──────────────────────────────────────────────────────────────
+   一条退向地平线的路，DDL 是路上的路牌：越近越大越鲜明，越远越小越淡。 */
+.ddl-horizon-wrap {
+  width: 100%;
+}
+
+.ddl-horizon-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 14px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ddl-horizon-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ddl-horizon-sub {
+  font-size: 0.78rem;
+  color: var(--text-faint);
+}
+
+/* ── 路面 ── */
+.ddl-horizon-road {
+  position: relative;
+  width: 100%;
+  height: 168px;
+  border-radius: 18px;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      120% 90% at 96% 38%,
+      color-mix(in srgb, var(--accent) 14%, transparent),
+      transparent 60%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--accent) 4%, transparent),
+      transparent 45%
+    );
+  border: 1px solid var(--border-input, rgba(15, 23, 42, 0.06));
+}
+
+/* 透视地面：底边宽、向右上方的灭点收拢 */
+.ddl-road-floor {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 38%,
+    color-mix(in srgb, var(--accent) 7%, transparent) 100%
+  );
+  clip-path: polygon(0% 100%, 100% 100%, 92% 38%, 88% 38%);
+  opacity: 0.9;
+}
+
+/* 「现在 / 你」锚点 */
+.ddl-road-you {
+  position: absolute;
+  left: 10px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 200;
+}
+
+.ddl-you-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+.ddl-you-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.ddl-road-far-label {
+  position: absolute;
+  top: calc(38% - 16px);
+  right: 12px;
+  font-size: 0.68rem;
+  color: var(--text-faint);
+  letter-spacing: 0.08em;
+}
+
+.ddl-horizon-empty {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: var(--text-faint);
+}
+
+/* ── 路牌 ── */
+.ddl-pin {
+  position: absolute;
+  transform: translate(-50%, -100%) scale(var(--pin-scale, 1));
+  transform-origin: bottom center;
+  opacity: var(--pin-opacity, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  transition: opacity 140ms ease, filter 140ms ease;
+}
+
+.ddl-pin:hover {
+  filter: brightness(1.06);
+  opacity: 1;
+}
+
+.ddl-pin-flag {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  max-width: 132px;
+  background: var(--card);
+  box-shadow: 0 4px 14px var(--shadow-sm, rgba(15, 23, 42, 0.08));
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.ddl-pin-days {
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--accent);
+}
+
+.ddl-pin-text {
+  font-size: 0.68rem;
+  line-height: 1.15;
+  color: var(--text-muted);
+  max-width: 112px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 路牌的杆子，立在路面上 */
+.ddl-pin-post {
+  width: 2px;
+  height: 16px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 60%, transparent),
+    transparent
+  );
+}
+
+/* ── 紧迫度配色 ── */
+.ddl-pin.soon .ddl-pin-flag {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.ddl-pin.urgent .ddl-pin-days {
+  color: #f97316;
+}
+.ddl-pin.urgent .ddl-pin-flag {
+  border-color: color-mix(in srgb, #f97316 55%, transparent);
+  box-shadow: 0 4px 16px color-mix(in srgb, #f97316 22%, transparent);
+}
+
+.ddl-pin.overdue .ddl-pin-days {
+  color: #ef4444;
+}
+.ddl-pin.overdue .ddl-pin-flag {
+  border-color: color-mix(in srgb, #ef4444 60%, transparent);
+  box-shadow: 0 4px 18px color-mix(in srgb, #ef4444 30%, transparent);
+  animation: ddl-pin-pulse 1.8s ease-in-out infinite;
+}
+.ddl-pin.overdue .ddl-pin-post {
+  background: linear-gradient(180deg, #ef4444, transparent);
+}
+
+@keyframes ddl-pin-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ddl-pin.overdue .ddl-pin-flag {
+    animation: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .ddl-horizon-road {
+    height: 150px;
+  }
+  .ddl-pin-text {
+    display: none;
+  }
+}

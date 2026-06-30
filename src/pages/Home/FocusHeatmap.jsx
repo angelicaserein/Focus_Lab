@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { totalFocusSecs } from "../../utils/focusRecords";
 import { formatDuration } from "../../utils/time";
+import { useLanguage } from "../../context/LanguageContext";
 import "./FocusHeatmap.css";
 
 const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -57,6 +58,7 @@ function buildWeekGrid(dayRecordsMap, today) {
 }
 
 export default function FocusHeatmap({ records }) {
+  const { t, lang } = useLanguage();
   const { weeks, totalSecs } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -86,13 +88,16 @@ export default function FocusHeatmap({ records }) {
   const totalMins = Math.round((totalSecs % 3600) / 60);
   const totalLabel =
     totalSecs > 0
-      ? `过去一年共专注 ${totalHours > 0 ? totalHours + "h " : ""}${totalMins}m`
-      : "快去记录你的第一次专注吧！";
+      ? t("heatmap.total", {
+          hours: totalHours > 0 ? totalHours + "h " : "",
+          mins: totalMins,
+        })
+      : t("heatmap.empty");
 
   return (
     <div className="heatmap-wrap">
       <div className="heatmap-header">
-        <span className="heatmap-title">专注热力图</span>
+        <span className="heatmap-title">{t("heatmap.title")}</span>
         <span className="heatmap-total">{totalLabel}</span>
       </div>
 
@@ -123,15 +128,18 @@ export default function FocusHeatmap({ records }) {
           {weeks.map((week, wi) =>
             week.map((cell, di) => {
               const level = cell.isFuture ? "future" : getLevel(cell.secs);
-              const dateStr = cell.date.toLocaleDateString("zh-CN", {
-                month: "long",
-                day: "numeric",
-              });
+              const dateStr = cell.date.toLocaleDateString(
+                lang === "zh" ? "zh-CN" : "en-US",
+                { month: "long", day: "numeric" },
+              );
               const title = cell.isFuture
                 ? ""
                 : cell.secs > 0
-                  ? `${dateStr} · 专注 ${formatDuration(cell.secs)}`
-                  : `${dateStr} · 无记录`;
+                  ? t("heatmap.cellFocus", {
+                      date: dateStr,
+                      duration: formatDuration(cell.secs),
+                    })
+                  : t("heatmap.cellEmpty", { date: dateStr });
               return (
                 <div
                   key={`${wi}-${di}`}
@@ -147,11 +155,11 @@ export default function FocusHeatmap({ records }) {
 
       {/* Legend */}
       <div className="heatmap-footer">
-        <span className="heatmap-legend-label">少</span>
+        <span className="heatmap-legend-label">{t("heatmap.less")}</span>
         {[0, 1, 2, 3, 4].map((l) => (
           <div key={l} className="heatmap-legend-cell" data-level={l} />
         ))}
-        <span className="heatmap-legend-label">多</span>
+        <span className="heatmap-legend-label">{t("heatmap.more")}</span>
       </div>
     </div>
   );

@@ -28,6 +28,7 @@ export const STORAGE_KEYS = {
   PREF_ANIM_ENABLED:  "pref_anim_enabled_v1",
   PREF_CARD_VISIBLE:  "pref_card_visible_v1",
   PREF_NOTIFY_ENABLED: "pref_notify_enabled_v1",
+  PREF_LANG:          "pref_lang_v1",
   // DDL 提醒节点
   DDL_CHECKPOINTS:    "ddl_checkpoints_v1",
   DDL_MODAL_DISMISSED: "ddl_modal_dismissed_v1",

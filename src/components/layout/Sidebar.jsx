@@ -3,33 +3,34 @@ import { Link, useLocation } from "react-router-dom";
 import { useTodos } from "../../context/TodoContext";
 import { useDDL } from "../../context/DDLContext";
 import { useScenarios } from "../../context/ScenarioContext";
+import { useLanguage } from "../../context/LanguageContext";
 
 const NAV_SECTIONS = [
   {
-    title: "每日",
+    titleKey: "nav.section.daily",
     items: [
-      { to: "/",        label: "主页" },
-      { to: "/focus",   label: "专注" },
-      { to: "/tasks",   label: "任务库" },
-      { to: "/memo",    label: "备忘录" },
-      { to: "/ddl",     label: "DDL 提醒" },
+      { to: "/",        labelKey: "nav.home" },
+      { to: "/focus",   labelKey: "nav.focus" },
+      { to: "/tasks",   labelKey: "nav.tasks" },
+      { to: "/memo",    labelKey: "nav.memo" },
+      { to: "/ddl",     labelKey: "nav.ddl" },
     ],
   },
   {
-    title: "回顾",
+    titleKey: "nav.section.review",
     items: [
-      { to: "/history",        label: "历史记录" },
-      { to: "/analytics",      label: "数据分析" },
-      { to: "/scenario-stats", label: "情景统计" },
+      { to: "/history",        labelKey: "nav.history" },
+      { to: "/analytics",      labelKey: "nav.analytics" },
+      { to: "/scenario-stats", labelKey: "nav.scenarioStats" },
     ],
   },
   {
-    title: "配置",
+    titleKey: "nav.section.config",
     items: [
-      { to: "/scenario", label: "情境配置" },
-      { to: "/reward",   label: "奖励" },
-      { to: "/settings", label: "设置" },
-      { to: "/research", label: "研究记录" },
+      { to: "/scenario", labelKey: "nav.scenario" },
+      { to: "/reward",   labelKey: "nav.reward" },
+      { to: "/settings", labelKey: "nav.settings" },
+      { to: "/research", labelKey: "nav.research" },
     ],
   },
 ];
@@ -39,6 +40,7 @@ export default function Sidebar() {
   const { todos } = useTodos();
   const { computeBadgeCount } = useDDL();
   const { scenarios, activeScenarioId, setActiveScenario } = useScenarios();
+  const { t } = useLanguage();
 
   const ddlBadge = useMemo(() => computeBadgeCount(todos), [todos, computeBadgeCount]);
 
@@ -47,7 +49,7 @@ export default function Sidebar() {
       {scenarios.length > 0 && (
         <div className="sidebar-scenario">
           <label className="sidebar-scenario-label" htmlFor="sidebar-scenario-select">
-            当前情景
+            {t("sidebar.currentScenario")}
           </label>
           <select
             id="sidebar-scenario-select"
@@ -55,7 +57,7 @@ export default function Sidebar() {
             value={activeScenarioId ?? ""}
             onChange={(e) => setActiveScenario(e.target.value || null)}
           >
-            <option value="">无情景</option>
+            <option value="">{t("sidebar.noScenario")}</option>
             {scenarios.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.title}
@@ -66,12 +68,12 @@ export default function Sidebar() {
       )}
 
       <nav className="sidebar-nav">
-        {NAV_SECTIONS.map(({ title, items }) => (
-          <div key={title} className="nav-section">
-            <p className="nav-section-title">{title}</p>
-            {items.map(({ to, label }) => (
+        {NAV_SECTIONS.map(({ titleKey, items }) => (
+          <div key={titleKey} className="nav-section">
+            <p className="nav-section-title">{t(titleKey)}</p>
+            {items.map(({ to, labelKey }) => (
               <Link key={to} to={to} className={`nav-link${pathname === to ? " active" : ""}`}>
-                <span className="nav-label">{label}</span>
+                <span className="nav-label">{t(labelKey)}</span>
                 {to === "/ddl" && ddlBadge > 0 && (
                   <span className="nav-badge">{ddlBadge}</span>
                 )}

@@ -1,21 +1,16 @@
 import React, { useRef, useState } from "react";
 import { exportAllData, importAllData, KEY_MAP } from "../../utils/storage";
 import { STORAGE_KEYS } from "../../utils/storageKeys";
+import { useLanguage } from "../../context/LanguageContext";
 
-const STORAGE_LABELS = {
-  todos:        "待办",
-  scenarios:    "情境",
-  focusRecords: "专注记录",
-  notes:        "随记",
-  distractions: "分心",
-  chatHistory:  "聊天",
-};
+// 纳入用量统计的存储项；label 在渲染时按 settings.data.label.{name} 翻译。
+const STORAGE_NAMES = ["todos", "scenarios", "focusRecords", "notes", "distractions", "chatHistory"];
 
 function getStorageInfo() {
   let totalBytes = 0;
   const items = [];
   for (const [name, { key }] of Object.entries(KEY_MAP)) {
-    if (!(name in STORAGE_LABELS)) continue;
+    if (!STORAGE_NAMES.includes(name)) continue;
     const raw = localStorage.getItem(key) ?? "";
     const bytes = new Blob([raw]).size;
     totalBytes += bytes;
@@ -25,12 +20,13 @@ function getStorageInfo() {
       const arr = p?.data ?? p;
       if (Array.isArray(arr)) count = arr.length;
     } catch { /* ignore */ }
-    items.push({ label: STORAGE_LABELS[name], bytes, count });
+    items.push({ name, bytes, count });
   }
   return { totalKB: (totalBytes / 1024).toFixed(1), items };
 }
 
 export default function DataSection() {
+  const { t } = useLanguage();
   const fileInputRef = useRef(null);
   const [importMsg, setImportMsg] = useState(null);
   const [confirmClearHistory, setConfirmClearHistory] = useState(false);
@@ -47,10 +43,10 @@ export default function DataSection() {
     reader.onload = (evt) => {
       const result = importAllData(evt.target.result);
       if (result.success) {
-        setImportMsg({ type: "success", text: `已成功导入 ${result.keys.length} 项数据，即将重新加载…` });
+        setImportMsg({ type: "success", text: t("settings.data.importSuccess", { count: result.keys.length }) });
         setTimeout(() => window.location.reload(), 1500);
       } else {
-        setImportMsg({ type: "error", text: `导入失败：${result.error}` });
+        setImportMsg({ type: "error", text: t("settings.data.importError", { error: result.error }) });
       }
     };
     reader.readAsText(file);
@@ -79,28 +75,29 @@ export default function DataSection() {
 
   return (
     <div className="settings-section">
-      <div className="settings-section-title">数据管理</div>
-      <p className="settings-section-hint">
-        所有数据保存在本地浏览器中。清除浏览器缓存前请先导出备份。
-      </p>
+      <div className="settings-section-title">{t("settings.data.title")}</div>
+      <p className="settings-section-hint">{t("settings.data.hint")}</p>
 
       <div className="settings-storage-info">
-        <div className="settings-storage-total">占用空间：约 {storageInfo.totalKB} KB</div>
+        <div className="settings-storage-total">{t("settings.data.usage", { kb: storageInfo.totalKB })}</div>
         <div className="settings-storage-breakdown">
-          {storageInfo.items.map((item) => (
-            <span key={item.label} className="settings-storage-item">
-              {item.label}{item.count !== null ? `（${item.count}条）` : ""}
-            </span>
-          ))}
+          {storageInfo.items.map((item) => {
+            const label = t(`settings.data.label.${item.name}`);
+            return (
+              <span key={item.name} className="settings-storage-item">
+                {item.count !== null ? t("settings.data.count", { label, count: item.count }) : label}
+              </span>
+            );
+          })}
         </div>
       </div>
 
       <div className="settings-data-actions">
         <button className="settings-data-btn" onClick={handleExport}>
-          导出数据
+          {t("settings.data.export")}
         </button>
         <button className="settings-data-btn" onClick={handleImportClick}>
-          导入数据
+          {t("settings.data.import")}
         </button>
         <input
           ref={fileInputRef}
@@ -118,34 +115,34 @@ export default function DataSection() {
       )}
 
       <div className="settings-danger-zone">
-        <div className="settings-danger-title">危险操作</div>
+        <div className="settings-danger-title">{t("settings.data.dangerTitle")}</div>
         <div className="settings-data-actions">
           {confirmClearHistory ? (
             <>
               <button className="settings-data-btn danger confirm" onClick={handleClearHistory}>
-                确认清除
+                {t("settings.data.confirmClear")}
               </button>
               <button className="settings-data-btn" onClick={() => setConfirmClearHistory(false)}>
-                取消
+                {t("settings.data.cancel")}
               </button>
             </>
           ) : (
             <button className="settings-data-btn danger" onClick={handleClearHistory}>
-              清除专注记录
+              {t("settings.data.clearFocus")}
             </button>
           )}
           {confirmClearChat ? (
             <>
               <button className="settings-data-btn danger confirm" onClick={handleClearChat}>
-                确认清除
+                {t("settings.data.confirmClear")}
               </button>
               <button className="settings-data-btn" onClick={() => setConfirmClearChat(false)}>
-                取消
+                {t("settings.data.cancel")}
               </button>
             </>
           ) : (
             <button className="settings-data-btn danger" onClick={handleClearChat}>
-              清除聊天记录
+              {t("settings.data.clearChat")}
             </button>
           )}
         </div>

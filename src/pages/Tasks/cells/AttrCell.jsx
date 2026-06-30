@@ -17,6 +17,11 @@ export default function AttrCell({ attrDef, todo, onSave }) {
 
   const isPopup = type === "select" || type === "multiselect";
 
+  // 系统「截止日期」列：日期旁带一个开关，决定它是否算真正的 DDL
+  // （联动主页截止图 + 提醒）。dueDateActive 缺省视为开启。
+  const isDeadlineCell = attrId === "dueDate";
+  const deadlineActive = todo.attrs?.dueDateActive !== false;
+
   const startEdit = (e) => {
     e.stopPropagation();
     if (isEditing) return;
@@ -80,7 +85,21 @@ export default function AttrCell({ attrDef, todo, onSave }) {
   return (
     <>
       <div className="attr-cell-display" ref={displayRef} onClick={startEdit}>
-        {renderValue(attrId, type, value, options, unit, todo.completed)}
+        {renderValue(attrId, type, value, options, unit, todo.completed, deadlineActive)}
+        {isDeadlineCell && value && (
+          <button
+            type="button"
+            className={`ddl-toggle${deadlineActive ? " active" : ""}`}
+            title={
+              deadlineActive
+                ? "已设为截止日期：联动主页截止图与提醒 · 点击取消"
+                : "仅作日期，不计入截止 · 点击设为截止日期"
+            }
+            onClick={(e) => { e.stopPropagation(); onSave("dueDateActive", !deadlineActive); }}
+          >
+            {deadlineActive ? "⚑" : "⚐"}
+          </button>
+        )}
       </div>
       {isEditing && type === "select" && (
         <Popover anchorEl={displayRef.current} onClose={() => setIsEditing(false)}>
@@ -101,7 +120,7 @@ export default function AttrCell({ attrDef, todo, onSave }) {
   );
 }
 
-function renderValue(attrId, type, value, options, unit, completed) {
+function renderValue(attrId, type, value, options, unit, completed, deadlineActive = true) {
   if (type === "select") {
     const opt = options.find(o => o.id === value);
     return opt
@@ -135,8 +154,15 @@ function renderValue(attrId, type, value, options, unit, completed) {
   }
   if (type === "date") {
     if (!value) return <span className="cell-empty">—</span>;
-    const past = isDuePast(value) && !completed;
-    return <span className={`due-badge${past ? " overdue" : ""}`}>{formatDate(value)}</span>;
+    // 「截止日期」列关掉开关后，只当普通日期展示：不标逾期红、整体淡化。
+    const isDeadlineCol = attrId === "dueDate";
+    const past = isDuePast(value) && !completed && (!isDeadlineCol || deadlineActive);
+    const inactive = isDeadlineCol && !deadlineActive;
+    return (
+      <span className={`due-badge${past ? " overdue" : ""}${inactive ? " inactive" : ""}`}>
+        {formatDate(value)}
+      </span>
+    );
   }
   if (type === "number") {
     if (!value) return <span className="cell-empty">—</span>;

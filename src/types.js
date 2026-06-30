@@ -33,6 +33,7 @@
  *   priority?:      'urgent' | 'high' | 'medium' | 'low',
  *   tags?:          string[],
  *   dueDate?:       string,
+ *   dueDateActive?: boolean,   // 截止开关；缺省/true=算真正 DDL（联动主页图+提醒），false=仅普通日期
  *   estimatedMins?: number,
  *   notes?:         string,
  *   [key: string]:  any,

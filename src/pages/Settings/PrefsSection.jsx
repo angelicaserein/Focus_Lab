@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import usePrefs from "../../hooks/usePrefs";
+import { useLanguage } from "../../context/LanguageContext";
 import {
   notifySupported,
   notifyPermission,
@@ -13,6 +14,7 @@ export default function PrefsSection() {
     animEnabled, setAnimEnabled,
     notifyEnabled, setNotifyEnabled,
   } = usePrefs();
+  const { t } = useLanguage();
 
   // 浏览器层面的授权状态（granted / denied / default / unsupported），用于展示与判断
   const [permission, setPermission] = useState(notifyPermission());
@@ -31,8 +33,8 @@ export default function PrefsSection() {
     setPermission(result);
     if (result === "granted") {
       setNotifyEnabled(true);
-      showNotification("🔔 通知已开启", {
-        body: "番茄到点与 DDL 提醒会在这里提醒你。",
+      showNotification(t("settings.prefs.notifyEnabledTitle"), {
+        body: t("settings.prefs.notifyEnabledBody"),
         tag: "notify-enabled",
       });
     } else {
@@ -42,11 +44,11 @@ export default function PrefsSection() {
 
   return (
     <div className="settings-section">
-      <div className="settings-section-title">专注偏好</div>
-      <p className="settings-section-hint">更改即时生效，下次进入沉浸模式时应用。</p>
+      <div className="settings-section-title">{t("settings.prefs.title")}</div>
+      <p className="settings-section-hint">{t("settings.prefs.hint")}</p>
 
       <div className="settings-pref-row">
-        <span className="settings-pref-label">番茄时长（分钟）</span>
+        <span className="settings-pref-label">{t("settings.prefs.pomodoro")}</span>
         <div className="settings-pill-group">
           {[15, 20, 25, 30, 45, 60].map((mins) => (
             <button
@@ -62,7 +64,7 @@ export default function PrefsSection() {
       </div>
 
       <div className="settings-pref-row">
-        <span className="settings-pref-label">3D 动画</span>
+        <span className="settings-pref-label">{t("settings.prefs.anim")}</span>
         <button
           className={`settings-toggle-btn${animEnabled ? " active" : ""}`}
           onClick={() => setAnimEnabled((v) => !v)}
@@ -71,12 +73,12 @@ export default function PrefsSection() {
           <span className="settings-toggle-track">
             <span className="settings-toggle-thumb" />
           </span>
-          {animEnabled ? "开启" : "关闭"}
+          {animEnabled ? t("settings.prefs.on") : t("settings.prefs.off")}
         </button>
       </div>
 
       <div className="settings-pref-row">
-        <span className="settings-pref-label">桌面通知</span>
+        <span className="settings-pref-label">{t("settings.prefs.notify")}</span>
         <button
           className={`settings-toggle-btn${notifyOn ? " active" : ""}`}
           onClick={handleToggleNotify}
@@ -86,15 +88,15 @@ export default function PrefsSection() {
           <span className="settings-toggle-track">
             <span className="settings-toggle-thumb" />
           </span>
-          {notifyOn ? "开启" : "关闭"}
+          {notifyOn ? t("settings.prefs.on") : t("settings.prefs.off")}
         </button>
       </div>
       <p className="settings-section-hint">
         {!supported
-          ? "当前浏览器不支持桌面通知。"
+          ? t("settings.prefs.notifyUnsupported")
           : permission === "denied"
-            ? "通知已被浏览器拦截，请在地址栏的网站权限设置中手动允许后再开启。"
-            : "开启后，番茄到点和今日 DDL 会以系统通知提醒你（即使切到其它标签页）。"}
+            ? t("settings.prefs.notifyDenied")
+            : t("settings.prefs.notifyHint")}
       </p>
     </div>
   );
