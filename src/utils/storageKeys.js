@@ -3,6 +3,8 @@ export const STORAGE_KEYS = {
   TODOS:            "todos_v1",
   SCENARIOS:        "scenarios_v1",
   ACTIVE_SCENARIO:  "active_scenario_v1",
+  // 情境配置的可自定义选项表（设备 / 交流规则），全局共享、跨情境
+  SCENARIO_OPTIONS: "scenario_options_v1",
   FOCUS_RECORDS:    "focus_records_v1",
   // 专注会话
   CHAT:             "focus_chat_v1",

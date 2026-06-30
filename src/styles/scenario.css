@@ -336,6 +336,113 @@
   border-color: var(--accent);
 }
 
+/* label row: 标题 + 编辑/跳转入口 */
+.settings-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.settings-manage-btn {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border-input);
+  border-radius: 10px;
+  padding: 2px 8px;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 120ms ease;
+}
+.settings-manage-btn:hover,
+.settings-manage-btn.active {
+  color: var(--accent);
+  border-color: var(--accent-border);
+}
+
+.settings-empty-hint {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* 选项编辑（manage mode） */
+.settings-option-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.option-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.option-icon-input {
+  width: 38px;
+  flex-shrink: 0;
+  text-align: center;
+  padding: 4px 6px;
+  border-radius: 8px;
+  border: 1px solid var(--border-input);
+  background: var(--card);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.settings-option-edit .option-label-input {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border-input);
+  background: var(--card);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.settings-option-edit .option-remove {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.settings-option-edit .option-remove:hover {
+  color: #ef4444;
+  background: var(--card);
+}
+
+.option-add-row {
+  margin-top: 2px;
+}
+
+.option-add-btn {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: transparent;
+  border: 1px dashed var(--accent-border);
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.option-add-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .scenario-stats-link {
   font-size: 0.82rem;
   font-weight: 600;

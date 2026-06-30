@@ -100,8 +100,9 @@ export function unwrapVersioned(parsed) {
 }
 
 const KEY_MAP = {
-  todos:         { key: STORAGE_KEYS.TODOS            },
-  scenarios:     { key: STORAGE_KEYS.SCENARIOS        },
+  todos:           { key: STORAGE_KEYS.TODOS            },
+  scenarios:       { key: STORAGE_KEYS.SCENARIOS        },
+  scenarioOptions: { key: STORAGE_KEYS.SCENARIO_OPTIONS },
   focusRecords:  { key: STORAGE_KEYS.FOCUS_RECORDS    },
   coins:         { key: STORAGE_KEYS.COINS            },
   ownedRewards:  { key: STORAGE_KEYS.REWARD_OWNED     },

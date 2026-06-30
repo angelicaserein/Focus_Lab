@@ -1,4 +1,4 @@
-import React, { useReducer, useState, useContext } from "react";
+import React, { useReducer, useState, useContext, useMemo } from "react";
 import { STORAGE_KEYS } from "../utils/storageKeys";
 import { loadVersioned, WRAPPER_VERSION } from "../utils/storage";
 import usePersistedWrite from "../hooks/usePersistedWrite";
@@ -92,6 +92,19 @@ export function DatabaseProvider({ children }) {
 
   const activeDatabase = databases.find(d => d.id === activeDatabaseId) ?? databases[0];
 
+  // 全库聚合的「标签」选项：情境的「任务类型」以此为唯一来源（按 id 去重，先出现者优先）。
+  // 标签列以约定 id "tags" 标识；各库各自维护一份，这里取并集供跨库情境筛选使用。
+  const allTagOptions = useMemo(() => {
+    const seen = new Map();
+    for (const db of databases) {
+      const tagsAttr = (db.attrs ?? []).find(a => a.id === "tags");
+      for (const opt of tagsAttr?.options ?? []) {
+        if (opt && !seen.has(opt.id)) seen.set(opt.id, opt);
+      }
+    }
+    return [...seen.values()];
+  }, [databases]);
+
   // ---- database CRUD ----
   const addDatabase = (name, templateId) => {
     const tpl = DATABASE_TEMPLATES.find(t => t.id === templateId);
@@ -158,6 +171,7 @@ export function DatabaseProvider({ children }) {
     databases,
     activeDatabaseId,
     activeDatabase,
+    allTagOptions,
     addDatabase,
     renameDatabase,
     deleteDatabase,

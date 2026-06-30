@@ -10,8 +10,10 @@
       },
       "isBackground": true,
       "presentation": {
-        "reveal": "silent",
-        "panel": "dedicated"
+        "reveal": "always",
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "focus": false
       },
       "problemMatcher": []
     }

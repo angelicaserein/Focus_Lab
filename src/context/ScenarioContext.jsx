@@ -3,7 +3,10 @@ import { loadVersioned, WRAPPER_VERSION } from "../utils/storage";
 import useUndoDelete from "../hooks/useUndoDelete";
 import usePersistedWrite from "../hooks/usePersistedWrite";
 import { STORAGE_KEYS } from "../utils/storageKeys";
-import { DEFAULT_SCENARIO_SETTINGS } from "../utils/scenarioConstants";
+import {
+  DEFAULT_SCENARIO_SETTINGS,
+  DEFAULT_SCENARIO_OPTIONS,
+} from "../utils/scenarioConstants";
 
 // Action types
 const ADD = "ADD";
@@ -48,6 +51,27 @@ function reducer(state, action) {
 
 const ScenarioContext = React.createContext(null);
 
+// 读取可自定义选项表，补齐缺失的 kind（容忍旧/残缺数据），并保证每项形状合法。
+// 注意：scenarioOptions 是对象（非数组），不能用只认数组的 loadVersioned，需手动拆包。
+function loadScenarioOptions() {
+  let stored = null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.SCENARIO_OPTIONS);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      stored = parsed?.data ?? parsed; // 兼容裸对象与 { version, data } 包装
+    }
+  } catch { /* ignore */ }
+  const out = {};
+  for (const kind of Object.keys(DEFAULT_SCENARIO_OPTIONS)) {
+    const list = Array.isArray(stored?.[kind]) ? stored[kind] : DEFAULT_SCENARIO_OPTIONS[kind];
+    out[kind] = list
+      .filter((o) => o && typeof o.id === "string")
+      .map((o) => ({ id: o.id, label: o.label ?? "", ...(o.icon ? { icon: o.icon } : {}) }));
+  }
+  return out;
+}
+
 // 从 localStorage 读取「当前情景」id（标量，非数组），兼容旧裸格式与 versioned 包装。
 function loadActiveScenarioId() {
   try {
@@ -75,8 +99,12 @@ export function ScenarioProvider({ children }) {
 
   const [activeScenarioId, setActiveScenarioId] = useState(loadActiveScenarioId);
 
+  // 可自定义选项表（设备 / 交流规则）。全局共享：在任一情境里编辑都影响全部情境。
+  const [scenarioOptions, setScenarioOptions] = useState(loadScenarioOptions);
+
   usePersistedWrite(STORAGE_KEYS.SCENARIOS, scenarios);
   usePersistedWrite(STORAGE_KEYS.ACTIVE_SCENARIO, activeScenarioId);
+  usePersistedWrite(STORAGE_KEYS.SCENARIO_OPTIONS, scenarioOptions);
 
   // 已被删除的情景 id 不应再是「当前情景」；派生时校验，避免悬空引用。
   const activeScenario =
@@ -89,6 +117,42 @@ export function ScenarioProvider({ children }) {
   const updateScenarioSettings = (id, settings) => {
     dispatch({ type: UPDATE_SETTINGS, payload: { id, settings } });
   };
+
+  // ---- 可自定义选项表 CRUD（kind: "devices" | "communication"）----
+  const addScenarioOption = useCallback((kind, { label, icon } = {}) => {
+    const text = (label ?? "").trim();
+    if (!text) return;
+    setScenarioOptions((prev) => ({
+      ...prev,
+      [kind]: [
+        ...(prev[kind] ?? []),
+        { id: crypto.randomUUID(), label: text, ...(icon ? { icon } : {}) },
+      ],
+    }));
+  }, []);
+
+  // 编辑期间不 trim（否则会吞掉用户正在输入的尾随空格），原样存储。
+  const updateScenarioOption = useCallback((kind, id, patch) => {
+    setScenarioOptions((prev) => ({
+      ...prev,
+      [kind]: (prev[kind] ?? []).map((o) => {
+        if (o.id !== id) return o;
+        const icon = patch.icon ?? o.icon;
+        return {
+          id: o.id,
+          label: patch.label ?? o.label,
+          ...(icon ? { icon } : {}),
+        };
+      }),
+    }));
+  }, []);
+
+  const removeScenarioOption = useCallback((kind, id) => {
+    setScenarioOptions((prev) => ({
+      ...prev,
+      [kind]: (prev[kind] ?? []).filter((o) => o.id !== id),
+    }));
+  }, []);
 
   const addScenario = (title, description = "") => {
     const t = title.trim();
@@ -131,6 +195,10 @@ export function ScenarioProvider({ children }) {
     editScenario,
     deleteScenario,
     updateScenarioSettings,
+    scenarioOptions,
+    addScenarioOption,
+    updateScenarioOption,
+    removeScenarioOption,
     pendingDelete,
     undoDelete,
     activeScenarioId,

@@ -1,14 +1,13 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { useScenarios } from "../../context/ScenarioContext";
-import {
-  DEVICE_OPTIONS,
-  COMM_OPTIONS,
-  TASK_TYPE_OPTIONS,
-  DEFAULT_SCENARIO_SETTINGS,
-} from "../../utils/scenarioConstants";
+import { useDatabases } from "../../context/DatabaseContext";
+import { DEFAULT_SCENARIO_SETTINGS } from "../../utils/scenarioConstants";
+import ScenarioOptionEditor from "./ScenarioOptionEditor";
 
 export default function ScenarioSettings({ scenario }) {
-  const { updateScenarioSettings } = useScenarios();
+  const { updateScenarioSettings, scenarioOptions } = useScenarios();
+  const { allTagOptions } = useDatabases();
 
   const settings = scenario.settings ?? DEFAULT_SCENARIO_SETTINGS;
 
@@ -33,51 +32,51 @@ export default function ScenarioSettings({ scenario }) {
 
   return (
     <div className="scenario-settings-panel">
-      <div className="settings-section">
-        <span className="settings-label">可用设备</span>
-        <div className="settings-chips">
-          {DEVICE_OPTIONS.map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              className={`settings-chip${settings.devices.includes(opt.id) ? " active" : ""}`}
-              onClick={() => toggleDevice(opt.id)}
-            >
-              {opt.icon} {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <ScenarioOptionEditor
+        title="可用设备"
+        kind="devices"
+        options={scenarioOptions.devices}
+        selected={settings.devices}
+        multi
+        withIcon
+        onToggle={toggleDevice}
+      />
 
-      <div className="settings-section">
-        <span className="settings-label">交流规则</span>
-        <div className="settings-chips">
-          {COMM_OPTIONS.map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              className={`settings-chip${settings.communication === opt.id ? " active" : ""}`}
-              onClick={() => setComm(opt.id)}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <ScenarioOptionEditor
+        title="交流规则"
+        kind="communication"
+        options={scenarioOptions.communication}
+        selected={settings.communication}
+        multi={false}
+        onToggle={setComm}
+      />
 
+      {/* 任务类型 = 任务库「标签」的唯一映射：在任务库里增删标签，这里自动同步，
+          选中后即按这些标签筛选任务库。 */}
       <div className="settings-section">
-        <span className="settings-label">任务类型</span>
+        <div className="settings-label-row">
+          <span className="settings-label">任务类型</span>
+          <Link to="/tasks" className="settings-manage-btn" title="去任务库编辑标签">
+            ⇢ 任务库标签
+          </Link>
+        </div>
         <div className="settings-chips">
-          {TASK_TYPE_OPTIONS.map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              className={`settings-chip${settings.taskTypes.includes(opt.id) ? " active" : ""}`}
-              onClick={() => toggleTaskType(opt.id)}
-            >
-              {opt.icon} {opt.label}
-            </button>
-          ))}
+          {allTagOptions.length === 0 ? (
+            <span className="settings-empty-hint">
+              任务库还没有标签，去任务库的「标签」列添加后这里会同步出现
+            </span>
+          ) : (
+            allTagOptions.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                className={`settings-chip${settings.taskTypes.includes(opt.id) ? " active" : ""}`}
+                onClick={() => toggleTaskType(opt.id)}
+              >
+                {opt.icon ? `${opt.icon} ` : ""}{opt.label}
+              </button>
+            ))
+          )}
         </div>
       </div>
     </div>
