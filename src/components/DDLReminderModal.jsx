@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTodos } from "../context/TodoContext";
 import { useDDL } from "../context/DDLContext";
+import { useLanguage } from "../context/LanguageContext";
 import usePrefs from "../hooks/usePrefs";
 import useDDLNotify from "../hooks/useDDLNotify";
 import { getTodayStr } from "../utils/time";
@@ -13,6 +14,7 @@ export default function DDLReminderModal() {
   const { todos } = useTodos();
   const { checkpointsMap, toggleCheckpointDone, modalForcedOpen, setModalForcedOpen } = useDDL();
   const { notifyEnabled } = usePrefs();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   // 后台/最小化时由系统通知兜底（每天一次），与下方前台弹窗互补
@@ -59,11 +61,11 @@ export default function DDLReminderModal() {
         <div className="ddl-modal-header">
           <span className="ddl-modal-icon">📅</span>
           <div>
-            <div className="ddl-modal-title">今日 DDL 提醒</div>
+            <div className="ddl-modal-title">{t("ddl.modal.title")}</div>
             <div className="ddl-modal-sub">
               {dueItems.length > 0
-                ? `${dueItems.length} 个提醒节点今日到期`
-                : "（调试预览）"}
+                ? t("ddl.modal.sub", { count: dueItems.length })
+                : t("ddl.modal.debugPreview")}
             </div>
           </div>
         </div>
@@ -75,7 +77,7 @@ export default function DDLReminderModal() {
                 <button
                   className="ddl-modal-check"
                   onClick={() => toggleCheckpointDone(todo.id, checkpoint.id)}
-                  title="标记为完成"
+                  title={t("ddl.markDone")}
                 >
                   ○
                 </button>

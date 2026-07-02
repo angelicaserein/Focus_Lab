@@ -51,16 +51,17 @@ body {
 
 @media (max-width: 768px) {
   .app-main {
-    /* 侧边栏 200px */
+    /* 平板：侧边栏仍常驻，宽 200px */
     padding-left: 228px;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .app-main {
-    /* 侧边栏 180px；同时整体内边距收紧给内容让位 */
+    /* 手机：侧边栏改为滑出抽屉、不再占据横向空间，内容铺满，
+       顶部留出固定汉堡按钮的空间。 */
     padding: 20px 16px;
-    padding-left: 196px;
+    padding-top: 64px;
   }
 }
 

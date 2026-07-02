@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Home,
@@ -13,6 +13,8 @@ import {
   Gift,
   FlaskConical,
   Settings,
+  Menu,
+  X,
 } from "lucide-react";
 import { useTodos } from "../../context/TodoContext";
 import { useDDL } from "../../context/DDLContext";
@@ -57,8 +59,43 @@ export default function Sidebar() {
 
   const ddlBadge = useMemo(() => computeBadgeCount(todos), [todos, computeBadgeCount]);
 
+  // 移动端抽屉开合。桌面端 CSS 里侧边栏常驻，这个状态只在窄屏生效。
+  const [open, setOpen] = useState(false);
+
+  // 路由变化即收起抽屉（点导航跳转、或浏览器前进后退时）。
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  // 抽屉打开时按 Esc 关闭。
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
   return (
-    <aside className="sidebar">
+    <>
+      <button
+        type="button"
+        className="sidebar-toggle"
+        aria-label={t(open ? "sidebar.closeNav" : "sidebar.openNav")}
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        {open ? <X size={22} aria-hidden="true" /> : <Menu size={22} aria-hidden="true" />}
+      </button>
+
+      <div
+        className={`sidebar-backdrop${open ? " open" : ""}`}
+        onClick={() => setOpen(false)}
+        aria-hidden="true"
+      />
+
+      <aside className={`sidebar${open ? " open" : ""}`}>
       <div className="sidebar-brand">
         <img className="sidebar-brand-logo" src="./icon-192.png" alt="" />
         <span className="sidebar-brand-name">Focus Lab</span>
@@ -111,6 +148,7 @@ export default function Sidebar() {
           <span className="nav-label">{t("nav.settings")}</span>
         </Link>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

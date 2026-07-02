@@ -21,11 +21,11 @@ export function countdownClass(days) {
   return "";
 }
 
-// "YYYY-MM-DD" → "M月D日截止"
-export function formatDueDate(str) {
+// "YYYY-MM-DD" → 本地化的到期日期文案
+export function formatDueDate(str, t) {
   if (!str) return "";
   const [, m, d] = str.split("-");
-  return `${parseInt(m)}月${parseInt(d)}日截止`;
+  return t("ddl.due", { m: parseInt(m), d: parseInt(d) });
 }
 
 // 提醒节点是否"今日到期"：未完成 且 剩余天数已进入提醒窗口。

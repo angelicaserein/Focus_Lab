@@ -1,8 +1,9 @@
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTodos } from "../../context/TodoContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { getDaysUntil } from "../../utils/time";
-import { countdownLabel, formatDueDate, isActiveDeadline } from "../../utils/ddlUtils";
+import { isActiveDeadline, countdownLabel, formatDueDate } from "../../utils/ddlUtils";
 import "./DeadlineHorizon.css";
 
 // 把「截止日」从日历上一个遥远的点，翻译成一种**空间距离感**：
@@ -14,12 +15,12 @@ import "./DeadlineHorizon.css";
 
 const HORIZON_DAYS = 30; // 超过这天数的 DDL 都压在地平线附近
 
-// 距今天数 → 路牌上的极简文案
-function pinLabel(days) {
-  if (days < 0) return `逾期${-days}天`;
-  if (days === 0) return "今天";
-  if (days === 1) return "明天";
-  return `${days}天`;
+// 距今天数 → 路牌上的极简文案（本地化，短形式）
+function pinLabel(days, t) {
+  if (days < 0) return t("ddl.horizon.pin.overdue", { days: -days });
+  if (days === 0) return t("ddl.horizon.pin.today");
+  if (days === 1) return t("ddl.horizon.pin.tomorrow");
+  return t("ddl.horizon.pin.days", { days });
 }
 
 // 距今天数 → 紧迫度类名（与 ddlUtils.countdownClass 同义，但今天也算 urgent）
@@ -46,6 +47,7 @@ function projectDeadline(days) {
 
 export default function DeadlineHorizon() {
   const { todos } = useTodos();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const pins = useMemo(() => {
@@ -83,27 +85,27 @@ export default function DeadlineHorizon() {
   return (
     <div className="ddl-horizon-wrap">
       <div className="ddl-horizon-header">
-        <span className="ddl-horizon-title">截止临近感</span>
+        <span className="ddl-horizon-title">{t("ddl.horizon.title")}</span>
         <span className="ddl-horizon-sub">
           {nearest
-            ? `最近一个 · ${countdownLabel(nearest.days)}`
-            : "前方一片开阔"}
+            ? t("ddl.horizon.nearest", { countdown: countdownLabel(nearest.days, t) })
+            : t("ddl.horizon.clear")}
         </span>
       </div>
 
-      <div className="ddl-horizon-road" role="img" aria-label="截止日期距离感">
+      <div className="ddl-horizon-road" role="img" aria-label={t("ddl.horizon.aria")}>
         {/* 退向地平线的路面 */}
         <div className="ddl-road-floor" />
 
         {/* 你所在的位置 */}
         <div className="ddl-road-you">
           <span className="ddl-you-dot" />
-          <span className="ddl-you-label">现在</span>
+          <span className="ddl-you-label">{t("ddl.horizon.now")}</span>
         </div>
-        <span className="ddl-road-far-label">远期</span>
+        <span className="ddl-road-far-label">{t("ddl.horizon.far")}</span>
 
         {pins.length === 0 ? (
-          <p className="ddl-horizon-empty">没有临近的截止日，路上很空旷 🌿</p>
+          <p className="ddl-horizon-empty">{t("ddl.horizon.empty")}</p>
         ) : (
           pins.map((p) => (
             <button
@@ -117,11 +119,15 @@ export default function DeadlineHorizon() {
                 "--pin-opacity": p.opacity,
                 zIndex: Math.round(p.scale * 100),
               }}
-              title={`${p.text} · ${formatDueDate(p.dueDate)}（${countdownLabel(p.days)}）`}
+              title={t("ddl.horizon.pinTitle", {
+                text: p.text,
+                due: formatDueDate(p.dueDate, t),
+                countdown: countdownLabel(p.days, t),
+              })}
               onClick={() => navigate("/ddl")}
             >
               <span className="ddl-pin-flag">
-                <span className="ddl-pin-days">{pinLabel(p.days)}</span>
+                <span className="ddl-pin-days">{pinLabel(p.days, t)}</span>
                 <span className="ddl-pin-text">{p.text}</span>
               </span>
               <span className="ddl-pin-post" />
