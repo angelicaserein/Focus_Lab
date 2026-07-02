@@ -11,8 +11,9 @@
 //
 //  结构化字段只映射到「目标库真实存在的同名列」，缺列的字段自动跳过。
 // ──────────────────────────────────────────────────────────────
-
-import Anthropic from "@anthropic-ai/sdk";
+//
+//  @anthropic-ai/sdk 仅「本地开发 + 有 key」分支用到，改为按需动态 import()，
+//  不静态打进浏览器懒加载 chunk（避免 Vite 运行时重新优化 → 双份 React 崩溃）。
 
 const API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || "";
 const IS_PROD = import.meta.env.PROD;
@@ -201,7 +202,8 @@ export async function extractTasksFromText(text, { database } = {}) {
     return parseTasksJson(tasks);
   }
 
-  // 本地开发 + 有 key → 直连 SDK
+  // 本地开发 + 有 key → 直连 SDK（按需动态加载，避免静态打进浏览器 chunk）
+  const { default: Anthropic } = await import("@anthropic-ai/sdk");
   const client = new Anthropic({ apiKey: API_KEY, dangerouslyAllowBrowser: true });
   const resp = await client.messages.create({
     model: AI_MODEL,

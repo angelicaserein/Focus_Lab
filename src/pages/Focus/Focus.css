@@ -231,6 +231,78 @@
   padding: 2px 2px 0;
 }
 
+/* 正计时 / 倒计时 分段切换 */
+.focus-mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 4px;
+  margin-bottom: 10px;
+  border-radius: 14px;
+  background: var(--accent-bg-dim);
+  border: 1.5px solid var(--accent-border);
+}
+
+.focus-mode-btn {
+  padding: 9px 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--accent-deep);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.focus-mode-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* 烧瓶时长选择 */
+.focus-duration-row {
+  margin-bottom: 12px;
+}
+
+.focus-duration-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent-deep);
+  margin-bottom: 6px;
+}
+
+.focus-duration-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.focus-duration-pill {
+  min-width: 40px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--accent-border);
+  background: var(--accent-bg-dim);
+  color: var(--accent-deep);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.focus-duration-pill.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.focus-duration-pill:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Action buttons */
 .focus-actions {
   display: grid;

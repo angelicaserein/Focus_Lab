@@ -26,6 +26,8 @@ const en = {
   "nav.research": "Research Log",
   "sidebar.currentScenario": "Current scenario",
   "sidebar.noScenario": "No scenario",
+  "sidebar.openNav": "Open navigation",
+  "sidebar.closeNav": "Close navigation",
 
   // 主页
   "home.quickstart": "▶ Start focusing",
@@ -57,16 +59,17 @@ const en = {
   // 设置 - 专注偏好
   "settings.prefs.title": "Focus preferences",
   "settings.prefs.hint": "Changes take effect immediately, applied on your next session.",
-  "settings.prefs.pomodoro": "Pomodoro length (min)",
+  "settings.prefs.countupFull": "Count-up flask-full length (min)",
+  "settings.prefs.countdown": "Countdown length (min)",
   "settings.prefs.anim": "3D animation",
   "settings.prefs.notify": "Desktop notifications",
   "settings.prefs.on": "On",
   "settings.prefs.off": "Off",
   "settings.prefs.notifyUnsupported": "This browser does not support desktop notifications.",
   "settings.prefs.notifyDenied": "Notifications are blocked by the browser. Allow them in the site permission settings, then turn this on.",
-  "settings.prefs.notifyHint": "When on, pomodoro completions and today's deadlines alert you via system notifications (even on other tabs).",
+  "settings.prefs.notifyHint": "When on, flask-full alerts and today's deadlines alert you via system notifications (even on other tabs).",
   "settings.prefs.notifyEnabledTitle": "🔔 Notifications enabled",
-  "settings.prefs.notifyEnabledBody": "Pomodoro completions and deadline reminders will show up here.",
+  "settings.prefs.notifyEnabledBody": "Flask-full alerts and deadline reminders will show up here.",
 
   // 设置 - 数据管理
   "settings.data.title": "Data management",
@@ -133,16 +136,17 @@ const zh = {
 
   "settings.prefs.title": "专注偏好",
   "settings.prefs.hint": "更改即时生效，下次进入沉浸模式时应用。",
-  "settings.prefs.pomodoro": "番茄时长（分钟）",
+  "settings.prefs.countupFull": "正计时·烧瓶注满时长（分钟）",
+  "settings.prefs.countdown": "倒计时时长（分钟）",
   "settings.prefs.anim": "3D 动画",
   "settings.prefs.notify": "桌面通知",
   "settings.prefs.on": "开启",
   "settings.prefs.off": "关闭",
   "settings.prefs.notifyUnsupported": "当前浏览器不支持桌面通知。",
   "settings.prefs.notifyDenied": "通知已被浏览器拦截，请在地址栏的网站权限设置中手动允许后再开启。",
-  "settings.prefs.notifyHint": "开启后，番茄到点和今日 DDL 会以系统通知提醒你（即使切到其它标签页）。",
+  "settings.prefs.notifyHint": "开启后，烧瓶注满和今日 DDL 会以系统通知提醒你（即使切到其它标签页）。",
   "settings.prefs.notifyEnabledTitle": "🔔 通知已开启",
-  "settings.prefs.notifyEnabledBody": "番茄到点与 DDL 提醒会在这里提醒你。",
+  "settings.prefs.notifyEnabledBody": "烧瓶注满与 DDL 提醒会在这里提醒你。",
 
   "settings.data.title": "数据管理",
   "settings.data.hint": "所有数据保存在本地浏览器中。清除浏览器缓存前请先导出备份。",

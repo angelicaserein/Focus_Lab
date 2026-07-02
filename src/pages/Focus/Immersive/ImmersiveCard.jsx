@@ -13,10 +13,17 @@ export default function ImmersiveCard({ flaskProgress }) {
     isRunning, seconds, selectedTodos, availableTodos,
     scenarioTitle, scenarioDescription, cardVisible, setCardVisible,
     animEnabled, setAnimEnabled,
-    pomodoroMins = 25,
+    timerMode = "countup", setTimerMode, targetMins = 25,
     onSettle, onAddFocus, onCreateFocus, onReplaceFocus,
     onTogglePause, onReset, onStop,
   } = useFocusSession();
+
+  // 倒计时显示剩余时间；归零后继续计时，用「+超时」表示
+  const isCountdown = timerMode === "countdown";
+  const remaining = targetMins * 60 - seconds;
+  const clockText = isCountdown
+    ? (remaining >= 0 ? formatClock(remaining) : `+${formatClock(-remaining)}`)
+    : formatClock(seconds);
 
   const { nodeRef, handlers, position } = useDraggable({ x: 193, y: 28 });
 
@@ -51,7 +58,26 @@ export default function ImmersiveCard({ flaskProgress }) {
             <div className="immersive-eyebrow" {...handlers}>
               <span className={`immersive-status-dot ${isRunning ? "running" : ""}`} />
               {isRunning ? "专注中" : "已暂停"}
-              <span className="immersive-time">{formatClock(seconds)}</span>
+              <span className="immersive-time">{clockText}</span>
+            </div>
+
+            <div className="immersive-mode-toggle" role="group" aria-label="计时模式">
+              <button
+                type="button"
+                className={`immersive-mode-btn${!isCountdown ? " active" : ""}`}
+                onClick={() => setTimerMode("countup")}
+                aria-pressed={!isCountdown}
+              >
+                正计时
+              </button>
+              <button
+                type="button"
+                className={`immersive-mode-btn${isCountdown ? " active" : ""}`}
+                onClick={() => setTimerMode("countdown")}
+                aria-pressed={isCountdown}
+              >
+                倒计时
+              </button>
             </div>
 
             {scenarioTitle && (

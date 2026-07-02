@@ -37,7 +37,7 @@ export default function DebugTweaks({
     onDistraction,
     onAddNote,
     jumpSeconds,
-    pomodoroMins = 25,
+    targetMins = 25,
   } = useFocusSession();
 
   const [copied, setCopied] = useState(false);
@@ -103,7 +103,7 @@ export default function DebugTweaks({
             <button type="button" className="tweaks-sm-btn" onClick={() => jumpSeconds(60)}>+1分</button>
             <button type="button" className="tweaks-sm-btn" onClick={() => jumpSeconds(300)}>+5分</button>
             <button type="button" className="tweaks-sm-btn" onClick={() => jumpSeconds(1200)}>+20分</button>
-            <button type="button" className="tweaks-sm-btn accent" onClick={() => jumpSeconds(pomodoroMins * 60)}>满瓶</button>
+            <button type="button" className="tweaks-sm-btn accent" onClick={() => jumpSeconds(targetMins * 60)}>满瓶</button>
           </div>
 
           <div className="tweaks-divider" />

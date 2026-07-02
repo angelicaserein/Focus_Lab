@@ -201,6 +201,201 @@
 .sort-btn:hover { background: var(--accent-hover); color: var(--accent); }
 .sort-btn.active { color: var(--accent-mid); font-weight: 700; }
 
+/* ── Notion 风查询按钮（筛选 / 排序）── */
+.query-btn {
+  padding: 5px 14px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-dark);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.query-btn:hover { border-color: var(--accent); color: var(--accent); }
+.query-btn.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent-mid);
+}
+
+/* ── 查询弹层（筛选 / 排序共用外壳）── */
+.query-popover {
+  min-width: 340px;
+  max-width: min(560px, calc(100vw - 24px));
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px var(--shadow-sm);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.query-empty {
+  padding: 10px 8px;
+  color: var(--text-faint);
+  font-size: 0.82rem;
+}
+
+.query-rule {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.query-conj {
+  flex-shrink: 0;
+  width: 44px;
+  font-size: 0.78rem;
+  color: var(--text-faint);
+  font-weight: 600;
+}
+
+.query-select,
+.query-conj-select {
+  padding: 5px 8px;
+  border-radius: 7px;
+  border: 1.5px solid var(--border-input);
+  background: var(--bg);
+  color: var(--text-body);
+  font-size: 0.8rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.query-select:focus,
+.query-conj-select:focus { border-color: var(--accent); }
+.query-conj-select { width: 44px; padding: 5px 4px; }
+.query-field-select { min-width: 92px; }
+.query-op-select    { min-width: 72px; }
+
+.query-value-input {
+  flex: 1;
+  min-width: 90px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  border: 1.5px solid var(--border-input);
+  background: var(--bg);
+  color: var(--text-body);
+  font-size: 0.8rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.query-value-input:focus { border-color: var(--accent); }
+.query-value-spacer { flex: 1; }
+
+.query-value-opts {
+  flex: 1;
+  min-width: 120px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.query-opt-chip {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-dark);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.query-opt-chip:hover { border-color: var(--accent); color: var(--accent); }
+.query-opt-chip.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent-mid);
+  font-weight: 600;
+}
+/* 带自定义颜色的选项（如优先级）沿用其色 */
+.query-opt-chip[style]:hover,
+.query-opt-chip[style].active {
+  background: color-mix(in srgb, var(--pill) 12%, transparent);
+  border-color: var(--pill);
+  color: var(--pill);
+}
+
+.query-rule-remove {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: var(--text-faint);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: all 0.15s;
+}
+.query-rule-remove:hover { color: var(--danger); background: var(--danger-subtle); }
+
+/* 升/降序分段控件 */
+.query-dir-toggle {
+  display: inline-flex;
+  border: 1.5px solid var(--border-input);
+  border-radius: 7px;
+  overflow: hidden;
+}
+.query-dir-btn {
+  padding: 5px 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.query-dir-btn + .query-dir-btn { border-left: 1.5px solid var(--border-input); }
+.query-dir-btn:hover { color: var(--accent); }
+.query-dir-btn.active {
+  background: var(--accent-bg);
+  color: var(--accent-mid);
+  font-weight: 700;
+}
+
+.query-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 6px;
+  margin-top: 2px;
+  border-top: 1px solid var(--border-input);
+}
+.query-add-btn {
+  padding: 5px 10px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.query-add-btn:hover:not(:disabled) { background: var(--accent-hover); }
+.query-add-btn:disabled { color: var(--text-faint); cursor: default; }
+.query-clear-btn {
+  margin-left: auto;
+  padding: 5px 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 0.78rem;
+  cursor: pointer;
+  border-radius: 7px;
+  transition: all 0.15s;
+}
+.query-clear-btn:hover { color: var(--danger); background: var(--danger-subtle); }
+
 /* ── Table ── */
 .tasks-table-wrap {
   background: var(--card);

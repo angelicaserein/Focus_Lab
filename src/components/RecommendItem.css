@@ -1,0 +1,127 @@
+.rec-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--card);
+  border: 1px solid var(--border-input);
+  transition:
+    transform 180ms var(--ease),
+    border-color 180ms var(--ease);
+}
+.rec-item:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent-border);
+}
+
+.rec-item-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rec-item-title {
+  font-size: 15px;
+  color: var(--text-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rec-item-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rec-chip {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 40px;
+  background: var(--accent-hover);
+  border: 1px solid var(--accent-border);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.rec-chip-ai {
+  background: var(--accent-glow);
+  border-color: var(--accent-glow);
+  color: var(--text-body);
+  font-weight: 500;
+}
+
+.rec-item-action {
+  flex-shrink: 0;
+}
+
+/* 推荐列表容器（情景页 / 专注页共用） */
+.rec-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 操作按钮：去专注（▶）/ 加入专注（+ 加入）*/
+.rec-go-btn,
+.rec-add-btn {
+  border: 1px solid var(--accent-border);
+  background: var(--accent-hover);
+  color: var(--text-body);
+  border-radius: 40px;
+  cursor: pointer;
+  transition:
+    background 160ms var(--ease),
+    transform 160ms var(--ease);
+}
+.rec-go-btn:hover,
+.rec-add-btn:hover {
+  background: var(--accent-glow);
+  transform: translateY(-1px);
+}
+.rec-go-btn {
+  width: 34px;
+  height: 34px;
+  font-size: 13px;
+}
+.rec-add-btn {
+  padding: 6px 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* AI 精排按钮 + 环境标签 + 出错提示（共用） */
+.rec-ai-btn {
+  border: 1px solid var(--accent-border);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 40px;
+  padding: 5px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 160ms var(--ease);
+}
+.rec-ai-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.rec-ai-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.rec-env-tag {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  padding: 2px 10px;
+  border-radius: 40px;
+  background: var(--accent-hover);
+  border: 1px solid var(--accent-border);
+  color: var(--text-muted);
+}
+.rec-ai-error {
+  font-size: 12px;
+  color: var(--text-placeholder, var(--text-muted));
+  padding: 2px 4px;
+}

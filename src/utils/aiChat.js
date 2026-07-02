@@ -10,8 +10,9 @@
 //      VITE_ANTHROPIC_API_KEY=sk-ant-...
 //  改完 .env 需要重启 `npm run dev` 才生效。
 // ──────────────────────────────────────────────────────────────
-
-import Anthropic from "@anthropic-ai/sdk";
+//
+//  @anthropic-ai/sdk 仅「本地开发 + 有 key」分支用到，改为按需动态 import()，
+//  不静态打进浏览器懒加载 chunk（避免 Vite 运行时重新优化 → 双份 React 崩溃）。
 
 const API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || "";
 const IS_PROD = import.meta.env.PROD;
@@ -68,6 +69,7 @@ export async function getAiReply(messages) {
 
   // 本地开发 + 有 API key → 直接调用 SDK
   try {
+    const { default: Anthropic } = await import("@anthropic-ai/sdk");
     const client = new Anthropic({ apiKey: API_KEY, dangerouslyAllowBrowser: true });
     const resp = await client.messages.create({
       model: AI_MODEL,

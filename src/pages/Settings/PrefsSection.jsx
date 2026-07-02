@@ -10,7 +10,8 @@ import {
 
 export default function PrefsSection() {
   const {
-    pomodoroMins, setPomodoroMins,
+    countupFullMins, setCountupFullMins,
+    countdownMins, setCountdownMins,
     animEnabled, setAnimEnabled,
     notifyEnabled, setNotifyEnabled,
   } = usePrefs();
@@ -48,14 +49,30 @@ export default function PrefsSection() {
       <p className="settings-section-hint">{t("settings.prefs.hint")}</p>
 
       <div className="settings-pref-row">
-        <span className="settings-pref-label">{t("settings.prefs.pomodoro")}</span>
+        <span className="settings-pref-label">{t("settings.prefs.countupFull")}</span>
         <div className="settings-pill-group">
           {[15, 20, 25, 30, 45, 60].map((mins) => (
             <button
               key={mins}
-              className={`settings-pill${pomodoroMins === mins ? " active" : ""}`}
-              onClick={() => setPomodoroMins(mins)}
-              aria-pressed={pomodoroMins === mins}
+              className={`settings-pill${countupFullMins === mins ? " active" : ""}`}
+              onClick={() => setCountupFullMins(mins)}
+              aria-pressed={countupFullMins === mins}
+            >
+              {mins}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="settings-pref-row">
+        <span className="settings-pref-label">{t("settings.prefs.countdown")}</span>
+        <div className="settings-pill-group">
+          {[15, 20, 25, 30, 45, 60].map((mins) => (
+            <button
+              key={mins}
+              className={`settings-pill${countdownMins === mins ? " active" : ""}`}
+              onClick={() => setCountdownMins(mins)}
+              aria-pressed={countdownMins === mins}
             >
               {mins}
             </button>

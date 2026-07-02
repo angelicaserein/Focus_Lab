@@ -25,19 +25,29 @@
   color: var(--text-faint);
 }
 
-/* ── Body: 2-column × 2-row grid (corner | month-row / day-labels | grid) ── */
+/* ── Body: fixed day-label column + scrollable (month-row over grid) column ── */
 .heatmap-body {
-  display: grid;
-  grid-template-columns: 28px 1fr;
-  grid-template-rows: 19px 1fr;
+  display: flex;
+  align-items: stretch;
   column-gap: 6px;
+}
+
+/* Scrollable column holding month labels + grid; overflows horizontally on
+   narrow screens so the 53-week grid stays legible instead of shrinking. */
+.heatmap-scroll {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
   row-gap: 4px;
+  overflow-x: auto;
+  /* thin, unobtrusive scrollbar */
+  scrollbar-width: thin;
 }
 
 /* Month labels aligned with grid columns */
 .heatmap-month-row {
-  grid-column: 2;
-  grid-row: 1;
+  height: 15px;
   display: grid;
   grid-template-columns: repeat(53, 1fr);
   gap: 0 3px;
@@ -52,10 +62,10 @@
   line-height: 1;
 }
 
-/* Left day-of-week labels — same gap structure as the grid so rows align */
+/* Left day-of-week labels — offset down past the month row so rows align */
 .heatmap-day-labels {
-  grid-column: 1;
-  grid-row: 2;
+  flex: 0 0 28px;
+  margin-top: 19px; /* month-row height (15) + row-gap (4) */
   display: grid;
   grid-template-rows: repeat(7, 1fr);
   gap: 3px 0;
@@ -72,8 +82,6 @@
 
 /* The heatmap grid itself — fills container width, cells stay square */
 .heatmap-grid {
-  grid-column: 2;
-  grid-row: 2;
   display: grid;
   grid-template-columns: repeat(53, 1fr);
   grid-template-rows: repeat(7, 1fr);
@@ -81,6 +89,15 @@
   gap: 3px;
   /* aspect-ratio keeps cells square: natural size is 53×16-3 wide, 7×16-3 tall */
   aspect-ratio: 845 / 109;
+}
+
+/* On narrow screens, stop shrinking the grid — give it a legible minimum
+   width and let the column scroll horizontally (auto-scrolled to this week). */
+@media (max-width: 600px) {
+  .heatmap-month-row,
+  .heatmap-grid {
+    min-width: 560px;
+  }
 }
 
 /* Individual cells */

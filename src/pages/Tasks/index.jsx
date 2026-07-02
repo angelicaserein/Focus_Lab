@@ -2,13 +2,12 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useTodos } from "../../context/TodoContext";
 import { useTaskAttrs, useDatabases } from "../../context/DatabaseContext";
 import { useScenarios } from "../../context/ScenarioContext";
-import { buildSortWeightMap } from "../../utils/taskAttrUtils";
 import AttrHeaderEditor from "./AttrHeaderEditor";
 import DatabaseTabs from "./DatabaseTabs";
 import TasksToolbar from "./TasksToolbar";
 import TodoRow from "./TodoRow";
-import useTaskFilter from "./useTaskFilter";
-import useTaskFilters from "./useTaskFilters";
+import useTaskQuery from "./useTaskQuery";
+import { applyQuery, buildQueryFields } from "./taskQuery";
 import "./Tasks.css";
 
 const TYPE_COL_WIDTHS = {
@@ -42,13 +41,9 @@ export default function Tasks() {
     [taskAttrs],
   );
 
-  const priorityAttr = taskAttrs.find(a => a.id === "priority");
-  const tagsAttr     = taskAttrs.find(a => a.id === "tags");
-  const priorityOpts = priorityAttr?.options ?? [];
-  const tagsOpts     = tagsAttr?.options ?? [];
-  const prioritySortMap = useMemo(() => buildSortWeightMap(priorityAttr), [priorityAttr]);
-
-  const filters = useTaskFilters();
+  // 查询字段（内置字段 + 当前库全部列，含隐藏列，便于按任意属性筛选/排序）。
+  const fields = useMemo(() => buildQueryFields(taskAttrs), [taskAttrs]);
+  const query = useTaskQuery(fields);
 
   const [showNewRow,   setShowNewRow]   = useState(false);
   const [newTaskText,  setNewTaskText]  = useState("");
@@ -65,17 +60,19 @@ export default function Tasks() {
     if (showNewRow) newInputRef.current?.focus();
   }, [showNewRow]);
 
-  const filtered = useTaskFilter({
-    todos: dbTodos,
-    statusFilter:   filters.statusFilter,
-    priorityFilter: filters.priorityFilter,
-    tagFilter:      filters.tagFilter,
-    scenarioFilter,
-    search:         filters.search,
-    sortBy:         filters.sortBy,
-    sortDir:        filters.sortDir,
-    prioritySortMap,
-  });
+  // 情景筛选独立于用户查询之外：先按当前情景筛掉明确标了别的类型的任务
+  // （保留无标签任务，避免「任务消失」），再套用户的筛选/排序/搜索。
+  const scenarioScoped = useMemo(() => {
+    if (!scenarioFilter?.length) return dbTodos;
+    return dbTodos.filter(t =>
+      !(t.attrs?.tags?.length) || t.attrs.tags.some(tag => scenarioFilter.includes(tag)),
+    );
+  }, [dbTodos, scenarioFilter]);
+
+  const filtered = useMemo(
+    () => applyQuery(scenarioScoped, query.query, fields),
+    [scenarioScoped, query.query, fields],
+  );
 
   function commitNewTask() {
     if (newTaskText.trim()) addTodo(newTaskText.trim(), { databaseId: activeDatabaseId });
@@ -88,7 +85,7 @@ export default function Tasks() {
     if (e.key === "Escape") { setNewTaskText(""); setShowNewRow(false); }
   }
 
-  const { handleSortClick, arrow } = filters;
+  const { handleSortClick, arrow } = query;
 
   return (
     <div className="tasks-page">
@@ -103,9 +100,8 @@ export default function Tasks() {
       <DatabaseTabs />
 
       <TasksToolbar
-        filters={filters}
-        priorityOpts={priorityOpts}
-        tagsOpts={tagsOpts}
+        query={query}
+        fields={fields}
         scenario={
           hasScenarioFilter
             ? { name: activeScenario.title, on: scenarioFilterOn, toggle: () => setScenarioFilterOn(v => !v) }
@@ -119,21 +115,20 @@ export default function Tasks() {
           <thead>
             <tr>
               <th className="th-check"></th>
-              <th className="th-text sortable" onClick={() => handleSortClick("text")}>
-                任务{arrow("text")}
+              <th className="th-text sortable" onClick={() => handleSortClick("name")}>
+                任务{arrow("name")}
               </th>
               {visibleAttrs.map(attr => {
-                const isSortable = attr.id === "priority" || attr.id === "dueDate";
-                const sortKey = attr.id === "dueDate" ? "dueDate" : attr.id;
+                // 通用引擎下所有列均可点表头排序，字段 key 即列 id。
                 return (
                   <th
                     key={attr.id}
                     className="th-attr"
                     style={{ width: TYPE_COL_WIDTHS[attr.type] }}
                   >
-                    <div className={`th-inner${isSortable ? " sortable" : ""}`}
-                         onClick={isSortable ? () => handleSortClick(sortKey) : undefined}>
-                      <span className="th-name">{attr.name}{isSortable ? arrow(sortKey) : ""}</span>
+                    <div className="th-inner sortable"
+                         onClick={() => handleSortClick(attr.id)}>
+                      <span className="th-name">{attr.name}{arrow(attr.id)}</span>
                       <button
                         className="th-edit-btn"
                         title="编辑属性"

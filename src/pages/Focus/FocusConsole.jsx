@@ -3,6 +3,7 @@ import TodoApp from "../../components/TodoApp";
 import ChatHistory from "./ChatHistory";
 import SessionSummary from "./SessionSummary";
 import RandomTaskDrawer from "./RandomTaskDrawer";
+import RecommendStrip from "./RecommendStrip";
 
 // 普通（非沉浸）视图：左栏=计时控制台+情境选择+AI聊天+上次回顾，右栏=任务管理。
 // React.memo：计时器每 500ms tick 会让 FocusPage 重渲染，但本组件不消费 seconds，
@@ -16,11 +17,18 @@ function FocusConsole({
   selectedScenarioId,
   scenarioDescription,
   onScenarioChange,
+  timerMode = "countup",
+  onTimerModeChange,
+  durationMins,
+  onDurationChange,
+  canEditDuration = true,
   onStart,
   onReset,
   onClear,
   onRemoveFocus,
   onDrawerSelect,
+  availableTodos = [],
+  onAddFocus,
   chatMessages,
   onChatClear,
   notes = [],
@@ -115,6 +123,50 @@ function FocusConsole({
                 </div>
               )}
 
+              <div className="focus-mode-toggle" role="group" aria-label="计时模式">
+                <button
+                  type="button"
+                  className={`focus-mode-btn${timerMode !== "countdown" ? " active" : ""}`}
+                  onClick={() => onTimerModeChange?.("countup")}
+                  aria-pressed={timerMode !== "countdown"}
+                >
+                  正计时
+                </button>
+                <button
+                  type="button"
+                  className={`focus-mode-btn${timerMode === "countdown" ? " active" : ""}`}
+                  onClick={() => onTimerModeChange?.("countdown")}
+                  aria-pressed={timerMode === "countdown"}
+                >
+                  倒计时
+                </button>
+              </div>
+
+              {/* 烧瓶时长：随当前模式作用于正计时注满时长 / 倒计时起始时长 */}
+              <div
+                className="focus-duration-row"
+                role="group"
+                aria-label={timerMode === "countdown" ? "倒计时时长" : "烧瓶注满时长"}
+              >
+                <span className="focus-duration-label">
+                  {timerMode === "countdown" ? "倒计时" : "注满"} · {durationMins} 分钟
+                </span>
+                <div className="focus-duration-pills">
+                  {[15, 20, 25, 30, 45, 60].map((mins) => (
+                    <button
+                      key={mins}
+                      type="button"
+                      className={`focus-duration-pill${durationMins === mins ? " active" : ""}`}
+                      onClick={() => onDurationChange?.(mins)}
+                      disabled={!canEditDuration}
+                      aria-pressed={durationMins === mins}
+                    >
+                      {mins}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="focus-actions">
                 <button
                   className="focus-action-btn primary"
@@ -134,6 +186,9 @@ function FocusConsole({
                 </button>
               </div>
             </div>
+
+            {/* 情景推荐：有「当前情景」时，主动推荐候选任务 */}
+            <RecommendStrip availableTodos={availableTodos} onPick={onAddFocus} />
 
             {/* 历史随记 + 分心记录 */}
             <SessionSummary notes={notes} distractions={distractions} />

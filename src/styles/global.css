@@ -44,7 +44,24 @@ body {
   justify-content: center;
   padding: 28px;
   padding-top: 44px;
+  /* 左内边距 = 侧边栏宽度 + 间距，需随侧边栏断点同步收窄，
+     否则手机上内容会被推出屏幕、左侧留一条死白边。 */
   padding-left: 268px;
+}
+
+@media (max-width: 768px) {
+  .app-main {
+    /* 侧边栏 200px */
+    padding-left: 228px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-main {
+    /* 侧边栏 180px；同时整体内边距收紧给内容让位 */
+    padding: 20px 16px;
+    padding-left: 196px;
+  }
 }
 
 /* ── 无障碍：尊重系统"减少动态效果" ── */

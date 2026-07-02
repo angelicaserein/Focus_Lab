@@ -14,7 +14,7 @@ import useFocusSelection from "../../hooks/useFocusSelection";
 import useScenarioFromRoute from "../../hooks/useScenarioFromRoute";
 import usePruneDeletedFocus from "../../hooks/usePruneDeletedFocus";
 import useAutoStopOnEmpty from "../../hooks/useAutoStopOnEmpty";
-import usePomodoroNotify from "../../hooks/usePomodoroNotify";
+import useFlaskFullNotify from "../../hooks/useFlaskFullNotify";
 import { filterSinceSession } from "../../utils/focusRecords";
 import { FocusSessionContext } from "./FocusSessionContext";
 import ImmersiveView from "./Immersive";
@@ -80,10 +80,19 @@ export default function FocusPage() {
     [distractions, sessionStartTs],
   );
 
-  const { pomodoroMins, animEnabled, setAnimEnabled, cardVisible, setCardVisible, notifyEnabled } = usePrefs();
+  const {
+    countupFullMins, setCountupFullMins, countdownMins, setCountdownMins,
+    timerMode, setTimerMode,
+    animEnabled, setAnimEnabled, cardVisible, setCardVisible, notifyEnabled,
+  } = usePrefs();
 
-  // 番茄到点（烧瓶注满）弹系统通知，仅在开启「桌面通知」偏好时生效
-  usePomodoroNotify({ seconds, pomodoroMins, isRunning, enabled: notifyEnabled });
+  // 当前模式下的目标时长（分钟）：正计时=烧瓶注满时长；倒计时=起始时长
+  const targetMins = timerMode === "countdown" ? countdownMins : countupFullMins;
+  // 当前模式对应的时长 setter，供控制台就地调整烧瓶时长
+  const setTargetMins = timerMode === "countdown" ? setCountdownMins : setCountupFullMins;
+
+  // 烧瓶注满（倒计时归零）弹系统通知，仅在开启「桌面通知」偏好时生效
+  useFlaskFullNotify({ seconds, targetMins, isRunning, enabled: notifyEnabled });
 
   // useSessionLifecycle 先于 useFocusSelection：后者需要 handleStart 作为 onAutoStart 回调
   const { handleStart, settleTask, handleStop } = useSessionLifecycle({
@@ -132,7 +141,9 @@ export default function FocusPage() {
       sessionStartTs,
       cardVisible,
       animEnabled,
-      pomodoroMins,
+      timerMode,
+      setTimerMode,
+      targetMins,
       onSettle: settleTask,
       onAddFocus: addToFocus,
       onCreateFocus: createAndFocus,
@@ -158,7 +169,7 @@ export default function FocusPage() {
     // handleTogglePause / addNote 每渲染重建但消费方为事件回调，不影响正确性
     [
       isRunning, seconds, selectedTodos, availableTodos, scenarioTitle, scenarioDescription,
-      sessionStartTs, cardVisible, animEnabled, pomodoroMins,
+      sessionStartTs, cardVisible, animEnabled, timerMode, setTimerMode, targetMins,
       settleTask, addToFocus, createAndFocus, replaceFocus, resetTimer, handleStop,
       setCardVisible, setAnimEnabled, messages, sending, sendUserMessage,
       recordDistraction, startProactiveDistraction, endProactiveDistraction,
@@ -186,11 +197,18 @@ export default function FocusPage() {
         selectedScenarioId={activeScenarioId}
         scenarioDescription={scenarioDescription}
         onScenarioChange={setActiveScenario}
+        timerMode={timerMode}
+        onTimerModeChange={setTimerMode}
+        durationMins={targetMins}
+        onDurationChange={setTargetMins}
+        canEditDuration={!isImmersive && seconds === 0}
         onStart={handleStart}
         onReset={resetTimer}
         onClear={clearFocusTodos}
         onRemoveFocus={removeFocusTodo}
         onDrawerSelect={handleDrawerSelect}
+        availableTodos={availableTodos}
+        onAddFocus={addToFocus}
         chatMessages={messages}
         onChatClear={clearChat}
         notes={notes}

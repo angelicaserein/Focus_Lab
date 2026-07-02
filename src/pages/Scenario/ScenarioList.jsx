@@ -5,6 +5,7 @@ import ScenarioForm from "./ScenarioForm";
 import ScenarioItem from "./ScenarioItem";
 import ScenarioSettings from "./ScenarioSettings";
 import ScenarioStats from "./ScenarioStats";
+import ScenarioRecommend from "./ScenarioRecommend";
 
 export default function ScenarioList() {
   const { scenarios } = useScenarios();
@@ -47,7 +48,10 @@ export default function ScenarioList() {
         <ScenarioStats />
       </section>
 
-      {/* 白底卡片二：情境配置（⚙ 选中的情境在此配置） */}
+      {/* 白底卡片二：情景智能推荐（基于「当前情景」主动排序任务） */}
+      <ScenarioRecommend />
+
+      {/* 白底卡片三：情境配置（⚙ 选中的情境在此配置） */}
       <section className="scenario-card scenario-config-card" aria-live="polite">
         <div className="scenario-config-head">
           <span className="scenario-config-title">情境配置</span>

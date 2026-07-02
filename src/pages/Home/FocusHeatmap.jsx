@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useRef, useLayoutEffect } from "react";
 import { totalFocusSecs } from "../../utils/focusRecords";
 import { formatDuration } from "../../utils/time";
 import { useLanguage } from "../../context/LanguageContext";
@@ -59,6 +59,7 @@ function buildWeekGrid(dayRecordsMap, today) {
 
 export default function FocusHeatmap({ records }) {
   const { t, lang } = useLanguage();
+  const scrollRef = useRef(null);
   const { weeks, totalSecs } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -84,6 +85,13 @@ export default function FocusHeatmap({ records }) {
     [weeks],
   );
 
+  // 窄屏下热力图横向滚动，进场时把视口对齐到最右（本周），
+  // 这样最近的活跃度立刻可见，无需用户手动滑到头。
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollLeft = el.scrollWidth;
+  }, [weeks]);
+
   const totalHours = Math.floor(totalSecs / 3600);
   const totalMins = Math.round((totalSecs % 3600) / 60);
   const totalLabel =
@@ -102,19 +110,7 @@ export default function FocusHeatmap({ records }) {
       </div>
 
       <div className="heatmap-body">
-        {/* corner spacer */}
-        <div />
-
-        {/* Month labels row */}
-        <div className="heatmap-month-row">
-          {monthLabels.map((label, i) => (
-            <span key={i} className="heatmap-month-label">
-              {label ?? ""}
-            </span>
-          ))}
-        </div>
-
-        {/* Left day-of-week labels */}
+        {/* Left day-of-week labels (fixed column, never scrolls) */}
         <div className="heatmap-day-labels">
           {DAY_ROW_LABELS.map((label, i) => (
             <span key={i} className="heatmap-day-label">
@@ -123,10 +119,21 @@ export default function FocusHeatmap({ records }) {
           ))}
         </div>
 
-        {/* Heatmap grid */}
-        <div className="heatmap-grid">
-          {weeks.map((week, wi) =>
-            week.map((cell, di) => {
+        {/* Scrollable column: month labels + grid scroll together on narrow screens */}
+        <div className="heatmap-scroll" ref={scrollRef}>
+          {/* Month labels row */}
+          <div className="heatmap-month-row">
+            {monthLabels.map((label, i) => (
+              <span key={i} className="heatmap-month-label">
+                {label ?? ""}
+              </span>
+            ))}
+          </div>
+
+          {/* Heatmap grid */}
+          <div className="heatmap-grid">
+            {weeks.map((week, wi) =>
+              week.map((cell, di) => {
               const level = cell.isFuture ? "future" : getLevel(cell.secs);
               const dateStr = cell.date.toLocaleDateString(
                 lang === "zh" ? "zh-CN" : "en-US",
@@ -148,8 +155,9 @@ export default function FocusHeatmap({ records }) {
                   title={title}
                 />
               );
-            }),
-          )}
+              }),
+            )}
+          </div>
         </div>
       </div>
 

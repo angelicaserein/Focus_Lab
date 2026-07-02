@@ -26,7 +26,11 @@ export const STORAGE_KEYS = {
   DATABASES:  "task_databases_v1",
   ACTIVE_DB:  "active_database_v1",
   // 偏好设置
-  PREF_POMODORO_MINS: "pref_pomodoro_mins_v1",
+  // 正计时：烧瓶注满所需时长；倒计时：起始时长（两者独立）
+  PREF_COUNTUP_FULL_MINS: "pref_countup_full_mins_v1",
+  PREF_COUNTDOWN_MINS:    "pref_countdown_mins_v1",
+  // 计时模式：countup（正计时）| countdown（倒计时）
+  PREF_TIMER_MODE:    "pref_timer_mode_v1",
   PREF_ANIM_ENABLED:  "pref_anim_enabled_v1",
   PREF_CARD_VISIBLE:  "pref_card_visible_v1",
   PREF_NOTIFY_ENABLED: "pref_notify_enabled_v1",

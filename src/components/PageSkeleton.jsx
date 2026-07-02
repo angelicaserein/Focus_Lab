@@ -292,18 +292,20 @@ function SettingsSk() {
         </div>
       </div>
 
-      {/* 专注偏好：标题 + 提示 + 番茄时长一排药丸 + 开关 */}
+      {/* 专注偏好：标题 + 提示 + 正计时/倒计时两排时长药丸 + 开关 */}
       <div className="sk-section">
         <Sk w={90} h={18} />
         <Sk w="45%" h={12} />
-        <div className="sk-row">
-          <Sk w={110} h={14} />
-          <div className="sk-row sk-gap-sm" style={right}>
-            {rep(6).map((i) => (
-              <Sk key={i} w={46} h={36} r={12} />
-            ))}
+        {rep(2).map((row) => (
+          <div className="sk-row" key={row}>
+            <Sk w={110} h={14} />
+            <div className="sk-row sk-gap-sm" style={right}>
+              {rep(6).map((i) => (
+                <Sk key={i} w={46} h={36} r={12} />
+              ))}
+            </div>
           </div>
-        </div>
+        ))}
         <div className="sk-row">
           <Sk w={70} h={14} />
           <Sk w={48} h={26} r={99} style={right} />

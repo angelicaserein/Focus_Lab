@@ -1,29 +1,24 @@
-import React from "react";
+import React, { useRef, useState } from "react";
+import FilterPopover from "./FilterPopover";
+import SortPopover from "./SortPopover";
 
-const STATUS_OPTS = [
-  { id: "all",       label: "全部" },
-  { id: "active",    label: "待办" },
-  { id: "completed", label: "已完成" },
-];
-
-const SORT_OPTS = [
-  { id: "createdAt", label: "创建时间" },
-  { id: "dueDate",   label: "截止日期" },
-  { id: "priority",  label: "优先级" },
-  { id: "text",      label: "任务名" },
-];
-
-// 任务库工具栏：搜索 + 状态/优先级/标签筛选 + 排序。
-// 状态来自 useTaskFilters，本组件纯渲染。
-export default function TasksToolbar({ filters, priorityOpts, tagsOpts, scenario = null }) {
+// 任务库工具栏（对标 Notion）：搜索 + 「筛选 / 排序」两个紧凑按钮，点开各自弹层。
+// 查询状态与操作来自 useTaskQuery（经 query 传入），本组件负责编排 UI。
+export default function TasksToolbar({ query, fields, scenario = null }) {
   const {
-    statusFilter, setStatusFilter,
-    priorityFilter, togglePriority,
-    tagFilter, toggleTag,
     search, setSearch,
-    sortBy, handleSortClick, arrow,
-    clearFilters, hasFilter,
-  } = filters;
+    filter, sorts,
+    addRule, updateRule, changeRuleField, changeRuleOp, removeRule, setConjunction, clearFilter,
+    addSort, updateSort, removeSort, clearSort,
+  } = query;
+
+  const [open, setOpen] = useState(null); // null | "filter" | "sort"
+  const filterBtnRef = useRef(null);
+  const sortBtnRef   = useRef(null);
+
+  const filterCount = filter.rules.length;
+  const sortCount   = sorts.length;
+  const toggle = (which) => setOpen(o => (o === which ? null : which));
 
   return (
     <div className="tasks-toolbar">
@@ -50,57 +45,42 @@ export default function TasksToolbar({ filters, priorityOpts, tagsOpts, scenario
           </button>
         )}
 
-        <div className="filter-group status-group">
-          {STATUS_OPTS.map(s => (
-            <button
-              key={s.id}
-              className={`flt-btn${statusFilter === s.id ? " active" : ""}`}
-              onClick={() => setStatusFilter(s.id)}
-            >{s.label}</button>
-          ))}
-        </div>
+        <button
+          ref={filterBtnRef}
+          className={`query-btn${filterCount ? " active" : ""}`}
+          onClick={() => toggle("filter")}
+        >
+          筛选{filterCount ? ` · ${filterCount}` : ""}
+        </button>
 
-        {priorityOpts.length > 0 && (
-          <div className="filter-group">
-            {priorityOpts.map(p => (
-              <button
-                key={p.id}
-                className={`flt-btn priority-pill${priorityFilter.includes(p.id) ? " active" : ""}`}
-                style={{ "--pill": p.color }}
-                onClick={() => togglePriority(p.id)}
-              >{p.label}</button>
-            ))}
-          </div>
-        )}
-
-        {tagsOpts.length > 0 && (
-          <div className="filter-group">
-            {tagsOpts.map(t => (
-              <button
-                key={t.id}
-                className={`flt-btn tag-pill${tagFilter.includes(t.id) ? " active" : ""}`}
-                title={t.label}
-                onClick={() => toggleTag(t.id)}
-              >{t.icon ?? t.label}</button>
-            ))}
-          </div>
-        )}
-
-        {hasFilter && (
-          <button className="flt-clear" onClick={clearFilters}>清除筛选</button>
-        )}
-
-        <div className="sort-group">
-          <span className="sort-label">排序</span>
-          {SORT_OPTS.map(s => (
-            <button
-              key={s.id}
-              className={`sort-btn${sortBy === s.id ? " active" : ""}`}
-              onClick={() => handleSortClick(s.id)}
-            >{s.label}{arrow(s.id)}</button>
-          ))}
-        </div>
+        <button
+          ref={sortBtnRef}
+          className={`query-btn${sortCount ? " active" : ""}`}
+          onClick={() => toggle("sort")}
+        >
+          排序{sortCount ? ` · ${sortCount}` : ""}
+        </button>
       </div>
+
+      {open === "filter" && (
+        <FilterPopover
+          anchorEl={filterBtnRef.current}
+          onClose={() => setOpen(null)}
+          fields={fields}
+          filter={filter}
+          actions={{ addRule, updateRule, changeRuleField, changeRuleOp, removeRule, setConjunction, clearFilter }}
+        />
+      )}
+
+      {open === "sort" && (
+        <SortPopover
+          anchorEl={sortBtnRef.current}
+          onClose={() => setOpen(null)}
+          fields={fields}
+          sorts={sorts}
+          actions={{ addSort, updateSort, removeSort, clearSort }}
+        />
+      )}
     </div>
   );
 }
