@@ -1,11 +1,11 @@
 import React from "react";
 import "../FocusImmersive.css";
-import PusheenScene from "../PusheenScene";
-import ImmersiveChat from "./ImmersiveChat";
-import ImmersiveUtils from "./ImmersiveUtils";
-import ImmersiveCard from "./ImmersiveCard";
-import ImmersiveFullscreen from "./ImmersiveFullscreen";
-import { useFocusSession } from "../FocusSessionContext";
+import PusheenScene from "@/pages/Focus/PusheenScene";
+import ImmersiveChat from "@/pages/Focus/Immersive/ImmersiveChat";
+import ImmersiveUtils from "@/pages/Focus/Immersive/ImmersiveUtils";
+import ImmersiveCard from "@/pages/Focus/Immersive/ImmersiveCard";
+import ImmersiveFullscreen from "@/pages/Focus/Immersive/ImmersiveFullscreen";
+import { useFocusSession } from "@/pages/Focus/FocusSessionContext";
 
 // 沉浸式专注遮罩：3D 模型背景 + 可拖动悬浮卡（含 DebugTweaks）+ AI 陪伴 + 工具栏。
 // 所有 session 状态从 FocusSessionContext 读取，不接受外部 props。

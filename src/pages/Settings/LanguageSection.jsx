@@ -1,6 +1,6 @@
 import React from "react";
-import { useLanguage } from "../../context/LanguageContext";
-import { LANGUAGES } from "../../i18n/translations";
+import { useLanguage } from "@/context/LanguageContext";
+import { LANGUAGES } from "@/i18n/translations";
 
 export default function LanguageSection() {
   const { lang, setLang, t } = useLanguage();

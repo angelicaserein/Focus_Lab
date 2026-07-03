@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { reducer, initialPhaseState } from "./useDistractionTracking";
+import { reducer, initialPhaseState } from "@/hooks/focus/useDistractionTracking";
 
 describe("分心状态机 reducer", () => {
   it("初始为 idle", () => {

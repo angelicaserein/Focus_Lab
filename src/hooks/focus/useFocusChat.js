@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
-import useLocalStorage from "./useLocalStorage";
-import { getAiReply } from "../utils/aiChat";
-import { STORAGE_KEYS } from "../utils/storageKeys";
+import useLocalStorage from "@/hooks/common/useLocalStorage";
+import { getAiReply } from "@/utils/ai/aiChat";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 
 // 专注页 AI 陪伴对话的状态。消息持久化到 localStorage，
 // 沉浸式左下角对话框与 Focus 页「聊天记录」共用同一份数据。

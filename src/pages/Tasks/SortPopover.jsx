@@ -1,5 +1,5 @@
 import React from "react";
-import Popover from "../../components/Popover";
+import Popover from "@/components/ui/Popover";
 
 // 排序弹层：多级排序（字段 + 升/降序），每个字段至多一条，对标 Notion。
 export default function SortPopover({ anchorEl, onClose, fields, sorts, actions }) {

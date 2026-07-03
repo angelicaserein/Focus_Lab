@@ -1,23 +1,23 @@
 import React, { Suspense, lazy, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import Sidebar from "../components/layout/Sidebar";
-import ErrorBoundary from "../components/ErrorBoundary";
-import PageSkeleton from "../components/PageSkeleton";
+import Sidebar from "@/components/layout/Sidebar";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import PageSkeleton from "@/components/ui/PageSkeleton";
 
 // 各页面的动态 import 单独抽出来：既给 lazy() 用，也用于「空闲预取」。
 const importers = [
-  () => import("../pages/Home"),
-  () => import("../pages/Focus"),
-  () => import("../pages/History"),
-  () => import("../pages/Scenario"),
-  () => import("../pages/Reward"),
-  () => import("../pages/Settings"),
-  () => import("../pages/Research"),
-  () => import("../pages/ScenarioStats"),
-  () => import("../pages/Analytics"),
-  () => import("../pages/Tasks"),
-  () => import("../pages/DDLReminders"),
-  () => import("../pages/Memo"),
+  () => import("@/pages/Home"),
+  () => import("@/pages/Focus"),
+  () => import("@/pages/History"),
+  () => import("@/pages/Scenario"),
+  () => import("@/pages/Reward"),
+  () => import("@/pages/Settings"),
+  () => import("@/pages/Research"),
+  () => import("@/pages/ScenarioStats"),
+  () => import("@/pages/Analytics"),
+  () => import("@/pages/Tasks"),
+  () => import("@/pages/DDLReminders"),
+  () => import("@/pages/Memo"),
 ];
 
 const [

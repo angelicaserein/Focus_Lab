@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { defaultOpFor, getOp } from "./taskQuery";
+import { defaultOpFor, getOp } from "@/pages/Tasks/taskQuery";
 
 // 任务库查询的 UI 状态（对标 Notion）：搜索 + 筛选（多规则 + 且/或）+ 多级排序。
 // 只管「用户选了什么」；据此算可见列表的纯逻辑在 taskQuery.js。

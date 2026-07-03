@@ -1,8 +1,8 @@
 import React, { useReducer, useState, useContext, useMemo } from "react";
-import { STORAGE_KEYS } from "../utils/storageKeys";
-import { loadVersioned, WRAPPER_VERSION } from "../utils/storage";
-import usePersistedWrite from "../hooks/usePersistedWrite";
-import { DATABASE_TEMPLATES } from "../utils/databaseTemplates";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
+import { loadVersioned, WRAPPER_VERSION } from "@/utils/storage/storage";
+import usePersistedWrite from "@/hooks/common/usePersistedWrite";
+import { DATABASE_TEMPLATES } from "@/utils/task/databaseTemplates";
 
 export const DEFAULT_DB_ID = "default";
 

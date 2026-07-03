@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useScenarios } from "../../context/ScenarioContext";
-import useEditMode from "../../hooks/useEditMode";
-import { hasScenarioSettings } from "../../utils/scenarioConstants";
+import { useScenarios } from "@/context/ScenarioContext";
+import useEditMode from "@/hooks/common/useEditMode";
+import { hasScenarioSettings } from "@/utils/scenario/scenarioConstants";
 
 export default function ScenarioItem({ scenario, settingsOpen, onToggleSettings }) {
   const { deleteScenario, editScenario, activeScenarioId, setActiveScenario } =

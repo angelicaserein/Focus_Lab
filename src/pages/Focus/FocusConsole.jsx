@@ -1,10 +1,15 @@
 import React, { useState } from "react";
-import TodoApp from "../../components/TodoApp";
-import { useLanguage } from "../../context/LanguageContext";
-import ChatHistory from "./ChatHistory";
-import SessionSummary from "./SessionSummary";
-import RandomTaskDrawer from "./RandomTaskDrawer";
-import RecommendStrip from "./RecommendStrip";
+import TodoApp from "@/components/todo/TodoApp";
+import { useLanguage } from "@/context/LanguageContext";
+import ChatHistory from "@/pages/Focus/ChatHistory";
+import SessionSummary from "@/pages/Focus/SessionSummary";
+import RandomTaskDrawer from "@/pages/Focus/RandomTaskDrawer";
+import RecommendStrip from "@/pages/Focus/RecommendStrip";
+
+// 时长选择：少量常用预设 + 自定义输入。预设精简为三档，其余走自定义。
+const DURATION_PRESETS = [15, 25, 45];
+const MIN_DURATION = 1;
+const MAX_DURATION = 180;
 
 // 普通（非沉浸）视图：左栏=计时控制台+情境选择+AI聊天+上次回顾，右栏=任务管理。
 // React.memo：计时器每 500ms tick 会让 FocusPage 重渲染，但本组件不消费 seconds，
@@ -37,6 +42,27 @@ function FocusConsole({
 }) {
   const { t } = useLanguage();
   const [showDrawer, setShowDrawer] = useState(false);
+
+  // 当前时长是否为「自定义」（不落在预设里）——决定输入框是否高亮、是否回填数值
+  const isCustomDuration = !DURATION_PRESETS.includes(durationMins);
+  const [customDraft, setCustomDraft] = useState(isCustomDuration ? String(durationMins) : "");
+
+  // 提交自定义时长：夹到 [MIN, MAX]；若落到预设值则清空草稿改由预设高亮
+  const commitCustomDuration = (raw) => {
+    const n = parseInt(raw, 10);
+    if (Number.isNaN(n)) {
+      setCustomDraft(isCustomDuration ? String(durationMins) : "");
+      return;
+    }
+    const clamped = Math.min(MAX_DURATION, Math.max(MIN_DURATION, n));
+    onDurationChange?.(clamped);
+    setCustomDraft(DURATION_PRESETS.includes(clamped) ? "" : String(clamped));
+  };
+
+  const pickPreset = (mins) => {
+    setCustomDraft("");
+    onDurationChange?.(mins);
+  };
 
   return (
     <div className="page-focus">
@@ -157,18 +183,40 @@ function FocusConsole({
                   })}
                 </span>
                 <div className="focus-duration-pills">
-                  {[15, 20, 25, 30, 45, 60].map((mins) => (
+                  {DURATION_PRESETS.map((mins) => (
                     <button
                       key={mins}
                       type="button"
-                      className={`focus-duration-pill${durationMins === mins ? " active" : ""}`}
-                      onClick={() => onDurationChange?.(mins)}
+                      className={`focus-duration-pill${!isCustomDuration && durationMins === mins ? " active" : ""}`}
+                      onClick={() => pickPreset(mins)}
                       disabled={!canEditDuration}
-                      aria-pressed={durationMins === mins}
+                      aria-pressed={!isCustomDuration && durationMins === mins}
                     >
                       {mins}
                     </button>
                   ))}
+                  <div className={`focus-duration-custom${isCustomDuration ? " active" : ""}`}>
+                    <input
+                      type="number"
+                      className="focus-duration-input"
+                      min={MIN_DURATION}
+                      max={MAX_DURATION}
+                      inputMode="numeric"
+                      value={customDraft}
+                      placeholder={t("focus.customDuration")}
+                      disabled={!canEditDuration}
+                      aria-label={t("focus.customDuration")}
+                      onChange={(e) => setCustomDraft(e.target.value)}
+                      onBlur={(e) => commitCustomDuration(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          commitCustomDuration(e.target.value);
+                        }
+                      }}
+                    />
+                    <span className="focus-duration-unit">{t("focus.minUnit")}</span>
+                  </div>
                 </div>
               </div>
 

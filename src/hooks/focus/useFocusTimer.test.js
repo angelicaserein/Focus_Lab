@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calcSeconds } from "./useFocusTimer";
+import { calcSeconds } from "@/hooks/focus/useFocusTimer";
 
 describe("calcSeconds", () => {
   it("暂停态（runStart 为 null）直接返回累计秒数", () => {

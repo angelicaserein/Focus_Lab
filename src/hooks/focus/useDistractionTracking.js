@@ -1,8 +1,8 @@
 import { useCallback, useReducer } from "react";
-import useLocalStorage from "./useLocalStorage";
-import { STORAGE_KEYS } from "../utils/storageKeys";
-import { getElapsedSecs } from "../utils/time";
-import { makeSessionEntry } from "../utils/focusRecords";
+import useLocalStorage from "@/hooks/common/useLocalStorage";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
+import { getElapsedSecs } from "@/utils/time";
+import { makeSessionEntry } from "@/utils/records/focusRecords";
 
 // 状态机定义：
 //   idle              — 无进行中的分心

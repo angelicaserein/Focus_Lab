@@ -1,9 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useFocus } from "../../context/FocusContext";
-import { useLanguage } from "../../context/LanguageContext";
-import FocusHeatmap from "./FocusHeatmap";
-import DeadlineHorizon from "./DeadlineHorizon";
+import { useFocus } from "@/context/FocusContext";
+import { useLanguage } from "@/context/LanguageContext";
+import FocusHeatmap from "@/pages/Home/FocusHeatmap";
+import DeadlineHorizon from "@/pages/Home/DeadlineHorizon";
 import "./Home.css";
 
 export default function Home() {

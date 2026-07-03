@@ -1,7 +1,7 @@
 /* 全局样式入口 —— 按区块拆分到 styles/ 下，这里仅做聚合。
  * 主题颜色统一在 theme.css 里修改。
  * @import 必须位于所有规则之前，顺序即层叠顺序。 */
-@import "./theme.css";
+@import "./styles/theme.css";
 @import "./styles/global.css";
 @import "./styles/animations.css";
 @import "./styles/todo.css";

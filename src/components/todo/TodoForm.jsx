@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useTodos } from "../context/TodoContext";
-import { useLanguage } from "../context/LanguageContext";
-import RecurringDayPicker, { recurringLabel } from "./RecurringDayPicker";
-import useOutsideClick from "../hooks/useOutsideClick";
+import { useTodos } from "@/context/TodoContext";
+import { useLanguage } from "@/context/LanguageContext";
+import RecurringDayPicker, { recurringLabel } from "@/components/todo/RecurringDayPicker";
+import useOutsideClick from "@/hooks/common/useOutsideClick";
 
 const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
 

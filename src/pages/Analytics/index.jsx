@@ -1,6 +1,6 @@
 import React from "react";
-import useFocusAnalytics from "../../data/useFocusAnalytics";
-import { formatDurationChinese as fmt } from "../../utils/time";
+import useFocusAnalytics from "@/hooks/focus/useFocusAnalytics";
+import { formatDurationChinese as fmt } from "@/utils/time";
 import "./Analytics.css";
 
 // 只在关键刻度显示小时标签

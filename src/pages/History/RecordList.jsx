@@ -1,6 +1,6 @@
 import React from "react";
-import { formatDuration, formatRecordDate } from "../../utils/time";
-import { groupByDay, groupBySession, OUTCOME_META } from "../../utils/focusRecords";
+import { formatDuration, formatRecordDate } from "@/utils/time";
+import { groupByDay, groupBySession, OUTCOME_META } from "@/utils/records/focusRecords";
 
 // 全部记录区：按天分组，组内再按会话归组；含清除记录的二次确认按钮。
 export default function RecordList({ records, confirmClear, onClear }) {

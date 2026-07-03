@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
-import FilterPopover from "./FilterPopover";
-import SortPopover from "./SortPopover";
+import FilterPopover from "@/pages/Tasks/FilterPopover";
+import SortPopover from "@/pages/Tasks/SortPopover";
 
 // 任务库工具栏（对标 Notion）：搜索 + 「筛选 / 排序」两个紧凑按钮，点开各自弹层。
 // 查询状态与操作来自 useTaskQuery（经 query 传入），本组件负责编排 UI。

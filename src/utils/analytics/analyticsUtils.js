@@ -1,6 +1,6 @@
 // 数据分析 —— 专注效率洞察的纯函数。与 React 无关。
-/** @import { FocusRecord, DistractionRecord } from '../types' */
-import { sessionKey, sessionMaxSecsMap } from "./focusRecords";
+/** @import { FocusRecord, DistractionRecord } from '@/types' */
+import { sessionKey, sessionMaxSecsMap } from "@/utils/records/focusRecords";
 
 // ── 1. 按小时聚合专注数据 (返回 hours[0..23]) ──────────────────────────────
 /** @param {FocusRecord[]} records */

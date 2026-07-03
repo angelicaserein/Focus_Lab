@@ -103,6 +103,8 @@ const en = {
   "focus.fillDurationAria": "Flask-full length",
   "focus.fillLabel": "Fill",
   "focus.durationValue": "{label} · {mins} min",
+  "focus.customDuration": "Custom",
+  "focus.minUnit": "min",
   "focus.start": "▶ Start focusing",
   "focus.reset": "Reset",
   // 专注 - 聊天记录
@@ -326,6 +328,8 @@ const zh = {
   "focus.fillDurationAria": "烧瓶注满时长",
   "focus.fillLabel": "注满",
   "focus.durationValue": "{label} · {mins} 分钟",
+  "focus.customDuration": "自定义",
+  "focus.minUnit": "分钟",
   "focus.start": "▶ 开始专注",
   "focus.reset": "重置",
   "focus.chatTitle": "聊天记录",

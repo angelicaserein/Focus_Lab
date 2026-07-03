@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from "react";
-import useLocalStorage from "../hooks/useLocalStorage";
-import { STORAGE_KEYS } from "../utils/storageKeys";
+import useLocalStorage from "@/hooks/common/useLocalStorage";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 
 // 管理应用主题：localStorage 持久化 + 写入 <html data-theme>。
 // 放在 Provider 树最外层，确保 RewardProvider 内部可通过 useTheme() 调用 setTheme。

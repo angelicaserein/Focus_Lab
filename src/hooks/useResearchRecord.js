@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useFocus } from "../context/FocusContext";
-import useLocalStorage from "./useLocalStorage";
-import { STORAGE_KEYS } from "../utils/storageKeys";
-import { todayDateStr, buildEmptyRecord, computeAutoData } from "../utils/researchRecords";
+import { useFocus } from "@/context/FocusContext";
+import useLocalStorage from "@/hooks/common/useLocalStorage";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
+import { todayDateStr, buildEmptyRecord, computeAutoData } from "@/utils/records/researchRecords";
 
 // 管理单日研究记录的加载、编辑草稿和保存逻辑。
 export default function useResearchRecord(dateStr) {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useTodos } from "../../context/TodoContext";
-import { useLanguage } from "../../context/LanguageContext";
+import { useTodos } from "@/context/TodoContext";
+import { useLanguage } from "@/context/LanguageContext";
 import "./RandomTaskDrawer.css";
 
 const MAX_REDRAWS = 2;

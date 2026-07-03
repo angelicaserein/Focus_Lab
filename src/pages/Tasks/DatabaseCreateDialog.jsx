@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import Popover from "../../components/Popover";
-import { useDatabases } from "../../context/DatabaseContext";
-import { DATABASE_TEMPLATES, DEFAULT_TEMPLATE_ID } from "../../utils/databaseTemplates";
+import Popover from "@/components/ui/Popover";
+import { useDatabases } from "@/context/DatabaseContext";
+import { DATABASE_TEMPLATES, DEFAULT_TEMPLATE_ID } from "@/utils/task/databaseTemplates";
 
 export default function DatabaseCreateDialog({ anchorEl, onClose }) {
   const { addDatabase } = useDatabases();

@@ -1,16 +1,16 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import App from "./App";
-import { LanguageProvider } from "./context/LanguageContext";
-import { ThemeProvider } from "./context/ThemeContext";
-import { RewardProvider } from "./context/RewardContext";
-import { FocusProvider } from "./context/FocusContext";
-import { TodoProvider } from "./context/TodoContext";
-import { ScenarioProvider } from "./context/ScenarioContext";
-import { DatabaseProvider } from "./context/DatabaseContext";
-import { DDLProvider } from "./context/DDLContext";
-import { runMigrations } from "./utils/storage";
-import registerSW from "./utils/registerSW";
+import App from "@/App";
+import { LanguageProvider } from "@/context/LanguageContext";
+import { ThemeProvider } from "@/context/ThemeContext";
+import { RewardProvider } from "@/context/RewardContext";
+import { FocusProvider } from "@/context/FocusContext";
+import { TodoProvider } from "@/context/TodoContext";
+import { ScenarioProvider } from "@/context/ScenarioContext";
+import { DatabaseProvider } from "@/context/DatabaseContext";
+import { DDLProvider } from "@/context/DDLContext";
+import { runMigrations } from "@/utils/storage/storage";
+import registerSW from "@/utils/registerSW";
 import "./index.css";
 
 // 在任何 Context 读取 localStorage 前执行数据迁移

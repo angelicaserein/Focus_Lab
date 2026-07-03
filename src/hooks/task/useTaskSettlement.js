@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { buildFocusRecord } from "../utils/focusRecords";
+import { buildFocusRecord } from "@/utils/records/focusRecords";
 
 // 结算单个任务：写 focus record + 打勾（如需）+ 移出专注集合。
 // overrideSecs / overrideSess 由 handleStop 传入归零前的快照，

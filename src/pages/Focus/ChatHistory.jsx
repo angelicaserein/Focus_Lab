@@ -1,7 +1,7 @@
 import React from "react";
 import "./Immersive/ImmersiveChat.css";
-import { hasApiKey } from "../../utils/aiChat";
-import { useLanguage } from "../../context/LanguageContext";
+import { hasApiKey } from "@/utils/ai/aiChat";
+import { useLanguage } from "@/context/LanguageContext";
 
 // Focus 页面（非沉浸）上的聊天历史区：展示与 AI 陪伴的全部对话，
 // 与沉浸式左下角对话框共用同一份持久化数据。

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { unwrapVersioned } from "../utils/storage";
-import usePersistedWrite from "./usePersistedWrite";
+import { unwrapVersioned } from "@/utils/storage/storage";
+import usePersistedWrite from "@/hooks/common/usePersistedWrite";
 
 // 封装 localStorage 读写，返回 [state, setState]；setState 与 React.useState 签名相同。
 // 写入的去抖与页面关闭 flush 由 usePersistedWrite 负责；这里只处理初始读取。

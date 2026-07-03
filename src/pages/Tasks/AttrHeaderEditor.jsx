@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { useTaskAttrs } from "../../context/DatabaseContext";
-import Popover from "../../components/Popover";
-import { ATTR_TYPE_OPTIONS, ATTR_COLOR_SWATCHES } from "../../utils/editorConstants";
+import { useTaskAttrs } from "@/context/DatabaseContext";
+import Popover from "@/components/ui/Popover";
+import { ATTR_TYPE_OPTIONS, ATTR_COLOR_SWATCHES } from "@/utils/task/editorConstants";
 
 export default function AttrHeaderEditor({ attrDef, anchorEl, onClose }) {
   const { taskAttrs, addTaskAttr, updateTaskAttr, deleteTaskAttr, reorderTaskAttrs } = useTaskAttrs();

@@ -4,8 +4,8 @@ import {
   scoreTask,
   buildScenarioContext,
   recommendTasks,
-} from "./scenarioRecommend";
-import { parseRecommendJson } from "./aiRecommend";
+} from "@/utils/scenario/scenarioRecommend";
+import { parseRecommendJson } from "@/utils/ai/aiRecommend";
 
 // 固定参考时间：2026-06-30（与项目当前日期一致）。
 const NOW = new Date("2026-06-30T09:00:00").getTime();

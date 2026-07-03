@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from "react";
-import TodoForm from "./TodoForm";
-import TodoList from "./TodoList";
-import TodoStats from "./TodoStats";
-import Toast from "./Toast";
-import { useTodos } from "../context/TodoContext";
-import { useScenarios } from "../context/ScenarioContext";
-import { useLanguage } from "../context/LanguageContext";
-import { TASK_TYPE_OPTIONS } from "../utils/scenarioConstants";
+import TodoForm from "@/components/todo/TodoForm";
+import TodoList from "@/components/todo/TodoList";
+import TodoStats from "@/components/todo/TodoStats";
+import Toast from "@/components/ui/Toast";
+import { useTodos } from "@/context/TodoContext";
+import { useScenarios } from "@/context/ScenarioContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { TASK_TYPE_OPTIONS } from "@/utils/scenario/scenarioConstants";
 
 const typeLabel = Object.fromEntries(TASK_TYPE_OPTIONS.map((o) => [o.id, `${o.icon} ${o.label}`]));
 

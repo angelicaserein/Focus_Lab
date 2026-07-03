@@ -1,9 +1,9 @@
 import React from "react";
-import { useLanguage } from "../../context/LanguageContext";
-import LanguageSection from "./LanguageSection";
-import ThemeSection from "./ThemeSection";
-import PrefsSection from "./PrefsSection";
-import DataSection from "./DataSection";
+import { useLanguage } from "@/context/LanguageContext";
+import LanguageSection from "@/pages/Settings/LanguageSection";
+import ThemeSection from "@/pages/Settings/ThemeSection";
+import PrefsSection from "@/pages/Settings/PrefsSection";
+import DataSection from "@/pages/Settings/DataSection";
 import "./Settings.css";
 
 export default function SettingsPage() {

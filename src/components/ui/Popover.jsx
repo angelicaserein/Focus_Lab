@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import useOutsideClick from "../hooks/useOutsideClick";
+import useOutsideClick from "@/hooks/common/useOutsideClick";
 
 // 把内容渲染到 document.body 的浮层（portal），以 fixed 定位锚定在 anchorEl 下方，
 // 避免被祖先的 overflow 滚动容器裁剪。靠近视口右/下边缘时自动翻转对齐。

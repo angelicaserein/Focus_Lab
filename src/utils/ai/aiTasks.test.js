@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { parseTasksJson, sanitizeTaskAttrs, buildSchemaHint } from "./aiTasks";
-import { TASK_ATTR_DEFAULTS } from "./taskAttrDefaults";
+import { parseTasksJson, sanitizeTaskAttrs, buildSchemaHint } from "@/utils/ai/aiTasks";
+import { TASK_ATTR_DEFAULTS } from "@/utils/task/taskAttrDefaults";
 
 // 一个含全部约定列的「经典」库
 const fullDb = { id: "d1", name: "任务", attrs: TASK_ATTR_DEFAULTS.map((a) => ({ ...a })) };

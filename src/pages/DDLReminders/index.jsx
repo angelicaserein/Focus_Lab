@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
-import { useTodos } from "../../context/TodoContext";
-import { useDDL } from "../../context/DDLContext";
-import { useLanguage } from "../../context/LanguageContext";
-import { getDaysUntil } from "../../utils/time";
+import { useTodos } from "@/context/TodoContext";
+import { useDDL } from "@/context/DDLContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { getDaysUntil } from "@/utils/time";
 import {
   countdownLabel,
   countdownClass,
@@ -10,8 +10,8 @@ import {
   isCheckpointDue,
   collectDueReminders,
   isActiveDeadline,
-} from "../../utils/ddlUtils";
-import DDLDebugPanel from "./DDLDebugPanel";
+} from "@/utils/ddlUtils";
+import DDLDebugPanel from "@/pages/DDLReminders/DDLDebugPanel";
 import "./DDLReminders.css";
 
 const QUICK_DAYS = [1, 3, 7, 14, 30];

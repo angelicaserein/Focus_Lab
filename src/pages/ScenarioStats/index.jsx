@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import useScenarioAnalytics from "../../data/useScenarioAnalytics";
-import { formatDuration, formatRelativeTime } from "../../utils/time";
+import useScenarioAnalytics from "@/hooks/scenario/useScenarioAnalytics";
+import { formatDuration, formatRelativeTime } from "@/utils/time";
 import "../History/History.css";
 import "./ScenarioStats.css";
 

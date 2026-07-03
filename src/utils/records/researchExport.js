@@ -1,5 +1,5 @@
 // CSV 导出逻辑 —— 与记录数据结构分离，便于独立修改格式。
-import { todayDateStr } from "./researchRecords";
+import { todayDateStr } from "@/utils/records/researchRecords";
 
 function csvField(val) {
   if (val === null || val === undefined) return "";

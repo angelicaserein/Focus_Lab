@@ -18,8 +18,8 @@
  * MIGRATIONS[i] 将 schema 从版本 i 升级到 i+1。
  */
 
-import { STORAGE_KEYS } from "./storageKeys";
-import { TASK_ATTR_DEFAULTS } from "./taskAttrDefaults";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
+import { TASK_ATTR_DEFAULTS } from "@/utils/task/taskAttrDefaults";
 
 export const SCHEMA_VERSION = 7;
 const SCHEMA_META_KEY = "__focuslab_schema";

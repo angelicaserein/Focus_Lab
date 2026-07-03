@@ -1,15 +1,15 @@
 import { useMemo } from "react";
-import { useFocus } from "../context/FocusContext";
-import useLocalStorage from "../hooks/useLocalStorage";
-import { STORAGE_KEYS } from "../utils/storageKeys";
-import { sessionKey, totalFocusSecs } from "../utils/focusRecords";
+import { useFocus } from "@/context/FocusContext";
+import useLocalStorage from "@/hooks/common/useLocalStorage";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
+import { sessionKey, totalFocusSecs } from "@/utils/records/focusRecords";
 import {
   hourlyFocusData,
   timeBlockStats,
   sessionDurationBuckets,
   taskDifficultyRanking,
   distractionByHour,
-} from "../utils/analyticsUtils";
+} from "@/utils/analytics/analyticsUtils";
 
 /**
  * Analytics 页的只读数据层。

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
-import useLocalStorage from "./useLocalStorage";
-import { STORAGE_KEYS } from "../utils/storageKeys";
-import { filterSinceSession, makeSessionEntry } from "../utils/focusRecords";
+import useLocalStorage from "@/hooks/common/useLocalStorage";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
+import { filterSinceSession, makeSessionEntry } from "@/utils/records/focusRecords";
 
 // 管理随记列表及本次会话随记子集。
 // sessionStartTs 留在调用方（FocusPage）因为同时被 useSessionLifecycle 消费。

@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import usePrefs from "../../hooks/usePrefs";
-import { useLanguage } from "../../context/LanguageContext";
+import usePrefs from "@/hooks/common/usePrefs";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   notifySupported,
   notifyPermission,
   requestNotifyPermission,
   showNotification,
-} from "../../utils/notify";
+} from "@/utils/notify";
 
 export default function PrefsSection() {
   const {

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { wrapVersioned } from "../utils/storage";
+import { wrapVersioned } from "@/utils/storage/storage";
 
 // 把 value 持久化到 localStorage[key]，写入有去抖以减少 I/O 压力。
 // 在页面隐藏/关闭时立即 flush，防止 debounce 窗口内关闭标签页丢失数据。

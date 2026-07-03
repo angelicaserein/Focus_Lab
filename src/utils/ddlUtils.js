@@ -1,4 +1,4 @@
-import { getDaysUntil } from "./time";
+import { getDaysUntil } from "@/utils/time";
 
 // DDL（截止日期）提醒相关的纯函数。
 // 供 DDLContext（badge）、DDLReminders 页面、DDLReminderModal 弹窗共用，

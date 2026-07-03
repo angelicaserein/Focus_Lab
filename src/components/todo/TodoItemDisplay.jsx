@@ -1,6 +1,6 @@
 import React from "react";
-import { TASK_TYPE_OPTIONS } from "../utils/scenarioConstants";
-import { useLanguage } from "../context/LanguageContext";
+import { TASK_TYPE_OPTIONS } from "@/utils/scenario/scenarioConstants";
+import { useLanguage } from "@/context/LanguageContext";
 
 const TAG_MAP = Object.fromEntries(TASK_TYPE_OPTIONS.map((o) => [o.id, o]));
 

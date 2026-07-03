@@ -1,9 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { useScenarios } from "../../context/ScenarioContext";
-import { useDatabases } from "../../context/DatabaseContext";
-import { DEFAULT_SCENARIO_SETTINGS } from "../../utils/scenarioConstants";
-import ScenarioOptionEditor from "./ScenarioOptionEditor";
+import { useScenarios } from "@/context/ScenarioContext";
+import { useDatabases } from "@/context/DatabaseContext";
+import { DEFAULT_SCENARIO_SETTINGS } from "@/utils/scenario/scenarioConstants";
+import ScenarioOptionEditor from "@/pages/Scenario/ScenarioOptionEditor";
 
 export default function ScenarioSettings({ scenario }) {
   const { updateScenarioSettings, scenarioOptions } = useScenarios();

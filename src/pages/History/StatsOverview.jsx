@@ -1,5 +1,5 @@
 import React from "react";
-import { formatDuration } from "../../utils/time";
+import { formatDuration } from "@/utils/time";
 
 // 顶部统计区：两行汇总卡 + 近 7 天柱状图 + 任务专注排行。
 // 入参 stats 为 computeFocusStats(records) 的结果。

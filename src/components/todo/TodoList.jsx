@@ -1,7 +1,7 @@
 import React from "react";
-import { useTodos } from "../context/TodoContext";
-import { useLanguage } from "../context/LanguageContext";
-import TodoItem from "./TodoItem";
+import { useTodos } from "@/context/TodoContext";
+import { useLanguage } from "@/context/LanguageContext";
+import TodoItem from "@/components/todo/TodoItem";
 
 export default function TodoList({ filter = "ALL", scenarioFilter = null }) {
   const { todos } = useTodos();

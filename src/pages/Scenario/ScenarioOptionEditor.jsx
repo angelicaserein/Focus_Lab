@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useScenarios } from "../../context/ScenarioContext";
+import { useScenarios } from "@/context/ScenarioContext";
 
 // 一个「可自定义选项 + 选择」的小节：设备 / 交流规则共用。
 // 选项表是全局的（编辑影响所有情境），选中状态是当前情境的。

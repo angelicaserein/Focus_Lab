@@ -315,6 +315,73 @@
   cursor: not-allowed;
 }
 
+/* 自定义时长输入：外观与预设 pill 一致，含「分钟」单位后缀 */
+.focus-duration-custom {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px 0 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--accent-border);
+  background: var(--accent-bg-dim);
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.focus-duration-custom.active {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.focus-duration-input {
+  width: 42px;
+  border: none;
+  background: transparent;
+  color: var(--accent-deep);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 6px 0;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.focus-duration-input::-webkit-outer-spin-button,
+.focus-duration-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.focus-duration-input:focus {
+  outline: none;
+}
+
+.focus-duration-input::placeholder {
+  color: var(--accent-deep);
+  opacity: 0.6;
+  font-weight: 600;
+}
+
+.focus-duration-unit {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent-deep);
+}
+
+.focus-duration-custom.active .focus-duration-input,
+.focus-duration-custom.active .focus-duration-unit,
+.focus-duration-custom.active .focus-duration-input::placeholder {
+  color: #fff;
+  opacity: 1;
+}
+
+.focus-duration-custom:has(.focus-duration-input:disabled) {
+  opacity: 0.5;
+}
+
+.focus-duration-input:disabled {
+  cursor: not-allowed;
+}
+
 /* Action buttons */
 .focus-actions {
   display: grid;

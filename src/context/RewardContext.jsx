@@ -1,10 +1,10 @@
 import React, { useContext } from "react";
-import useLocalStorage from "../hooks/useLocalStorage";
-import { STORAGE_KEYS } from "../utils/storageKeys";
-import { useTheme } from "./ThemeContext";
+import useLocalStorage from "@/hooks/common/useLocalStorage";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
+import { useTheme } from "@/context/ThemeContext";
 
 // SHOP_ITEMS 已迁移到 utils/shopConfig.js，此处 re-export 以保持向后兼容。
-export { SHOP_ITEMS } from "../utils/shopConfig";
+export { SHOP_ITEMS } from "@/utils/shopConfig";
 
 // RewardContext 管理「奖励」相关状态：
 //   1. coins —— 金币余额，完成专注任务时按秒发放（1 秒 = 1 枚）。

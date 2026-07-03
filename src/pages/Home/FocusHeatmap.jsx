@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useLayoutEffect } from "react";
-import { totalFocusSecs } from "../../utils/focusRecords";
-import { formatDuration } from "../../utils/time";
-import { useLanguage } from "../../context/LanguageContext";
+import { totalFocusSecs } from "@/utils/records/focusRecords";
+import { formatDuration } from "@/utils/time";
+import { useLanguage } from "@/context/LanguageContext";
 import "./FocusHeatmap.css";
 
 const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];

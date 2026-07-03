@@ -29,7 +29,7 @@ function measureSkinnedBox(root) {
   });
   return box;
 }
-import ErrorBoundary from "../../components/ErrorBoundary";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import pusheenGlb from "../../../assets/model/pusheen_-_im_busy.glb?url";
 
 const webglFallback = (

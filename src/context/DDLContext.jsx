@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useCallback, useState } from "react";
-import useLocalStorage from "../hooks/useLocalStorage";
-import { STORAGE_KEYS } from "../utils/storageKeys";
-import { collectDueReminders } from "../utils/ddlUtils";
+import useLocalStorage from "@/hooks/common/useLocalStorage";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
+import { collectDueReminders } from "@/utils/ddlUtils";
 
 const DDLContext = React.createContext(null);
 

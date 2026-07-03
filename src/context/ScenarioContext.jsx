@@ -1,12 +1,12 @@
 import React, { useReducer, useState, useContext, useCallback } from "react";
-import { loadVersioned, WRAPPER_VERSION } from "../utils/storage";
-import useUndoDelete from "../hooks/useUndoDelete";
-import usePersistedWrite from "../hooks/usePersistedWrite";
-import { STORAGE_KEYS } from "../utils/storageKeys";
+import { loadVersioned, WRAPPER_VERSION } from "@/utils/storage/storage";
+import useUndoDelete from "@/hooks/common/useUndoDelete";
+import usePersistedWrite from "@/hooks/common/usePersistedWrite";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 import {
   DEFAULT_SCENARIO_SETTINGS,
   DEFAULT_SCENARIO_OPTIONS,
-} from "../utils/scenarioConstants";
+} from "@/utils/scenario/scenarioConstants";
 
 // Action types
 const ADD = "ADD";

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { sanitizeTaskAttrs } from "../../utils/aiTasks";
+import { sanitizeTaskAttrs } from "@/utils/ai/aiTasks";
 import "./AiTaskModal.css";
 
 // 把已清洗的 attrs 渲染成只读 chips（优先级带色点、标签、截止、时长、备注）。

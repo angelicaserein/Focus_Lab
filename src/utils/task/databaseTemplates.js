@@ -1,4 +1,4 @@
-import { TASK_ATTR_DEFAULTS } from "./taskAttrDefaults";
+import { TASK_ATTR_DEFAULTS } from "@/utils/task/taskAttrDefaults";
 
 /**
  * 新建 database 时可选的模板。

@@ -1,9 +1,9 @@
 import React, { useMemo, useRef, useState } from "react";
-import useMemos from "../../hooks/useMemos";
-import useTaskExtraction from "../../hooks/useTaskExtraction";
-import AiTaskModal from "./AiTaskModal";
-import { useDatabases } from "../../context/DatabaseContext";
-import { formatTimestamp, formatSessionDate } from "../../utils/time";
+import useMemos from "@/hooks/useMemos";
+import useTaskExtraction from "@/hooks/task/useTaskExtraction";
+import AiTaskModal from "@/pages/Memo/AiTaskModal";
+import { useDatabases } from "@/context/DatabaseContext";
+import { formatTimestamp, formatSessionDate } from "@/utils/time";
 import "./Memo.css";
 
 const FILTERS = [

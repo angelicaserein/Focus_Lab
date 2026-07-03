@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
-import { exportAllData, importAllData, KEY_MAP } from "../../utils/storage";
-import { STORAGE_KEYS } from "../../utils/storageKeys";
-import { useLanguage } from "../../context/LanguageContext";
+import { exportAllData, importAllData, KEY_MAP } from "@/utils/storage/storage";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
+import { useLanguage } from "@/context/LanguageContext";
 
 // 纳入用量统计的存储项；label 在渲染时按 settings.data.label.{name} 翻译。
 const STORAGE_NAMES = ["todos", "scenarios", "focusRecords", "notes", "distractions", "chatHistory"];

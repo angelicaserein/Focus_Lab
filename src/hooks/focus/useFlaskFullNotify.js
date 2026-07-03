@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { showNotification } from "../utils/notify";
+import { showNotification } from "@/utils/notify";
 
 // 烧瓶注满（专注满目标时长）触发决策（纯函数，便于单测）。
 //

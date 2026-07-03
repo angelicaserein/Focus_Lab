@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useDDL } from "../../context/DDLContext";
+import { useDDL } from "@/context/DDLContext";
 
 // 仅开发环境使用的调试面板：用 MOCK 数据预览各种倒计时/卡片/弹窗状态。
 // 由 index.jsx 在 import.meta.env.DEV 下挂载，生产构建会被 tree-shake 掉。

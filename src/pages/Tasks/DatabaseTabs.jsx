@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useDatabases, DEFAULT_DB_ID } from "../../context/DatabaseContext";
-import { useTodos } from "../../context/TodoContext";
-import Popover from "../../components/Popover";
-import DatabaseCreateDialog from "./DatabaseCreateDialog";
+import { useDatabases, DEFAULT_DB_ID } from "@/context/DatabaseContext";
+import { useTodos } from "@/context/TodoContext";
+import Popover from "@/components/ui/Popover";
+import DatabaseCreateDialog from "@/pages/Tasks/DatabaseCreateDialog";
 import "./DatabaseTabs.css";
 
 export default function DatabaseTabs() {

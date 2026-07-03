@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { shouldFireFlaskFull } from "./useFlaskFullNotify";
+import { shouldFireFlaskFull } from "@/hooks/focus/useFlaskFullNotify";
 
 const T = 25 * 60; // 目标：25 分钟 = 1500 秒
 

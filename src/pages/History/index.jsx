@@ -1,8 +1,8 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
-import { useFocus } from "../../context/FocusContext";
-import { computeFocusStats } from "../../utils/focusRecords";
-import StatsOverview from "./StatsOverview";
-import RecordList from "./RecordList";
+import { useFocus } from "@/context/FocusContext";
+import { computeFocusStats } from "@/utils/records/focusRecords";
+import StatsOverview from "@/pages/History/StatsOverview";
+import RecordList from "@/pages/History/RecordList";
 import "./History.css";
 
 export default function HistoryPage() {

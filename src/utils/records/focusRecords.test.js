@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { filterSinceSession, buildFocusRecord } from "./focusRecords";
+import { filterSinceSession, buildFocusRecord } from "@/utils/records/focusRecords";
 
 describe("filterSinceSession", () => {
   const items = [

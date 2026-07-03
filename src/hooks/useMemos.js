@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import useLocalStorage from "./useLocalStorage";
-import { STORAGE_KEYS } from "../utils/storageKeys";
+import useLocalStorage from "@/hooks/common/useLocalStorage";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 
 // 备忘录数据层：
 //  - 手动备忘存于独立的 MEMOS（可增改删）

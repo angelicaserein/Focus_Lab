@@ -1,9 +1,9 @@
 import React from "react";
 import "./SessionSummary.css";
-import { useFocus } from "../../context/FocusContext";
-import { useLanguage } from "../../context/LanguageContext";
-import { formatTimestamp, formatSessionDate, formatDuration } from "../../utils/time";
-import { buildSessions, enrichDistractionSessions } from "../../utils/sessionSummaryUtils";
+import { useFocus } from "@/context/FocusContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { formatTimestamp, formatSessionDate, formatDuration } from "@/utils/time";
+import { buildSessions, enrichDistractionSessions } from "@/utils/analytics/sessionSummaryUtils";
 
 export default function SessionSummary({ notes = [], distractions = [] }) {
   const { focusRecords } = useFocus();

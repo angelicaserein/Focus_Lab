@@ -11,7 +11,7 @@
 //  全部纯函数、now 由调用方注入（便于 vitest 固定时间），不依赖 React。
 // ──────────────────────────────────────────────────────────────
 
-import { buildSortWeightMap } from "./taskAttrUtils";
+import { buildSortWeightMap } from "@/utils/task/taskAttrUtils";
 
 // ── 可调权重（集中放顶部，便于实验迭代）─────────────────────────
 const TAG_MATCH = 40; // 任务标签命中当前情景任务类型

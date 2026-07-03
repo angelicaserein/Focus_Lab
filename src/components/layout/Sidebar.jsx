@@ -16,10 +16,10 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { useTodos } from "../../context/TodoContext";
-import { useDDL } from "../../context/DDLContext";
-import { useScenarios } from "../../context/ScenarioContext";
-import { useLanguage } from "../../context/LanguageContext";
+import { useTodos } from "@/context/TodoContext";
+import { useDDL } from "@/context/DDLContext";
+import { useScenarios } from "@/context/ScenarioContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 const NAV_SECTIONS = [
   {

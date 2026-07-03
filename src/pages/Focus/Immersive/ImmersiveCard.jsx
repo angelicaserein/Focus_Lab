@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import "./ImmersiveCard.css";
-import FocusFlask from "../FocusFlask";
-import DebugTweaks from "../DebugTweaks";
-import ImmersiveTaskPicker from "./ImmersiveTaskPicker";
-import useDraggable from "../../../hooks/useDraggable";
-import { formatClock } from "../../../utils/time";
-import { useFocusSession } from "../FocusSessionContext";
+import FocusFlask from "@/pages/Focus/FocusFlask";
+import DebugTweaks from "@/pages/Focus/DebugTweaks";
+import ImmersiveTaskPicker from "@/pages/Focus/Immersive/ImmersiveTaskPicker";
+import useDraggable from "@/hooks/common/useDraggable";
+import { formatClock } from "@/utils/time";
+import { useFocusSession } from "@/pages/Focus/FocusSessionContext";
 
 // 可拖拽的液态玻璃悬浮卡：包含计时状态、任务列表、操作按钮和任务选择器面板。
 export default function ImmersiveCard({ flaskProgress }) {

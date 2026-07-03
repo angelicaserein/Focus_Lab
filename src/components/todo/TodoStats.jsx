@@ -1,6 +1,6 @@
 import React from "react";
-import { useTodos } from "../context/TodoContext";
-import { useLanguage } from "../context/LanguageContext";
+import { useTodos } from "@/context/TodoContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function TodoStats() {
   const { todos } = useTodos();

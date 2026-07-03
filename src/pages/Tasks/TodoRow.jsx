@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import AttrCell from "./cells/AttrCell";
+import AttrCell from "@/pages/Tasks/cells/AttrCell";
 
 // 回调接收 (id, ...) 形式的稳定 context 函数（toggleTodo/editTodo/setTodoAttr/
 // deleteTodo），由本组件绑定 todo.id 后调用。配合 React.memo，可在父级因

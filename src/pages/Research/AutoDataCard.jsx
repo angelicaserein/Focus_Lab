@@ -1,5 +1,5 @@
 import React from "react";
-import { formatDuration } from "../../utils/time";
+import { formatDuration } from "@/utils/time";
 
 // 系统自动计算的当日专注数据展示（只读）。
 export default function AutoDataCard({ autoData, isToday }) {

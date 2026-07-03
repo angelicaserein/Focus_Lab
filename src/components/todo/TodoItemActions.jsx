@@ -1,6 +1,6 @@
 import React from "react";
-import { recurringLabel } from "./RecurringDayPicker";
-import { useLanguage } from "../context/LanguageContext";
+import { recurringLabel } from "@/components/todo/RecurringDayPicker";
+import { useLanguage } from "@/context/LanguageContext";
 
 // 任务行操作按钮区（固定任务切换 + 标签切换 + 编辑）。
 // Picker 面板由父组件 TodoItem 渲染，保持 .todo-item-wrap 层级不变。

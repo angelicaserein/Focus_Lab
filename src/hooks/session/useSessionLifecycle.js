@@ -1,6 +1,6 @@
-import useSessionStart from "./useSessionStart";
-import useTaskSettlement from "./useTaskSettlement";
-import useSessionStop from "./useSessionStop";
+import useSessionStart from "@/hooks/session/useSessionStart";
+import useTaskSettlement from "@/hooks/task/useTaskSettlement";
+import useSessionStop from "@/hooks/session/useSessionStop";
 
 // 组合层：将会话生命周期的三个阶段聚合为统一对外 API。
 // 各子 hook 各司其职（Start=启动/Stop=结算发币/Settlement=单任务打勾），

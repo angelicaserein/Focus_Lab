@@ -1,7 +1,7 @@
-import "../types";
+import "@/types";
 import React, { useContext } from "react";
-import useLocalStorage from "../hooks/useLocalStorage";
-import { STORAGE_KEYS } from "../utils/storageKeys";
+import useLocalStorage from "@/hooks/common/useLocalStorage";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 
 // FocusContext 管理「专注」相关状态，与具体的 todo 数据解耦：
 //   1. 本次专注选择 —— 只存 todo id 的集合（不依赖 todos 本身）。

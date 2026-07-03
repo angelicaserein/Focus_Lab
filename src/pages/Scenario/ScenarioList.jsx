@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { useScenarios } from "../../context/ScenarioContext";
-import ScenarioForm from "./ScenarioForm";
-import ScenarioItem from "./ScenarioItem";
-import ScenarioSettings from "./ScenarioSettings";
-import ScenarioStats from "./ScenarioStats";
-import ScenarioRecommend from "./ScenarioRecommend";
+import { useScenarios } from "@/context/ScenarioContext";
+import ScenarioForm from "@/pages/Scenario/ScenarioForm";
+import ScenarioItem from "@/pages/Scenario/ScenarioItem";
+import ScenarioSettings from "@/pages/Scenario/ScenarioSettings";
+import ScenarioStats from "@/pages/Scenario/ScenarioStats";
+import ScenarioRecommend from "@/pages/Scenario/ScenarioRecommend";
 
 export default function ScenarioList() {
   const { scenarios } = useScenarios();

@@ -1,7 +1,7 @@
 import React from "react";
-import useScenarioRecommend from "../../hooks/useScenarioRecommend";
-import RecommendItem from "../../components/RecommendItem";
-import { useLanguage } from "../../context/LanguageContext";
+import useScenarioRecommend from "@/hooks/scenario/useScenarioRecommend";
+import RecommendItem from "@/components/ui/RecommendItem";
+import { useLanguage } from "@/context/LanguageContext";
 
 // 专注页左栏推荐条：基于当前情景 + 候选任务（未在专注、未完成）主动推荐。
 // 每条「+ 加入专注」调 onPick（= addToFocus）。仅在有激活情景且有候选时渲染。

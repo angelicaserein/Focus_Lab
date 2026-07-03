@@ -1,11 +1,11 @@
 import React, { useState, useRef } from "react";
-import { formatDate, formatMins, isDuePast } from "../../../utils/taskAttrUtils";
-import Popover from "../../../components/Popover";
-import AttrCellSelect from "./AttrCellSelect";
-import AttrCellMultiSelect from "./AttrCellMultiSelect";
-import AttrCellText from "./AttrCellText";
-import AttrCellDate from "./AttrCellDate";
-import AttrCellNumber from "./AttrCellNumber";
+import { formatDate, formatMins, isDuePast } from "@/utils/task/taskAttrUtils";
+import Popover from "@/components/ui/Popover";
+import AttrCellSelect from "@/pages/Tasks/cells/AttrCellSelect";
+import AttrCellMultiSelect from "@/pages/Tasks/cells/AttrCellMultiSelect";
+import AttrCellText from "@/pages/Tasks/cells/AttrCellText";
+import AttrCellDate from "@/pages/Tasks/cells/AttrCellDate";
+import AttrCellNumber from "@/pages/Tasks/cells/AttrCellNumber";
 
 export default function AttrCell({ attrDef, todo, onSave }) {
   const [isEditing, setIsEditing] = useState(false);

@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useCallback } from "react";
-import useLocalStorage from "../hooks/useLocalStorage";
-import { STORAGE_KEYS } from "../utils/storageKeys";
-import { TRANSLATIONS, DEFAULT_LANG } from "../i18n/translations";
+import useLocalStorage from "@/hooks/common/useLocalStorage";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
+import { TRANSLATIONS, DEFAULT_LANG } from "@/i18n/translations";
 
 // 应用语言：localStorage 持久化，提供 t(key, vars) 翻译函数。
 // 缺失的 key 回退到默认语言（en），再回退到 key 本身，便于尚未翻译的页面保持可用。

@@ -1,4 +1,4 @@
-import { TASK_TYPE_OPTIONS } from "./scenarioConstants";
+import { TASK_TYPE_OPTIONS } from "@/utils/scenario/scenarioConstants";
 
 export const TASK_ATTR_DEFAULTS = [
   {

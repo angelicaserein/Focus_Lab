@@ -1,6 +1,6 @@
 import React from "react";
-import { TASK_TYPE_OPTIONS } from "../utils/scenarioConstants";
-import { useLanguage } from "../context/LanguageContext";
+import { TASK_TYPE_OPTIONS } from "@/utils/scenario/scenarioConstants";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function TaskTagPicker({ tags = [], options = TASK_TYPE_OPTIONS, onChange, onClose }) {
   const { t } = useLanguage();

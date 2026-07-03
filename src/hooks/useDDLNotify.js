@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import { collectDueReminders } from "../utils/ddlUtils";
-import { showNotification, notifyPermission } from "../utils/notify";
-import { getTodayStr } from "../utils/time";
-import { STORAGE_KEYS } from "../utils/storageKeys";
+import { collectDueReminders } from "@/utils/ddlUtils";
+import { showNotification, notifyPermission } from "@/utils/notify";
+import { getTodayStr } from "@/utils/time";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 
 // 应用加载时，若启用了通知且有「今日到期」的 DDL 提醒，弹一次系统通知（每天至多一次）。
 //

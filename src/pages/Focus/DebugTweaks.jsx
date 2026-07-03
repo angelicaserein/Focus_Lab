@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import "./DebugTweaks.css";
-import { formatClock } from "../../utils/time";
-import { useFocusSession } from "./FocusSessionContext";
-import { STORAGE_KEYS } from "../../utils/storageKeys";
+import { formatClock } from "@/utils/time";
+import { useFocusSession } from "@/pages/Focus/FocusSessionContext";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 
 const ALL_STORAGE_KEYS = Object.values(STORAGE_KEYS);
 

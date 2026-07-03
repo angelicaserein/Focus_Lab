@@ -1,7 +1,7 @@
 import React from "react";
-import { useReward, SHOP_ITEMS } from "../../context/RewardContext";
-import { useTheme } from "../../context/ThemeContext";
-import { useLanguage } from "../../context/LanguageContext";
+import { useReward, SHOP_ITEMS } from "@/context/RewardContext";
+import { useTheme } from "@/context/ThemeContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function ThemeSection() {
   const { isOwned } = useReward();

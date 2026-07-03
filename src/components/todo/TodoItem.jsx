@@ -1,13 +1,13 @@
 import React, { useState, useMemo, useRef } from "react";
-import { useTodos } from "../context/TodoContext";
-import { useFocus } from "../context/FocusContext";
-import { useLanguage } from "../context/LanguageContext";
-import RecurringDayPicker from "./RecurringDayPicker";
-import TaskTagPicker from "./TaskTagPicker";
-import useOutsideClick from "../hooks/useOutsideClick";
-import useEditMode from "../hooks/useEditMode";
-import TodoItemActions from "./TodoItemActions";
-import TodoItemDisplay from "./TodoItemDisplay";
+import { useTodos } from "@/context/TodoContext";
+import { useFocus } from "@/context/FocusContext";
+import { useLanguage } from "@/context/LanguageContext";
+import RecurringDayPicker from "@/components/todo/RecurringDayPicker";
+import TaskTagPicker from "@/components/todo/TaskTagPicker";
+import useOutsideClick from "@/hooks/common/useOutsideClick";
+import useEditMode from "@/hooks/common/useEditMode";
+import TodoItemActions from "@/components/todo/TodoItemActions";
+import TodoItemDisplay from "@/components/todo/TodoItemDisplay";
 
 export default function TodoItem({ todo, isOtherDay = false }) {
   const { toggleTodo, deleteTodo, editTodo, toggleRecurring, setTodoAttr } = useTodos();

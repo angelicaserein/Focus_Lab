@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTodos } from "../context/TodoContext";
-import { useDDL } from "../context/DDLContext";
-import { useLanguage } from "../context/LanguageContext";
-import usePrefs from "../hooks/usePrefs";
-import useDDLNotify from "../hooks/useDDLNotify";
-import { getTodayStr } from "../utils/time";
-import { collectDueReminders, countdownLabel, countdownClass } from "../utils/ddlUtils";
-import { STORAGE_KEYS } from "../utils/storageKeys";
+import { useTodos } from "@/context/TodoContext";
+import { useDDL } from "@/context/DDLContext";
+import { useLanguage } from "@/context/LanguageContext";
+import usePrefs from "@/hooks/common/usePrefs";
+import useDDLNotify from "@/hooks/useDDLNotify";
+import { getTodayStr } from "@/utils/time";
+import { collectDueReminders, countdownLabel, countdownClass } from "@/utils/ddlUtils";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 import "./DDLReminderModal.css";
 
 export default function DDLReminderModal() {

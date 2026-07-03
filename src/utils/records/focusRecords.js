@@ -1,6 +1,6 @@
 // 专注记录的纯数据处理 —— 分组、近 7 天聚合、统计汇总。
 // 与 React 无关，便于复用与单测。
-/** @import { FocusRecord } from '../types' */
+/** @import { FocusRecord } from '@/types' */
 
 // 会话唯一键：有 sessionId 时用它，旧记录无 sessionId 则退化到记录自身 id
 export const sessionKey = (r) => r.sessionId ?? r.id;

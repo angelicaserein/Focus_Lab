@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { todayDateStr } from "../../utils/researchRecords";
-import { exportResearchCSV } from "../../utils/researchExport";
-import useResearchRecord from "../../hooks/useResearchRecord";
-import DateNavigation from "./DateNavigation";
-import ScaleGrid from "./ScaleGrid";
-import AutoDataCard from "./AutoDataCard";
+import { todayDateStr } from "@/utils/records/researchRecords";
+import { exportResearchCSV } from "@/utils/records/researchExport";
+import useResearchRecord from "@/hooks/useResearchRecord";
+import DateNavigation from "@/pages/Research/DateNavigation";
+import ScaleGrid from "@/pages/Research/ScaleGrid";
+import AutoDataCard from "@/pages/Research/AutoDataCard";
 import "./Research.css";
 
 export default function ResearchPage() {

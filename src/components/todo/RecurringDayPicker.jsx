@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
 const WORKDAYS = [1, 2, 3, 4, 5];

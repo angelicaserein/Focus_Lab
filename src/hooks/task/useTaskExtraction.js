@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
-import { useTodos } from "../context/TodoContext";
-import { useDatabases } from "../context/DatabaseContext";
-import { extractTasksFromText, sanitizeTaskAttrs } from "../utils/aiTasks";
+import { useTodos } from "@/context/TodoContext";
+import { useDatabases } from "@/context/DatabaseContext";
+import { extractTasksFromText, sanitizeTaskAttrs } from "@/utils/ai/aiTasks";
 
 // 编排「AI 笔记 → 任务」的一次会话。
 // 状态机：idle → loading → review → (commit) → idle ；出错则 error。

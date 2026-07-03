@@ -1,5 +1,5 @@
-import useLocalStorage from "./useLocalStorage";
-import { STORAGE_KEYS } from "../utils/storageKeys";
+import useLocalStorage from "@/hooks/common/useLocalStorage";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 
 export default function usePrefs() {
   // 正计时烧瓶注满时长 / 倒计时时长（分钟），两者独立

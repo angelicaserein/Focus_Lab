@@ -7,7 +7,7 @@ import {
   applySort,
   applyQuery,
   isEmptyVal,
-} from "./taskQuery";
+} from "@/pages/Tasks/taskQuery";
 
 // 取自 taskAttrDefaults.js 的列形状（优先级带 sortWeight）。
 const ATTRS = [

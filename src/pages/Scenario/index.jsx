@@ -1,7 +1,7 @@
 import React from "react";
-import ScenarioList from "./ScenarioList";
-import Toast from "../../components/Toast";
-import { useScenarios } from "../../context/ScenarioContext";
+import ScenarioList from "@/pages/Scenario/ScenarioList";
+import Toast from "@/components/ui/Toast";
+import { useScenarios } from "@/context/ScenarioContext";
 
 export default function Scenario() {
   const { pendingDelete, undoDelete } = useScenarios();

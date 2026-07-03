@@ -1,7 +1,7 @@
 import { useMemo } from "react";
-import { useFocus } from "../context/FocusContext";
-import { useScenarios } from "../context/ScenarioContext";
-import { totalFocusSecs, last7DaysData, sessionKey } from "../utils/focusRecords";
+import { useFocus } from "@/context/FocusContext";
+import { useScenarios } from "@/context/ScenarioContext";
+import { totalFocusSecs, last7DaysData, sessionKey } from "@/utils/records/focusRecords";
 
 function buildScenarioStats(records, scenarioId) {
   const recs = scenarioId

@@ -1,6 +1,6 @@
 import React from "react";
-import Popover from "../../components/Popover";
-import { opsForType, getOp } from "./taskQuery";
+import Popover from "@/components/ui/Popover";
+import { opsForType, getOp } from "@/pages/Tasks/taskQuery";
 
 // 单条规则的值输入：按运算符的 input 形态渲染（无 / 文本 / 数字 / 日期 / 选项多选）。
 function RuleValueInput({ field, op, value, onChange }) {

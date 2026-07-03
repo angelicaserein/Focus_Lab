@@ -1,9 +1,9 @@
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTodos } from "../../context/TodoContext";
-import { useLanguage } from "../../context/LanguageContext";
-import { getDaysUntil } from "../../utils/time";
-import { isActiveDeadline, countdownLabel, formatDueDate } from "../../utils/ddlUtils";
+import { useTodos } from "@/context/TodoContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { getDaysUntil } from "@/utils/time";
+import { isActiveDeadline, countdownLabel, formatDueDate } from "@/utils/ddlUtils";
 import "./DeadlineHorizon.css";
 
 // 把「截止日」从日历上一个遥远的点，翻译成一种**空间距离感**：

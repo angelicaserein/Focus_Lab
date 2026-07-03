@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { useTodos } from "../../context/TodoContext";
-import { useTaskAttrs, useDatabases } from "../../context/DatabaseContext";
-import { useScenarios } from "../../context/ScenarioContext";
-import AttrHeaderEditor from "./AttrHeaderEditor";
-import DatabaseTabs from "./DatabaseTabs";
-import TasksToolbar from "./TasksToolbar";
-import TodoRow from "./TodoRow";
-import useTaskQuery from "./useTaskQuery";
-import { applyQuery, buildQueryFields } from "./taskQuery";
+import { useTodos } from "@/context/TodoContext";
+import { useTaskAttrs, useDatabases } from "@/context/DatabaseContext";
+import { useScenarios } from "@/context/ScenarioContext";
+import AttrHeaderEditor from "@/pages/Tasks/AttrHeaderEditor";
+import DatabaseTabs from "@/pages/Tasks/DatabaseTabs";
+import TasksToolbar from "@/pages/Tasks/TasksToolbar";
+import TodoRow from "@/pages/Tasks/TodoRow";
+import useTaskQuery from "@/pages/Tasks/useTaskQuery";
+import { applyQuery, buildQueryFields } from "@/pages/Tasks/taskQuery";
 import "./Tasks.css";
 
 const TYPE_COL_WIDTHS = {

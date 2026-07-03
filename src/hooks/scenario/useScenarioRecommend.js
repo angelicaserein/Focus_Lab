@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
-import { useTodos } from "../context/TodoContext";
-import { useScenarios } from "../context/ScenarioContext";
-import { useTaskAttrs } from "../context/DatabaseContext";
-import { buildScenarioContext, recommendTasks } from "../utils/scenarioRecommend";
-import { rerankRecommendations, hasApiKey } from "../utils/aiRecommend";
+import { useTodos } from "@/context/TodoContext";
+import { useScenarios } from "@/context/ScenarioContext";
+import { useTaskAttrs } from "@/context/DatabaseContext";
+import { buildScenarioContext, recommendTasks } from "@/utils/scenario/scenarioRecommend";
+import { rerankRecommendations, hasApiKey } from "@/utils/ai/aiRecommend";
 
 // 编排「情景智能推荐」：规则排序即时算出，AI 精排按需触发。
 //   · base       规则层 Top N（同步 useMemo），每项 { todo, score, reasons }

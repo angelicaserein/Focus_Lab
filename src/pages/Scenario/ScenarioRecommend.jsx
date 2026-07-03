@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useScenarios } from "../../context/ScenarioContext";
-import { useTodos } from "../../context/TodoContext";
-import { useDatabases } from "../../context/DatabaseContext";
-import useScenarioRecommend from "../../hooks/useScenarioRecommend";
-import RecommendItem from "../../components/RecommendItem";
+import { useScenarios } from "@/context/ScenarioContext";
+import { useTodos } from "@/context/TodoContext";
+import { useDatabases } from "@/context/DatabaseContext";
+import useScenarioRecommend from "@/hooks/scenario/useScenarioRecommend";
+import RecommendItem from "@/components/ui/RecommendItem";
 
 // 情景页第三张卡「现在最适合做」：基于当前激活情景对「当前任务库」主动排序。
 // 无激活情景时给引导；有则展示 Top N + 规则理由，并可点「✨ AI 精排」叠加 AI 重排/理由。
