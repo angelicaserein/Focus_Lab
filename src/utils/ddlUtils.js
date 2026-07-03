@@ -4,13 +4,14 @@ import { getDaysUntil } from "./time";
 // 供 DDLContext（badge）、DDLReminders 页面、DDLReminderModal 弹窗共用，
 // 保证倒计时文案 / 到期判断 / 今日提醒列表三处逻辑完全一致。
 
-// 距截止天数 → 倒计时文案。days 为 null（无截止日）时返回空串。
-export function countdownLabel(days) {
+// 距截止天数 → 倒计时文案（本地化）。days 为 null（无截止日）时返回空串。
+// t 为 useLanguage() 的翻译函数，由各调用方传入。
+export function countdownLabel(days, t) {
   if (days === null) return "";
-  if (days < 0) return `已过期 ${-days} 天`;
-  if (days === 0) return "今天截止";
-  if (days === 1) return "明天截止";
-  return `还有 ${days} 天`;
+  if (days < 0) return t("ddl.countdown.overdue", { days: -days });
+  if (days === 0) return t("ddl.countdown.today");
+  if (days === 1) return t("ddl.countdown.tomorrow");
+  return t("ddl.countdown.days", { days });
 }
 
 // 距截止天数 → 倒计时样式类（overdue / urgent / ""）。

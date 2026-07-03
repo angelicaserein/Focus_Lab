@@ -87,23 +87,23 @@ export default function DDLReminderModal() {
                   <span className="ddl-modal-msg">{checkpoint.message}</span>
                 </div>
                 <span className={`ddl-modal-tag ${countdownClass(daysLeft)}`}>
-                  {countdownLabel(daysLeft)}
+                  {countdownLabel(daysLeft, t)}
                 </span>
               </li>
             ))}
           </ul>
         ) : (
           <div className="ddl-modal-empty">
-            （这里会列出所有今日到期的提醒节点）
+            {t("ddl.modal.empty")}
           </div>
         )}
 
         <div className="ddl-modal-actions">
           <button className="ddl-modal-go" onClick={goToDDL}>
-            前往 DDL 页面
+            {t("ddl.modal.goto")}
           </button>
           <button className="ddl-modal-dismiss" onClick={dismiss}>
-            知道了
+            {t("ddl.modal.dismiss")}
           </button>
         </div>
       </div>
