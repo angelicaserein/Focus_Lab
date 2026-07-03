@@ -52,13 +52,13 @@ export default function DeadlineHorizon() {
 
   const pins = useMemo(() => {
     const list = todos
-      .filter((t) => !t.completed && isActiveDeadline(t))
-      .map((t) => {
-        const days = getDaysUntil(t.attrs.dueDate);
+      .filter((todo) => !todo.completed && isActiveDeadline(todo))
+      .map((todo) => {
+        const days = getDaysUntil(todo.attrs.dueDate);
         return {
-          id: t.id,
-          text: t.text,
-          dueDate: t.attrs.dueDate,
+          id: todo.id,
+          text: todo.text,
+          dueDate: todo.attrs.dueDate,
           days,
           ...projectDeadline(days),
           klass: urgencyClass(days),

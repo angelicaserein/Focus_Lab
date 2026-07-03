@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTodos } from "../context/TodoContext";
+import { useLanguage } from "../context/LanguageContext";
 import RecurringDayPicker, { recurringLabel } from "./RecurringDayPicker";
 import useOutsideClick from "../hooks/useOutsideClick";
 
@@ -7,6 +8,7 @@ const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
 
 export default function TodoForm({ forceRecurring = false }) {
   const { addTodo } = useTodos();
+  const { t } = useLanguage();
   const [text, setText] = useState("");
   const [recurringDays, setRecurringDays] = useState(null);
   const [showDayPicker, setShowDayPicker] = useState(false);
@@ -34,7 +36,7 @@ export default function TodoForm({ forceRecurring = false }) {
     }
   };
 
-  const label = recurringLabel(recurringDays ?? []);
+  const label = recurringLabel(recurringDays ?? [], t);
   const isActive = !!recurringDays?.length;
 
   return (
@@ -42,16 +44,16 @@ export default function TodoForm({ forceRecurring = false }) {
       <form className="todo-form" onSubmit={submit}>
         <input
           className="todo-input"
-          placeholder={forceRecurring ? "添加固定任务…" : "添加任务，按回车或点击添加"}
+          placeholder={forceRecurring ? t("todo.form.addRecurringPlaceholder") : t("todo.form.addPlaceholder")}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          aria-label={forceRecurring ? "新增固定任务" : "新增任务"}
+          aria-label={forceRecurring ? t("todo.form.newRecurringAria") : t("todo.form.newTaskAria")}
         />
         <button
           type="button"
           className={`recurring-toggle${isActive ? " active" : ""}`}
           onClick={() => setShowDayPicker(v => !v)}
-          title={isActive ? `固定：${label}` : "设置重复日期"}
+          title={isActive ? t("todo.form.recurringSet", { label }) : t("todo.form.setRecurring")}
           aria-pressed={isActive}
         >
           ↺{isActive && <span className="recurring-btn-label">{label}</span>}
@@ -59,9 +61,9 @@ export default function TodoForm({ forceRecurring = false }) {
         <button
           type="submit"
           className="add-btn"
-          aria-label="添加任务按钮"
+          aria-label={t("todo.form.addAria")}
         >
-          添加
+          {t("todo.form.add")}
         </button>
       </form>
       {showDayPicker && (

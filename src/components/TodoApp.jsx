@@ -5,6 +5,7 @@ import TodoStats from "./TodoStats";
 import Toast from "./Toast";
 import { useTodos } from "../context/TodoContext";
 import { useScenarios } from "../context/ScenarioContext";
+import { useLanguage } from "../context/LanguageContext";
 import { TASK_TYPE_OPTIONS } from "../utils/scenarioConstants";
 
 const typeLabel = Object.fromEntries(TASK_TYPE_OPTIONS.map((o) => [o.id, `${o.icon} ${o.label}`]));
@@ -13,6 +14,7 @@ export default function TodoApp() {
   const [filter, setFilter] = useState("ALL");
   const { pendingDelete, undoDelete } = useTodos();
   const { activeScenario, clearActiveScenario } = useScenarios();
+  const { t } = useLanguage();
 
   const scenarioFilter = useMemo(() => {
     const types = activeScenario?.settings?.taskTypes ?? [];
@@ -24,14 +26,14 @@ export default function TodoApp() {
       <div className="header">
         <div className="title">To do list</div>
 
-        <div className="filter-tabs" role="tablist" aria-label="筛选任务">
+        <div className="filter-tabs" role="tablist" aria-label={t("todo.filterAria")}>
           <button
             role="tab"
             aria-selected={filter === "ALL"}
             className={`tab ${filter === "ALL" ? "active" : ""}`}
             onClick={() => setFilter("ALL")}
           >
-            全部
+            {t("todo.filter.all")}
           </button>
           <button
             role="tab"
@@ -39,7 +41,7 @@ export default function TodoApp() {
             className={`tab ${filter === "ACTIVE" ? "active" : ""}`}
             onClick={() => setFilter("ACTIVE")}
           >
-            未完成
+            {t("todo.filter.active")}
           </button>
           <button
             role="tab"
@@ -47,7 +49,7 @@ export default function TodoApp() {
             className={`tab ${filter === "COMPLETED" ? "active" : ""}`}
             onClick={() => setFilter("COMPLETED")}
           >
-            已完成
+            {t("todo.filter.completed")}
           </button>
           <button
             role="tab"
@@ -55,7 +57,7 @@ export default function TodoApp() {
             className={`tab ${filter === "RECURRING" ? "active" : ""}`}
             onClick={() => setFilter("RECURRING")}
           >
-            ↺ 固定
+            {t("todo.filter.recurring")}
           </button>
         </div>
       </div>
@@ -68,9 +70,9 @@ export default function TodoApp() {
           <button
             className="scenario-filter-clear"
             onClick={clearActiveScenario}
-            aria-label="退出当前情景"
+            aria-label={t("todo.scenarioExitAria")}
           >
-            × 退出情景
+            {t("todo.scenarioExit")}
           </button>
         </div>
       )}

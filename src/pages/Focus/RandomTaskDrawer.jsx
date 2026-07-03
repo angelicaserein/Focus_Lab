@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useTodos } from "../../context/TodoContext";
+import { useLanguage } from "../../context/LanguageContext";
 import "./RandomTaskDrawer.css";
 
 const MAX_REDRAWS = 2;
@@ -12,7 +13,8 @@ function pickRandom(pool, excludeId = null) {
 
 export default function RandomTaskDrawer({ onSelect, onClose }) {
   const { todos } = useTodos();
-  const activeTodos = todos.filter((t) => !t.completed);
+  const { t } = useLanguage();
+  const activeTodos = todos.filter((td) => !td.completed);
 
   const [redraws, setRedraws] = useState(0);
   const [current, setCurrent] = useState(null);
@@ -22,8 +24,8 @@ export default function RandomTaskDrawer({ onSelect, onClose }) {
   useEffect(() => {
     if (activeTodos.length === 0) return;
     setCurrent(pickRandom(activeTodos));
-    const t = setTimeout(() => setFlipped(true), 180);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setFlipped(true), 180);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -60,17 +62,17 @@ export default function RandomTaskDrawer({ onSelect, onClose }) {
     <div className="rtd-overlay" onClick={onClose}>
       <div className="rtd-modal" onClick={(e) => e.stopPropagation()}>
         <div className="rtd-header">
-          <h2 className="rtd-title">今天做什么？</h2>
-          <button className="rtd-close" onClick={onClose} aria-label="关闭">
+          <h2 className="rtd-title">{t("focus.rtd.title")}</h2>
+          <button className="rtd-close" onClick={onClose} aria-label={t("focus.rtd.close")}>
             ×
           </button>
         </div>
 
         {activeTodos.length === 0 ? (
           <div className="rtd-empty">
-            <p>还没有待做的任务，先去添加几个吧～</p>
+            <p>{t("focus.rtd.empty")}</p>
             <button className="rtd-btn rtd-btn--secondary" onClick={onClose}>
-              关闭
+              {t("focus.rtd.close")}
             </button>
           </div>
         ) : (
@@ -92,13 +94,13 @@ export default function RandomTaskDrawer({ onSelect, onClose }) {
                   className="rtd-btn rtd-btn--primary"
                   onClick={() => handleSelect(current)}
                 >
-                  ✓ 就做这个！
+                  {t("focus.rtd.pick")}
                 </button>
 
                 {exhausted ? (
                   <div className="rtd-exhausted">
                     <p className="rtd-exhausted-msg">
-                      看来你对这些都有点抗拒，要不先做最短的那个？
+                      {t("focus.rtd.exhaustedMsg")}
                     </p>
                     {shortestTodo && shortestTodo.id !== current?.id && (
                       <button
@@ -115,9 +117,9 @@ export default function RandomTaskDrawer({ onSelect, onClose }) {
                     onClick={handleRedraw}
                     disabled={animating}
                   >
-                    ↩ 再抽一次
+                    {t("focus.rtd.redraw")}
                     <span className="rtd-redraw-quota">
-                      还剩 {MAX_REDRAWS - redraws} 次
+                      {t("focus.rtd.redrawQuota", { n: MAX_REDRAWS - redraws })}
                     </span>
                   </button>
                 )}

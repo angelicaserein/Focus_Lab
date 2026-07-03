@@ -1,11 +1,13 @@
 import React from "react";
 import "./SessionSummary.css";
 import { useFocus } from "../../context/FocusContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { formatTimestamp, formatSessionDate, formatDuration } from "../../utils/time";
 import { buildSessions, enrichDistractionSessions } from "../../utils/sessionSummaryUtils";
 
 export default function SessionSummary({ notes = [], distractions = [] }) {
   const { focusRecords } = useFocus();
+  const { t } = useLanguage();
 
   const durationBySession = {};
   focusRecords.forEach((r) => {
@@ -33,7 +35,7 @@ export default function SessionSummary({ notes = [], distractions = [] }) {
     <>
       {notesSessions.length > 0 && (
         <div className="session-summary">
-          <div className="session-summary-header">随记</div>
+          <div className="session-summary-header">{t("focus.notes")}</div>
           <div className="session-summary-scroll">
             {notesSessions.map((session) => (
               <div key={session.firstTs} className="session-summary-group">
@@ -62,7 +64,7 @@ export default function SessionSummary({ notes = [], distractions = [] }) {
 
       {distractionSessions.length > 0 && (
         <div className="session-summary">
-          <div className="session-summary-header">分心记录</div>
+          <div className="session-summary-header">{t("focus.distractions")}</div>
           <div className="session-summary-scroll">
             {distractionSessions.map((session) => (
               <div key={session.firstTs} className="session-summary-group">
@@ -77,12 +79,12 @@ export default function SessionSummary({ notes = [], distractions = [] }) {
                   <div className="distraction-insight-row">
                     {session.distractionRate && (
                       <span className="distraction-insight-item">
-                        {session.distractionRate} 次/h
+                        {t("focus.distractPerHour", { rate: session.distractionRate })}
                       </span>
                     )}
                     {session.bestTag && (
                       <span className="distraction-insight-item tag">
-                        多为 {session.bestTag}
+                        {t("focus.mostly", { tag: session.bestTag })}
                       </span>
                     )}
                     {session.diffVsPrev !== null && (
@@ -90,10 +92,10 @@ export default function SessionSummary({ notes = [], distractions = [] }) {
                         className={`distraction-insight-item diff${session.diffVsPrev < 0 ? " better" : session.diffVsPrev > 0 ? " worse" : ""}`}
                       >
                         {session.diffVsPrev < 0
-                          ? `比上次少 ${Math.abs(session.diffVsPrev)} 次`
+                          ? t("focus.fewerThanLast", { n: Math.abs(session.diffVsPrev) })
                           : session.diffVsPrev > 0
-                            ? `比上次多 ${session.diffVsPrev} 次`
-                            : "与上次持平"}
+                            ? t("focus.moreThanLast", { n: session.diffVsPrev })
+                            : t("focus.sameAsLast")}
                       </span>
                     )}
                   </div>
@@ -104,9 +106,9 @@ export default function SessionSummary({ notes = [], distractions = [] }) {
                     <li key={item.id} className="session-summary-row distraction">
                       <span className="session-summary-time">{formatTimestamp(item.ts)}</span>
                       <span className="session-summary-text muted">
-                        第 {item.nth} 次分心
+                        {t("focus.nthDistraction", { n: item.nth })}
                         {item.type === "proactive" && (
-                          <span className="distraction-tag-inline"> · 主动暂停</span>
+                          <span className="distraction-tag-inline"> · {t("focus.proactivePause")}</span>
                         )}
                         {item.tag && (
                           <span className="distraction-tag-inline"> · {item.tag}</span>

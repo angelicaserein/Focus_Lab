@@ -1,10 +1,12 @@
 import React from "react";
 import "./Immersive/ImmersiveChat.css";
 import { hasApiKey } from "../../utils/aiChat";
+import { useLanguage } from "../../context/LanguageContext";
 
 // Focus 页面（非沉浸）上的聊天历史区：展示与 AI 陪伴的全部对话，
 // 与沉浸式左下角对话框共用同一份持久化数据。
 export default function ChatHistory({ messages, onClear }) {
+  const { t } = useLanguage();
   const hasMessages = messages.length > 0;
   const isDemo = !hasApiKey();
 
@@ -12,8 +14,8 @@ export default function ChatHistory({ messages, onClear }) {
     <div className="focus-card chat-history">
       <div className="focus-card-header">
         <div className="focus-card-header-left">
-          <span className="card-label">聊天记录</span>
-          {isDemo && <span className="chat-demo-note">AI 未连接 · 演示回复</span>}
+          <span className="card-label">{t("focus.chatTitle")}</span>
+          {isDemo && <span className="chat-demo-note">{t("focus.aiDemoNote")}</span>}
         </div>
         <button
           type="button"
@@ -21,7 +23,7 @@ export default function ChatHistory({ messages, onClear }) {
           onClick={onClear}
           disabled={!hasMessages}
         >
-          清空
+          {t("focus.clearChat")}
         </button>
       </div>
 
@@ -34,7 +36,7 @@ export default function ChatHistory({ messages, onClear }) {
           ))}
         </div>
       ) : (
-        <div className="focus-task-placeholder">还没有对话</div>
+        <div className="focus-task-placeholder">{t("focus.noChat")}</div>
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef } from "react";
 import { useTodos } from "../context/TodoContext";
 import { useFocus } from "../context/FocusContext";
+import { useLanguage } from "../context/LanguageContext";
 import RecurringDayPicker from "./RecurringDayPicker";
 import TaskTagPicker from "./TaskTagPicker";
 import useOutsideClick from "../hooks/useOutsideClick";
@@ -11,6 +12,7 @@ import TodoItemDisplay from "./TodoItemDisplay";
 export default function TodoItem({ todo, isOtherDay = false }) {
   const { toggleTodo, deleteTodo, editTodo, toggleRecurring, setTodoAttr } = useTodos();
   const { isFocused, toggleFocusTodo } = useFocus();
+  const { t } = useLanguage();
   const [removing, setRemoving] = useState(false);
   const [showDayPicker, setShowDayPicker] = useState(false);
   const [showTagPicker, setShowTagPicker] = useState(false);
@@ -74,7 +76,7 @@ export default function TodoItem({ todo, isOtherDay = false }) {
             onKeyDown={handleKeyDown}
             onBlur={handleCommitEdit}
             onClick={(e) => e.stopPropagation()}
-            aria-label="编辑任务"
+            aria-label={t("todo.editAria")}
           />
         ) : (
           <TodoItemDisplay
@@ -99,8 +101,8 @@ export default function TodoItem({ todo, isOtherDay = false }) {
         <button
           className="delete-btn"
           onClick={handleDelete}
-          aria-label={`删除 ${todo.text}`}
-          title="删除任务"
+          aria-label={t("todo.deleteAria", { text: todo.text })}
+          title={t("todo.deleteTitle")}
         >
           ×
         </button>

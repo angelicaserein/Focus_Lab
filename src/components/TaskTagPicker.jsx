@@ -1,7 +1,9 @@
 import React from "react";
 import { TASK_TYPE_OPTIONS } from "../utils/scenarioConstants";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function TaskTagPicker({ tags = [], options = TASK_TYPE_OPTIONS, onChange, onClose }) {
+  const { t } = useLanguage();
   const toggleTag = (id) => {
     const newTags = tags.includes(id)
       ? tags.filter((t) => t !== id)
@@ -27,7 +29,7 @@ export default function TaskTagPicker({ tags = [], options = TASK_TYPE_OPTIONS, 
         </button>
       ))}
       <button type="button" className="day-cancel-btn" onClick={clear}>
-        清除标签
+        {t("todo.clearTags")}
       </button>
     </div>
   );

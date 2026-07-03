@@ -1,10 +1,12 @@
 import React from "react";
 import useScenarioRecommend from "../../hooks/useScenarioRecommend";
 import RecommendItem from "../../components/RecommendItem";
+import { useLanguage } from "../../context/LanguageContext";
 
 // 专注页左栏推荐条：基于当前情景 + 候选任务（未在专注、未完成）主动推荐。
 // 每条「+ 加入专注」调 onPick（= addToFocus）。仅在有激活情景且有候选时渲染。
 export default function RecommendStrip({ availableTodos, onPick }) {
+  const { t } = useLanguage();
   const { hasScenario, ranked, aiStatus, aiEnabled, runAi } = useScenarioRecommend({
     todos: availableTodos,
     limit: 3,
@@ -15,7 +17,7 @@ export default function RecommendStrip({ availableTodos, onPick }) {
   return (
     <div className="focus-card focus-recommend">
       <div className="focus-card-header">
-        <span className="card-label">情景推荐</span>
+        <span className="card-label">{t("focus.recommend")}</span>
         {aiEnabled && (
           <button
             type="button"
@@ -23,7 +25,7 @@ export default function RecommendStrip({ availableTodos, onPick }) {
             onClick={runAi}
             disabled={aiStatus === "loading"}
           >
-            {aiStatus === "loading" ? "AI 精排中…" : "✨ AI 精排"}
+            {aiStatus === "loading" ? t("focus.aiRanking") : t("focus.aiRank")}
           </button>
         )}
       </div>
@@ -37,10 +39,10 @@ export default function RecommendStrip({ availableTodos, onPick }) {
                 type="button"
                 className="rec-add-btn"
                 onClick={() => onPick(entry.todo.id)}
-                title="加入本次专注"
-                aria-label={`加入专注：${entry.todo.text}`}
+                title={t("focus.addToFocus")}
+                aria-label={t("focus.addToFocusAria", { text: entry.todo.text })}
               >
-                + 加入
+                {t("focus.add")}
               </button>
             }
           />

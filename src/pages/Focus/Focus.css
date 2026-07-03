@@ -28,6 +28,18 @@
   top: 8px;
 }
 
+/* 窄屏（含侧边栏抽屉断点）：两栏需 ~700px 才舒展，
+   在此以下改为单栏纵向堆叠，避免右栏被挤出屏幕产生横向滚动。 */
+@media (max-width: 768px) {
+  .focus-main {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .focus-col-left {
+    position: static;
+  }
+}
+
 .focus-col-right {
   min-width: 0;
 }

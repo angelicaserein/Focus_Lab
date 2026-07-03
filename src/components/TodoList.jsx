@@ -1,11 +1,11 @@
 import React from "react";
 import { useTodos } from "../context/TodoContext";
+import { useLanguage } from "../context/LanguageContext";
 import TodoItem from "./TodoItem";
-
-const DAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
 export default function TodoList({ filter = "ALL", scenarioFilter = null }) {
   const { todos } = useTodos();
+  const { t } = useLanguage();
 
   const filtered = todos.filter((t) => {
     if (filter === "ACTIVE" && t.completed) return false;
@@ -22,14 +22,14 @@ export default function TodoList({ filter = "ALL", scenarioFilter = null }) {
       return (
         <div className="empty-state" style={{ padding: 12 }}>
           <div className="empty-emoji">↺</div>
-          <div className="empty-text">还没有固定任务 — 在上方输入每日必做清单</div>
+          <div className="empty-text">{t("todo.list.emptyRecurring")}</div>
         </div>
       );
     }
     return (
       <div className="empty-state" style={{ padding: 12 }}>
         <div className="empty-emoji">✨</div>
-        <div className="empty-text">空空如也 — 添加第一个任务吧</div>
+        <div className="empty-text">{t("todo.list.empty")}</div>
       </div>
     );
   }
@@ -43,13 +43,13 @@ export default function TodoList({ filter = "ALL", scenarioFilter = null }) {
       <section className="todo-list" aria-live="polite" data-filter={filter}>
         {todayTasks.length > 0 && (
           <div className="recurring-section">
-            <div className="recurring-section-header">今天 · 周{DAY_NAMES[todayDow]}</div>
+            <div className="recurring-section-header">{t("todo.list.todaySection", { day: t(`day.long.${todayDow}`) })}</div>
             {todayTasks.map(todo => <TodoItem key={todo.id} todo={todo} />)}
           </div>
         )}
         {otherTasks.length > 0 && (
           <div className="recurring-section recurring-section-other">
-            <div className="recurring-section-header">其他天</div>
+            <div className="recurring-section-header">{t("todo.list.otherDays")}</div>
             {otherTasks.map(todo => <TodoItem key={todo.id} todo={todo} isOtherDay />)}
           </div>
         )}

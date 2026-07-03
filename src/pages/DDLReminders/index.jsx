@@ -19,6 +19,7 @@ const QUICK_DAYS = [1, 3, 7, 14, 30];
 // ── 添加节点表单 ──────────────────────────────────────────────────────────────
 function AddCheckpointForm({ todoId, dueDate, onClose }) {
   const { addCheckpoint } = useDDL();
+  const { t } = useLanguage();
   const [days, setDays] = useState("");
   const [message, setMessage] = useState("");
 
@@ -41,7 +42,7 @@ function AddCheckpointForm({ todoId, dueDate, onClose }) {
     <form className="ddl-add-form" onSubmit={handleSubmit}>
       <div className="ddl-add-form-row">
         <div className="ddl-add-days-wrap">
-          <span className="ddl-add-prefix">提前</span>
+          <span className="ddl-add-prefix">{t("ddl.form.prefix")}</span>
           <input
             className="ddl-add-days"
             type="number"
@@ -51,7 +52,7 @@ function AddCheckpointForm({ todoId, dueDate, onClose }) {
             value={days}
             onChange={(e) => setDays(e.target.value)}
           />
-          <span className="ddl-add-suffix">天提醒</span>
+          <span className="ddl-add-suffix">{t("ddl.form.suffix")}</span>
         </div>
         <div className="ddl-quick-days">
           {QUICK_DAYS.map((d) => (
@@ -61,7 +62,7 @@ function AddCheckpointForm({ todoId, dueDate, onClose }) {
               className={`ddl-quick-btn${days === String(d) ? " active" : ""}`}
               onClick={() => setDays(String(d))}
             >
-              {d}天
+              {t("ddl.form.quickDay", { days: d })}
             </button>
           ))}
         </div>
@@ -70,7 +71,7 @@ function AddCheckpointForm({ todoId, dueDate, onClose }) {
         <input
           className="ddl-add-msg"
           type="text"
-          placeholder="提醒内容，如：完成初稿"
+          placeholder={t("ddl.form.msgPlaceholder")}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           maxLength={80}
@@ -79,10 +80,10 @@ function AddCheckpointForm({ todoId, dueDate, onClose }) {
       </div>
       <div className="ddl-add-form-actions">
         <button type="submit" className="ddl-save-btn" disabled={!days || !message.trim()}>
-          保存
+          {t("ddl.form.save")}
         </button>
         <button type="button" className="ddl-cancel-btn" onClick={onClose}>
-          取消
+          {t("ddl.form.cancel")}
         </button>
       </div>
     </form>
@@ -92,6 +93,7 @@ function AddCheckpointForm({ todoId, dueDate, onClose }) {
 // ── 单个检查点行 ─────────────────────────────────────────────────────────────
 function CheckpointRow({ todoId, cp, daysLeft }) {
   const { deleteCheckpoint, toggleCheckpointDone } = useDDL();
+  const { t } = useLanguage();
   const isDue = isCheckpointDue(cp, daysLeft);
 
   return (
@@ -99,16 +101,16 @@ function CheckpointRow({ todoId, cp, daysLeft }) {
       <button
         className="ddl-cp-check"
         onClick={() => toggleCheckpointDone(todoId, cp.id)}
-        title={cp.done ? "标记为未完成" : "标记为完成"}
+        title={cp.done ? t("ddl.markUndone") : t("ddl.markDone")}
       >
         {cp.done ? "✓" : "○"}
       </button>
-      <span className="ddl-cp-days">{cp.daysBeforeDeadline}天前</span>
+      <span className="ddl-cp-days">{t("ddl.card.daysBefore", { days: cp.daysBeforeDeadline })}</span>
       <span className="ddl-cp-msg">{cp.message}</span>
       <button
         className="ddl-cp-del"
         onClick={() => deleteCheckpoint(todoId, cp.id)}
-        title="删除节点"
+        title={t("ddl.card.deleteCheckpoint")}
       >
         ×
       </button>
@@ -119,6 +121,7 @@ function CheckpointRow({ todoId, cp, daysLeft }) {
 // ── 任务卡片 ─────────────────────────────────────────────────────────────────
 function DDLCard({ todo }) {
   const { getCheckpoints } = useDDL();
+  const { t } = useLanguage();
   const [showForm, setShowForm] = useState(false);
 
   const daysLeft = getDaysUntil(todo.attrs?.dueDate);
@@ -134,9 +137,9 @@ function DDLCard({ todo }) {
       <div className="ddl-card-header">
         <span className="ddl-card-title">{todo.text}</span>
         <div className="ddl-card-meta">
-          <span className="ddl-card-date">{formatDueDate(todo.attrs?.dueDate)}</span>
+          <span className="ddl-card-date">{formatDueDate(todo.attrs?.dueDate, t)}</span>
           <span className={`ddl-countdown ${countdownClass(daysLeft)}`}>
-            {countdownLabel(daysLeft)}
+            {countdownLabel(daysLeft, t)}
           </span>
         </div>
       </div>
@@ -157,7 +160,7 @@ function DDLCard({ todo }) {
         />
       ) : (
         <button className="ddl-add-cp-btn" onClick={() => setShowForm(true)}>
-          + 添加提醒节点
+          {t("ddl.card.addCheckpoint")}
         </button>
       )}
     </div>
@@ -167,14 +170,15 @@ function DDLCard({ todo }) {
 // ── 今日提醒区块 ─────────────────────────────────────────────────────────────
 function TodayReminders({ items }) {
   const { toggleCheckpointDone } = useDDL();
+  const { t } = useLanguage();
   if (items.length === 0) return null;
 
   return (
     <div className="ddl-today">
       <div className="ddl-today-hd">
         <span className="ddl-today-icon">⚠</span>
-        <span className="ddl-today-title">今日提醒</span>
-        <span className="ddl-today-count">{items.length} 条</span>
+        <span className="ddl-today-title">{t("ddl.today.title")}</span>
+        <span className="ddl-today-count">{t("ddl.today.count", { count: items.length })}</span>
       </div>
       <div className="ddl-today-list">
         {items.map(({ todo, checkpoint, daysLeft }) => (
@@ -182,7 +186,7 @@ function TodayReminders({ items }) {
             <button
               className="ddl-today-check"
               onClick={() => toggleCheckpointDone(todo.id, checkpoint.id)}
-              title="标记为完成"
+              title={t("ddl.markDone")}
             >
               ○
             </button>
@@ -192,7 +196,7 @@ function TodayReminders({ items }) {
               <span className="ddl-today-msg">{checkpoint.message}</span>
             </div>
             <span className={`ddl-countdown ${countdownClass(daysLeft)}`}>
-              {countdownLabel(daysLeft)}
+              {countdownLabel(daysLeft, t)}
             </span>
           </div>
         ))}
@@ -205,11 +209,12 @@ function TodayReminders({ items }) {
 export default function DDLRemindersPage() {
   const { todos } = useTodos();
   const { checkpointsMap } = useDDL();
+  const { t } = useLanguage();
 
   const todosWithDueDate = useMemo(
     () =>
       todos
-        .filter((t) => !t.completed && isActiveDeadline(t))
+        .filter((todo) => !todo.completed && isActiveDeadline(todo))
         .sort((a, b) => a.attrs.dueDate.localeCompare(b.attrs.dueDate)),
     [todos]
   );
@@ -224,11 +229,16 @@ export default function DDLRemindersPage() {
   return (
     <div className="ddl-page">
       <div className="ddl-header">
-        <h1 className="ddl-title">DDL 提醒</h1>
+        <h1 className="ddl-title">{t("ddl.page.title")}</h1>
         <p className="ddl-subtitle">
-          {todosWithDueDate.length > 0
-            ? `${todosWithDueDate.length} 个截止任务${pendingCount > 0 ? `，${pendingCount} 条今日提醒` : ""}`
-            : "任务库中还没有设置截止日期的任务"}
+          {todosWithDueDate.length === 0
+            ? t("ddl.page.subtitleEmpty")
+            : pendingCount > 0
+              ? t("ddl.page.subtitlePending", {
+                  count: todosWithDueDate.length,
+                  pending: pendingCount,
+                })
+              : t("ddl.page.subtitle", { count: todosWithDueDate.length })}
         </p>
       </div>
 
@@ -236,8 +246,8 @@ export default function DDLRemindersPage() {
         <div className="ddl-empty">
           <div className="ddl-empty-icon">📋</div>
           <div className="ddl-empty-text">
-            在任务库中为任务设置截止日期后，<br />
-            这里会自动显示提醒管理。
+            {t("ddl.page.emptyLine1")}<br />
+            {t("ddl.page.emptyLine2")}
           </div>
         </div>
       ) : (

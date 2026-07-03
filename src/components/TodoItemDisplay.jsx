@@ -1,5 +1,6 @@
 import React from "react";
 import { TASK_TYPE_OPTIONS } from "../utils/scenarioConstants";
+import { useLanguage } from "../context/LanguageContext";
 
 const TAG_MAP = Object.fromEntries(TASK_TYPE_OPTIONS.map((o) => [o.id, o]));
 
@@ -8,6 +9,7 @@ const TAG_MAP = Object.fromEntries(TASK_TYPE_OPTIONS.map((o) => [o.id, o]));
  * 所有状态和回调由父组件 TodoItem 传入。
  */
 export default function TodoItemDisplay({ todo, recurringDays, todoTags, onToggle }) {
+  const { t } = useLanguage();
   return (
     <>
       <label className="checkbox-wrap">
@@ -16,7 +18,7 @@ export default function TodoItemDisplay({ todo, recurringDays, todoTags, onToggl
           type="checkbox"
           checked={!!todo.completed}
           onChange={onToggle}
-          aria-label={`标记 ${todo.text} 为完成`}
+          aria-label={t("todo.markCompleteAria", { text: todo.text })}
         />
         <span className={`custom-checkbox ${todo.completed ? "checked" : ""}`} />
       </label>
@@ -24,7 +26,7 @@ export default function TodoItemDisplay({ todo, recurringDays, todoTags, onToggl
       <div className="todo-text-wrap">
         <div className={`todo-text ${todo.completed ? "completed" : ""}`}>
           {recurringDays.length > 0 && (
-            <span className="recurring-icon" title={`固定：${recurringDays.join(",")}`}>↺</span>
+            <span className="recurring-icon" title={t("todo.recurringDaysTitle", { days: recurringDays.join(",") })}>↺</span>
           )}
           {todo.text}
         </div>

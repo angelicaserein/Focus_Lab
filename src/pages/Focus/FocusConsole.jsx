@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import TodoApp from "../../components/TodoApp";
+import { useLanguage } from "../../context/LanguageContext";
 import ChatHistory from "./ChatHistory";
 import SessionSummary from "./SessionSummary";
 import RandomTaskDrawer from "./RandomTaskDrawer";
@@ -34,6 +35,7 @@ function FocusConsole({
   notes = [],
   distractions = [],
 }) {
+  const { t } = useLanguage();
   const [showDrawer, setShowDrawer] = useState(false);
 
   return (
@@ -53,7 +55,7 @@ function FocusConsole({
             <div className="focus-card">
               <div className="focus-card-header">
                 <span className="card-label">
-                  已选任务
+                  {t("focus.selectedTasks")}
                   {hasSelection && <span className="focus-count">{selectedTodos.length}</span>}
                 </span>
                 <button
@@ -62,7 +64,7 @@ function FocusConsole({
                   onClick={onClear}
                   disabled={!hasSelection}
                 >
-                  清除
+                  {t("focus.clear")}
                 </button>
               </div>
 
@@ -75,8 +77,8 @@ function FocusConsole({
                         type="button"
                         className="focus-chip-remove"
                         onClick={() => onRemoveFocus(todo.id)}
-                        aria-label={`移除 ${todo.text}`}
-                        title="移除"
+                        aria-label={t("focus.removeTask", { text: todo.text })}
+                        title={t("focus.remove")}
                       >
                         ×
                       </button>
@@ -86,14 +88,14 @@ function FocusConsole({
               ) : (
                 <>
                   <div className="focus-task-placeholder">
-                    从任务列表勾选要一起专注的任务（可多选）
+                    {t("focus.taskPlaceholder")}
                   </div>
                   <button
                     type="button"
                     className="focus-draw-btn"
                     onClick={() => setShowDrawer(true)}
                   >
-                    ✦ 今天做什么？
+                    {t("focus.whatToday")}
                   </button>
                 </>
               )}
@@ -102,7 +104,7 @@ function FocusConsole({
               {scenarios.length > 0 && (
                 <div className="focus-scenario-row">
                   <label className="focus-scenario-label" htmlFor="focus-scenario-select">
-                    情境
+                    {t("focus.scenario")}
                   </label>
                   <select
                     id="focus-scenario-select"
@@ -110,7 +112,7 @@ function FocusConsole({
                     value={selectedScenarioId ?? ""}
                     onChange={(e) => onScenarioChange(e.target.value || null)}
                   >
-                    <option value="">无情境</option>
+                    <option value="">{t("focus.noScenario")}</option>
                     {scenarios.map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.title}
@@ -123,14 +125,14 @@ function FocusConsole({
                 </div>
               )}
 
-              <div className="focus-mode-toggle" role="group" aria-label="计时模式">
+              <div className="focus-mode-toggle" role="group" aria-label={t("focus.timerModeAria")}>
                 <button
                   type="button"
                   className={`focus-mode-btn${timerMode !== "countdown" ? " active" : ""}`}
                   onClick={() => onTimerModeChange?.("countup")}
                   aria-pressed={timerMode !== "countdown"}
                 >
-                  正计时
+                  {t("focus.countup")}
                 </button>
                 <button
                   type="button"
@@ -138,7 +140,7 @@ function FocusConsole({
                   onClick={() => onTimerModeChange?.("countdown")}
                   aria-pressed={timerMode === "countdown"}
                 >
-                  倒计时
+                  {t("focus.countdown")}
                 </button>
               </div>
 
@@ -146,10 +148,13 @@ function FocusConsole({
               <div
                 className="focus-duration-row"
                 role="group"
-                aria-label={timerMode === "countdown" ? "倒计时时长" : "烧瓶注满时长"}
+                aria-label={timerMode === "countdown" ? t("focus.countdownDurationAria") : t("focus.fillDurationAria")}
               >
                 <span className="focus-duration-label">
-                  {timerMode === "countdown" ? "倒计时" : "注满"} · {durationMins} 分钟
+                  {t("focus.durationValue", {
+                    label: timerMode === "countdown" ? t("focus.countdown") : t("focus.fillLabel"),
+                    mins: durationMins,
+                  })}
                 </span>
                 <div className="focus-duration-pills">
                   {[15, 20, 25, 30, 45, 60].map((mins) => (
@@ -174,7 +179,7 @@ function FocusConsole({
                   onClick={onStart}
                   disabled={!hasSelection}
                 >
-                  ▶ 开始专注
+                  {t("focus.start")}
                 </button>
                 <button
                   className="focus-action-btn secondary"
@@ -182,7 +187,7 @@ function FocusConsole({
                   onClick={onReset}
                   disabled={!canReset}
                 >
-                  重置
+                  {t("focus.reset")}
                 </button>
               </div>
             </div>
