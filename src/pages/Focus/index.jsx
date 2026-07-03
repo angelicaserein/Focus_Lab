@@ -82,6 +82,7 @@ export default function FocusPage() {
 
   const {
     countupFullMins, setCountupFullMins, countdownMins, setCountdownMins,
+    countupPresets, countdownPresets,
     timerMode, setTimerMode,
     animEnabled, setAnimEnabled, cardVisible, setCardVisible, notifyEnabled,
   } = usePrefs();
@@ -90,6 +91,8 @@ export default function FocusPage() {
   const targetMins = timerMode === "countdown" ? countdownMins : countupFullMins;
   // 当前模式对应的时长 setter，供控制台就地调整烧瓶时长
   const setTargetMins = timerMode === "countdown" ? setCountdownMins : setCountupFullMins;
+  // 当前模式对应的三档快捷预设
+  const targetPresets = timerMode === "countdown" ? countdownPresets : countupPresets;
 
   // 烧瓶注满（倒计时归零）弹系统通知，仅在开启「桌面通知」偏好时生效
   useFlaskFullNotify({ seconds, targetMins, isRunning, enabled: notifyEnabled });
@@ -201,6 +204,7 @@ export default function FocusPage() {
         onTimerModeChange={setTimerMode}
         durationMins={targetMins}
         onDurationChange={setTargetMins}
+        presets={targetPresets}
         canEditDuration={!isImmersive && seconds === 0}
         onStart={handleStart}
         onReset={resetTimer}

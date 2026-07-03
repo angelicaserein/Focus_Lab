@@ -261,6 +261,151 @@
   color: var(--accent);
 }
 
+/* 时长预设编辑：三档数字输入 */
+.settings-preset-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.settings-preset-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 99px;
+  border: 2px solid var(--border-card);
+  background: var(--card);
+  transition: border-color 150ms ease;
+}
+
+.settings-preset-item:focus-within {
+  border-color: var(--accent);
+}
+
+.settings-preset-input {
+  width: 40px;
+  border: none;
+  background: none;
+  color: var(--text-heading);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.settings-preset-input:focus {
+  outline: none;
+}
+
+.settings-preset-input::-webkit-outer-spin-button,
+.settings-preset-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.settings-preset-unit {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* 需要纵向堆叠的偏好行（如烧瓶形状：标题 + 预设 + 编辑器） */
+.settings-pref-row-block {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+/* 烧瓶形状选择：每项一个缩略图 + 名称 */
+.settings-flask-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.settings-flask-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px 8px;
+  border-radius: 14px;
+  border: 2px solid var(--border-card);
+  background: var(--card);
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.settings-flask-option:hover {
+  border-color: var(--accent);
+}
+
+.settings-flask-option.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+}
+
+.settings-flask-option svg {
+  width: 48px;
+  height: auto;
+}
+
+.settings-flask-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+/* 微调编辑器：大预览在左，滑杆在右 */
+.settings-flask-editor {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 2px solid var(--border-card);
+  background: var(--card);
+}
+
+.settings-flask-preview {
+  flex: 0 0 auto;
+}
+
+.settings-flask-preview svg {
+  width: 88px;
+  height: auto;
+}
+
+.settings-flask-sliders {
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-flask-slider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-flask-slider-name {
+  flex: 0 0 84px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.settings-flask-slider input[type="range"] {
+  flex: 1 1 auto;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.settings-flask-open {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
 .settings-toggle-btn {
   display: inline-flex;
   align-items: center;

@@ -1,20 +1,19 @@
 // 商品目录（静态配置，无需持久化）。
-//   type: "unlock"     — 买过即拥有，不可重复买。
-//   type: "consumable" — 可反复兑换，记录次数。
-//   accent            — 卡片主题色（用于渐变、图标底盘、光晕）。
+//   type: "unlock"     — 买过即拥有，不可重复买（目前仅界面皮肤，购买后真正切换主题）。
+//   type: "consumable" — 可反复兑换，记录次数（自我犒劳类，兑换后自行享用）。
+//   accent            — 图标底盘的点缀色（克制使用，仅图标区域）。
 //   tag               — 分类角标文案。
-//   featured          — 是否为主推商品（占据更大的展示位）。
 export const SHOP_ITEMS = [
+  // ── 界面皮肤 ──
   {
     id: "theme-pink",
     name: "粉色主题",
     icon: "🌸",
     price: 30,
     type: "unlock",
-    desc: "解锁一套柔和的粉色界面皮肤，专注也要美美的",
+    desc: "柔和的粉色界面皮肤",
     accent: "#e075a8",
     tag: "皮肤",
-    featured: true,
   },
   {
     id: "theme-night",
@@ -22,19 +21,91 @@ export const SHOP_ITEMS = [
     icon: "🌙",
     price: 50,
     type: "unlock",
-    desc: "深色护眼的暗夜界面，夜猫子的专属",
+    desc: "深色护眼的暗夜界面",
     accent: "#7c6cf0",
     tag: "皮肤",
   },
   {
+    id: "theme-ocean",
+    name: "海洋蓝",
+    icon: "🌊",
+    price: 40,
+    type: "unlock",
+    desc: "清爽的海蓝界面",
+    accent: "#4a90d9",
+    tag: "皮肤",
+  },
+  {
+    id: "theme-forest",
+    name: "森林绿",
+    icon: "🌿",
+    price: 45,
+    type: "unlock",
+    desc: "舒缓的自然绿界面",
+    accent: "#4a9d6e",
+    tag: "皮肤",
+  },
+  {
+    id: "theme-sunset",
+    name: "蜜橘暖阳",
+    icon: "🌇",
+    price: 55,
+    type: "unlock",
+    desc: "温暖的橘色界面",
+    accent: "#e8874a",
+    tag: "皮肤",
+  },
+  {
+    id: "theme-lavender",
+    name: "薰衣草",
+    icon: "🪻",
+    price: 55,
+    type: "unlock",
+    desc: "柔和的薰衣草紫界面",
+    accent: "#9d8ce4",
+    tag: "皮肤",
+  },
+  {
+    id: "theme-teal",
+    name: "薄荷青",
+    icon: "🫧",
+    price: 45,
+    type: "unlock",
+    desc: "清透的薄荷青界面",
+    accent: "#3fb3a8",
+    tag: "皮肤",
+  },
+  {
+    id: "theme-peach",
+    name: "蜜桃",
+    icon: "🍑",
+    price: 50,
+    type: "unlock",
+    desc: "柔嫩的蜜桃色界面",
+    accent: "#ef9a8a",
+    tag: "皮肤",
+  },
+
+  // ── 吃喝犒劳 ──
+  {
     id: "milk-tea",
     name: "奶茶券",
     icon: "🧋",
-    price: 10,
+    price: 15,
     type: "consumable",
     desc: "奖励自己一杯奶茶",
     accent: "#c8965a",
-    tag: "犒劳",
+    tag: "吃喝",
+  },
+  {
+    id: "coffee",
+    name: "咖啡续命",
+    icon: "☕",
+    price: 12,
+    type: "consumable",
+    desc: "来杯咖啡提提神",
+    accent: "#a9764f",
+    tag: "吃喝",
   },
   {
     id: "dessert",
@@ -44,8 +115,20 @@ export const SHOP_ITEMS = [
     type: "consumable",
     desc: "来块蛋糕犒劳一下",
     accent: "#ef7fa8",
-    tag: "犒劳",
+    tag: "吃喝",
   },
+  {
+    id: "big-meal",
+    name: "放纵一餐",
+    icon: "🍜",
+    price: 45,
+    type: "consumable",
+    desc: "不看热量，好好吃一顿",
+    accent: "#e8894a",
+    tag: "吃喝",
+  },
+
+  // ── 放松娱乐 ──
   {
     id: "game-time",
     name: "游戏 30 分钟",
@@ -56,4 +139,84 @@ export const SHOP_ITEMS = [
     accent: "#4f9df0",
     tag: "放松",
   },
+  {
+    id: "episode",
+    name: "追剧一集",
+    icon: "📺",
+    price: 40,
+    type: "consumable",
+    desc: "追一集喜欢的剧",
+    accent: "#5b8def",
+    tag: "放松",
+  },
+  {
+    id: "movie",
+    name: "电影时光",
+    icon: "🎬",
+    price: 70,
+    type: "consumable",
+    desc: "完整看一部电影",
+    accent: "#8b6cf0",
+    tag: "放松",
+  },
+  {
+    id: "outdoor",
+    name: "出门放风",
+    icon: "🌳",
+    price: 10,
+    type: "consumable",
+    desc: "出门散散步透透气",
+    accent: "#4fae7a",
+    tag: "放松",
+  },
+
+  // ── 宠爱自己 ──
+  {
+    id: "sleep-in",
+    name: "睡到自然醒",
+    icon: "😴",
+    price: 80,
+    type: "consumable",
+    desc: "明早不定闹钟",
+    accent: "#6d7fd0",
+    tag: "宠爱",
+  },
+  {
+    id: "bath",
+    name: "泡个热水澡",
+    icon: "🛁",
+    price: 25,
+    type: "consumable",
+    desc: "好好泡澡放松一下",
+    accent: "#4fb0c8",
+    tag: "宠爱",
+  },
+  {
+    id: "lazy-scroll",
+    name: "摸鱼 15 分钟",
+    icon: "📱",
+    price: 12,
+    type: "consumable",
+    desc: "光明正大刷会儿手机",
+    accent: "#7a8aa0",
+    tag: "宠爱",
+  },
+  {
+    id: "shopping",
+    name: "购物基金",
+    icon: "🛍️",
+    price: 100,
+    type: "consumable",
+    desc: "给自己买件小心仪",
+    accent: "#e07595",
+    tag: "宠爱",
+  },
+];
+
+// 分类顺序（用于分组展示）。tag 与 SHOP_ITEMS 中一致。
+export const SHOP_CATEGORIES = [
+  { tag: "皮肤", label: "界面皮肤", icon: "🎨" },
+  { tag: "吃喝", label: "吃喝犒劳", icon: "🍰" },
+  { tag: "放松", label: "放松娱乐", icon: "🎮" },
+  { tag: "宠爱", label: "宠爱自己", icon: "💖" },
 ];

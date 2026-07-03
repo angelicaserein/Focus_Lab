@@ -6,8 +6,25 @@
 //
 // 路径用 import.meta.env.BASE_URL 兼容 vite.config.js 里的 base: './'。
 export default function registerSW() {
-  if (!import.meta.env.PROD) return;
   if (!("serviceWorker" in navigator)) return;
+
+  // 开发模式：主动清除残留的 SW 与其缓存。
+  // 若之前跑过 build/preview，SW 会常驻浏览器并对 JS 走缓存优先，导致 dev 时
+  // 拿到旧的坏 bundle（表现为 "Cannot read properties of null (reading 'useState')"）。
+  // 这里在 dev 一进来就注销所有 SW 并清空 Cache Storage，避免手动清缓存。
+  if (!import.meta.env.PROD) {
+    navigator.serviceWorker
+      .getRegistrations()
+      .then((regs) => Promise.all(regs.map((r) => r.unregister())))
+      .catch(() => {});
+    if ("caches" in window) {
+      caches
+        .keys()
+        .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+        .catch(() => {});
+    }
+    return;
+  }
 
   window.addEventListener("load", () => {
     const swUrl = `${import.meta.env.BASE_URL}sw.js`;

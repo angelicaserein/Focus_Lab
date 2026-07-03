@@ -26,11 +26,17 @@ export const STORAGE_KEYS = {
   DATABASES:  "task_databases_v1",
   ACTIVE_DB:  "active_database_v1",
   // 偏好设置
-  // 正计时：烧瓶注满所需时长；倒计时：起始时长（两者独立）
+  // 正计时：烧瓶注满所需时长；倒计时：起始时长（两者独立）。
+  // 这两项记录专注页「当前选中」的时长，随用户在专注页选择而变化。
   PREF_COUNTUP_FULL_MINS: "pref_countup_full_mins_v1",
   PREF_COUNTDOWN_MINS:    "pref_countdown_mins_v1",
+  // 专注页时长的三档快捷预设（设置页可自定义），正/倒计时各一套
+  PREF_COUNTUP_PRESETS:   "pref_countup_presets_v1",
+  PREF_COUNTDOWN_PRESETS: "pref_countdown_presets_v1",
   // 计时模式：countup（正计时）| countdown（倒计时）
   PREF_TIMER_MODE:    "pref_timer_mode_v1",
+  // 专注页烧瓶形状（设置页可自定义）：round | triangle | beaker
+  PREF_FLASK_SHAPE:   "pref_flask_shape_v1",
   PREF_ANIM_ENABLED:  "pref_anim_enabled_v1",
   PREF_CARD_VISIBLE:  "pref_card_visible_v1",
   PREF_NOTIFY_ENABLED: "pref_notify_enabled_v1",

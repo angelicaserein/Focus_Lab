@@ -102,9 +102,16 @@ export function RewardProvider({ children }) {
     });
   };
 
+  // 直接设置金币余额（调试用）。负数归零并取整。
+  const setCoinsTo = (amount) => {
+    const next = Math.max(0, Math.floor(Number(amount)));
+    setCoins(Number.isFinite(next) ? next : 0);
+  };
+
   const value = {
     coins,
     addCoins,
+    setCoinsTo,
     buyItem,
     isOwned,
     getRedeemCount,

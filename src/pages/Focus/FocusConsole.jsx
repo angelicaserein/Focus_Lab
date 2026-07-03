@@ -6,8 +6,7 @@ import SessionSummary from "@/pages/Focus/SessionSummary";
 import RandomTaskDrawer from "@/pages/Focus/RandomTaskDrawer";
 import RecommendStrip from "@/pages/Focus/RecommendStrip";
 
-// 时长选择：少量常用预设 + 自定义输入。预设精简为三档，其余走自定义。
-const DURATION_PRESETS = [15, 25, 45];
+// 时长选择：三档快捷预设（可在设置页自定义）+ 自定义输入，其余走自定义输入框。
 const MIN_DURATION = 1;
 const MAX_DURATION = 180;
 
@@ -27,6 +26,7 @@ function FocusConsole({
   onTimerModeChange,
   durationMins,
   onDurationChange,
+  presets = [15, 25, 45],
   canEditDuration = true,
   onStart,
   onReset,
@@ -44,7 +44,7 @@ function FocusConsole({
   const [showDrawer, setShowDrawer] = useState(false);
 
   // 当前时长是否为「自定义」（不落在预设里）——决定输入框是否高亮、是否回填数值
-  const isCustomDuration = !DURATION_PRESETS.includes(durationMins);
+  const isCustomDuration = !presets.includes(durationMins);
   const [customDraft, setCustomDraft] = useState(isCustomDuration ? String(durationMins) : "");
 
   // 提交自定义时长：夹到 [MIN, MAX]；若落到预设值则清空草稿改由预设高亮
@@ -56,7 +56,7 @@ function FocusConsole({
     }
     const clamped = Math.min(MAX_DURATION, Math.max(MIN_DURATION, n));
     onDurationChange?.(clamped);
-    setCustomDraft(DURATION_PRESETS.includes(clamped) ? "" : String(clamped));
+    setCustomDraft(presets.includes(clamped) ? "" : String(clamped));
   };
 
   const pickPreset = (mins) => {
@@ -183,7 +183,7 @@ function FocusConsole({
                   })}
                 </span>
                 <div className="focus-duration-pills">
-                  {DURATION_PRESETS.map((mins) => (
+                  {presets.map((mins) => (
                     <button
                       key={mins}
                       type="button"

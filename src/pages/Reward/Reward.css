@@ -11,8 +11,95 @@
 /* Header */
 .reward-headline {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
+}
+
+/* ── 调试按钮 & 面板 ── */
+.reward-debug-btn {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border: 1px dashed var(--border, rgba(0, 0, 0, 0.2));
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary, #888);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.reward-debug-btn:hover {
+  background: var(--surface-hover, rgba(0, 0, 0, 0.05));
+  color: var(--text-heading);
+}
+
+.reward-debug-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 20px;
+}
+
+.reward-debug-panel {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 22px;
+  border-radius: 16px;
+  background: var(--surface, #fff);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+.reward-debug-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.reward-debug-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.2));
+  border-radius: 10px;
+  background: var(--bg, #fff);
+  color: var(--text-heading);
+  font-size: 1rem;
+}
+
+.reward-debug-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.reward-debug-cancel,
+.reward-debug-apply {
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.2));
+}
+
+.reward-debug-cancel {
+  background: transparent;
+  color: var(--text-secondary, #888);
+}
+
+.reward-debug-apply {
+  background: var(--accent, #6c5ce7);
+  border-color: var(--accent, #6c5ce7);
+  color: #fff;
 }
 
 .reward-headline h1 {
@@ -90,34 +177,16 @@
 /* ── 开发者商城头部 ── */
 .reward-shop-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
 }
 
-.reward-shop-header-main {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.reward-shop-header-icon {
-  width: 42px;
-  height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.3rem;
-  border-radius: 14px;
-  background: var(--accent);
-  box-shadow: 0 6px 16px var(--accent-glow);
-}
-
 .reward-shop-header-sub {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--text-muted);
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .reward-shop-header-count {
@@ -130,212 +199,151 @@
   white-space: nowrap;
 }
 
-/* ── 开发者商城：华丽卡片 ── */
+/* ── 分类分组 ── */
+.shop-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shop-group + .shop-group {
+  margin-top: 18px;
+}
+
+.shop-group-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.shop-group-icon {
+  font-size: 1rem;
+}
+
+/* ── 开发者商城：干净卡片 ── */
 .shop-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
 }
 
 .shop-card {
   --tint: var(--accent);
   position: relative;
-  overflow: hidden;
-  padding: 22px 20px;
-  border-radius: 24px;
-  background:
-    linear-gradient(
-      160deg,
-      color-mix(in srgb, var(--tint) 14%, var(--card)) 0%,
-      var(--card) 62%
-    );
-  border: 1.5px solid color-mix(in srgb, var(--tint) 26%, transparent);
-  box-shadow: 0 4px 18px color-mix(in srgb, var(--tint) 12%, transparent);
+  padding: 18px;
+  border-radius: 20px;
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  box-shadow: 0 2px 10px var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  transition: transform 200ms cubic-bezier(0.2, 0.7, 0.3, 1),
-    box-shadow 200ms ease;
+  gap: 6px;
+  transition: transform 160ms ease, box-shadow 160ms ease,
+    border-color 160ms ease;
 }
 
 .shop-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 14px 32px color-mix(in srgb, var(--tint) 26%, transparent);
-}
-
-/* 右上角柔光斑点 */
-.shop-card-glow {
-  position: absolute;
-  top: -46px;
-  right: -46px;
-  width: 130px;
-  height: 130px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--tint) 42%, transparent) 0%,
-    transparent 70%
-  );
-  pointer-events: none;
-  transition: transform 300ms ease;
-}
-
-.shop-card:hover .shop-card-glow {
-  transform: scale(1.25);
-}
-
-/* 主推商品：跨两列 + 横向 hero 布局 */
-.shop-card--featured {
-  grid-column: span 2;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-rows: auto auto 1fr auto;
-  column-gap: 22px;
-  padding: 24px 26px;
-}
-
-.shop-card--featured .shop-card-head {
-  grid-column: 2;
-  grid-row: 1;
-  justify-content: flex-start;
-}
-
-.shop-card--featured .shop-card-icon {
-  grid-column: 1;
-  grid-row: 1 / span 4;
-  align-self: center;
-  width: 88px;
-  height: 88px;
-  font-size: 3rem;
-  border-radius: 26px;
-}
-
-.shop-card--featured .shop-card-name {
-  grid-column: 2;
-  grid-row: 2;
-  font-size: 1.3rem;
-}
-
-.shop-card--featured .shop-card-desc {
-  grid-column: 2;
-  grid-row: 3;
-}
-
-.shop-card--featured .shop-card-footer {
-  grid-column: 2;
-  grid-row: 4;
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--tint) 45%, var(--border-card));
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--tint) 16%, var(--shadow-sm));
 }
 
 .shop-card--owned {
-  opacity: 0.9;
+  border-color: color-mix(in srgb, var(--tint) 40%, var(--border-card));
+  background: color-mix(in srgb, var(--tint) 5%, var(--card));
 }
 
-.shop-card-head {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  z-index: 1;
-}
-
-.shop-card-tag {
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  color: color-mix(in srgb, var(--tint) 72%, var(--text-heading));
-  background: color-mix(in srgb, var(--tint) 18%, var(--card));
-  padding: 4px 10px;
-  border-radius: 999px;
-}
-
-.shop-card-count {
-  font-size: 0.66rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  background: color-mix(in srgb, var(--tint) 10%, var(--card));
-  padding: 3px 8px;
-  border-radius: 8px;
-}
-
-.shop-card-count--owned {
-  color: color-mix(in srgb, var(--tint) 72%, var(--text-heading));
-}
-
+/* 图标底盘（唯一用色处，克制点缀） */
 .shop-card-icon {
   position: relative;
-  z-index: 1;
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  font-size: 1.7rem;
   line-height: 1;
-  border-radius: 18px;
-  margin: 4px 0 2px;
-  background: color-mix(in srgb, var(--tint) 16%, var(--card));
-  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tint) 22%, transparent);
+  border-radius: 15px;
+  margin-bottom: 4px;
+  background: color-mix(in srgb, var(--tint) 15%, var(--card));
+}
+
+/* 兑换次数角标 */
+.shop-card-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #fff;
+  background: var(--tint);
+  border: 2px solid var(--card);
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
 }
 
 .shop-card-name {
-  position: relative;
-  z-index: 1;
-  font-size: 1.05rem;
-  font-weight: 800;
+  font-size: 0.98rem;
+  font-weight: 700;
   color: var(--text-heading);
 }
 
 .shop-card-desc {
-  position: relative;
-  z-index: 1;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
-  line-height: 1.5;
+  line-height: 1.45;
   flex: 1;
 }
 
 .shop-card-footer {
-  position: relative;
-  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   margin-top: 10px;
 }
 
 .shop-card-price {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 1.1rem;
+  gap: 3px;
+  font-size: 1rem;
   font-weight: 800;
-  color: color-mix(in srgb, var(--tint) 62%, var(--text-heading));
+  color: var(--text-heading);
   font-variant-numeric: tabular-nums;
 }
 
 .shop-card-coin {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .shop-card-btn {
   border: none;
-  background: var(--tint);
-  color: #fff;
-  padding: 9px 18px;
-  border-radius: 12px;
+  background: color-mix(in srgb, var(--tint) 14%, var(--card));
+  color: color-mix(in srgb, var(--tint) 78%, var(--text-heading));
+  padding: 7px 15px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 800;
+  font-size: 0.82rem;
+  font-weight: 700;
   white-space: nowrap;
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--tint) 40%, transparent);
-  transition: transform 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
+  transition: background 150ms ease, color 150ms ease, transform 150ms ease;
 }
 
 .shop-card-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 18px color-mix(in srgb, var(--tint) 50%, transparent);
+  background: var(--tint);
+  color: #fff;
+  transform: translateY(-1px);
 }
 
 .shop-card-btn:active:not(:disabled) {
@@ -344,19 +352,18 @@
 
 .shop-card-btn:disabled {
   cursor: not-allowed;
-  background: color-mix(in srgb, var(--tint) 12%, var(--card));
+}
+
+/* 金币不足：灰调 */
+.shop-card-btn.poor {
+  background: var(--accent-bg-dim);
   color: var(--text-faint);
-  box-shadow: none;
 }
 
+/* 已拥有：勾选态 */
 .shop-card-btn.owned:disabled {
-  color: color-mix(in srgb, var(--tint) 70%, var(--text-heading));
-}
-
-@media (max-width: 560px) {
-  .shop-card--featured {
-    grid-column: span 1;
-  }
+  background: color-mix(in srgb, var(--tint) 12%, var(--card));
+  color: color-mix(in srgb, var(--tint) 72%, var(--text-heading));
 }
 
 /* ── Shop grid ── */

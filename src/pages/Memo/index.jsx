@@ -1,9 +1,11 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import useMemos from "@/hooks/useMemos";
 import useTaskExtraction from "@/hooks/task/useTaskExtraction";
 import AiTaskModal from "@/pages/Memo/AiTaskModal";
+import MemoItem from "@/pages/Memo/MemoItem";
+import useMemoAiOrganize from "@/pages/Memo/useMemoAiOrganize";
 import { useDatabases } from "@/context/DatabaseContext";
-import { formatTimestamp, formatSessionDate } from "@/utils/time";
+import { formatSessionDate } from "@/utils/time";
 import "./Memo.css";
 
 const FILTERS = [
@@ -31,17 +33,10 @@ export default function MemoPage() {
   const { timeline, counts, addMemo, updateMemo, removeMemo } = useMemos();
   const { activeDatabase } = useDatabases();
   const ai = useTaskExtraction();
+  const organize = useMemoAiOrganize({ timeline, ai, activeDatabase });
 
   const [draft, setDraft] = useState("");
   const [filter, setFilter] = useState("all");
-  const [editingId, setEditingId] = useState(null);
-  const [editText, setEditText] = useState("");
-  const editRef = useRef(null);
-
-  // AI 整理：随手「倒脑子」输入 + 勾选已有条目
-  const [dump, setDump] = useState("");
-  const [selected, setSelected] = useState(() => new Set());
-  const [savedMsg, setSavedMsg] = useState("");
 
   const filtered = useMemo(
     () => (filter === "all" ? timeline : timeline.filter((i) => i.source === filter)),
@@ -62,62 +57,7 @@ export default function MemoPage() {
     }
   };
 
-  const startEdit = (item) => {
-    setEditingId(item.id);
-    setEditText(item.text);
-    // 等待 textarea 渲染后聚焦
-    requestAnimationFrame(() => editRef.current?.focus());
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditText("");
-  };
-
-  const commitEdit = (id) => {
-    if (editText.trim()) updateMemo(id, editText);
-    cancelEdit();
-  };
-
-  const handleEditKeyDown = (e, id) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      commitEdit(id);
-    }
-    if (e.key === "Escape") cancelEdit();
-  };
-
-  // ── AI 整理成任务 ──────────────────────────────────────────
-  const toggleSelect = (id) =>
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-
-  const handleDumpRequest = () => {
-    if (!dump.trim()) return;
-    ai.request(dump);
-  };
-
-  const handleSelectedRequest = () => {
-    const text = timeline
-      .filter((i) => selected.has(i.id))
-      .map((i) => i.text)
-      .join("\n");
-    if (text.trim()) ai.request(text);
-  };
-
-  const handleCommit = (tasks) => {
-    const n = ai.commit(tasks);
-    setSelected(new Set());
-    setDump("");
-    if (n > 0) {
-      setSavedMsg(`已加入 ${n} 条任务到「${activeDatabase?.name ?? "任务"}」`);
-      setTimeout(() => setSavedMsg(""), 3200);
-    }
-  };
+  const handleCommit = (tasks) => organize.commit(tasks);
 
   return (
     <div className="page-memo">
@@ -152,15 +92,15 @@ export default function MemoPage() {
         <textarea
           className="memo-ai-dump-input"
           rows={3}
-          value={dump}
-          onChange={(e) => setDump(e.target.value)}
+          value={organize.dump}
+          onChange={(e) => organize.setDump(e.target.value)}
           placeholder="把脑子里乱糟糟的事情一股脑写下来，AI 会拆成可执行的任务…"
         />
         <button
           type="button"
           className="memo-ai-dump-btn"
-          onClick={handleDumpRequest}
-          disabled={!dump.trim() || ai.status === "loading"}
+          onClick={organize.requestFromDump}
+          disabled={!organize.dump.trim() || ai.status === "loading"}
         >
           {ai.status === "loading" ? "整理中…" : "AI 整理成任务"}
         </button>
@@ -194,77 +134,16 @@ export default function MemoPage() {
             <section key={day} className="memo-day">
               <div className="memo-day-label">{day}</div>
               <ul className="memo-list">
-                {items.map((item) => {
-                  const isFocus = item.source === "focus";
-                  const isEditing = editingId === item.id;
-                  const isSelected = selected.has(item.id);
-                  return (
-                    <li
-                      key={item.id}
-                      className={`memo-item${isFocus ? " focus" : ""}${isSelected ? " selected" : ""}`}
-                    >
-                      <div className="memo-item-head">
-                        <input
-                          type="checkbox"
-                          className="memo-select-check"
-                          checked={isSelected}
-                          onChange={() => toggleSelect(item.id)}
-                          title="选中以整理成任务"
-                        />
-                        <span className={`memo-badge${isFocus ? " focus" : ""}`}>
-                          {isFocus ? "⛯ 专注随记" : "✎ 手动"}
-                        </span>
-                        <span className="memo-item-time">{formatTimestamp(item.ts)}</span>
-                        {!isFocus && !isEditing && (
-                          <span className="memo-item-actions">
-                            <button
-                              type="button"
-                              className="memo-item-btn"
-                              onClick={() => startEdit(item)}
-                            >
-                              编辑
-                            </button>
-                            <button
-                              type="button"
-                              className="memo-item-btn danger"
-                              onClick={() => removeMemo(item.id)}
-                            >
-                              删除
-                            </button>
-                          </span>
-                        )}
-                      </div>
-
-                      {isEditing ? (
-                        <div className="memo-edit">
-                          <textarea
-                            ref={editRef}
-                            className="memo-edit-input"
-                            rows={3}
-                            value={editText}
-                            onChange={(e) => setEditText(e.target.value)}
-                            onKeyDown={(e) => handleEditKeyDown(e, item.id)}
-                          />
-                          <div className="memo-edit-actions">
-                            <button
-                              type="button"
-                              className="memo-edit-save"
-                              onClick={() => commitEdit(item.id)}
-                              disabled={!editText.trim()}
-                            >
-                              保存
-                            </button>
-                            <button type="button" className="memo-edit-cancel" onClick={cancelEdit}>
-                              取消
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="memo-item-text">{item.text}</p>
-                      )}
-                    </li>
-                  );
-                })}
+                {items.map((item) => (
+                  <MemoItem
+                    key={item.id}
+                    item={item}
+                    selected={organize.selected.has(item.id)}
+                    onToggleSelect={organize.toggleSelect}
+                    onUpdate={updateMemo}
+                    onRemove={removeMemo}
+                  />
+                ))}
               </ul>
             </section>
           ))}
@@ -272,20 +151,20 @@ export default function MemoPage() {
       )}
 
       {/* 选中条目 → 整理成任务 浮动操作条 */}
-      {selected.size > 0 && (
+      {organize.selected.size > 0 && (
         <div className="memo-actionbar">
-          <span className="memo-actionbar-text">已选 {selected.size} 条</span>
+          <span className="memo-actionbar-text">已选 {organize.selected.size} 条</span>
           <button
             type="button"
             className="memo-actionbar-clear"
-            onClick={() => setSelected(new Set())}
+            onClick={organize.clearSelection}
           >
             清空
           </button>
           <button
             type="button"
             className="memo-actionbar-go"
-            onClick={handleSelectedRequest}
+            onClick={organize.requestFromSelected}
             disabled={ai.status === "loading"}
           >
             整理成任务
@@ -294,7 +173,9 @@ export default function MemoPage() {
       )}
 
       {/* 成功提示 */}
-      {savedMsg && <div className="memo-saved" role="status">{savedMsg}</div>}
+      {organize.savedMsg && (
+        <div className="memo-saved" role="status">{organize.savedMsg}</div>
+      )}
 
       {/* AI 评审面板 */}
       {ai.isOpen && (
