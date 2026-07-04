@@ -797,23 +797,11 @@
 .th-inner.sortable { cursor: pointer; }
 .th-inner.sortable:hover .th-name { color: var(--accent-mid); }
 
-.th-name { flex: 1; min-width: 0; }
+/* 属性表头：点击打开编辑器（不排序） */
+.th-inner.th-attr-edit { cursor: pointer; }
+.th-inner.th-attr-edit:hover .th-name { color: var(--accent-mid); }
 
-.th-edit-btn {
-  flex-shrink: 0;
-  border: none;
-  background: none;
-  color: var(--text-faint);
-  font-size: 0.75rem;
-  cursor: pointer;
-  padding: 1px 3px;
-  border-radius: 4px;
-  line-height: 1;
-  opacity: 0;
-  transition: opacity 0.1s, color 0.1s;
-}
-.th-attr:hover .th-edit-btn { opacity: 1; }
-.th-edit-btn:hover { color: var(--accent); }
+.th-name { flex: 1; min-width: 0; }
 
 /* "+" add-column header cell */
 .th-add-col {

@@ -2,6 +2,21 @@ import { useState } from "react";
 
 const EMPTY_FORM = { name: "", icon: "🎁", price: "", desc: "" };
 
+// 表单是否可提交：名称非空且花费为正数。
+export function isValidItemForm(form) {
+  return Boolean(form.name.trim()) && Number(form.price) > 0;
+}
+
+// 把商品映射成表单字段（价格转字符串以填入 number input，desc 兜底空串）。
+export function itemToForm(item) {
+  return {
+    name: item.name,
+    icon: item.icon,
+    price: String(item.price),
+    desc: item.desc ?? "",
+  };
+}
+
 // 管理「我的自定义」商品表单：新增 / 编辑同用一套字段与提交逻辑。
 // 依赖注入 addCustomItem / updateCustomItem（来自 RewardContext）与 showToast（提示反馈）。
 export default function useCustomItemForm({ addCustomItem, updateCustomItem, showToast }) {
@@ -12,12 +27,7 @@ export default function useCustomItemForm({ addCustomItem, updateCustomItem, sho
 
   const startEdit = (item) => {
     setEditingId(item.id);
-    setForm({
-      name: item.name,
-      icon: item.icon,
-      price: String(item.price),
-      desc: item.desc ?? "",
-    });
+    setForm(itemToForm(item));
   };
 
   const cancelEdit = () => {
@@ -38,7 +48,7 @@ export default function useCustomItemForm({ addCustomItem, updateCustomItem, sho
     }
   };
 
-  const canSubmit = Boolean(form.name.trim()) && Number(form.price) > 0;
+  const canSubmit = isValidItemForm(form);
 
   return { form, setField, editingId, startEdit, cancelEdit, handleSubmit, canSubmit };
 }

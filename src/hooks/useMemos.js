@@ -4,13 +4,16 @@ import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 
 // 备忘录数据层：
 //  - 手动备忘存于独立的 MEMOS（可增改删）
-//  - 专注随记来自 NOTES（沉浸式专注页写入），在此只读合并展示
-// 两类条目带 source 标记以便页面做区分。专注随记归属于会话，这里不允许编辑/删除。
+//  - 专注随记来自 NOTES（沉浸式专注页写入），在备忘录里合并展示
+// 两类条目带 source 标记以便页面做区分。两者都支持在备忘录里编辑 / 删除 / 打标签：
+// 改写按 source 路由到对应存储（专注随记写回 NOTES，手动备忘写回 MEMOS）。
+// 备忘录页与专注页是不同路由、不会同时挂载，写回同一份数据无并发副作用。
 export default function useMemos() {
   const [memos, setMemos] = useLocalStorage(STORAGE_KEYS.MEMOS, []);
-  // 仅读取专注随记用于合并展示；NOTES 的写入由专注页负责。
-  // 备忘录页与专注页是不同路由，不会同时挂载，重复写回同一份数据无副作用。
-  const [focusNotes] = useLocalStorage(STORAGE_KEYS.NOTES, []);
+  const [focusNotes, setFocusNotes] = useLocalStorage(STORAGE_KEYS.NOTES, []);
+
+  // 按条目来源选择对应存储的 setter（focus → NOTES，其余 → MEMOS）。
+  const setterFor = (source) => (source === "focus" ? setFocusNotes : setMemos);
 
   const addMemo = (text) => {
     const t = text.trim();
@@ -18,14 +21,19 @@ export default function useMemos() {
     setMemos((prev) => [{ id: crypto.randomUUID(), ts: Date.now(), text: t }, ...prev]);
   };
 
-  const updateMemo = (id, text) => {
+  const updateMemo = (id, text, source = "memo") => {
     const t = text.trim();
     if (!t) return;
-    setMemos((prev) => prev.map((m) => (m.id === id ? { ...m, text: t } : m)));
+    setterFor(source)((prev) => prev.map((m) => (m.id === id ? { ...m, text: t } : m)));
   };
 
-  const removeMemo = (id) => {
-    setMemos((prev) => prev.filter((m) => m.id !== id));
+  const removeMemo = (id, source = "memo") => {
+    setterFor(source)((prev) => prev.filter((m) => m.id !== id));
+  };
+
+  // 覆写某条备忘的标签数组（增删标签由页面用 memoTags 纯函数算好后写入）。
+  const setMemoTags = (id, tags, source = "memo") => {
+    setterFor(source)((prev) => prev.map((m) => (m.id === id ? { ...m, tags } : m)));
   };
 
   // 合并时间线：手动备忘（source="memo"）+ 专注随记（source="focus"），按时间倒序。
@@ -40,5 +48,5 @@ export default function useMemos() {
     [timeline.length, memos.length, focusNotes.length],
   );
 
-  return { timeline, counts, addMemo, updateMemo, removeMemo };
+  return { timeline, counts, addMemo, updateMemo, removeMemo, setMemoTags };
 }

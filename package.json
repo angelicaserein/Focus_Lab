@@ -8,7 +8,9 @@
     "preview": "vite preview",
     "journal": "node scripts/git-notion-logger/index.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage",
+    "prepare": "git config core.hooksPath .githooks || exit 0"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",

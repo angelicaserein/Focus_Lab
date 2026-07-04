@@ -1,0 +1,208 @@
+/* 角色卡页面：两套皮肤共用页面骨架，各自的类名前缀 cm-（modern）/ cp-（pixel）。 */
+
+.page-character {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 20px 64px;
+}
+
+.char-headline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.char-headline h1 {
+  margin: 0;
+  font-size: 26px;
+  color: var(--text-heading, var(--text));
+}
+
+/* 皮肤切换分段控件 */
+.char-skin-switch {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--accent-bg-dim, rgba(0, 0, 0, 0.05));
+  border: 1px solid var(--border-card, transparent);
+}
+.char-skin-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.18s var(--ease, ease);
+}
+.char-skin-btn.active {
+  background: var(--card);
+  color: var(--accent);
+  box-shadow: var(--shadow-xs, 0 1px 2px rgba(0, 0, 0, 0.1));
+  font-weight: 600;
+}
+
+/* ══════════════════════════ 简约现代皮肤 ══════════════════════════ */
+
+.char-modern { display: flex; flex-direction: column; gap: 16px; }
+
+.cm-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 22px;
+  border-radius: 18px;
+  background: var(--card);
+  border: 1px solid var(--border-card, transparent);
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.06));
+}
+.cm-avatar {
+  font-size: 46px;
+  width: 76px;
+  height: 76px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent-bg, rgba(99, 102, 241, 0.12));
+  border: 2px solid var(--accent-border, var(--accent));
+}
+.cm-hero-main { flex: 1; min-width: 0; }
+.cm-hero-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.cm-rank { font-size: 20px; font-weight: 700; color: var(--text-heading, var(--text)); }
+.cm-level { font-size: 15px; font-weight: 700; color: var(--accent); }
+
+.cm-xpbar {
+  height: 12px;
+  border-radius: 999px;
+  background: var(--accent-bg-dim, rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+}
+.cm-xpbar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-mid, var(--accent)), var(--accent));
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cm-xp-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.cm-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.cm-stat {
+  padding: 16px 12px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--border-card, transparent);
+  text-align: center;
+}
+.cm-stat-icon { color: var(--accent); margin-bottom: 6px; }
+.cm-stat-val { font-size: 22px; font-weight: 700; color: var(--text-heading, var(--text)); }
+.cm-stat-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+.cm-skills {
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--card);
+  border: 1px solid var(--border-card, transparent);
+}
+.cm-skills-title { font-size: 15px; font-weight: 600; margin-bottom: 14px; color: var(--text-heading, var(--text)); }
+.cm-skill { margin-bottom: 14px; }
+.cm-skill:last-child { margin-bottom: 0; }
+.cm-skill-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 14px; }
+.cm-skill-icon { font-size: 18px; }
+.cm-skill-name { flex: 1; min-width: 0; color: var(--text-body, var(--text)); }
+.cm-skill-lv { font-size: 12px; font-weight: 600; color: var(--accent); }
+.cm-skill-bar { height: 8px; border-radius: 999px; background: var(--accent-bg-dim, rgba(0, 0, 0, 0.08)); overflow: hidden; }
+.cm-skill-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cm-empty { color: var(--text-muted); font-size: 14px; text-align: center; padding: 12px 0; }
+
+/* ══════════════════════════ 像素复古皮肤 ══════════════════════════ */
+
+.char-pixel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: "Courier New", ui-monospace, monospace;
+  letter-spacing: 0.5px;
+  --cp-ink: #e8e6d0;
+  --cp-panel: #2b2b3a;
+  --cp-panel-edge: #14141f;
+  --cp-accent: #7ee787;
+  --cp-gold: #ffd166;
+}
+
+/* 8-bit 对话框：硬边、双层描边、无圆角 */
+.cp-box {
+  background: var(--cp-panel);
+  color: var(--cp-ink);
+  border: 4px solid var(--cp-ink);
+  box-shadow: 0 0 0 4px var(--cp-panel-edge), 6px 6px 0 4px rgba(0, 0, 0, 0.35);
+  padding: 16px;
+  image-rendering: pixelated;
+}
+
+.cp-hero { display: flex; align-items: center; gap: 16px; }
+.cp-portrait {
+  font-size: 40px;
+  width: 68px;
+  height: 68px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: var(--cp-panel-edge);
+  border: 4px solid var(--cp-ink);
+}
+.cp-hero-main { flex: 1; min-width: 0; }
+.cp-name { font-size: 18px; font-weight: 700; text-transform: uppercase; }
+.cp-lv { font-size: 13px; color: var(--cp-gold); margin: 2px 0 8px; }
+.cp-xp { font-size: 11px; margin-top: 6px; color: var(--cp-ink); opacity: 0.8; }
+
+/* 分段经验条：像素格子 */
+.cp-segbar { display: flex; gap: 3px; }
+.cp-seg {
+  flex: 1;
+  height: 14px;
+  background: var(--cp-panel-edge);
+  border: 2px solid var(--cp-ink);
+}
+.cp-seg.on { background: var(--cp-accent); }
+
+.cp-stats { display: flex; flex-direction: column; gap: 10px; }
+.cp-stat-row { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.cp-stat-key { white-space: nowrap; }
+.cp-stat-dots {
+  flex: 1;
+  border-bottom: 3px dotted rgba(232, 230, 208, 0.4);
+  transform: translateY(-3px);
+}
+.cp-stat-num { font-weight: 700; color: var(--cp-gold); font-size: 16px; }
+
+.cp-skills-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; }
+.cp-skill { margin-bottom: 12px; }
+.cp-skill:last-child { margin-bottom: 0; }
+.cp-skill-head { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
+.cp-skill-lv { color: var(--cp-gold); }
+.cp-empty { font-size: 13px; opacity: 0.8; text-align: center; padding: 8px 0; }
+
+@media (max-width: 480px) {
+  .cm-stats { gap: 8px; }
+  .cm-stat-val { font-size: 19px; }
+}

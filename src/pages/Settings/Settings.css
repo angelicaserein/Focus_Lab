@@ -315,48 +315,15 @@
   gap: 12px;
 }
 
-/* 烧瓶形状选择：每项一个缩略图 + 名称 */
-.settings-flask-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.settings-flask-option {
+/* 烧瓶形状：三个烧瓶各自一块，独立编辑与恢复 */
+.settings-flask-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 10px 14px 8px;
-  border-radius: 14px;
-  border: 2px solid var(--border-card);
-  background: var(--card);
-  cursor: pointer;
-  transition: border-color 150ms ease, background 150ms ease;
+  gap: 12px;
 }
 
-.settings-flask-option:hover {
-  border-color: var(--accent);
-}
-
-.settings-flask-option.active {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, var(--card));
-}
-
-.settings-flask-option svg {
-  width: 48px;
-  height: auto;
-}
-
-.settings-flask-name {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--text-heading);
-}
-
-/* 微调编辑器：大预览在左，滑杆在右 */
-.settings-flask-editor {
+/* 每个烧瓶一块：左侧缩略图（兼选中按钮），右侧滑杆 */
+.settings-flask-item {
   display: flex;
   align-items: center;
   gap: 20px;
@@ -365,15 +332,36 @@
   border-radius: 16px;
   border: 2px solid var(--border-card);
   background: var(--card);
+  transition: border-color 150ms ease, background 150ms ease;
 }
 
-.settings-flask-preview {
+.settings-flask-item.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+}
+
+/* 缩略图 + 名称，同时是「选为专注页烧瓶」的单选按钮 */
+.settings-flask-select {
   flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border: none;
+  background: none;
+  cursor: pointer;
 }
 
-.settings-flask-preview svg {
+.settings-flask-select svg {
   width: 88px;
   height: auto;
+}
+
+.settings-flask-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-heading);
 }
 
 .settings-flask-sliders {
@@ -401,9 +389,34 @@
   cursor: pointer;
 }
 
+/* 敞口开关 + 恢复默认，同一行 */
+.settings-flask-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
 .settings-flask-open {
   align-self: flex-start;
-  margin-top: 2px;
+}
+
+.settings-flask-restore {
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-card);
+  background: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+
+.settings-flask-restore:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .settings-toggle-btn {

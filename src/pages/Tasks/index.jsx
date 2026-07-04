@@ -6,6 +6,7 @@ import AttrHeaderEditor from "@/pages/Tasks/AttrHeaderEditor";
 import DatabaseTabs from "@/pages/Tasks/DatabaseTabs";
 import TasksToolbar from "@/pages/Tasks/TasksToolbar";
 import TodoRow from "@/pages/Tasks/TodoRow";
+import TodoApp from "@/components/todo/TodoApp";
 import useTaskQuery from "@/pages/Tasks/useTaskQuery";
 import { applyQuery, buildQueryFields } from "@/pages/Tasks/taskQuery";
 import "./Tasks.css";
@@ -89,6 +90,9 @@ export default function Tasks() {
 
   return (
     <div className="tasks-page">
+      {/* 专注 TO DO LIST：与专注页面同一个组件，置于任务库最上方 */}
+      <TodoApp />
+
       <div className="tasks-header">
         <div className="tasks-title-row">
           <h1 className="tasks-title">任务库</h1>
@@ -119,21 +123,19 @@ export default function Tasks() {
                 任务{arrow("name")}
               </th>
               {visibleAttrs.map(attr => {
-                // 通用引擎下所有列均可点表头排序，字段 key 即列 id。
+                // 点击属性表头只打开属性编辑器；排序/筛选统一走工具栏。
                 return (
                   <th
                     key={attr.id}
                     className="th-attr"
                     style={{ width: TYPE_COL_WIDTHS[attr.type] }}
                   >
-                    <div className="th-inner sortable"
-                         onClick={() => handleSortClick(attr.id)}>
-                      <span className="th-name">{attr.name}{arrow(attr.id)}</span>
-                      <button
-                        className="th-edit-btn"
-                        title="编辑属性"
-                        onClick={e => { e.stopPropagation(); openAttrEditor(attr.id, e.currentTarget.closest("th")); }}
-                      >⚙</button>
+                    <div
+                      className="th-inner th-attr-edit"
+                      title="编辑属性"
+                      onClick={e => openAttrEditor(attr.id, e.currentTarget.closest("th"))}
+                    >
+                      <span className="th-name">{attr.name}</span>
                     </div>
                   </th>
                 );

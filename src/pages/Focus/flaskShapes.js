@@ -65,18 +65,37 @@ export function buildFlask(raw = {}) {
   return { path, highlight, cap, rim };
 }
 
-// 归一化持久化值：兼容旧版（仅存预设字符串），补全缺省参数。
-// 结构：{ preset, params: { neckHalf, shoulderY, bodyHalf, bottomRound, open } }
+// 由「当前预设 + 各预设参数覆盖」组装规范结构。三个烧瓶各自独立保存微调，
+// 互不影响；params 是当前预设参数的别名，供专注页 / 预览直接取用。
+// 结构：{ preset, presets: { round, triangle, beaker }, params }
+function makeFlaskShape(preset, overrides = {}) {
+  const presets = {};
+  for (const key of FLASK_PRESET_ORDER) {
+    presets[key] = { ...FLASK_PRESETS[key], ...(overrides[key] || {}) };
+  }
+  return { preset, presets, params: presets[preset] };
+}
+
+// 归一化持久化值：兼容旧版（仅存预设字符串、或单个 {preset, params}），
+// 新版存 { preset, presets } —— 每个预设一套参数。
 export function normalizeFlaskShape(value) {
   if (typeof value === "string") {
     const preset = FLASK_PRESETS[value] ? value : DEFAULT_FLASK_PRESET;
-    return { preset, params: { ...FLASK_PRESETS[preset] } };
+    return makeFlaskShape(preset);
   }
-  if (value && typeof value === "object" && value.params) {
+  if (value && typeof value === "object") {
     const preset = FLASK_PRESETS[value.preset] ? value.preset : DEFAULT_FLASK_PRESET;
-    return { preset, params: { ...FLASK_PRESETS[preset], ...value.params } };
+    // 新版：presets 保存各预设的独立参数
+    if (value.presets && typeof value.presets === "object") {
+      return makeFlaskShape(preset, value.presets);
+    }
+    // 旧版：params 仅是当前预设的参数，迁移为该预设的覆盖
+    if (value.params && typeof value.params === "object") {
+      return makeFlaskShape(preset, { [preset]: value.params });
+    }
+    return makeFlaskShape(preset);
   }
-  return { preset: DEFAULT_FLASK_PRESET, params: { ...FLASK_PRESETS[DEFAULT_FLASK_PRESET] } };
+  return makeFlaskShape(DEFAULT_FLASK_PRESET);
 }
 
 export const DEFAULT_FLASK_SHAPE = normalizeFlaskShape(DEFAULT_FLASK_PRESET);

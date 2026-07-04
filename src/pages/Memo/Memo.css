@@ -196,6 +196,145 @@
   color: #fff;
 }
 
+/* ─── 标签筛选栏 ───────────────────────────────────────── */
+
+.memo-tagbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.memo-tagbar-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 99px;
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 140ms var(--ease), background 140ms var(--ease),
+    color 140ms var(--ease);
+}
+
+.memo-tagbar-chip:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.memo-tagbar-chip.active {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.memo-tagbar-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.memo-tagbar-clear {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+
+.memo-tagbar-clear:hover {
+  color: var(--accent);
+}
+
+/* ─── 条目标签 ─────────────────────────────────────────── */
+
+.memo-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.memo-tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 99px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  overflow: hidden;
+}
+
+.memo-tag.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1.5px var(--accent-bg);
+}
+
+.memo-tag-label {
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 2px 4px 2px 10px;
+  cursor: pointer;
+}
+
+.memo-tag-remove {
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.9rem;
+  line-height: 1;
+  padding: 2px 8px 2px 4px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 140ms var(--ease);
+}
+
+.memo-tag-remove:hover {
+  opacity: 1;
+}
+
+.memo-tag-add {
+  border: 1px dashed var(--border-card);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: border-color 140ms var(--ease), color 140ms var(--ease);
+}
+
+.memo-tag-add:hover {
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.memo-tag-input {
+  width: 130px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  border: 1.5px solid var(--accent-border);
+  background: var(--card);
+  color: var(--text-body);
+  font-size: 0.76rem;
+  font-family: inherit;
+  outline: none;
+}
+
+.memo-tag-input:focus {
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
 /* ─── 空态 ─────────────────────────────────────────────── */
 
 .memo-empty {

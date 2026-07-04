@@ -1,0 +1,8 @@
+#!/bin/sh
+# 提交前跑一遍单测，红灯挡提交（TDD 安全网）。全套 <2s，不拖节奏。
+# 想临时跳过：git commit --no-verify（应急用，别常态化）。
+echo "▶ pre-commit: vitest run"
+npm test --silent || {
+  echo "✗ 有测试没过，提交已中止。修好或 git commit --no-verify 跳过。"
+  exit 1
+}

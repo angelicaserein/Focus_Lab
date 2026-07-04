@@ -12,31 +12,39 @@
   margin: 0 auto;
 }
 
-/* 两栏：左=计时控制台+AI聊天（窄），右=任务管理（宽） */
+/* 单栏纵向堆叠：上=开始专注（计时控制台+情景推荐），下=紧急/重要四象限 */
 .focus-main {
-  display: grid;
-  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
-  gap: 24px;
-  align-items: start;
-}
-
-.focus-col-left {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  position: sticky;
-  top: 8px;
 }
 
-/* 窄屏（含侧边栏抽屉断点）：两栏需 ~700px 才舒展，
-   在此以下改为单栏纵向堆叠，避免右栏被挤出屏幕产生横向滚动。 */
+/* 顶部控制台区：控制台与情景推荐并排定宽，不铺满整行，给下方矩阵留出空间 */
+.focus-col-left {
+  display: flex;
+  flex-flow: row wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.focus-col-left > .focus-card {
+  flex: 1 1 300px;
+  min-width: 0;
+  max-width: 400px;
+}
+
+/* 顶部控制台内部更紧凑，压低高度 */
+.focus-col-left .focus-card {
+  padding: 18px 20px;
+  gap: 12px;
+}
+
 @media (max-width: 768px) {
   .focus-main {
-    grid-template-columns: 1fr;
     gap: 16px;
   }
-  .focus-col-left {
-    position: static;
+  .focus-col-left > .focus-card {
+    max-width: none;
   }
 }
 
@@ -249,7 +257,6 @@
   grid-template-columns: 1fr 1fr;
   gap: 6px;
   padding: 4px;
-  margin-bottom: 10px;
   border-radius: 14px;
   background: var(--accent-bg-dim);
   border: 1.5px solid var(--accent-border);
@@ -274,7 +281,7 @@
 
 /* 烧瓶时长选择 */
 .focus-duration-row {
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 .focus-duration-label {

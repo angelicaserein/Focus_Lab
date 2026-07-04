@@ -1,9 +1,9 @@
 import React from "react";
-import "./Immersive/ImmersiveChat.css";
+import "./ChatHistory.css";
 import { hasApiKey } from "@/utils/ai/aiChat";
 import { useLanguage } from "@/context/LanguageContext";
 
-// Focus 页面（非沉浸）上的聊天历史区：展示与 AI 陪伴的全部对话，
+// 历史页的 AI 陪伴聊天记录区：展示与 AI 陪伴的全部对话，
 // 与沉浸式左下角对话框共用同一份持久化数据。
 export default function ChatHistory({ messages, onClear }) {
   const { t } = useLanguage();
@@ -11,15 +11,15 @@ export default function ChatHistory({ messages, onClear }) {
   const isDemo = !hasApiKey();
 
   return (
-    <div className="focus-card chat-history">
-      <div className="focus-card-header">
-        <div className="focus-card-header-left">
-          <span className="card-label">{t("focus.chatTitle")}</span>
-          {isDemo && <span className="chat-demo-note">{t("focus.aiDemoNote")}</span>}
+    <div className="chat-history">
+      <div className="chat-history-header">
+        <div className="chat-history-header-left">
+          <span className="chat-history-title">{t("focus.chatTitle")}</span>
+          {isDemo && <span className="chat-history-demo">{t("focus.aiDemoNote")}</span>}
         </div>
         <button
           type="button"
-          className="clear-focus"
+          className="chat-history-clear"
           onClick={onClear}
           disabled={!hasMessages}
         >
@@ -36,7 +36,7 @@ export default function ChatHistory({ messages, onClear }) {
           ))}
         </div>
       ) : (
-        <div className="focus-task-placeholder">{t("focus.noChat")}</div>
+        <div className="chat-history-empty">{t("focus.noChat")}</div>
       )}
     </div>
   );

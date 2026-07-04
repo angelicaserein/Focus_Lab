@@ -18,11 +18,14 @@ const importers = [
   () => import("@/pages/Tasks"),
   () => import("@/pages/DDLReminders"),
   () => import("@/pages/Memo"),
+  () => import("@/pages/Calendar"),
+  () => import("@/pages/Character"),
 ];
 
 const [
   homeImp, focusImp, historyImp, scenarioImp, rewardImp, settingsImp,
   researchImp, scenarioStatsImp, analyticsImp, tasksImp, ddlImp, memoImp,
+  calendarImp, characterImp,
 ] = importers;
 
 const Home = lazy(homeImp);
@@ -37,6 +40,8 @@ const Analytics = lazy(analyticsImp);
 const Tasks = lazy(tasksImp);
 const DDLReminders = lazy(ddlImp);
 const Memo = lazy(memoImp);
+const Calendar = lazy(calendarImp);
+const Character = lazy(characterImp);
 
 export default function AppRoutes() {
   // 首屏渲染完后，趁浏览器空闲把其余页面的 chunk 预取下来。
@@ -72,6 +77,8 @@ export default function AppRoutes() {
               <Route path="/tasks" element={<Tasks />} />
               <Route path="/ddl" element={<DDLReminders />} />
               <Route path="/memo" element={<Memo />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/character" element={<Character />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

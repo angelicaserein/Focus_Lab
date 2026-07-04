@@ -4,6 +4,7 @@ import useTaskExtraction from "@/hooks/task/useTaskExtraction";
 import AiTaskModal from "@/pages/Memo/AiTaskModal";
 import MemoItem from "@/pages/Memo/MemoItem";
 import useMemoAiOrganize from "@/pages/Memo/useMemoAiOrganize";
+import { collectTags, itemHasTag } from "@/pages/Memo/memoTags";
 import { useDatabases } from "@/context/DatabaseContext";
 import { formatSessionDate } from "@/utils/time";
 import "./Memo.css";
@@ -30,19 +31,26 @@ function groupByDay(items) {
 }
 
 export default function MemoPage() {
-  const { timeline, counts, addMemo, updateMemo, removeMemo } = useMemos();
+  const { timeline, counts, addMemo, updateMemo, removeMemo, setMemoTags } = useMemos();
   const { activeDatabase } = useDatabases();
   const ai = useTaskExtraction();
   const organize = useMemoAiOrganize({ timeline, ai, activeDatabase });
 
   const [draft, setDraft] = useState("");
   const [filter, setFilter] = useState("all");
+  const [activeTag, setActiveTag] = useState(null);
 
-  const filtered = useMemo(
-    () => (filter === "all" ? timeline : timeline.filter((i) => i.source === filter)),
-    [timeline, filter],
-  );
+  const tagCloud = useMemo(() => collectTags(timeline), [timeline]);
+
+  const filtered = useMemo(() => {
+    let list = filter === "all" ? timeline : timeline.filter((i) => i.source === filter);
+    if (activeTag) list = list.filter((i) => itemHasTag(i, activeTag));
+    return list;
+  }, [timeline, filter, activeTag]);
   const groups = useMemo(() => groupByDay(filtered), [filtered]);
+
+  // 点击某标签：再次点击同一标签则取消筛选。
+  const toggleTag = (tag) => setActiveTag((cur) => (cur === tag ? null : tag));
 
   const handleAdd = () => {
     if (!draft.trim()) return;
@@ -121,6 +129,32 @@ export default function MemoPage() {
         ))}
       </div>
 
+      {/* 标签筛选 */}
+      {tagCloud.length > 0 && (
+        <div className="memo-tagbar">
+          {tagCloud.map(({ tag, count }) => (
+            <button
+              key={tag}
+              type="button"
+              className={`memo-tagbar-chip${activeTag === tag ? " active" : ""}`}
+              onClick={() => toggleTag(tag)}
+            >
+              #{tag}
+              <span className="memo-tagbar-count">{count}</span>
+            </button>
+          ))}
+          {activeTag && (
+            <button
+              type="button"
+              className="memo-tagbar-clear"
+              onClick={() => setActiveTag(null)}
+            >
+              清除标签筛选
+            </button>
+          )}
+        </div>
+      )}
+
       {/* 时间线 */}
       {filtered.length === 0 ? (
         <div className="memo-empty">
@@ -142,6 +176,9 @@ export default function MemoPage() {
                     onToggleSelect={organize.toggleSelect}
                     onUpdate={updateMemo}
                     onRemove={removeMemo}
+                    onSetTags={setMemoTags}
+                    onTagClick={toggleTag}
+                    activeTag={activeTag}
                   />
                 ))}
               </ul>

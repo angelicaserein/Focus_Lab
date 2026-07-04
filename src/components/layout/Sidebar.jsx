@@ -1,11 +1,13 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
   Timer,
   ListTodo,
   StickyNote,
   CalendarClock,
+  CalendarRange,
+  Swords,
   History,
   BarChart3,
   PieChart,
@@ -13,6 +15,9 @@ import {
   Gift,
   FlaskConical,
   Settings,
+  Coins,
+  Languages,
+  Palette,
   Menu,
   X,
 } from "lucide-react";
@@ -20,14 +25,18 @@ import { useTodos } from "@/context/TodoContext";
 import { useDDL } from "@/context/DDLContext";
 import { useScenarios } from "@/context/ScenarioContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { useReward, SHOP_ITEMS } from "@/context/RewardContext";
+import { useTheme } from "@/context/ThemeContext";
+import { LANGUAGES } from "@/i18n/translations";
 
 const NAV_SECTIONS = [
   {
     titleKey: "nav.section.daily",
     items: [
-      { to: "/",      labelKey: "nav.home",  Icon: Home },
-      { to: "/focus", labelKey: "nav.focus", Icon: Timer },
-      { to: "/tasks", labelKey: "nav.tasks", Icon: ListTodo },
+      { to: "/",          labelKey: "nav.home",      Icon: Home },
+      { to: "/character", labelKey: "nav.character", Icon: Swords },
+      { to: "/focus",     labelKey: "nav.focus",     Icon: Timer },
+      { to: "/tasks",     labelKey: "nav.tasks",     Icon: ListTodo },
       { to: "/memo",  labelKey: "nav.memo",  Icon: StickyNote },
       { to: "/ddl",   labelKey: "nav.ddl",   Icon: CalendarClock },
     ],
@@ -35,6 +44,7 @@ const NAV_SECTIONS = [
   {
     titleKey: "nav.section.review",
     items: [
+      { to: "/calendar",       labelKey: "nav.calendar",      Icon: CalendarRange },
       { to: "/history",        labelKey: "nav.history",       Icon: History },
       { to: "/analytics",      labelKey: "nav.analytics",     Icon: BarChart3 },
       { to: "/scenario-stats", labelKey: "nav.scenarioStats", Icon: PieChart },
@@ -52,12 +62,42 @@ const NAV_SECTIONS = [
 
 export default function Sidebar() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const { todos } = useTodos();
   const { computeBadgeCount } = useDDL();
   const { scenarios, activeScenarioId, setActiveScenario } = useScenarios();
-  const { t } = useLanguage();
+  const { t, lang, setLang } = useLanguage();
+  const { coins, isOwned } = useReward();
+  const { activeTheme, setTheme } = useTheme();
 
   const ddlBadge = useMemo(() => computeBadgeCount(todos), [todos, computeBadgeCount]);
+
+  // 已解锁的主题 id 列表（default 永远可用 + 商店里已购买的主题）。
+  const unlockedThemes = useMemo(
+    () => [
+      "default",
+      ...SHOP_ITEMS.filter((i) => i.id.startsWith("theme-") && isOwned(i.id)).map(
+        (i) => i.id,
+      ),
+    ],
+    [isOwned],
+  );
+
+  // 在已解锁主题间循环切换；只有默认主题时，引导去奖励商店解锁。
+  const cycleTheme = () => {
+    if (unlockedThemes.length <= 1) {
+      navigate("/reward");
+      return;
+    }
+    const idx = unlockedThemes.indexOf(activeTheme);
+    setTheme(unlockedThemes[(idx + 1) % unlockedThemes.length]);
+  };
+
+  // 在支持的语言间循环切换（当前 en / zh）。
+  const toggleLang = () => {
+    const idx = LANGUAGES.findIndex((l) => l.id === lang);
+    setLang(LANGUAGES[(idx + 1) % LANGUAGES.length].id);
+  };
 
   // 移动端抽屉开合。桌面端 CSS 里侧边栏常驻，这个状态只在窄屏生效。
   const [open, setOpen] = useState(false);
@@ -141,12 +181,51 @@ export default function Sidebar() {
 
       <div className="sidebar-footer">
         <Link
-          to="/settings"
-          className={`nav-link${pathname === "/settings" ? " active" : ""}`}
+          to="/reward"
+          className="sidebar-coins"
+          aria-label={t("sidebar.coins", { count: coins })}
+          title={t("sidebar.coins", { count: coins })}
         >
-          <Settings className="nav-icon" size={18} strokeWidth={2} aria-hidden="true" />
-          <span className="nav-label">{t("nav.settings")}</span>
+          <Coins size={16} strokeWidth={2} aria-hidden="true" />
+          <span className="sidebar-coins-value">{coins}</span>
         </Link>
+
+        <div className="sidebar-footer-actions">
+          <button
+            type="button"
+            className="sidebar-icon-btn"
+            onClick={toggleLang}
+            aria-label={t("sidebar.toggleLang")}
+            title={t("sidebar.toggleLang")}
+          >
+            <Languages size={18} strokeWidth={2} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="sidebar-icon-btn"
+            onClick={cycleTheme}
+            aria-label={
+              unlockedThemes.length <= 1
+                ? t("sidebar.unlockThemes")
+                : t("sidebar.cycleTheme")
+            }
+            title={
+              unlockedThemes.length <= 1
+                ? t("sidebar.unlockThemes")
+                : t("sidebar.cycleTheme")
+            }
+          >
+            <Palette size={18} strokeWidth={2} aria-hidden="true" />
+          </button>
+          <Link
+            to="/settings"
+            className={`sidebar-icon-btn${pathname === "/settings" ? " active" : ""}`}
+            aria-label={t("nav.settings")}
+            title={t("nav.settings")}
+          >
+            <Settings size={18} strokeWidth={2} aria-hidden="true" />
+          </Link>
+        </div>
       </div>
       </aside>
     </>

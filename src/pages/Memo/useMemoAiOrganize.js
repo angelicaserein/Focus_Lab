@@ -1,6 +1,14 @@
 import { useState } from "react";
 import useToast from "@/hooks/common/useToast";
 
+// 收集被勾选条目的文本，按 timeline 顺序换行拼接（喂给 AI 拆任务）。
+export function collectSelectedText(timeline, selected) {
+  return timeline
+    .filter((i) => selected.has(i.id))
+    .map((i) => i.text)
+    .join("\n");
+}
+
 // 「AI 整理成任务」的交互状态：倒脑子输入框 + 勾选已有条目 + 成功提示。
 // 依赖注入 timeline（用于取勾选条目文本）、ai（useTaskExtraction 实例）、activeDatabase。
 export default function useMemoAiOrganize({ timeline, ai, activeDatabase }) {
@@ -23,10 +31,7 @@ export default function useMemoAiOrganize({ timeline, ai, activeDatabase }) {
   };
 
   const requestFromSelected = () => {
-    const text = timeline
-      .filter((i) => selected.has(i.id))
-      .map((i) => i.text)
-      .join("\n");
+    const text = collectSelectedText(timeline, selected);
     if (text.trim()) ai.request(text);
   };
 

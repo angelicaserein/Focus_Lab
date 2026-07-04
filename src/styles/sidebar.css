@@ -149,15 +149,92 @@
   flex: 1;
 }
 
-/* ── 底部固定区：设置 ── */
+/* ── 底部固定区：金币余额 + 快捷图标（仿 Notion / Claude 侧栏底栏） ── */
 .sidebar-footer {
-  padding: 12px;
+  padding: 10px 12px;
   border-top: 1px solid var(--border-dark);
   margin: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.sidebar-footer .nav-link {
-  margin: 0;
+/* 金币药丸：靠左，占据剩余空间，点击跳奖励页。 */
+.sidebar-coins {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--glass);
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: all 200ms ease;
+}
+
+.sidebar-coins:hover {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.sidebar-coins svg {
+  flex-shrink: 0;
+  color: #f5a623;
+}
+
+.sidebar-coins-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 靠右的快捷图标簇：语言 / 主题 / 设置。 */
+.sidebar-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.sidebar-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  color: var(--muted);
+  opacity: 0.7;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.sidebar-icon-btn:hover {
+  background: var(--glass);
+  color: var(--accent);
+  opacity: 1;
+}
+
+.sidebar-icon-btn.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  opacity: 1;
+}
+
+/* 齿轮 hover 时轻微旋转，呼应 Notion 的小动效。 */
+.sidebar-icon-btn svg {
+  transition: transform 260ms var(--ease);
+}
+
+.sidebar-icon-btn:last-child:hover svg {
+  transform: rotate(45deg);
 }
 
 .nav-badge {

@@ -1,8 +1,6 @@
 import React, { useState } from "react";
-import TodoApp from "@/components/todo/TodoApp";
+import EisenhowerMatrix from "@/components/todo/EisenhowerMatrix";
 import { useLanguage } from "@/context/LanguageContext";
-import ChatHistory from "@/pages/Focus/ChatHistory";
-import SessionSummary from "@/pages/Focus/SessionSummary";
 import RandomTaskDrawer from "@/pages/Focus/RandomTaskDrawer";
 import RecommendStrip from "@/pages/Focus/RecommendStrip";
 
@@ -10,10 +8,11 @@ import RecommendStrip from "@/pages/Focus/RecommendStrip";
 const MIN_DURATION = 1;
 const MAX_DURATION = 180;
 
-// 普通（非沉浸）视图：左栏=计时控制台+情境选择+AI聊天+上次回顾，右栏=任务管理。
+// 普通（非沉浸）视图：上=计时控制台+情境选择+情景推荐，下=紧急/重要四象限，纵向堆叠。
+// 随记 / 分心 / 聊天记录已移至历史页统一回顾，本页专注于「开始一次专注」。
 // React.memo：计时器每 500ms tick 会让 FocusPage 重渲染，但本组件不消费 seconds，
 // props 引用稳定（计时器回调已 useCallback，context 方法来自不随 tick 重渲染的祖先），
-// memo 后即可在 tick 时跳过，连带跳过内部的 TodoApp 任务列表。
+// memo 后即可在 tick 时跳过，连带跳过内部的四象限任务板。
 function FocusConsole({
   selectedTodos,
   hasSelection,
@@ -35,10 +34,6 @@ function FocusConsole({
   onDrawerSelect,
   availableTodos = [],
   onAddFocus,
-  chatMessages,
-  onChatClear,
-  notes = [],
-  distractions = [],
 }) {
   const { t } = useLanguage();
   const [showDrawer, setShowDrawer] = useState(false);
@@ -75,7 +70,7 @@ function FocusConsole({
 
       <div className="focus-shell">
         <div className="focus-main">
-          {/* Left column: timer console + AI chat + session summary */}
+          {/* Top: timer console + 情景推荐 */}
           <div className="focus-col-left">
             {/* Top: timer console */}
             <div className="focus-card">
@@ -242,17 +237,11 @@ function FocusConsole({
 
             {/* 情景推荐：有「当前情景」时，主动推荐候选任务 */}
             <RecommendStrip availableTodos={availableTodos} onPick={onAddFocus} />
-
-            {/* 历史随记 + 分心记录 */}
-            <SessionSummary notes={notes} distractions={distractions} />
-
-            {/* AI 陪伴聊天记录 */}
-            <ChatHistory messages={chatMessages} onClear={onChatClear} />
           </div>
 
-          {/* Right column: task management (add / filter / edit / delete) */}
+          {/* Bottom: 紧急/重要四象限 —— 任务以小标签呈现，可拖拽归类 */}
           <div className="focus-col-right">
-            <TodoApp />
+            <EisenhowerMatrix />
           </div>
         </div>
       </div>

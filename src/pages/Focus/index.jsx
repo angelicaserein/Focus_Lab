@@ -52,7 +52,7 @@ export default function FocusPage() {
   const { logEvent, resetEvents, getSnapshot } = useSessionEvents();
   const { seconds, isRunning, start, togglePause, resetTimer, clearSession, getSession, jumpSeconds } =
     useFocusTimer();
-  const { messages, sending, sendUserMessage, clearChat } = useFocusChat();
+  const { messages, sending, sendUserMessage } = useFocusChat();
   const [isImmersive, setIsImmersive] = useState(false);
 
   // 本次会话起始时间戳，用于筛选「本次」的随记和分心条目
@@ -73,7 +73,7 @@ export default function FocusPage() {
     flushProactiveDistraction,
   } = useDistractionTracking({ getSession, focusedTodoIds, isRunning, togglePause });
 
-  const { notes, sessionNotes, addNote } = useSessionNotes({ sessionStartTs, getSession, focusedTodoIds });
+  const { sessionNotes, addNote } = useSessionNotes({ sessionStartTs, getSession, focusedTodoIds });
 
   const sessionDistractions = useMemo(
     () => filterSinceSession(distractions, sessionStartTs),
@@ -213,10 +213,6 @@ export default function FocusPage() {
         onDrawerSelect={handleDrawerSelect}
         availableTodos={availableTodos}
         onAddFocus={addToFocus}
-        chatMessages={messages}
-        onChatClear={clearChat}
-        notes={notes}
-        distractions={distractions}
       />
     </FocusSessionContext.Provider>
   );

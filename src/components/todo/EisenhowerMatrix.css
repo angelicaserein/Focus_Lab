@@ -1,0 +1,276 @@
+/* ── 紧急/重要四象限（专注页右栏） ── */
+.matrix-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--card);
+  border: 1px solid var(--border-input);
+  border-radius: 24px;
+  padding: 22px;
+}
+
+.matrix-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.matrix-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.matrix-hint {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
+/* 新建任务输入 */
+.matrix-form {
+  display: flex;
+  gap: 8px;
+}
+
+.matrix-input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-input);
+  background: var(--card);
+  color: var(--text-body);
+  font: inherit;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 150ms ease;
+}
+
+.matrix-input:focus {
+  border-color: var(--accent);
+}
+
+.matrix-add {
+  padding: 9px 16px;
+  border-radius: 12px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 150ms ease;
+}
+
+.matrix-add:hover {
+  opacity: 0.9;
+}
+
+/* 坐标轴提示 */
+.matrix-axis-x {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  padding: 0 2px;
+}
+
+.matrix-board {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.matrix-axis-y {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  padding: 2px 0;
+}
+
+/* 2×2 象限网格 */
+.matrix-grid {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: minmax(120px, auto);
+  gap: 8px;
+}
+
+.matrix-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 16px;
+  border: 1.5px solid var(--border-input);
+  background: var(--accent-bg-dim);
+  transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+}
+
+/* 各象限主题色（依赖左侧色条与浅底） */
+.matrix-cell.q1 { border-left: 4px solid #e5484d; }
+.matrix-cell.q2 { border-left: 4px solid #3e63dd; }
+.matrix-cell.q3 { border-left: 4px solid #f5a623; }
+.matrix-cell.q4 { border-left: 4px solid #8b8d98; }
+
+.matrix-cell.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-hover, var(--accent-bg));
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.matrix-cell-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.matrix-cell-emoji {
+  font-size: 0.95rem;
+}
+
+.matrix-cell-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.matrix-cell-sub {
+  font-size: 0.68rem;
+  color: var(--text-faint);
+}
+
+.matrix-cell-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-content: flex-start;
+  flex: 1;
+}
+
+.matrix-cell-empty {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  opacity: 0.7;
+  align-self: center;
+  margin: auto;
+}
+
+/* 未分类托盘 */
+.matrix-tray {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1.5px dashed var(--border-dashed);
+  background: var(--card);
+  transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+}
+
+.matrix-tray.drag-over {
+  border-color: var(--accent);
+  border-style: solid;
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.matrix-tray-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+.matrix-tray-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 24px;
+}
+
+/* 任务小标签 */
+.matrix-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 5px 6px 5px 10px;
+  border-radius: 12px;
+  background: var(--card);
+  border: 1.5px solid var(--border-accent, var(--border-input));
+  color: var(--text-heading);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: grab;
+  user-select: none;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.matrix-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.matrix-tag:active {
+  cursor: grabbing;
+}
+
+/* 已加入本次专注：高亮描边 */
+.matrix-tag.focused {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.matrix-tag-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 140px;
+}
+
+.matrix-tag-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: currentColor;
+  opacity: 0.5;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: opacity 120ms ease, background 120ms ease;
+}
+
+.matrix-tag-del:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+/* 窄屏：坐标轴 y 隐藏，网格保持 2 列但可压缩 */
+@media (max-width: 480px) {
+  .matrix-axis-y {
+    display: none;
+  }
+  .matrix-tag-text {
+    max-width: 96px;
+  }
+}
