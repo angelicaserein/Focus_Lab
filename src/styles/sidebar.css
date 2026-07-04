@@ -266,6 +266,21 @@
     /* 平板：侧边栏仍常驻，略收窄 */
     width: 200px;
   }
+  /* 收窄后底栏更紧凑，避免金币药丸和图标挤在一起 */
+  .sidebar-footer {
+    gap: 4px;
+    padding: 10px 8px;
+  }
+  .sidebar-footer-actions {
+    gap: 0;
+  }
+  .sidebar-icon-btn {
+    width: 30px;
+    height: 30px;
+  }
+  .sidebar-coins {
+    padding: 6px 8px;
+  }
 }
 
 @media (max-width: 600px) {
