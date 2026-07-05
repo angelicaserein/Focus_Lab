@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import EisenhowerMatrix from "@/components/todo/EisenhowerMatrix";
 import { useLanguage } from "@/context/LanguageContext";
 import RandomTaskDrawer from "@/pages/Focus/RandomTaskDrawer";
@@ -41,6 +41,12 @@ function FocusConsole({
   // 当前时长是否为「自定义」（不落在预设里）——决定输入框是否高亮、是否回填数值
   const isCustomDuration = !presets.includes(durationMins);
   const [customDraft, setCustomDraft] = useState(isCustomDuration ? String(durationMins) : "");
+
+  // durationMins 由外部改变时（切换正/倒计时会换成另一套存储值、或落到某个预设）
+  // 让草稿重新对齐，避免残留上一模式的数字。用户输入中 durationMins 未变，不会打断。
+  useEffect(() => {
+    setCustomDraft(isCustomDuration ? String(durationMins) : "");
+  }, [durationMins, isCustomDuration]);
 
   // 提交自定义时长：夹到 [MIN, MAX]；若落到预设值则清空草稿改由预设高亮
   const commitCustomDuration = (raw) => {

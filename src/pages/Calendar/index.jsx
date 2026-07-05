@@ -109,7 +109,10 @@ function formatTime(ts) {
 export default function CalendarPage() {
   const { focusRecords } = useFocus();
 
-  const today = useMemo(() => new Date(), []);
+  // 不缓存 today：页面可能整天开着不关，跨午夜后需自然刷新到真实今天，
+  // 否则「回到今天」和今日高亮会停在昨天。new Date() 开销可忽略，
+  // todayKey 是字符串主键，下游 useMemo（cells 等）仍按值稳定。
+  const today = new Date();
   const todayKey = dayKey(today);
 
   const [cursor, setCursor] = useState(() => ({
