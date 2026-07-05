@@ -1,0 +1,185 @@
+/* 专注结算叙事卡 —— 居中弹出的庆祝式收益结算。 */
+
+.srewards-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+  animation: srewards-fade 0.25s ease;
+}
+
+.srewards-card {
+  width: 100%;
+  max-width: 380px;
+  padding: 28px 24px 22px;
+  border-radius: 22px;
+  background: var(--card);
+  border: 1px solid var(--border-card, transparent);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  text-align: center;
+  animation: srewards-pop 0.4s cubic-bezier(0.22, 1.4, 0.4, 1);
+}
+
+@keyframes srewards-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes srewards-pop {
+  from { opacity: 0; transform: translateY(16px) scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+
+/* 升级横幅 */
+.srewards-levelup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: -8px -8px 16px;
+  padding: 8px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 1px;
+  color: #fff;
+  background: linear-gradient(90deg, var(--accent-mid, var(--accent)), var(--accent));
+  box-shadow: 0 4px 16px var(--accent-glow, rgba(99, 102, 241, 0.4));
+  animation: srewards-levelup-in 0.5s ease 0.15s both;
+}
+@keyframes srewards-levelup-in {
+  from { opacity: 0; transform: scale(0.8); }
+  60% { transform: scale(1.05); }
+  to { opacity: 1; transform: scale(1); }
+}
+.srewards-levelup-spark { animation: srewards-spin 2s linear infinite; }
+@keyframes srewards-spin { to { transform: rotate(360deg); } }
+
+.srewards-header { margin-bottom: 18px; }
+.srewards-rank-icon {
+  font-size: 44px;
+  width: 78px;
+  height: 78px;
+  margin: 0 auto 8px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent-bg, rgba(99, 102, 241, 0.12));
+  border: 2px solid var(--accent-border, var(--accent));
+}
+.srewards-title { font-size: 19px; font-weight: 700; color: var(--text-heading, var(--text)); }
+.srewards-duration { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+/* 金币 / 经验大数字 */
+.srewards-gains {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.srewards-gain {
+  padding: 14px 8px;
+  border-radius: 14px;
+  background: var(--accent-bg-dim, rgba(0, 0, 0, 0.04));
+}
+.srewards-gain-icon { font-size: 22px; display: block; }
+.srewards-gain-num {
+  display: block;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+.srewards-gain-word {
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--accent);
+  margin-top: 6px;
+  min-height: 2.4em;
+}
+.srewards-gain-label { font-size: 11px; color: var(--text-muted); }
+
+/* 经验来源 */
+.srewards-sources {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+.srewards-source { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.srewards-source-name { flex: 1; color: var(--text-body, var(--text)); }
+.srewards-source-val { font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+
+/* 经验条 */
+.srewards-xpbar-wrap { margin-bottom: 14px; }
+.srewards-xpbar {
+  height: 12px;
+  border-radius: 999px;
+  background: var(--accent-bg-dim, rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+}
+.srewards-xpbar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-mid, var(--accent)), var(--accent));
+  animation: srewards-fill 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+@keyframes srewards-fill { from { width: 0 !important; } }
+.srewards-xpbar-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.srewards-streak {
+  display: inline-block;
+  margin-bottom: 18px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-bg, rgba(99, 102, 241, 0.1));
+}
+
+.srewards-actions { display: flex; gap: 10px; }
+.srewards-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.18s var(--ease, ease);
+}
+.srewards-btn.ghost {
+  background: transparent;
+  border-color: var(--border-card, var(--accent-border));
+  color: var(--text-body, var(--text));
+}
+.srewards-btn.ghost:hover { background: var(--accent-bg-dim, rgba(0, 0, 0, 0.05)); }
+.srewards-btn.primary {
+  background: var(--accent);
+  color: #fff;
+}
+.srewards-btn.primary:hover { background: var(--accent-hover, var(--accent-deep, var(--accent))); }
+
+@media (prefers-reduced-motion: reduce) {
+  .srewards-backdrop,
+  .srewards-card,
+  .srewards-levelup,
+  .srewards-xpbar-fill,
+  .srewards-levelup-spark { animation: none; }
+}

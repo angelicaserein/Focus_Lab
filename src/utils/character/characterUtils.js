@@ -242,3 +242,51 @@ export function computeCharacter(
     achievements: computeAchievements({ metrics, level: core.level, coins, streak }),
   };
 }
+
+// 单次会话的收益结算（专注结束叙事卡用）。基于「结算前」的角色快照 + 本次会话事实，
+// 算出本次赚得的金币 / 经验来源 / 是否升级 / 连续天数。纯函数，便于单测。
+//   prevRecords —— 结算前的历史记录（用于判断今天是否首次专注、以及连续天数）。
+//   prevXp / prevLevel —— 结算前 computeCharacter 得到的总经验与等级。
+/** @param {{ durationSecs?: number, distractionCount?: number, prevRecords?: FocusRecord[], prevXp?: number, prevLevel?: number, now?: number }} input */
+export function computeSessionReward({
+  durationSecs = 0,
+  distractionCount = 0,
+  prevRecords = [],
+  prevXp = 0,
+  prevLevel = 0,
+  now = Date.now(),
+} = {}) {
+  const secs = Math.max(0, Math.floor(durationSecs));
+  const today = dayStart(now);
+  const isFirstToday = !prevRecords.some((r) => dayStart(r.startedAt) === today);
+
+  const focusXp = secs;
+  const dayXp = isFirstToday ? XP_PER_FOCUS_DAY : 0;
+  const cleanXp = distractionCount === 0 && secs > 0 ? XP_PER_CLEAN_SESSION : 0;
+  const gainedXp = focusXp + dayXp + cleanXp;
+
+  const sources = [{ key: "focus", icon: "⏱️", xp: focusXp }];
+  if (dayXp) sources.push({ key: "days", icon: "📅", xp: dayXp });
+  if (cleanXp) sources.push({ key: "clean", icon: "🧘", xp: cleanXp });
+
+  const after = levelFromXp(prevXp + gainedXp);
+  // 把本次（now）算作一个专注日再求连续天数，得到「结算后」的 streak。
+  const streak = computeStreak([{ startedAt: now }, ...prevRecords], now);
+
+  return {
+    durationSecs: secs,
+    coins: focusXp,
+    gainedXp,
+    sources,
+    prevLevel,
+    newLevel: after.level,
+    leveledUp: after.level > prevLevel,
+    rank: rankForLevel(after.level),
+    level: after.level,
+    progress: after.progress,
+    xpIntoLevel: after.xpIntoLevel,
+    xpForNextLevel: after.xpForNextLevel,
+    streak,
+    distractionCount,
+  };
+}

@@ -1,9 +1,9 @@
 /* 角色卡页面：两套皮肤共用页面骨架，各自的类名前缀 cm-（modern）/ cp-（pixel）。 */
 
 .page-character {
-  max-width: 640px;
+  width: min(1040px, 100%);
   margin: 0 auto;
-  padding: 24px 20px 64px;
+  padding: 24px 4px 64px;
 }
 
 .char-headline {
@@ -48,6 +48,17 @@
 /* ══════════════════════════ 简约现代皮肤 ══════════════════════════ */
 
 .char-modern { display: flex; flex-direction: column; gap: 16px; }
+
+/* 宽屏：内容面板走多列 masonry，充分利用横向空间；窄屏自动回落单列。 */
+.cm-columns {
+  /* 「至多两列、每列理想 ≥340px」：容器窄于 ~700px 时浏览器自动回落单列，无需断点。 */
+  columns: 2 340px;
+  column-gap: 16px;
+}
+.cm-columns > .cm-panel {
+  break-inside: avoid;
+  margin: 0 0 16px;
+}
 
 .cm-hero {
   display: flex;
@@ -110,6 +121,8 @@
 }
 .cm-stat-icon { color: var(--accent); margin-bottom: 6px; }
 .cm-stat-val { font-size: 22px; font-weight: 700; color: var(--text-heading, var(--text)); }
+/* 质化势头词：不是大数字，字号收敛、用强调色，避免读成分数 */
+.cm-stat-val.cm-stat-word { font-size: 15px; font-weight: 700; color: var(--accent); line-height: 1.3; }
 .cm-stat-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
 .cm-panel {
@@ -134,12 +147,26 @@
   line-height: 1.5;
 }
 
-/* 经验来源拆解 */
+/* 经验来源拆解：用相对长条表达「哪一项贡献大」，不再点数化 */
 .cm-xpsources { display: flex; flex-direction: column; gap: 10px; }
 .cm-xpsource { display: flex; align-items: center; gap: 10px; font-size: 14px; }
 .cm-xpsource-icon { font-size: 16px; }
 .cm-xpsource-name { flex: 1; min-width: 0; color: var(--text-body, var(--text)); }
-.cm-xpsource-val { font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+.cm-xpsource-track {
+  width: 84px;
+  flex-shrink: 0;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--accent-bg-dim, rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+}
+.cm-xpsource-bar {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
 
 /* 固定人生属性 */
 .cm-attrs { display: flex; flex-direction: column; gap: 14px; }
@@ -157,7 +184,7 @@
 .cm-attr-body { flex: 1; min-width: 0; }
 .cm-attr-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
 .cm-attr-name { font-size: 14px; color: var(--text-body, var(--text)); }
-.cm-attr-lv { font-size: 12px; font-weight: 700; color: var(--accent); }
+.cm-attr-lv { font-size: 12px; font-weight: 700; color: var(--accent); white-space: nowrap; }
 .cm-attr-bar { height: 7px; border-radius: 999px; background: var(--accent-bg-dim, rgba(0, 0, 0, 0.08)); overflow: hidden; }
 .cm-attr-fill { height: 100%; border-radius: 999px; background: var(--accent); transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
 .cm-attr-metric { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
@@ -169,7 +196,7 @@
 .cm-skill-icon { font-size: 18px; }
 .cm-skill-name { flex: 1; min-width: 0; color: var(--text-body, var(--text)); }
 .cm-skill-time { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.cm-skill-lv { font-size: 12px; font-weight: 600; color: var(--accent); }
+.cm-skill-lv { font-size: 12px; font-weight: 600; color: var(--accent); white-space: nowrap; }
 .cm-skill-bar { height: 8px; border-radius: 999px; background: var(--accent-bg-dim, rgba(0, 0, 0, 0.08)); overflow: hidden; }
 .cm-skill-fill {
   height: 100%;
@@ -202,14 +229,28 @@
 .cm-ach-icon { font-size: 26px; line-height: 1.2; }
 .cm-ach-title { font-size: 12px; font-weight: 600; margin-top: 4px; color: var(--text-heading, var(--text)); }
 .cm-ach-desc { font-size: 10px; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
-.cm-ach-progress { font-size: 10px; font-weight: 700; color: var(--accent); margin-top: 4px; font-variant-numeric: tabular-nums; }
+/* 未解锁成就：无分母的进度条 + 质化措辞，取代「1200 / 3600」 */
+.cm-ach-bar {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--accent-bg-dim, rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+  margin: 6px 4px 0;
+}
+.cm-ach-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cm-ach-progress { font-size: 10px; font-weight: 600; color: var(--text-muted); margin-top: 3px; }
 
 /* ══════════════════════════ 像素复古皮肤 ══════════════════════════ */
 
 .char-pixel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   font-family: "Courier New", ui-monospace, monospace;
   letter-spacing: 0.5px;
   --cp-ink: #e8e6d0;
@@ -217,6 +258,16 @@
   --cp-panel-edge: #14141f;
   --cp-accent: #7ee787;
   --cp-gold: #ffd166;
+}
+
+/* 宽屏：像素面板同样走多列 masonry。列间距留大些，避免右下投影贴到相邻列。 */
+.cp-columns {
+  columns: 2 340px;
+  column-gap: 24px;
+}
+.cp-columns > .cp-box {
+  break-inside: avoid;
+  margin: 0 4px 20px 0;
 }
 
 /* 8-bit 对话框：硬边、双层描边、无圆角 */
@@ -264,6 +315,10 @@
   transform: translateY(-3px);
 }
 .cp-stat-num { font-weight: 700; color: var(--cp-gold); font-size: 16px; }
+/* 势头词：像素金字，字号收敛以免读成分数 */
+.cp-stat-num.cp-stat-word { font-size: 12px; white-space: nowrap; }
+/* 相对贡献点阵：▰ 实心 ▱ 空心 */
+.cp-dots { letter-spacing: 2px; color: var(--cp-accent); }
 
 .cp-box-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; color: var(--cp-accent); }
 .cp-hint { font-size: 11px; opacity: 0.7; margin: -6px 0 12px; line-height: 1.5; }

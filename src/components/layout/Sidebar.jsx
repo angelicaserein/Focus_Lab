@@ -7,6 +7,7 @@ import {
   StickyNote,
   CalendarClock,
   CalendarRange,
+  GanttChartSquare,
   Swords,
   History,
   BarChart3,
@@ -45,6 +46,7 @@ const NAV_SECTIONS = [
     titleKey: "nav.section.review",
     items: [
       { to: "/calendar",       labelKey: "nav.calendar",      Icon: CalendarRange },
+      { to: "/gantt",          labelKey: "nav.gantt",         Icon: GanttChartSquare },
       { to: "/history",        labelKey: "nav.history",       Icon: History },
       { to: "/analytics",      labelKey: "nav.analytics",     Icon: BarChart3 },
       { to: "/scenario-stats", labelKey: "nav.scenarioStats", Icon: PieChart },

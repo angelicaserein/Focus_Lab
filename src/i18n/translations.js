@@ -19,6 +19,7 @@ const en = {
   "nav.memo": "Memo",
   "nav.ddl": "Deadlines",
   "nav.calendar": "Timeline",
+  "nav.gantt": "Gantt",
   "nav.history": "History",
   "nav.analytics": "Analytics",
   "nav.scenarioStats": "Scenario Stats",
@@ -41,10 +42,26 @@ const en = {
   "character.skin.modern": "Modern",
   "character.skin.pixel": "Retro",
   "character.xp": "EXP",
-  "character.toNext": "{time} to next level",
   "character.coins": "Coins",
   "character.streak": "Day streak",
+  "character.momentumLabel": "Momentum",
   "character.sessions": "Sessions",
+  // 成长阶段名（替代等级序号 Lv.N）
+  "character.stage.0": "Sprout",
+  "character.stage.1": "Growing",
+  "character.stage.2": "Flourishing",
+  "character.stage.3": "Adept",
+  "character.stage.4": "Masterful",
+  // 「快到下一段」的温柔措辞（替代 EXP 分母 / 还差 X）
+  "character.grow.early": "This chapter is just beginning",
+  "character.grow.mid": "Moving along nicely",
+  "character.grow.near": "Not far from the next stage",
+  "character.grow.soon": "Almost at a new stage!",
+  // 势头词（替代「连续 N 天」的连续 KPI）
+  "character.momentum.idle": "Ready when you are",
+  "character.momentum.start": "Off to a start",
+  "character.momentum.rhythm": "Finding a rhythm",
+  "character.momentum.hot": "In full swing",
   "character.skills": "Skill lines",
   "character.freeExplore": "Free exploration",
   "character.empty": "Focus to unlock your first skill line!",
@@ -68,7 +85,11 @@ const en = {
   "character.unit.count": "{n}",
   // 成就
   "character.achievements": "Achievements",
-  "character.achUnlocked": "{n}/{total} unlocked",
+  "character.achEarned": "earned",
+  // 成就进度（替代 1200 / 3600 的裸分母）
+  "character.achProg.start": "Getting going",
+  "character.achProg.mid": "On the way",
+  "character.achProg.close": "Almost there",
   "character.ach.firstFocus.title": "First Step",
   "character.ach.firstFocus.desc": "Finish your first focus session",
   "character.ach.hourClub.title": "Hour Club",
@@ -87,6 +108,18 @@ const en = {
   "character.ach.wealthy.desc": "Hold 1000 coins",
   "character.ach.level5.title": "Rising Star",
   "character.ach.level5.desc": "Reach level 5",
+  // 专注结算叙事卡
+  "character.reward.title": "Session complete",
+  "character.reward.levelUp": "NEW STAGE · {rank}",
+  "character.reward.duration": "Focused for {time}",
+  "character.reward.coins": "Coins",
+  "character.reward.xpGained": "Growth",
+  "character.reward.grow.small": "Every bit counts",
+  "character.reward.grow.mid": "Solid progress",
+  "character.reward.grow.big": "A big step forward",
+  "character.reward.streakKept": "Another focused day — lovely",
+  "character.reward.viewCharacter": "View character",
+  "character.reward.collect": "Collect",
 
   // 主页
   "home.quickstart": "▶ Start focusing",
@@ -331,6 +364,14 @@ const en = {
   "settings.data.label.notes": "Notes",
   "settings.data.label.distractions": "Distractions",
   "settings.data.label.chatHistory": "Chat",
+
+  // 甘特图页
+  "gantt.title": "Project Gantt",
+  "gantt.subtitle": "A 13-week research plan across documentation, development, and evaluation.",
+  "gantt.timeline": "Timeline",
+  "gantt.stat.weeks": "Weeks",
+  "gantt.stat.tasks": "Tasks",
+  "gantt.stat.tracks": "Tracks",
 };
 
 const zh = {
@@ -344,6 +385,7 @@ const zh = {
   "nav.memo": "备忘录",
   "nav.ddl": "DDL 提醒",
   "nav.calendar": "时间轴",
+  "nav.gantt": "甘特图",
   "nav.history": "历史记录",
   "nav.analytics": "数据分析",
   "nav.scenarioStats": "情景统计",
@@ -366,10 +408,26 @@ const zh = {
   "character.skin.modern": "简约现代",
   "character.skin.pixel": "像素复古",
   "character.xp": "经验",
-  "character.toNext": "距升级还差 {time}",
   "character.coins": "金币",
   "character.streak": "连续天数",
+  "character.momentumLabel": "势头",
   "character.sessions": "专注次数",
+  // 成长阶段名（替代等级序号 Lv.N）
+  "character.stage.0": "萌芽",
+  "character.stage.1": "成长中",
+  "character.stage.2": "渐入佳境",
+  "character.stage.3": "得心应手",
+  "character.stage.4": "炉火纯青",
+  // 「快到下一段」的温柔措辞（替代经验分母 / 还差 X）
+  "character.grow.early": "这段旅程才刚刚开始",
+  "character.grow.mid": "稳稳地向前走着",
+  "character.grow.near": "离下一段成长不远了",
+  "character.grow.soon": "就快迈入新阶段啦",
+  // 势头词（替代「连续 N 天」的连续 KPI）
+  "character.momentum.idle": "随时可以开始",
+  "character.momentum.start": "开了个好头",
+  "character.momentum.rhythm": "渐渐有了节奏",
+  "character.momentum.hot": "势头正旺",
   "character.skills": "技能线",
   "character.freeExplore": "自由探索",
   "character.empty": "开始专注，解锁你的第一条技能线吧！",
@@ -393,7 +451,11 @@ const zh = {
   "character.unit.count": "{n}",
   // 成就
   "character.achievements": "成就",
-  "character.achUnlocked": "已解锁 {n}/{total}",
+  "character.achEarned": "已点亮",
+  // 成就进度（替代 1200 / 3600 的裸分母）
+  "character.achProg.start": "刚起步",
+  "character.achProg.mid": "进行中",
+  "character.achProg.close": "就快达成",
   "character.ach.firstFocus.title": "初次启程",
   "character.ach.firstFocus.desc": "完成第一次专注",
   "character.ach.hourClub.title": "一小时俱乐部",
@@ -412,6 +474,18 @@ const zh = {
   "character.ach.wealthy.desc": "持有 1000 金币",
   "character.ach.level5.title": "崭露头角",
   "character.ach.level5.desc": "达到 5 级",
+  // 专注结算叙事卡
+  "character.reward.title": "本次结算",
+  "character.reward.levelUp": "新阶段 · {rank}",
+  "character.reward.duration": "专注了 {time}",
+  "character.reward.coins": "金币",
+  "character.reward.xpGained": "成长",
+  "character.reward.grow.small": "点滴积累也算数",
+  "character.reward.grow.mid": "扎扎实实的一段",
+  "character.reward.grow.big": "成长了一大截",
+  "character.reward.streakKept": "又是专注的一天，真好",
+  "character.reward.viewCharacter": "查看角色",
+  "character.reward.collect": "收下",
 
   "home.quickstart": "▶ 开始专注",
 
@@ -640,6 +714,14 @@ const zh = {
   "settings.data.label.notes": "随记",
   "settings.data.label.distractions": "分心",
   "settings.data.label.chatHistory": "聊天",
+
+  // 甘特图页
+  "gantt.title": "项目甘特图",
+  "gantt.subtitle": "为期 13 周的研究计划：文档、开发、评估三条主线并行推进。",
+  "gantt.timeline": "时间线",
+  "gantt.stat.weeks": "周期（周）",
+  "gantt.stat.tasks": "任务数",
+  "gantt.stat.tracks": "泳道",
 };
 
 export const TRANSLATIONS = { en, zh };

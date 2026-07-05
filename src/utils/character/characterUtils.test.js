@@ -13,6 +13,7 @@ import {
   computeAchievements,
   computeSkills,
   computeCharacter,
+  computeSessionReward,
 } from "@/utils/character/characterUtils";
 
 // 造一条专注记录：默认单任务单会话，durationSecs 即墙钟时长。
@@ -258,5 +259,63 @@ describe("computeCharacter", () => {
     expect(char.skills).toEqual([]);
     expect(char.lockedSkillCount).toBe(0);
     expect(char.attributes).toHaveLength(5);
+  });
+});
+
+describe("computeSessionReward", () => {
+  const now = new Date(2026, 6, 4, 15, 0, 0).getTime();
+
+  it("首次专注且零分心：金币=时长，经验含专注+专注天数+零分心三项", () => {
+    const r = computeSessionReward({
+      durationSecs: 600,
+      distractionCount: 0,
+      prevRecords: [],
+      prevXp: 0,
+      prevLevel: 0,
+      now,
+    });
+    expect(r.coins).toBe(600);
+    expect(r.gainedXp).toBe(600 + XP_PER_FOCUS_DAY + XP_PER_CLEAN_SESSION);
+    expect(r.sources.map((s) => s.key)).toEqual(["focus", "days", "clean"]);
+    expect(r.streak).toBe(1);
+  });
+
+  it("今天已专注过：不再计专注天数加成", () => {
+    const r = computeSessionReward({
+      durationSecs: 300,
+      distractionCount: 0,
+      prevRecords: [rec(now - 3600_000, 600)], // 今天早些时候已有记录
+      now,
+    });
+    expect(r.sources.some((s) => s.key === "days")).toBe(false);
+    expect(r.gainedXp).toBe(300 + XP_PER_CLEAN_SESSION);
+  });
+
+  it("有分心：不计零分心加成", () => {
+    const r = computeSessionReward({ durationSecs: 300, distractionCount: 2, prevRecords: [], now });
+    expect(r.sources.some((s) => s.key === "clean")).toBe(false);
+  });
+
+  it("跨过等级阈值时 leveledUp 为真", () => {
+    // prevXp=280（还差 20 到 Lv.1 的 300），本次专注 100s → 升到 Lv.1
+    const r = computeSessionReward({
+      durationSecs: 100,
+      distractionCount: 5, // 排除零分心加成，隔离升级来自专注
+      prevRecords: [rec(now - 1000, 10)],
+      prevXp: 280,
+      prevLevel: 0,
+      now,
+    });
+    expect(r.newLevel).toBe(1);
+    expect(r.leveledUp).toBe(true);
+  });
+
+  it("连续天数：昨天有记录 + 今天本次 → 2", () => {
+    const r = computeSessionReward({
+      durationSecs: 300,
+      prevRecords: [rec(now - DAY, 600)],
+      now,
+    });
+    expect(r.streak).toBe(2);
   });
 });

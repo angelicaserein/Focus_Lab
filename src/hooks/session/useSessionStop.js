@@ -15,6 +15,7 @@ export default function useSessionStop({
   settleTask,
   setSessionStartTs,
   onStop,
+  onSessionReward,
 }) {
   const handleStop = useCallback(() => {
     const extraDistSecs = flushProactiveDistraction();
@@ -48,12 +49,19 @@ export default function useSessionStop({
       })
     );
     setSessionStartTs(null);
+    // 结算叙事卡：把本次会话事实交给上层换算收益并弹卡（时长过短不弹）。
+    if (finalSecs > 0) {
+      onSessionReward?.({
+        durationSecs: finalSecs,
+        distractionCount: finalDistractionCount,
+      });
+    }
     onStop?.();
   }, [
     flushProactiveDistraction, seconds, getSession,
     sessionDistractions, sessionNotes,
     addCoins, logEvent, getSnapshot, clearSession,
-    selectedTodos, settleTask, setSessionStartTs, onStop,
+    selectedTodos, settleTask, setSessionStartTs, onStop, onSessionReward,
   ]);
 
   return { handleStop };
