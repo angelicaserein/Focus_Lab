@@ -4,6 +4,12 @@ import { useLanguage } from "@/context/LanguageContext";
 import useCountUp from "@/hooks/common/useCountUp";
 import { formatDuration } from "@/utils/time";
 import { growthStageText, growthPhraseText } from "@/pages/Character/charView";
+import useTonePack from "@/hooks/character/useTonePack";
+import { makeToneT } from "@/utils/ai/tonePack";
+import useLocalStorage from "@/hooks/common/useLocalStorage";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
+import Companion from "@/components/companion/Companion";
+import { companionLine } from "@/data/companion/companionData";
 import "./SessionRewardCard.css";
 
 // 本次成长的质化措辞：按本次获得的经验量给一句温柔的话，不报点数。
@@ -21,9 +27,15 @@ export default function SessionRewardCard({ reward, onClose }) {
   const { t, lang } = useLanguage();
   const navigate = useNavigate();
 
+  const { tonePack } = useTonePack();
+  // 语气感知的翻译函数：命中语气包覆盖就用自定义文案，否则回退默认。
+  const tt = makeToneT(t, tonePack, lang);
+
   const coins = useCountUp(reward.coins);
   const pct = Math.round(reward.progress * 100);
   const rankName = lang === "zh" ? reward.rank.zh : reward.rank.en;
+  // 佩戴的伙伴立绘（只读；结算卡每次新挂载，读一次即可）
+  const [outfit] = useLocalStorage(STORAGE_KEYS.COMPANION_OUTFIT, null);
 
   // Esc 关闭
   useEffect(() => {
@@ -38,10 +50,14 @@ export default function SessionRewardCard({ reward, onClose }) {
         {reward.leveledUp && (
           <div className="srewards-levelup">
             <span className="srewards-levelup-spark" aria-hidden="true">✦</span>
-            {t("character.reward.levelUp", { rank: rankName })}
+            {tt("character.reward.levelUp", { rank: rankName })}
             <span className="srewards-levelup-spark" aria-hidden="true">✦</span>
           </div>
         )}
+
+        <div className="srewards-companion">
+          <Companion mood="cheer" outfit={outfit} size={92} say={companionLine(t, "cheer")} />
+        </div>
 
         <div className="srewards-header">
           <div className="srewards-rank-icon" aria-hidden="true">{reward.rank.icon}</div>
@@ -60,7 +76,7 @@ export default function SessionRewardCard({ reward, onClose }) {
           </div>
           <div className="srewards-gain">
             <span className="srewards-gain-icon" aria-hidden="true">✨</span>
-            <span className="srewards-gain-word">{t(`character.reward.grow.${rewardGrowKey(reward.gainedXp)}`)}</span>
+            <span className="srewards-gain-word">{tt(`character.reward.grow.${rewardGrowKey(reward.gainedXp)}`)}</span>
             <span className="srewards-gain-label">{t("character.reward.xpGained")}</span>
           </div>
         </div>
@@ -81,14 +97,14 @@ export default function SessionRewardCard({ reward, onClose }) {
             <div className="srewards-xpbar-fill" style={{ width: `${pct}%` }} />
           </div>
           <div className="srewards-xpbar-meta">
-            <span>{growthStageText(t, reward.level)}</span>
-            <span>{growthPhraseText(t, reward.progress)}</span>
+            <span>{growthStageText(tt, reward.level)}</span>
+            <span>{growthPhraseText(tt, reward.progress)}</span>
           </div>
         </div>
 
         {reward.streak > 1 && (
           <div className="srewards-streak">
-            🔥 {t("character.reward.streakKept")}
+            🔥 {tt("character.reward.streakKept")}
           </div>
         )}
 

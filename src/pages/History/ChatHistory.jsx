@@ -14,8 +14,8 @@ export default function ChatHistory({ messages, onClear }) {
     <div className="chat-history">
       <div className="chat-history-header">
         <div className="chat-history-header-left">
-          <span className="chat-history-title">{t("focus.chatTitle")}</span>
-          {isDemo && <span className="chat-history-demo">{t("focus.aiDemoNote")}</span>}
+          <span className="chat-history-title">{t("history.chatTitle")}</span>
+          {isDemo && <span className="chat-history-demo">{t("history.aiDemoNote")}</span>}
         </div>
         <button
           type="button"
@@ -23,7 +23,7 @@ export default function ChatHistory({ messages, onClear }) {
           onClick={onClear}
           disabled={!hasMessages}
         >
-          {t("focus.clearChat")}
+          {t("history.clearChat")}
         </button>
       </div>
 
@@ -36,7 +36,7 @@ export default function ChatHistory({ messages, onClear }) {
           ))}
         </div>
       ) : (
-        <div className="chat-history-empty">{t("focus.noChat")}</div>
+        <div className="chat-history-empty">{t("history.noChat")}</div>
       )}
     </div>
   );

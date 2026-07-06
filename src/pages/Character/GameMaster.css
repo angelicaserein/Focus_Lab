@@ -1,0 +1,78 @@
+/* 游戏主持人「旅程旁白」卡：角色页顶部的一段叙事，AI 或本地模板生成。 */
+
+.gm-card {
+  display: flex;
+  gap: 14px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 12% 0%, var(--accent-bg, rgba(99, 102, 241, 0.12)), transparent 60%),
+    var(--card);
+  border: 1px solid var(--border-card, transparent);
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.06));
+}
+
+.gm-side {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--accent-bg, rgba(99, 102, 241, 0.12));
+  border: 1px solid var(--accent-border, var(--accent));
+}
+.gm-emoji { font-size: 24px; line-height: 1; }
+
+.gm-body { flex: 1; min-width: 0; }
+.gm-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.gm-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-heading, var(--text));
+  letter-spacing: 0.3px;
+}
+.gm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg, rgba(99, 102, 241, 0.12));
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.gm-refresh {
+  margin-left: auto;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s var(--ease, ease);
+}
+.gm-refresh:hover:not(:disabled) { color: var(--accent); background: var(--accent-bg-dim, rgba(0, 0, 0, 0.05)); }
+.gm-refresh:disabled { opacity: 0.5; cursor: default; }
+
+.gm-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-body, var(--text));
+  transition: opacity 0.25s ease;
+}
+.gm-text.gm-loading { color: var(--text-muted); font-style: italic; opacity: 0.75; }
+
+.gm-note { margin-top: 8px; font-size: 11px; color: var(--text-muted); opacity: 0.8; }
+
+.gm-spin { animation: gm-spin 0.9s linear infinite; }
+@keyframes gm-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .gm-spin { animation: none; }
+}

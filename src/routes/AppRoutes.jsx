@@ -20,13 +20,17 @@ const importers = [
   () => import("@/pages/Memo"),
   () => import("@/pages/Calendar"),
   () => import("@/pages/Character"),
+  () => import("@/pages/SkillTree"),
+  () => import("@/pages/Industry"),
   () => import("@/pages/Gantt"),
+  () => import("@/pages/Wish"),
+  () => import("@/pages/World"),
 ];
 
 const [
   homeImp, focusImp, historyImp, scenarioImp, rewardImp, settingsImp,
   researchImp, scenarioStatsImp, analyticsImp, tasksImp, ddlImp, memoImp,
-  calendarImp, characterImp, ganttImp,
+  calendarImp, characterImp, skillTreeImp, industryImp, ganttImp, wishImp, worldImp,
 ] = importers;
 
 const Home = lazy(homeImp);
@@ -43,7 +47,11 @@ const DDLReminders = lazy(ddlImp);
 const Memo = lazy(memoImp);
 const Calendar = lazy(calendarImp);
 const Character = lazy(characterImp);
+const SkillTree = lazy(skillTreeImp);
+const Industry = lazy(industryImp);
 const Gantt = lazy(ganttImp);
+const Wish = lazy(wishImp);
+const World = lazy(worldImp);
 
 export default function AppRoutes() {
   // 首屏渲染完后，趁浏览器空闲把其余页面的 chunk 预取下来。
@@ -81,7 +89,11 @@ export default function AppRoutes() {
               <Route path="/memo" element={<Memo />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/character" element={<Character />} />
+              <Route path="/skilltree" element={<SkillTree />} />
+              <Route path="/industry" element={<Industry />} />
               <Route path="/gantt" element={<Gantt />} />
+              <Route path="/wish" element={<Wish />} />
+              <Route path="/world" element={<World />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

@@ -419,6 +419,72 @@
   color: var(--accent);
 }
 
+/* ── 语气设置 ── */
+.settings-tone-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.settings-tone-input {
+  width: 100%;
+  resize: vertical;
+  min-height: 68px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 2px solid var(--border-card);
+  background: var(--card);
+  color: var(--text-heading);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  font-family: inherit;
+  transition: border-color 150ms ease;
+}
+.settings-tone-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.settings-tone-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: var(--accent-bg, rgba(99, 102, 241, 0.08));
+  border: 1px solid var(--border-card);
+}
+.settings-tone-preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.settings-tone-preview-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+.settings-tone-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--card);
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+.settings-tone-preview-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.settings-tone-preview-list li {
+  font-size: 0.86rem;
+  color: var(--text-body, var(--text));
+}
+
 .settings-toggle-btn {
   display: inline-flex;
   align-items: center;

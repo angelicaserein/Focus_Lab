@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, Suspense } from "react";
+import React, { memo, useEffect, useMemo, useRef, Suspense } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { useGLTF, OrbitControls, useAnimations } from "@react-three/drei";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
@@ -48,7 +48,11 @@ const webglFallback = (
 );
 
 function PusheenModel({ animEnabled }) {
-  const { scene, animations } = useGLTF(pusheenGlb);
+  // 第二个参数启用 Draco 解码：模型用 Draco 压过（16.6MB→1.2MB）。
+  // 解码器自托管在 public/draco/（three 自带的 wasm 版），不走 drei 默认的 gstatic CDN
+  // ——那个域名在中国大陆被墙，用户会加载失败。解码器拉取失败会抛错，被外层
+  // ErrorBoundary 兜住、回退到提示文案。
+  const { scene, animations } = useGLTF(pusheenGlb, `${import.meta.env.BASE_URL}draco/`);
   // useGLTF returns a shared, cached scene that the animation mixer mutates in
   // place. Clone it per-mount so each entry into the immersive view starts from
   // a fresh copy and the model doesn't drift between sessions.
@@ -124,12 +128,24 @@ function CameraRig({ verticalShift = 0.16, horizontalShift = 0 }) {
 }
 
 // 全屏 3D 模型场景（含灯光、相机机位与轨道控制），加载失败时回退到提示文案。
-export default function PusheenScene({ animEnabled }) {
+//
+// 性能：这块画布是专注页卡顿的主因，做了几处收敛——
+//  - dpr 上限压到 1.5：高分屏（Retina/4K）默认按 devicePixelRatio 全量出像素，
+//    渲染像素数随之翻数倍。卡通模型对清晰度不敏感，封顶后 GPU 负载大幅下降。
+//  - antialias 关闭 + powerPreference 高性能：MSAA 对这类模型收益极小、成本不低。
+//  - frameloop：关动画时切 "demand"，渲染循环整体停摆（仅拖动时按需重绘），
+//    等于给「低功耗」一条真实路径；开动画才用 "always" 持续跑骨骼动画。
+//  - performance.min：掉帧时自适应降 dpr，交互期优先保住帧率。
+//  - React.memo（见文件末）：计时每 500ms 变一次，避免连带 diff 整棵 3D 场景树。
+function PusheenScene({ animEnabled }) {
   return (
     <ErrorBoundary fallback={webglFallback}>
       <Canvas
         camera={{ position: [1, 1, 6], fov: 45 }} //-2.5, 0, 5.5分别表示相机在x、y、z轴上的位置，fov表示相机的视野角度
-        gl={{ alpha: true }}
+        gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
+        dpr={[1, 1.5]}
+        frameloop={animEnabled ? "always" : "demand"}
+        performance={{ min: 0.5 }}
         style={{ background: "transparent" }}
       >
         <ambientLight intensity={1.5} />
@@ -155,3 +171,7 @@ export default function PusheenScene({ animEnabled }) {
     </ErrorBoundary>
   );
 }
+
+// animEnabled 是唯一的 prop，且引用稳定。用 memo 挡掉计时 tick（每 500ms 让
+// 沉浸层重渲染一次）连带触发的 3D 场景树 reconcile——那是纯浪费。
+export default memo(PusheenScene);

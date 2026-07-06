@@ -3,6 +3,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import LanguageSection from "@/pages/Settings/LanguageSection";
 import ThemeSection from "@/pages/Settings/ThemeSection";
 import PrefsSection from "@/pages/Settings/PrefsSection";
+import ToneSection from "@/pages/Settings/ToneSection";
 import DataSection from "@/pages/Settings/DataSection";
 import "./Settings.css";
 
@@ -16,6 +17,7 @@ export default function SettingsPage() {
       <LanguageSection />
       <ThemeSection />
       <PrefsSection />
+      <ToneSection />
       <DataSection />
     </div>
   );

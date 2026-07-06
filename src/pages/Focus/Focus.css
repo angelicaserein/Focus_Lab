@@ -12,6 +12,24 @@
   margin: 0 auto;
 }
 
+/* 常驻伙伴问候带：灯灯 + 一句温柔的话，横跨控制台上方 */
+.focus-greeter {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 4px 0 18px;
+  padding: 10px 16px;
+  border-radius: 16px;
+  background: var(--accent-bg-dim, rgba(0, 0, 0, 0.03));
+  border: 1px solid var(--border-card, transparent);
+}
+.focus-greeter-line {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text-body, var(--text));
+}
+
 /* 单栏纵向堆叠：上=开始专注（计时控制台+情景推荐），下=紧急/重要四象限 */
 .focus-main {
   display: flex;
@@ -249,6 +267,60 @@
   color: var(--muted);
   line-height: 1.4;
   padding: 2px 2px 0;
+}
+
+/* 情景引导条：没选情景时的温柔提示 + 直达配置入口 */
+.focus-scenario-nudge {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px dashed var(--border-input);
+  background: color-mix(in srgb, var(--accent) 6%, var(--card));
+}
+
+.focus-scenario-nudge-text {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text-body);
+}
+
+.focus-scenario-nudge-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.focus-scenario-nudge-go,
+.focus-scenario-nudge-skip {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s ease, background 0.15s ease;
+}
+
+.focus-scenario-nudge-go {
+  border: none;
+  background: var(--accent);
+  color: #fff;
+}
+
+.focus-scenario-nudge-go:hover {
+  filter: brightness(1.06);
+}
+
+.focus-scenario-nudge-skip {
+  border: 1.5px solid var(--border-input);
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.focus-scenario-nudge-skip:hover {
+  background: var(--card);
 }
 
 /* 正计时 / 倒计时 分段切换 */

@@ -1,0 +1,331 @@
+/* 工业点数页：一座 HUD 风格的自动化工厂总览。
+   HUD 主面板刻意用固定深色工业风（像控制台），生产链卡片随主题走。 */
+
+.page-industry {
+  width: min(960px, 100%);
+  margin: 0 auto;
+  padding: 24px 4px 64px;
+}
+
+.ind-headline { margin-bottom: 18px; }
+.ind-headline h1 {
+  margin: 0;
+  font-size: 26px;
+  color: var(--text-heading, var(--text));
+}
+.ind-subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ── 工业总览 HUD（固定深色控制台） ── */
+.ind-hud {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 24px 26px;
+  border-radius: 18px;
+  overflow: hidden;
+  color: #e8f0f5;
+  background: linear-gradient(135deg, #0c1420 0%, #101d2e 60%, #0c1420 100%);
+  border: 1px solid rgba(45, 212, 191, 0.28);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  --teal: #2dd4bf;
+  --amber: #fbbf24;
+}
+/* 蓝图网格底纹 */
+.ind-hud-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(45, 212, 191, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(45, 212, 191, 0.07) 1px, transparent 1px);
+  background-size: 26px 26px;
+  mask-image: radial-gradient(circle at 30% 20%, #000 40%, transparent 85%);
+  pointer-events: none;
+}
+/* 顶行：总产能标签 + 运转状态胶囊 */
+.ind-total-topline { display: flex; align-items: center; gap: 10px; }
+.ind-total-topline .ind-total-label { flex: 0 0 auto; }
+
+/* 运转状态胶囊 */
+.ind-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: rgba(232, 240, 245, 0.6);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.ind-status.on { color: var(--teal); border-color: rgba(45, 212, 191, 0.4); }
+.ind-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(232, 240, 245, 0.4);
+}
+.ind-status.on .ind-status-dot {
+  background: var(--teal);
+  box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.6);
+  animation: ind-pulse 1.8s ease-out infinite;
+}
+@keyframes ind-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.55); }
+  70%, 100% { box-shadow: 0 0 0 7px rgba(45, 212, 191, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ind-status.on .ind-status-dot { animation: none; }
+}
+
+.ind-hud-main { position: relative; flex: 1 1 320px; min-width: 0; }
+.ind-total-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--teal);
+  opacity: 0.85;
+}
+.ind-total { display: flex; align-items: baseline; gap: 8px; margin: 2px 0 8px; }
+.ind-total-num {
+  font-family: ui-monospace, "SFMono-Regular", "Courier New", monospace;
+  font-size: 52px;
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 0 18px rgba(45, 212, 191, 0.45);
+  font-variant-numeric: tabular-nums;
+}
+.ind-total-unit { font-size: 18px; font-weight: 700; color: var(--amber); }
+
+.ind-tier { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.ind-tier-icon { font-size: 20px; }
+.ind-tier-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--amber);
+  letter-spacing: 0.5px;
+}
+
+.ind-capacity {
+  height: 12px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(45, 212, 191, 0.25);
+  overflow: hidden;
+}
+.ind-capacity-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal), var(--amber));
+  /* 施工警示斜纹 */
+  background-image:
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.18) 0 7px, transparent 7px 14px),
+    linear-gradient(90deg, var(--teal), var(--amber));
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ind-capacity-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 11px;
+  color: rgba(232, 240, 245, 0.6);
+}
+
+/* 节流指标（今日 / 日均） */
+.ind-throughput {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  flex: 0 0 auto;
+  align-items: stretch;
+}
+.ind-tp {
+  min-width: 92px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(45, 212, 191, 0.18);
+}
+.ind-tp-val {
+  font-family: ui-monospace, "SFMono-Regular", "Courier New", monospace;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--teal);
+  font-variant-numeric: tabular-nums;
+}
+.ind-tp-label { font-size: 11px; color: rgba(232, 240, 245, 0.6); text-align: center; }
+
+/* ── 厂长播报：工业风控制台日志条 ── */
+.ind-log {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 11px 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0c1420, #101d2e);
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  font-family: ui-monospace, "SFMono-Regular", "Courier New", monospace;
+}
+.ind-log-caret { color: #2dd4bf; font-weight: 700; flex-shrink: 0; }
+.ind-log-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #a7f3e4;
+}
+.ind-log-text.loading { color: rgba(167, 243, 228, 0.55); font-style: italic; }
+.ind-log-refresh {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: rgba(167, 243, 228, 0.7);
+  cursor: pointer;
+  transition: all 0.15s var(--ease, ease);
+}
+.ind-log-refresh:hover:not(:disabled) { color: #2dd4bf; background: rgba(45, 212, 191, 0.1); }
+.ind-log-refresh:disabled { opacity: 0.5; cursor: default; }
+.ind-spin { animation: ind-spin 0.9s linear infinite; }
+@keyframes ind-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ind-spin { animation: none; } }
+
+/* ── 生产链 ── */
+.ind-chain {
+  margin-top: 16px;
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--card);
+  border: 1px solid var(--border-card, transparent);
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.06));
+}
+.ind-chain-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.ind-chain-title > span:first-child {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-heading, var(--text));
+}
+.ind-chain-hint { font-size: 12px; color: var(--text-muted); }
+
+.ind-lines { display: flex; flex-direction: column; gap: 12px; }
+.ind-line {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  --line: var(--accent);
+}
+.ind-line-extract { --line: #38bdf8; }
+.ind-line-refine { --line: #2dd4bf; }
+.ind-line-assembly { --line: #fb923c; }
+.ind-line-power { --line: #facc15; }
+.ind-line-logistics { --line: #34d399; }
+
+.ind-line-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--line) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
+}
+.ind-line-body { flex: 1; min-width: 0; }
+.ind-line-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+.ind-line-name { font-size: 14px; font-weight: 600; color: var(--text-body, var(--text)); }
+.ind-line-raw { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.ind-line-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent-bg-dim, rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+}
+.ind-line-bar {
+  height: 100%;
+  border-radius: 999px;
+  /* 传送带质感：斜纹叠在产线色上，流动起来像在输送物料 */
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.22) 0 8px, transparent 8px 16px),
+    var(--line);
+  background-size: 22px 22px, auto;
+  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: ind-conveyor 0.9s linear infinite;
+}
+@keyframes ind-conveyor {
+  to { background-position: -22px 0, 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ind-line-bar { animation: none; }
+}
+.ind-line-out { flex-shrink: 0; text-align: right; min-width: 62px; }
+.ind-line-ip {
+  font-family: ui-monospace, "SFMono-Regular", "Courier New", monospace;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--line);
+  font-variant-numeric: tabular-nums;
+}
+.ind-line-ip-unit { font-size: 10px; color: var(--text-muted); margin-left: 3px; }
+
+/* 汇流条 */
+.ind-sum {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border-card, rgba(0, 0, 0, 0.12));
+}
+.ind-sum-label { font-size: 13px; font-weight: 700; color: var(--text-heading, var(--text)); white-space: nowrap; }
+.ind-sum-rail {
+  flex: 1;
+  height: 0;
+  border-top: 2px dashed color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.ind-sum-val {
+  font-family: ui-monospace, "SFMono-Regular", "Courier New", monospace;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.ind-sum-val em { font-size: 12px; font-style: normal; color: var(--text-muted); }
+
+.ind-foot {
+  margin: 16px 4px 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .ind-headline h1 { font-size: 22px; }
+  .ind-total-num { font-size: 42px; }
+  .ind-throughput { width: 100%; }
+  .ind-tp { flex: 1; }
+}

@@ -5,6 +5,9 @@
   left: 0;
   top: 0;
   height: 100vh;
+  /* 手机浏览器的 100vh 不减地址栏/工具栏，会把底部 footer（设置/语言/主题）
+     顶到可见区外。用动态视口高度 dvh 取真实可见高度，100vh 作老浏览器兜底。 */
+  height: 100dvh;
   width: 240px;
   background: var(--card);
   border-right: 1px solid var(--border-dark);
@@ -152,6 +155,8 @@
 /* ── 底部固定区：金币余额 + 快捷图标（仿 Notion / Claude 侧栏底栏） ── */
 .sidebar-footer {
   padding: 10px 12px;
+  /* 底部叠加设备安全区（手势条/刘海），避免图标被系统 UI 遮住。 */
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--border-dark);
   margin: 0 12px;
   display: flex;

@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useCallback } from "react";
+import React, { Suspense, lazy, useMemo, useState, useRef, useCallback } from "react";
 import { useTodos } from "@/context/TodoContext";
 import { useFocus } from "@/context/FocusContext";
 import { useReward } from "@/context/RewardContext";
@@ -17,7 +17,9 @@ import useAutoStopOnEmpty from "@/hooks/focus/useAutoStopOnEmpty";
 import useFlaskFullNotify from "@/hooks/focus/useFlaskFullNotify";
 import { filterSinceSession } from "@/utils/records/focusRecords";
 import { FocusSessionContext } from "@/pages/Focus/FocusSessionContext";
-import ImmersiveView from "@/pages/Focus/Immersive";
+// 沉浸层里挂着 three.js + 16MB 模型（约 1MB JS chunk）。懒加载后：进专注页只加载控制台，
+// three 的 chunk 不再被打进 Focus 页 chunk、也不随路由空闲预取拉取，真正开专注才下载。
+const ImmersiveView = lazy(() => import("@/pages/Focus/Immersive"));
 import FocusConsole from "@/pages/Focus/FocusConsole";
 import DistractionModal from "@/pages/Focus/DistractionModal";
 import SessionRewardCard from "@/pages/Focus/SessionRewardCard";
@@ -237,7 +239,11 @@ export default function FocusPage() {
           onClose={dismissPendingDistraction}
         />
       )}
-      {isImmersive && <ImmersiveView />}
+      {isImmersive && (
+        <Suspense fallback={null}>
+          <ImmersiveView />
+        </Suspense>
+      )}
 
       {sessionReward && (
         <SessionRewardCard reward={sessionReward} onClose={() => setSessionReward(null)} />

@@ -1,0 +1,205 @@
+/* 技能树页：两种形态共用页面骨架。constellation（成长星图）/ tree（可解锁技能树）。 */
+
+.page-skilltree {
+  width: min(1040px, 100%);
+  margin: 0 auto;
+  padding: 24px 4px 64px;
+}
+
+.st-headline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.st-headline h1 {
+  margin: 0;
+  font-size: 26px;
+  color: var(--text-heading, var(--text));
+}
+
+/* 形态切换分段控件（与角色卡皮肤切换同款观感） */
+.st-view-switch {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--accent-bg-dim, rgba(0, 0, 0, 0.05));
+  border: 1px solid var(--border-card, transparent);
+}
+.st-view-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.18s var(--ease, ease);
+}
+.st-view-btn.active {
+  background: var(--card);
+  color: var(--accent);
+  box-shadow: var(--shadow-xs, 0 1px 2px rgba(0, 0, 0, 0.1));
+  font-weight: 600;
+}
+
+/* ══════════════════════════ 成长星图（纯衍生） ══════════════════════════ */
+
+.st-cst-stage {
+  border-radius: 20px;
+  padding: 12px;
+  background: radial-gradient(circle at 50% 44%, var(--accent-bg, rgba(99, 102, 241, 0.1)), var(--card) 68%);
+  border: 1px solid var(--border-card, transparent);
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.06));
+}
+.st-cst-svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+.st-cst-link { stroke: var(--accent); stroke-linecap: round; }
+.st-cst-link-skill { stroke-dasharray: 3 5; }
+.st-cst-halo { fill: var(--accent); }
+
+.st-cst-core-halo { fill: var(--accent); opacity: 0.16; }
+.st-cst-core { fill: var(--card); stroke: var(--accent); stroke-width: 2.5; }
+.st-cst-core-icon { font-size: 36px; text-anchor: middle; dominant-baseline: central; }
+.st-cst-core-label { text-anchor: middle; fill: var(--accent); font-weight: 700; font-size: 14px; }
+
+.st-cst-node circle { fill: var(--card); stroke: var(--accent); stroke-width: 2; }
+.st-cst-node-skill circle { stroke-opacity: 0.65; }
+.st-cst-node-icon { text-anchor: middle; dominant-baseline: central; }
+.st-cst-node-label { text-anchor: middle; fill: var(--text-muted); font-size: 12px; }
+.st-cst-node-attr .st-cst-node-label { fill: var(--text-heading, var(--text)); font-weight: 600; font-size: 12.5px; }
+
+.st-cst-hint {
+  margin: 14px 4px 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ══════════════════════════ 可解锁技能树 ══════════════════════════ */
+
+.st-tree { display: flex; flex-direction: column; gap: 4px; }
+
+.st-tree-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: var(--card);
+  border: 1px solid var(--border-card, transparent);
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.06));
+}
+.st-tree-points { display: flex; align-items: baseline; gap: 7px; }
+.st-tree-points-icon { color: var(--accent); align-self: center; }
+.st-tree-points-val { font-size: 24px; font-weight: 800; color: var(--text-heading, var(--text)); font-variant-numeric: tabular-nums; }
+.st-tree-points-earned { font-size: 14px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.st-tree-points-label { font-size: 13px; color: var(--text-muted); margin-left: 2px; }
+.st-tree-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border-card, transparent);
+  background: transparent;
+  color: var(--text-muted);
+  padding: 7px 12px;
+  border-radius: 9px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s var(--ease, ease);
+}
+.st-tree-reset:hover:not(:disabled) { color: var(--accent); border-color: var(--accent-border, var(--accent)); }
+.st-tree-reset:disabled { opacity: 0.4; cursor: default; }
+
+.st-tree-hint {
+  margin: 10px 4px 6px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* 舞台：窄屏下不挤压，保持树形并横向滚动 */
+.st-tree-stage {
+  position: relative;
+  width: 100%;
+  min-width: 560px;
+  height: 360px;
+  margin: 6px 0;
+}
+.st-tree-scroll { overflow-x: auto; overflow-y: hidden; padding-bottom: 4px; }
+
+.st-tree-links { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.st-tree-link { stroke: var(--text-muted); stroke-width: 2; opacity: 0.3; }
+.st-tree-link.active { opacity: 0.85; stroke-width: 2.5; }
+
+.st-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 6px 8px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 2px solid var(--border-card, rgba(0, 0, 0, 0.1));
+  cursor: default;
+  transition: transform 0.15s var(--ease, ease), box-shadow 0.15s var(--ease, ease), border-color 0.15s var(--ease, ease);
+}
+.st-node-icon { font-size: 24px; line-height: 1; }
+.st-node-title { font-size: 11px; font-weight: 600; color: var(--text-body, var(--text)); text-align: center; line-height: 1.2; }
+.st-node-cost { font-size: 10.5px; font-weight: 700; color: var(--branch); font-variant-numeric: tabular-nums; }
+
+/* 已解锁：分支色描边 + 柔光 */
+.st-node-unlocked {
+  border-color: var(--branch);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--branch) 18%, transparent), var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.08));
+}
+.st-node-done { color: var(--branch); font-size: 12px; }
+
+/* 可解锁：虚线描边 + 可点击的呼吸感 */
+.st-node-available {
+  border-color: var(--branch);
+  border-style: dashed;
+  cursor: pointer;
+  animation: st-node-breathe 2.4s ease-in-out infinite;
+}
+.st-node-available:hover { transform: translate(-50%, -50%) scale(1.06); box-shadow: 0 6px 18px color-mix(in srgb, var(--branch) 30%, transparent); }
+
+/* 点数不够（前置已满足）：中性描边，仅高亮费用提示还需攒点 */
+.st-node-poor { opacity: 0.9; }
+.st-node-poor .st-node-cost { color: var(--text-muted); }
+
+/* 前置未满足：灰掉 */
+.st-node-locked { opacity: 0.45; filter: grayscale(0.7); }
+.st-node-locked .st-node-cost { color: var(--text-muted); }
+
+@keyframes st-node-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--branch) 26%, transparent); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--branch) 0%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .st-node-available { animation: none; }
+}
+
+.st-tree-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 4px 4px 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.st-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.st-legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+@media (max-width: 600px) {
+  .st-headline h1 { font-size: 22px; }
+  .st-node { width: 78px; }
+  .st-node-icon { font-size: 21px; }
+}

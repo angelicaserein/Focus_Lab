@@ -58,6 +58,13 @@
 .srewards-levelup-spark { animation: srewards-spin 2s linear infinite; }
 @keyframes srewards-spin { to { transform: rotate(360deg); } }
 
+/* 结算时登场的伙伴：给气泡台词留出上方空间 */
+.srewards-companion {
+  display: flex;
+  justify-content: center;
+  margin: 24px 0 4px;
+}
+
 .srewards-header { margin-bottom: 18px; }
 .srewards-rank-icon {
   font-size: 44px;

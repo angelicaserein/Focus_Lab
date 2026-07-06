@@ -29,6 +29,14 @@ export function RewardProvider({ children }) {
     setCoins((prev) => prev + Math.floor(amount));
   };
 
+  // 花费金币（供祈愿等消费场景调用）。余额不足或非正数返回 false、不扣款。
+  const spendCoins = (amount) => {
+    const cost = Math.floor(Number(amount));
+    if (!Number.isFinite(cost) || cost <= 0 || coins < cost) return false;
+    setCoins((prev) => prev - cost);
+    return true;
+  };
+
   // 兑换商品：余额不足返回 false；unlock 已拥有则忽略并返回 false。
   const buyItem = (item) => {
     if (!item || coins < item.price) return false;
@@ -111,6 +119,7 @@ export function RewardProvider({ children }) {
   const value = {
     coins,
     addCoins,
+    spendCoins,
     setCoinsTo,
     buyItem,
     isOwned,

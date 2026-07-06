@@ -35,7 +35,7 @@ export default function SessionSummary({ notes = [], distractions = [] }) {
     <>
       {notesSessions.length > 0 && (
         <div className="session-summary">
-          <div className="session-summary-header">{t("focus.notes")}</div>
+          <div className="session-summary-header">{t("history.notes")}</div>
           <div className="session-summary-scroll">
             {notesSessions.map((session) => (
               <div key={session.firstTs} className="session-summary-group">
@@ -64,7 +64,7 @@ export default function SessionSummary({ notes = [], distractions = [] }) {
 
       {distractionSessions.length > 0 && (
         <div className="session-summary">
-          <div className="session-summary-header">{t("focus.distractions")}</div>
+          <div className="session-summary-header">{t("history.distractions")}</div>
           <div className="session-summary-scroll">
             {distractionSessions.map((session) => (
               <div key={session.firstTs} className="session-summary-group">
@@ -79,12 +79,12 @@ export default function SessionSummary({ notes = [], distractions = [] }) {
                   <div className="distraction-insight-row">
                     {session.distractionRate && (
                       <span className="distraction-insight-item">
-                        {t("focus.distractPerHour", { rate: session.distractionRate })}
+                        {t("history.distractPerHour", { rate: session.distractionRate })}
                       </span>
                     )}
                     {session.bestTag && (
                       <span className="distraction-insight-item tag">
-                        {t("focus.mostly", { tag: session.bestTag })}
+                        {t("history.mostly", { tag: session.bestTag })}
                       </span>
                     )}
                     {session.diffVsPrev !== null && (
@@ -92,10 +92,10 @@ export default function SessionSummary({ notes = [], distractions = [] }) {
                         className={`distraction-insight-item diff${session.diffVsPrev < 0 ? " better" : session.diffVsPrev > 0 ? " worse" : ""}`}
                       >
                         {session.diffVsPrev < 0
-                          ? t("focus.fewerThanLast", { n: Math.abs(session.diffVsPrev) })
+                          ? t("history.fewerThanLast", { n: Math.abs(session.diffVsPrev) })
                           : session.diffVsPrev > 0
-                            ? t("focus.moreThanLast", { n: session.diffVsPrev })
-                            : t("focus.sameAsLast")}
+                            ? t("history.moreThanLast", { n: session.diffVsPrev })
+                            : t("history.sameAsLast")}
                       </span>
                     )}
                   </div>
@@ -106,9 +106,9 @@ export default function SessionSummary({ notes = [], distractions = [] }) {
                     <li key={item.id} className="session-summary-row distraction">
                       <span className="session-summary-time">{formatTimestamp(item.ts)}</span>
                       <span className="session-summary-text muted">
-                        {t("focus.nthDistraction", { n: item.nth })}
+                        {t("history.nthDistraction", { n: item.nth })}
                         {item.type === "proactive" && (
-                          <span className="distraction-tag-inline"> · {t("focus.proactivePause")}</span>
+                          <span className="distraction-tag-inline"> · {t("history.proactivePause")}</span>
                         )}
                         {item.tag && (
                           <span className="distraction-tag-inline"> · {item.tag}</span>

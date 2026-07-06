@@ -1,0 +1,202 @@
+/* 世界地图页。据点(研究所)→各区域(情景)的探索小径，全部由真实进度驱动。 */
+
+.page-world {
+  width: min(1040px, 100%);
+  margin: 0 auto;
+  padding: 24px 4px 64px;
+}
+
+.world-headline {
+  margin-bottom: 18px;
+}
+.world-headline h1 {
+  margin: 0;
+  font-size: 26px;
+  color: var(--text-heading, var(--text));
+}
+.world-sub {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 62ch;
+}
+
+/* ── 地图舞台 ─────────────────────────────── */
+.world-map-scroll {
+  overflow-x: auto;
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 140% at 20% 0%, var(--accent-bg, rgba(0, 0, 0, 0.04)), transparent 60%),
+    var(--card);
+  border: 1px solid var(--border-card, transparent);
+  box-shadow: 0 8px 30px var(--shadow-sm, rgba(0, 0, 0, 0.06));
+  margin-bottom: 24px;
+}
+.world-map-stage {
+  position: relative;
+  min-width: 100%;
+}
+.world-map-svg {
+  display: block;
+}
+
+.world-trail {
+  stroke: var(--text-muted);
+  stroke-width: 2.5;
+  stroke-dasharray: 3 8;
+  stroke-linecap: round;
+  opacity: 0.3;
+}
+.world-trail.explored {
+  stroke: var(--accent);
+  opacity: 0.7;
+}
+
+.world-halo {
+  fill: var(--accent);
+}
+
+.world-node circle {
+  fill: var(--card);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.world-node.undiscovered circle {
+  stroke: var(--text-muted);
+  stroke-dasharray: 4 4;
+  opacity: 0.7;
+}
+.world-node.explored circle {
+  fill: var(--accent-bg, rgba(0, 0, 0, 0.05));
+}
+.world-node-icon {
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.world-node.undiscovered .world-node-icon {
+  opacity: 0.55;
+}
+.world-node-label {
+  text-anchor: middle;
+  font-size: 12px;
+  font-weight: 600;
+  fill: var(--text-body, var(--text));
+}
+.world-node.undiscovered .world-node-label {
+  fill: var(--text-muted);
+}
+
+/* 据点：研究所 */
+.world-home-halo {
+  fill: var(--accent);
+  opacity: 0.14;
+}
+.world-home-core {
+  fill: var(--card);
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+.world-home-icon {
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-size: 28px;
+}
+.world-home-label {
+  text-anchor: middle;
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--accent);
+}
+
+/* 向导灯灯 */
+.world-guide {
+  position: absolute;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* ── 区域详情卡 ───────────────────────────── */
+.world-regions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+.world-region {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--border-card, rgba(0, 0, 0, 0.08));
+}
+.world-region:not(.explored) {
+  opacity: 0.66;
+}
+.world-region-icon {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.world-region-body {
+  flex: 1;
+  min-width: 0;
+}
+.world-region-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-heading, var(--text));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.world-region-phrase {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+.world-region-bar {
+  margin-top: 7px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent-bg-dim, rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+}
+.world-region-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-mid, var(--accent)), var(--accent));
+}
+.world-region-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.world-foot {
+  margin: 18px 2px 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ── 空态 ─────────────────────────────────── */
+.world-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 48px 20px;
+  text-align: center;
+}
+.world-empty-hint {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 40ch;
+}
+
+@media (max-width: 560px) {
+  .world-headline h1 { font-size: 22px; }
+}

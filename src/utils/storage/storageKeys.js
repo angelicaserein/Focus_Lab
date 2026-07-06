@@ -20,6 +20,13 @@ export const STORAGE_KEYS = {
   REWARD_REDEEM:    "reward_redeem_v1",
   REWARD_CUSTOM:    "reward_custom_v1",
   ACTIVE_THEME:     "active_theme_v1",
+  // 可解锁技能树：已解锁的节点 id 列表（游戏化试验分支，唯一新增的持久化状态）
+  SKILLTREE_UNLOCKED: "skilltree_unlocked_v1",
+  // 角色卡/结算卡的「语气包」：用户输入 prompt 后 AI 生成的一整套质化文案覆盖
+  TONE_PACK: "tone_pack_v1",
+  // 伙伴 / 祈愿（二游式无损收集）：已遇见的图鉴 id 列表、当前佩戴的立绘皮肤 id
+  COMPANION_COLLECTION: "companion_collection_v1",
+  COMPANION_OUTFIT:     "companion_outfit_v1",
   // 任务属性定义（v6 及以前的全局 schema，v7 起折叠进 DATABASES，仅保留兼容）
   TASK_ATTRS: "task_attrs_v1",
   // 多 database（v7 起）：每个 database 含独立的列 schema
