@@ -9,6 +9,7 @@ import { TodoProvider } from "@/context/TodoContext";
 import { ScenarioProvider } from "@/context/ScenarioContext";
 import { DatabaseProvider } from "@/context/DatabaseContext";
 import { DDLProvider } from "@/context/DDLContext";
+import { FeatureProvider } from "@/context/FeatureContext";
 import { runMigrations } from "@/utils/storage/storage";
 import registerSW from "@/utils/registerSW";
 import "./index.css";
@@ -32,7 +33,9 @@ createRoot(document.getElementById("root")).render(
             <TodoProvider>
               <ScenarioProvider>
                 <DDLProvider>
-                  <App />
+                  <FeatureProvider>
+                    <App />
+                  </FeatureProvider>
                 </DDLProvider>
               </ScenarioProvider>
             </TodoProvider>

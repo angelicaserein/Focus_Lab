@@ -22,6 +22,8 @@ export const STORAGE_KEYS = {
   ACTIVE_THEME:     "active_theme_v1",
   // 可解锁技能树：已解锁的节点 id 列表（游戏化试验分支，唯一新增的持久化状态）
   SKILLTREE_UNLOCKED: "skilltree_unlocked_v1",
+  // 功能树：被用户「关掉」的功能路径列表。默认空数组＝全部开启；核心功能不入内。
+  DISABLED_FEATURES: "disabled_features_v1",
   // 角色卡/结算卡的「语气包」：用户输入 prompt 后 AI 生成的一整套质化文案覆盖
   TONE_PACK: "tone_pack_v1",
   // 伙伴 / 祈愿（二游式无损收集）：已遇见的图鉴 id 列表、当前佩戴的立绘皮肤 id

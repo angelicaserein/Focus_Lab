@@ -10,6 +10,7 @@ import {
   GanttChartSquare,
   Swords,
   Network,
+  ListTree,
   Map,
   Factory,
   History,
@@ -32,6 +33,7 @@ import { useScenarios } from "@/context/ScenarioContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useReward, SHOP_ITEMS } from "@/context/RewardContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useFeatures } from "@/context/FeatureContext";
 import { LANGUAGES } from "@/i18n/translations";
 
 const NAV_SECTIONS = [
@@ -63,9 +65,10 @@ const NAV_SECTIONS = [
   {
     titleKey: "nav.section.config",
     items: [
-      { to: "/scenario", labelKey: "nav.scenario", Icon: Layers },
-      { to: "/reward",   labelKey: "nav.reward",   Icon: Gift },
-      { to: "/research", labelKey: "nav.research", Icon: FlaskConical },
+      { to: "/functiontree", labelKey: "nav.functiontree", Icon: ListTree },
+      { to: "/scenario",     labelKey: "nav.scenario",     Icon: Layers },
+      { to: "/reward",       labelKey: "nav.reward",       Icon: Gift },
+      { to: "/research",     labelKey: "nav.research",     Icon: FlaskConical },
     ],
   },
 ];
@@ -79,6 +82,17 @@ export default function Sidebar() {
   const { t, lang, setLang } = useLanguage();
   const { coins, isOwned } = useReward();
   const { activeTheme, setTheme } = useTheme();
+  const { isEnabled } = useFeatures();
+
+  // 功能树里被关掉的功能，从导航中隐去；某分区被清空后连标题一起省略。
+  const visibleSections = useMemo(
+    () =>
+      NAV_SECTIONS.map((section) => ({
+        ...section,
+        items: section.items.filter((item) => isEnabled(item.to)),
+      })).filter((section) => section.items.length > 0),
+    [isEnabled],
+  );
 
   const ddlBadge = useMemo(() => computeBadgeCount(todos), [todos, computeBadgeCount]);
 
@@ -173,7 +187,7 @@ export default function Sidebar() {
       )}
 
       <nav className="sidebar-nav">
-        {NAV_SECTIONS.map(({ titleKey, items }) => (
+        {visibleSections.map(({ titleKey, items }) => (
           <div key={titleKey} className="nav-section">
             <p className="nav-section-title">{t(titleKey)}</p>
             {items.map(({ to, labelKey, Icon }) => (

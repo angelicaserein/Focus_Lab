@@ -1,13 +1,9 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import EisenhowerMatrix from "@/components/todo/EisenhowerMatrix";
 import { useLanguage } from "@/context/LanguageContext";
 import RandomTaskDrawer from "@/pages/Focus/RandomTaskDrawer";
 import RecommendStrip from "@/pages/Focus/RecommendStrip";
-import Companion from "@/components/companion/Companion";
-import { companionLine } from "@/data/companion/companionData";
-import useLocalStorage from "@/hooks/common/useLocalStorage";
-import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 
 // 时长选择：三档快捷预设（可在设置页自定义）+ 自定义输入，其余走自定义输入框。
 const MIN_DURATION = 1;
@@ -40,7 +36,7 @@ function FocusConsole({
   availableTodos = [],
   onAddFocus,
 }) {
-  const { t, lang } = useLanguage();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [showDrawer, setShowDrawer] = useState(false);
 
@@ -49,16 +45,6 @@ function FocusConsole({
   // 不唠叨；选定情景后引导自然消失。dismiss 只存本次挂载，下次进专注页会再次提醒。
   const [scenarioNudgeDismissed, setScenarioNudgeDismissed] = useState(false);
   const showScenarioNudge = !selectedScenarioId && !scenarioNudgeDismissed;
-
-  // 常驻伙伴「灯灯」：选好任务时露出「专注」神情、否则「待命」；佩戴的立绘随祈愿页变化。
-  const [companionOutfit] = useLocalStorage(STORAGE_KEYS.COMPANION_OUTFIT, null);
-  const companionMood = hasSelection ? "focus" : "idle";
-  // 台词只在心情变化时换（避免计时 tick / 调时长引发的重渲染里乱跳）；lang 变了也重取。
-  const companionSay = useMemo(
-    () => companionLine(t, companionMood),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [companionMood, lang],
-  );
 
   // 当前时长是否为「自定义」（不落在预设里）——决定输入框是否高亮、是否回填数值
   const isCustomDuration = !presets.includes(durationMins);
@@ -97,17 +83,17 @@ function FocusConsole({
       )}
 
       <div className="focus-shell">
-        {/* 常驻伙伴问候带：灯灯陪你开始一次专注（穿着你在祈愿页佩戴的立绘） */}
-        <div className="focus-greeter">
-          <Companion mood={companionMood} outfit={companionOutfit} size={64} />
-          <p className="focus-greeter-line">{companionSay}</p>
-        </div>
-
         <div className="focus-main">
-          {/* Top: timer console + 情景推荐 */}
+          {/* 上：紧急/重要四象限 —— 任务以小标签呈现，可拖拽归类 */}
+          <div className="focus-col-right">
+            <EisenhowerMatrix />
+          </div>
+
+          {/* 下：已选任务 + 计时控制台，横向铺满整行；情景推荐紧随其后 */}
           <div className="focus-col-left">
-            {/* Top: timer console */}
-            <div className="focus-card">
+            {/* 已选任务 + 计时控制台：左侧任务/情景，右侧计时与开始 */}
+            <div className="focus-card focus-card-wide">
+              <div className="focus-card-tasks">
               <div className="focus-card-header">
                 <span className="card-label">
                   {t("focus.selectedTasks")}
@@ -202,7 +188,9 @@ function FocusConsole({
                   )}
                 </div>
               )}
+              </div>
 
+              <div className="focus-card-controls">
               <div className="focus-mode-toggle" role="group" aria-label={t("focus.timerModeAria")}>
                 <button
                   type="button"
@@ -290,15 +278,11 @@ function FocusConsole({
                   {t("focus.reset")}
                 </button>
               </div>
+              </div>
             </div>
 
             {/* 情景推荐：有「当前情景」时，主动推荐候选任务 */}
             <RecommendStrip availableTodos={availableTodos} onPick={onAddFocus} />
-          </div>
-
-          {/* Bottom: 紧急/重要四象限 —— 任务以小标签呈现，可拖拽归类 */}
-          <div className="focus-col-right">
-            <EisenhowerMatrix />
           </div>
         </div>
       </div>

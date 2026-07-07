@@ -12,57 +12,61 @@
   margin: 0 auto;
 }
 
-/* 常驻伙伴问候带：灯灯 + 一句温柔的话，横跨控制台上方 */
-.focus-greeter {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin: 4px 0 18px;
-  padding: 10px 16px;
-  border-radius: 16px;
-  background: var(--accent-bg-dim, rgba(0, 0, 0, 0.03));
-  border: 1px solid var(--border-card, transparent);
-}
-.focus-greeter-line {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.4;
-  color: var(--text-body, var(--text));
-}
-
-/* 单栏纵向堆叠：上=开始专注（计时控制台+情景推荐），下=紧急/重要四象限 */
+/* 单栏纵向堆叠：上=紧急/重要四象限，下=已选任务+计时控制台（横向铺满） */
 .focus-main {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-/* 顶部控制台区：控制台与情景推荐并排定宽，不铺满整行，给下方矩阵留出空间 */
+/* 控制台区：卡片与情景推荐纵向堆叠、各自撑满整行 */
 .focus-col-left {
   display: flex;
-  flex-flow: row wrap;
+  flex-direction: column;
   gap: 16px;
-  align-items: flex-start;
 }
 
-.focus-col-left > .focus-card {
-  flex: 1 1 300px;
+/* 已选任务 + 计时控制台：横向铺满整行，左任务/情景、右计时/开始 */
+.focus-card.focus-card-wide {
+  flex-direction: row;
+  align-items: stretch;
+  gap: 28px;
+  padding: 22px 24px;
+}
+
+/* 左区：已选任务 + 情景选择 */
+.focus-card-tasks {
+  flex: 1 1 0;
   min-width: 0;
-  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-/* 顶部控制台内部更紧凑，压低高度 */
-.focus-col-left .focus-card {
-  padding: 18px 20px;
-  gap: 12px;
+/* 右区：正/倒计时 + 时长 + 开始，定宽不随任务列表伸缩 */
+.focus-card-controls {
+  flex: 0 0 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-left: 28px;
+  border-left: 1px solid var(--border-input);
 }
 
 @media (max-width: 768px) {
   .focus-main {
     gap: 16px;
   }
-  .focus-col-left > .focus-card {
-    max-width: none;
+  .focus-card.focus-card-wide {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .focus-card-controls {
+    flex: 1 1 auto;
+    padding-left: 0;
+    padding-top: 16px;
+    border-left: none;
+    border-top: 1px solid var(--border-input);
   }
 }
 

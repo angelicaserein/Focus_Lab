@@ -21,7 +21,7 @@ const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export const hasApiKey = () => Boolean(API_KEY) || IS_PROD;
 
-function buildSystemPrompt(lang) {
+export function buildSystemPrompt(lang) {
   const zh = lang !== "en";
   return [
     zh
@@ -40,7 +40,7 @@ function buildSystemPrompt(lang) {
   ].join("\n");
 }
 
-function buildUserPayload(ctx = {}, lang) {
+export function buildUserPayload(ctx = {}, lang) {
   const zh = lang !== "en";
   const L = (a, b) => (zh ? a : b);
   return [
@@ -129,7 +129,7 @@ export function localNarration(ctx = {}, lang = "zh", variant = 0) {
 }
 
 // ── 厂长「播报」人设（工业页专用，1 句，工业风） ────────────────
-function buildForemanSystem(lang) {
+export function buildForemanSystem(lang) {
   const zh = lang !== "en";
   return [
     zh
@@ -145,7 +145,7 @@ function buildForemanSystem(lang) {
   ].join("\n");
 }
 
-function buildForemanPayload(ctx = {}, lang) {
+export function buildForemanPayload(ctx = {}, lang) {
   const zh = lang !== "en";
   const L = (a, b) => (zh ? a : b);
   return [
@@ -179,13 +179,112 @@ export function localForeman(ctx = {}, lang = "zh", variant = 0) {
       ]);
 }
 
-// ── 通用运行器 + 两个人设入口 ─────────────────────────────────
-// persona: "journey"（旅程旁白） | "foreman"（厂长播报）。返回 { text, source }。
+// ── 常驻伙伴「灯灯」人设（专注页问候带专用，第一人称、1 句、暖） ──────
+// 灯灯是研究所的灯灵，用「我」自称、对「你」说话，陪你开始 / 进行一次专注。
+// 只说一句短话，永远鼓励、从不评判、绝不催促——契合 ADHD 友好原则。
+export function buildLumiSystem(lang) {
+  const zh = lang !== "en";
+  return [
+    zh
+      ? "你是一盏会飘的暖灯灵「灯灯」，长夜里陪用户在一款 ADHD 友好专注 App 里专注。用第一人称「我」自称，对「你」说话。"
+      : "You are Lumi, a small floating lamp-spirit who keeps the user company while they focus in an ADHD-friendly app. Speak in first person as 'I', addressing them as 'you'.",
+    zh ? "规则：" : "Rules:",
+    zh ? "- 只说 1 句短话（不超过约 25 字），像身边伙伴的轻声陪伴，可带一点童趣。"
+      : "- Say exactly 1 short line (under ~20 words), like a companion beside them — a little playful is fine.",
+    zh ? "- ADHD 友好：庆祝「你出现了」，绝不催促、不施压、不评判、不报「还差多少」。"
+      : "- ADHD-friendly: celebrate that they showed up; never nag, pressure, judge, or mention how far 'behind'.",
+    zh ? "- 自然带入给到的情境（当前状态、选了几件任务、情景），但不要罗列数字。"
+      : "- Weave in the given context (current state, tasks chosen, scenario) naturally, without listing numbers.",
+    zh ? "- 只输出这一句本身，不要标题、不要引号、不要解释。"
+      : "- Output only the line itself — no title, no quotes, no explanation.",
+    zh ? "- 用中文。" : "- Write in English.",
+  ].join("\n");
+}
+
+export function buildLumiPayload(ctx = {}, lang) {
+  const zh = lang !== "en";
+  const L = (a, b) => (zh ? a : b);
+  const moodText = {
+    idle: L("待命，还没选任务", "idle, no task chosen yet"),
+    focus: L("准备好开始专注了", "ready to start focusing"),
+    cheer: L("刚完成，值得庆祝", "just finished — worth celebrating"),
+    sleepy: L("夜深了，有点困", "late night, a little sleepy"),
+  };
+  return [
+    L("当前状态：", "Current state: ") + (moodText[ctx.mood] ?? moodText.idle),
+    ctx.taskCount ? L("已选任务数：", "Tasks chosen: ") + ctx.taskCount : null,
+    ctx.scenarioName ? L("当前情景：", "Scenario: ") + ctx.scenarioName : null,
+  ].filter(Boolean).join("\n");
+}
+
+// 本地兜底（无 key / 失败）：按心情 + variant 轮换一句暖话。刻意 ADHD 友好。
+export function localLumi(ctx = {}, lang = "zh", variant = 0) {
+  const zh = lang !== "en";
+  const v = Math.abs(variant | 0);
+  const pick = (arr) => arr[v % arr.length];
+  const mood = ["idle", "focus", "cheer", "sleepy"].includes(ctx.mood) ? ctx.mood : "idle";
+  const scene = ctx.scenarioName;
+
+  const BANK = {
+    zh: {
+      idle: [
+        "我在这儿陪着，想从哪件小事开始都行。",
+        "不急，先喘口气——你出现了，就已经很好。",
+        "灯亮着呢，你挑一件顺手的，我们慢慢来。",
+      ],
+      focus: [
+        scene ? `「${scene}」这段，我陪你一起走。` : "选好了呀，那我们这就开始吧。",
+        "我把灯调亮一点，接下来交给你。",
+        "准备好啦，这一小段路我一直在旁边。",
+      ],
+      cheer: [
+        "你做到了！这一下我要记很久。",
+        "看，光又亮了一点点——都是你点的。",
+        "先为刚才鼓个掌，你值得停下来高兴一下。",
+      ],
+      sleepy: [
+        "夜深了，做一点点就够，我陪你到这儿。",
+        "困了就靠一会儿，灯不会灭的。",
+        "轻轻来就好，今晚有我守着。",
+      ],
+    },
+    en: {
+      idle: [
+        "I'm right here — start from any small thing you like.",
+        "No rush; take a breath. You showed up, and that's plenty.",
+        "The lamp's on. Pick whatever's easy and we'll go slow.",
+      ],
+      focus: [
+        scene ? `Into "${scene}" we go — I'm right beside you.` : "All set — let's begin, then.",
+        "I'll turn the light up a little; the rest is yours.",
+        "Ready when you are — I'll stay close for this stretch.",
+      ],
+      cheer: [
+        "You did it! I'll remember this one for a long while.",
+        "Look — the light's a bit brighter, and that was you.",
+        "Let's clap for that first; you've earned a happy pause.",
+      ],
+      sleepy: [
+        "It's late — a tiny bit is enough. I'll stay this far with you.",
+        "Lean back if you're tired; the lamp won't go out.",
+        "Softly does it. I'm keeping watch tonight.",
+      ],
+    },
+  };
+  return pick(BANK[zh ? "zh" : "en"][mood]);
+}
+
+// ── 通用运行器 + 三个人设入口 ─────────────────────────────────
+// persona: "journey"（旅程旁白） | "foreman"（厂长播报） | "lumi"（灯灯陪伴）。返回 { text, source }。
+const PERSONA = {
+  journey: { system: buildSystemPrompt, payload: buildUserPayload, local: localNarration, maxTokens: 320 },
+  foreman: { system: buildForemanSystem, payload: buildForemanPayload, local: localForeman, maxTokens: 160 },
+  lumi: { system: buildLumiSystem, payload: buildLumiPayload, local: localLumi, maxTokens: 120 },
+};
+
 async function runNarration(persona, ctx, { lang = "zh", variant = 0 } = {}) {
-  const isForeman = persona === "foreman";
-  const fallback = () => (isForeman ? localForeman(ctx, lang, variant) : localNarration(ctx, lang, variant));
-  const system = isForeman ? buildForemanSystem(lang) : buildSystemPrompt(lang);
-  const payload = isForeman ? buildForemanPayload(ctx, lang) : buildUserPayload(ctx, lang);
+  const p = PERSONA[persona] ?? PERSONA.journey;
+  const fallback = () => p.local(ctx, lang, variant);
 
   if (!API_KEY && !IS_PROD) {
     await delay(300 + Math.random() * 300);
@@ -209,9 +308,9 @@ async function runNarration(persona, ctx, { lang = "zh", variant = 0 } = {}) {
     const client = new Anthropic({ apiKey: API_KEY, dangerouslyAllowBrowser: true });
     const resp = await client.messages.create({
       model: AI_MODEL,
-      max_tokens: isForeman ? 160 : 320,
-      system,
-      messages: [{ role: "user", content: payload }],
+      max_tokens: p.maxTokens,
+      system: p.system(lang),
+      messages: [{ role: "user", content: p.payload(ctx, lang) }],
     });
     const text = cleanNarration(resp.content.map((b) => b.text).join(""));
     return text ? { text, source: "ai" } : { text: fallback(), source: "local" };
@@ -228,4 +327,9 @@ export function narrateJourney(ctx = {}, opts = {}) {
 // 厂长播报（工业页）。ctx: { tierName, totalIp, todayIp, topLineName, running }
 export function narrateForeman(ctx = {}, opts = {}) {
   return runNarration("foreman", ctx, opts);
+}
+
+// 灯灯陪伴（专注页问候带）。ctx: { mood, taskCount, scenarioName }
+export function narrateLumi(ctx = {}, opts = {}) {
+  return runNarration("lumi", ctx, opts);
 }

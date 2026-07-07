@@ -1,4 +1,7 @@
-/* 常驻伙伴「灯灯 / Lumi」立绘样式。表情靠 JSX 切形状，这里管颜色/动画/气泡。 */
+/* 常驻伙伴「灯灯 / Lumi」立绘样式（极简 block）。
+   一个实心圆角方块 + 两只深色眼睛，表情全靠 JSX 切眼睛形状。
+   纯色平涂、无渐变、无描边；色调由 --cmp-hue 驱动（随佩戴 outfit 变），
+   眼睛是同色系的深色（亮身体 + 暗眼睛），身后一层柔光暗示「它是一盏灯」。 */
 
 .cmp {
   position: relative;
@@ -13,38 +16,28 @@
   display: block;
 }
 
-/* 眼睛（描边形状：cheer / sleepy） */
-.cmp-eyes path {
-  stroke: #3a2a12;
-  stroke-width: 3.4;
+/* 身后柔光（纯色 + 低透明，暗示发光） */
+.cmp-halo {
+  fill: hsl(var(--cmp-hue) 90% 78%);
+  opacity: 0.26;
 }
-/* 眼睛（实心：idle / focus） */
+
+/* 身体：实心圆角方块 block，纯色平涂、无描边 */
+.cmp-body {
+  fill: hsl(var(--cmp-hue) 78% 60%);
+}
+
+/* 眼睛：同色系深色（实心：idle / focus） */
 .cmp-eyes-solid ellipse {
-  fill: #3a2a12;
+  fill: hsl(var(--cmp-hue) 85% 22%);
 }
-.cmp-glint {
-  fill: #fff;
-}
-
-/* 嘴 */
-.cmp-mouth {
-  stroke: #7a4b1e;
-  stroke-width: 2.6;
-}
-.cmp-mouth-open {
-  fill: #b5541f;
+/* 眼睛（描边弧线：cheer / sleepy） */
+.cmp-eyes path {
+  stroke: hsl(var(--cmp-hue) 85% 22%);
+  stroke-width: 4;
 }
 
-/* 腮红 */
-.cmp-cheek {
-  fill: hsl(var(--cmp-hue) 90% 70%);
-  opacity: 0.5;
-}
-.cmp-mood-cheer .cmp-cheek {
-  opacity: 0.75;
-}
-
-/* 头顶饰物轻微上浮 */
+/* 头顶饰物 */
 .cmp-badge {
   paint-order: stroke;
 }
@@ -64,84 +57,27 @@
   animation: cmp-bob 3.6s ease-in-out infinite;
 }
 
-/* 光晕呼吸 */
+/* 柔光呼吸（缩放 + 透明度） */
 @keyframes cmp-pulse {
   0%,
   100% {
-    opacity: 0.75;
+    opacity: 0.26;
     transform: scale(1);
-    transform-origin: 60px 72px;
+    transform-origin: 60px 68px;
   }
   50% {
-    opacity: 1;
-    transform: scale(1.08);
-    transform-origin: 60px 72px;
+    opacity: 0.4;
+    transform: scale(1.06);
+    transform-origin: 60px 68px;
   }
 }
 .cmp-halo {
   animation: cmp-pulse 3.2s ease-in-out infinite;
 }
-/* focus（安静专注）时光晕更平稳、更弱 */
+/* focus（安静专注）时柔光更平稳、更弱 */
 .cmp-mood-focus .cmp-halo {
   animation-duration: 5s;
-  opacity: 0.6;
-}
-
-/* 火苗摇曳 */
-@keyframes cmp-flicker {
-  0%,
-  100% {
-    transform: rotate(-3deg) scaleY(1);
-  }
-  50% {
-    transform: rotate(3deg) scaleY(1.08);
-  }
-}
-.cmp-flame {
-  transform-origin: 60px 40px;
-  animation: cmp-flicker 1.4s ease-in-out infinite;
-}
-
-/* cheer 星火闪烁 */
-.cmp-sparks text {
-  fill: hsl(var(--cmp-hue) 95% 72%);
-  animation: cmp-twinkle 1.1s ease-in-out infinite;
-}
-.cmp-sparks text:nth-child(2) {
-  animation-delay: 0.35s;
-}
-.cmp-sparks text:nth-child(3) {
-  animation-delay: 0.7s;
-}
-@keyframes cmp-twinkle {
-  0%,
-  100% {
-    opacity: 0.2;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.15);
-  }
-}
-
-/* sleepy 的 z 上飘 */
-.cmp-zzz {
-  fill: #9aa0b0;
-  animation: cmp-drift 2.4s ease-in-out infinite;
-}
-@keyframes cmp-drift {
-  0% {
-    opacity: 0;
-    transform: translate(0, 4px);
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(4px, -8px);
-  }
+  opacity: 0.2;
 }
 
 /* ── 气泡台词 ─────────────────────────────────── */
@@ -177,10 +113,7 @@
 /* 尊重系统「减少动态效果」偏好：停掉所有循环动画 */
 @media (prefers-reduced-motion: reduce) {
   .cmp-float .cmp-svg,
-  .cmp-halo,
-  .cmp-flame,
-  .cmp-sparks text,
-  .cmp-zzz {
+  .cmp-halo {
     animation: none;
   }
 }

@@ -73,6 +73,46 @@ function buildForemanPayload(ctx = {}, lang) {
   ].join("\n");
 }
 
+// 常驻伙伴「灯灯」人设（专注页问候带）：第一人称、1 句、暖。
+function buildLumiSystem(lang) {
+  const zh = lang !== "en";
+  return [
+    zh
+      ? "你是一盏会飘的暖灯灵「灯灯」，长夜里陪用户在一款 ADHD 友好专注 App 里专注。用第一人称「我」自称，对「你」说话。"
+      : "You are Lumi, a small floating lamp-spirit who keeps the user company while they focus in an ADHD-friendly app. Speak in first person as 'I', addressing them as 'you'.",
+    zh ? "规则：" : "Rules:",
+    zh ? "- 只说 1 句短话（不超过约 25 字），像身边伙伴的轻声陪伴，可带一点童趣。"
+      : "- Say exactly 1 short line (under ~20 words), like a companion beside them — a little playful is fine.",
+    zh ? "- ADHD 友好：庆祝「你出现了」，绝不催促、不施压、不评判、不报「还差多少」。"
+      : "- ADHD-friendly: celebrate that they showed up; never nag, pressure, judge, or mention how far 'behind'.",
+    zh ? "- 自然带入给到的情境，但不要罗列数字。只输出这一句本身，不要引号、不要解释。"
+      : "- Weave in the given context naturally, no number-listing. Output only the line itself — no quotes, no explanation.",
+    zh ? "- 用中文。" : "- Write in English.",
+  ].join("\n");
+}
+
+function buildLumiPayload(ctx = {}, lang) {
+  const zh = lang !== "en";
+  const L = (a, b) => (zh ? a : b);
+  const moodText = {
+    idle: L("待命，还没选任务", "idle, no task chosen yet"),
+    focus: L("准备好开始专注了", "ready to start focusing"),
+    cheer: L("刚完成，值得庆祝", "just finished — worth celebrating"),
+    sleepy: L("夜深了，有点困", "late night, a little sleepy"),
+  };
+  return [
+    L("当前状态：", "Current state: ") + (moodText[ctx.mood] ?? moodText.idle),
+    ctx.taskCount ? L("已选任务数：", "Tasks chosen: ") + ctx.taskCount : null,
+    ctx.scenarioName ? L("当前情景：", "Scenario: ") + ctx.scenarioName : null,
+  ].filter(Boolean).join("\n");
+}
+
+const PERSONA = {
+  foreman: { system: buildForemanSystem, payload: buildForemanPayload, maxTokens: 160 },
+  lumi: { system: buildLumiSystem, payload: buildLumiPayload, maxTokens: 120 },
+  journey: { system: buildSystemPrompt, payload: buildUserPayload, maxTokens: 320 },
+};
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -84,15 +124,15 @@ export default async function handler(req, res) {
   }
 
   const { context, lang, persona } = req.body || {};
-  const isForeman = persona === "foreman";
+  const p = PERSONA[persona] ?? PERSONA.journey;
 
   try {
     const client = new Anthropic({ apiKey });
     const resp = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: isForeman ? 160 : 320,
-      system: isForeman ? buildForemanSystem(lang) : buildSystemPrompt(lang),
-      messages: [{ role: "user", content: isForeman ? buildForemanPayload(context, lang) : buildUserPayload(context, lang) }],
+      max_tokens: p.maxTokens,
+      system: p.system(lang),
+      messages: [{ role: "user", content: p.payload(context, lang) }],
     });
     return res.json({ result: resp.content.map((b) => b.text).join("") });
   } catch (e) {

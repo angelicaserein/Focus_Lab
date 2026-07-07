@@ -5,7 +5,7 @@ export const LANGUAGES = [
   { id: "zh", label: "中文" },
 ];
 
-export const DEFAULT_LANG = "en";
+export const DEFAULT_LANG = "zh";
 
 const en = {
   // 侧边栏导航
@@ -15,6 +15,7 @@ const en = {
   "nav.home": "Home",
   "nav.character": "Character",
   "nav.skilltree": "Skill tree",
+  "nav.functiontree": "Function tree",
   "nav.wish": "Wishing",
   "nav.world": "World map",
   "nav.industry": "Industry",
@@ -116,6 +117,8 @@ const en = {
   "character.reward.title": "Session complete",
   "character.reward.levelUp": "NEW STAGE · {rank}",
   "character.reward.duration": "Focused for {time}",
+  "character.reward.focusTime": "Focus time",
+  "character.reward.distractions": "Distractions",
   "character.reward.coins": "Coins",
   "character.reward.xpGained": "Growth",
   "character.reward.grow.small": "Every bit counts",
@@ -144,6 +147,7 @@ const en = {
   "companion.line.sleepy.0": "Resting is part of it too.",
   "companion.line.sleepy.1": "Let's recharge a little.",
   "companion.line.sleepy.2": "The lamp dims, but never goes out.",
+  "companion.refresh": "Another word from Lumi",
 
   // 祈愿 + 图鉴
   "wish.title": "Wishing Well",
@@ -246,6 +250,14 @@ const en = {
   "skilltree.node.exp_r.desc": "Connect skills across domains.",
   "skilltree.node.exp_cap.title": "Polymath",
   "skilltree.node.exp_cap.desc": "Many fields growing together.",
+
+  // 功能树（功能开关：每个节点点一下关掉，再点打开）
+  "functiontree.title": "Function tree",
+  "functiontree.hint": "Every branch here is a feature of the app, and every node is a switch. Turn one off and it disappears from the sidebar and can't be opened — turn it back on anytime. Nothing is deleted; you're just deciding how much is on screen. Home, Settings and this tree always stay on.",
+  "functiontree.summary": "{on} of {total} on",
+  "functiontree.enableAll": "Turn all on",
+  "functiontree.on": "on",
+  "functiontree.off": "off",
 
   // 工业点数（自动化工厂总览）
   "industry.title": "Industry",
@@ -558,6 +570,7 @@ const zh = {
   "nav.home": "主页",
   "nav.character": "角色",
   "nav.skilltree": "技能树",
+  "nav.functiontree": "功能树",
   "nav.wish": "祈愿",
   "nav.world": "世界地图",
   "nav.industry": "工业点数",
@@ -659,6 +672,8 @@ const zh = {
   "character.reward.title": "本次结算",
   "character.reward.levelUp": "新阶段 · {rank}",
   "character.reward.duration": "专注了 {time}",
+  "character.reward.focusTime": "专注时间",
+  "character.reward.distractions": "分心次数",
   "character.reward.coins": "金币",
   "character.reward.xpGained": "成长",
   "character.reward.grow.small": "点滴积累也算数",
@@ -687,6 +702,7 @@ const zh = {
   "companion.line.sleepy.0": "歇一歇，也是专注的一部分。",
   "companion.line.sleepy.1": "我们充一小会儿电。",
   "companion.line.sleepy.2": "灯会变暗，但不会熄。",
+  "companion.refresh": "让灯灯再说一句",
 
   // 祈愿 + 图鉴
   "wish.title": "祈愿",
@@ -789,6 +805,14 @@ const zh = {
   "skilltree.node.exp_r.desc": "把不同领域的技能连起来。",
   "skilltree.node.exp_cap.title": "通识",
   "skilltree.node.exp_cap.desc": "多个领域协同生长。",
+
+  // 功能树（功能开关：每个节点点一下关掉，再点打开）
+  "functiontree.title": "功能树",
+  "functiontree.hint": "这里的每条分支都是 App 的一块功能，每个节点都是一个开关。关掉它，它就从侧边栏消失、也无法打开——但随时可以再点开。不会删除任何数据，你只是在决定屏幕上留多少东西。主页、设置和这棵树本身始终常开。",
+  "functiontree.summary": "已开启 {on}/{total}",
+  "functiontree.enableAll": "全部打开",
+  "functiontree.on": "已开启",
+  "functiontree.off": "已关闭",
 
   // 工业点数（自动化工厂总览）
   "industry.title": "工业点数",

@@ -1,41 +1,19 @@
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import useCountUp from "@/hooks/common/useCountUp";
 import { formatDuration } from "@/utils/time";
-import { growthStageText, growthPhraseText } from "@/pages/Character/charView";
-import useTonePack from "@/hooks/character/useTonePack";
-import { makeToneT } from "@/utils/ai/tonePack";
-import useLocalStorage from "@/hooks/common/useLocalStorage";
-import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
-import Companion from "@/components/companion/Companion";
 import { companionLine } from "@/data/companion/companionData";
 import "./SessionRewardCard.css";
 
-// 本次成长的质化措辞：按本次获得的经验量给一句温柔的话，不报点数。
-// 永远是正向的——哪怕只专注了一小会儿，也「算数」。
-function rewardGrowKey(gainedXp) {
-  if (gainedXp >= 1800) return "big";
-  if (gainedXp >= 600) return "mid";
-  return "small";
-}
-
-// 专注结束的结算叙事卡：把静默发币变成有仪式感的「本次收益」结算。
-// 数据来自 computeSessionReward，纯展示 + 入场动画。
-// 金币是可消费的奖励，保留数字；经验/等级/连续天数等「评判类」数字改用质化表达。
+// 专注结束的结算卡：只报「本次实感」的三件事——专注了多久、分心了几次、奖励多少金币，
+// 外加一句鼓励性语录。刻意不放角色形象、等级、经验条等评判类元素（ADHD 友好）。
+// 数据来自 computeSessionReward，纯展示 + 金币入场动画。
 export default function SessionRewardCard({ reward, onClose }) {
-  const { t, lang } = useLanguage();
-  const navigate = useNavigate();
-
-  const { tonePack } = useTonePack();
-  // 语气感知的翻译函数：命中语气包覆盖就用自定义文案，否则回退默认。
-  const tt = makeToneT(t, tonePack, lang);
+  const { t } = useLanguage();
 
   const coins = useCountUp(reward.coins);
-  const pct = Math.round(reward.progress * 100);
-  const rankName = lang === "zh" ? reward.rank.zh : reward.rank.en;
-  // 佩戴的伙伴立绘（只读；结算卡每次新挂载，读一次即可）
-  const [outfit] = useLocalStorage(STORAGE_KEYS.COMPANION_OUTFIT, null);
+  // 鼓励性语录：挂载时定一句，别随金币动画的每帧重渲染而抖动。
+  const quote = useMemo(() => companionLine(t, "cheer"), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Esc 关闭
   useEffect(() => {
@@ -47,71 +25,28 @@ export default function SessionRewardCard({ reward, onClose }) {
   return (
     <div className="srewards-backdrop" onClick={onClose} role="dialog" aria-modal="true">
       <div className="srewards-card" onClick={(e) => e.stopPropagation()}>
-        {reward.leveledUp && (
-          <div className="srewards-levelup">
-            <span className="srewards-levelup-spark" aria-hidden="true">✦</span>
-            {tt("character.reward.levelUp", { rank: rankName })}
-            <span className="srewards-levelup-spark" aria-hidden="true">✦</span>
-          </div>
-        )}
+        <div className="srewards-title">{t("character.reward.title")}</div>
+        <p className="srewards-quote">{quote}</p>
 
-        <div className="srewards-companion">
-          <Companion mood="cheer" outfit={outfit} size={92} say={companionLine(t, "cheer")} />
-        </div>
-
-        <div className="srewards-header">
-          <div className="srewards-rank-icon" aria-hidden="true">{reward.rank.icon}</div>
-          <div className="srewards-title">{t("character.reward.title")}</div>
-          <div className="srewards-duration">
-            {t("character.reward.duration", { time: formatDuration(reward.durationSecs) })}
+        <div className="srewards-stats">
+          <div className="srewards-stat">
+            <span className="srewards-stat-icon" aria-hidden="true">⏱️</span>
+            <span className="srewards-stat-val">{formatDuration(reward.durationSecs)}</span>
+            <span className="srewards-stat-label">{t("character.reward.focusTime")}</span>
           </div>
-        </div>
-
-        {/* 金币（可消费奖励，保留数字）+ 本次成长（质化措辞，不报点数） */}
-        <div className="srewards-gains">
-          <div className="srewards-gain">
-            <span className="srewards-gain-icon" aria-hidden="true">🪙</span>
-            <span className="srewards-gain-num">+{coins}</span>
-            <span className="srewards-gain-label">{t("character.reward.coins")}</span>
+          <div className="srewards-stat">
+            <span className="srewards-stat-icon" aria-hidden="true">💭</span>
+            <span className="srewards-stat-val">{reward.distractionCount}</span>
+            <span className="srewards-stat-label">{t("character.reward.distractions")}</span>
           </div>
-          <div className="srewards-gain">
-            <span className="srewards-gain-icon" aria-hidden="true">✨</span>
-            <span className="srewards-gain-word">{tt(`character.reward.grow.${rewardGrowKey(reward.gainedXp)}`)}</span>
-            <span className="srewards-gain-label">{t("character.reward.xpGained")}</span>
+          <div className="srewards-stat">
+            <span className="srewards-stat-icon" aria-hidden="true">🪙</span>
+            <span className="srewards-stat-val">+{coins}</span>
+            <span className="srewards-stat-label">{t("character.reward.coins")}</span>
           </div>
         </div>
-
-        {/* 本次成长来自（只列来源，不点数化） */}
-        <div className="srewards-sources">
-          {reward.sources.map((s) => (
-            <div key={s.key} className="srewards-source">
-              <span aria-hidden="true">{s.icon}</span>
-              <span className="srewards-source-name">{t(`character.xpSource.${s.key}`)}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* 成长条：填充 + 阶段名 + 温柔的「快到下一段」措辞，无分母 */}
-        <div className="srewards-xpbar-wrap">
-          <div className="srewards-xpbar">
-            <div className="srewards-xpbar-fill" style={{ width: `${pct}%` }} />
-          </div>
-          <div className="srewards-xpbar-meta">
-            <span>{growthStageText(tt, reward.level)}</span>
-            <span>{growthPhraseText(tt, reward.progress)}</span>
-          </div>
-        </div>
-
-        {reward.streak > 1 && (
-          <div className="srewards-streak">
-            🔥 {tt("character.reward.streakKept")}
-          </div>
-        )}
 
         <div className="srewards-actions">
-          <button type="button" className="srewards-btn ghost" onClick={() => navigate("/character")}>
-            {t("character.reward.viewCharacter")}
-          </button>
           <button type="button" className="srewards-btn primary" onClick={onClose}>
             {t("character.reward.collect")}
           </button>
