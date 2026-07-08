@@ -1,28 +1,36 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import { useTodos } from "@/context/TodoContext";
 import { useFocus } from "@/context/FocusContext";
 import { useLanguage } from "@/context/LanguageContext";
 import "./EisenhowerMatrix.css";
 
-// 紧急/重要四象限（艾森豪威尔矩阵）：
-//   替代原「右栏 To do list」。任务以小标签呈现，可在四象限之间自由拖拽，
-//   落点写入 todo.quadrant；拖回底部「未分类」托盘则清空归类。
+// 紧急/重要优先级平面（艾森豪威尔矩阵的连续版）：
+//   不再是四个硬格子，而是一整块平面——任务可拖到任意位置。
+//   横轴＝紧急度（左紧急、右不紧急），纵轴＝重要度（上重要、下不重要）。
+//   背景红→蓝热力渐变：越靠左上越「热」（重要且紧急）。
+//   落点写入 todo.matrixPos={x,y}（均为 0..1）；拖回底部托盘则清空定位。
+//   放下瞬间卡片轻晃几下再稳住，模拟落在天平上的手感。
 //   点击标签＝加入/移出本次专注（与左栏「已选任务」联动）。
 
-// 象限顺序即网格排布：左上 q1、右上 q2、左下 q3、右下 q4
-// （行＝重要度自上而下降，列＝紧急度自左向右降）
-const QUADRANTS = [
-  { id: "q1", emoji: "🔥" },
-  { id: "q2", emoji: "🎯" },
-  { id: "q3", emoji: "⚡" },
-  { id: "q4", emoji: "🌱" },
+// 四角象限暗示文字（沿用原 q1..q4 文案，仅作方位提示，不再是可落区）
+const CORNERS = [
+  { id: "q1", pos: "tl" }, // 左上：重要 + 紧急
+  { id: "q2", pos: "tr" }, // 右上：重要 + 不紧急
+  { id: "q3", pos: "bl" }, // 左下：不重要 + 紧急
+  { id: "q4", pos: "br" }, // 右下：不重要 + 不紧急
 ];
-const QUADRANT_IDS = new Set(QUADRANTS.map((q) => q.id));
 
-function TaskTag({ todo, focused, onClick, onDelete, onDragStart, onDragEnd, deleteAria }) {
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+const isPlaced = (todo) =>
+  !!todo.matrixPos &&
+  typeof todo.matrixPos.x === "number" &&
+  typeof todo.matrixPos.y === "number";
+
+function TaskTag({ todo, focused, settling, onClick, onDelete, onDragStart, onDragEnd, deleteAria }) {
   return (
     <span
-      className={`matrix-tag${focused ? " focused" : ""}`}
+      className={`matrix-tag${focused ? " focused" : ""}${settling ? " settling" : ""}`}
       draggable
       onDragStart={(e) => onDragStart(e, todo.id)}
       onDragEnd={onDragEnd}
@@ -60,17 +68,20 @@ export default function EisenhowerMatrix() {
 
   const [draft, setDraft] = useState("");
   const [dragId, setDragId] = useState(null);
-  const [dropZone, setDropZone] = useState(null); // 当前拖拽悬停的落区 id
+  const [overPlane, setOverPlane] = useState(false);
+  const [overTray, setOverTray] = useState(false);
+  const [settlingId, setSettlingId] = useState(null);
+  const planeRef = useRef(null);
 
-  // 未完成任务按象限分组；未归类（无 quadrant 或非法值）进入托盘
-  const grouped = useMemo(() => {
-    const buckets = { q1: [], q2: [], q3: [], q4: [], unclassified: [] };
+  // 未完成任务：有合法坐标者摆在平面上，其余进入底部「未分类」托盘
+  const { placed, unplaced } = useMemo(() => {
+    const placed = [];
+    const unplaced = [];
     for (const todo of todos) {
       if (todo.completed) continue;
-      const q = QUADRANT_IDS.has(todo.quadrant) ? todo.quadrant : "unclassified";
-      buckets[q].push(todo);
+      (isPlaced(todo) ? placed : unplaced).push(todo);
     }
-    return buckets;
+    return { placed, unplaced };
   }, [todos]);
 
   const submit = (e) => {
@@ -89,23 +100,37 @@ export default function EisenhowerMatrix() {
 
   const handleDragEnd = () => {
     setDragId(null);
-    setDropZone(null);
+    setOverPlane(false);
+    setOverTray(false);
   };
 
-  // zone = 象限 id 或 "unclassified"（清空归类）
-  const handleDrop = (e, zone) => {
-    e.preventDefault();
-    const id = dragId || e.dataTransfer.getData("text/plain");
-    setDropZone(null);
-    setDragId(null);
-    if (!id) return;
-    updateTodoProps(id, { quadrant: zone === "unclassified" ? undefined : zone });
-  };
-
-  const allowDrop = (e, zone) => {
+  const allow = (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
-    if (dropZone !== zone) setDropZone(zone);
+  };
+
+  // 落在平面：按光标位置换算 0..1 坐标（卡片中心对准落点），并触发回摆
+  const dropOnPlane = (e) => {
+    e.preventDefault();
+    const id = dragId || e.dataTransfer.getData("text/plain");
+    setOverPlane(false);
+    setDragId(null);
+    if (!id || !planeRef.current) return;
+    const rect = planeRef.current.getBoundingClientRect();
+    const x = clamp((e.clientX - rect.left) / rect.width, 0.045, 0.955);
+    const y = clamp((e.clientY - rect.top) / rect.height, 0.06, 0.94);
+    updateTodoProps(id, { matrixPos: { x, y } });
+    setSettlingId(id);
+  };
+
+  // 拖回托盘：清空定位
+  const dropOnTray = (e) => {
+    e.preventDefault();
+    const id = dragId || e.dataTransfer.getData("text/plain");
+    setOverTray(false);
+    setDragId(null);
+    if (!id) return;
+    updateTodoProps(id, { matrixPos: undefined });
   };
 
   const renderTag = (todo) => (
@@ -113,6 +138,7 @@ export default function EisenhowerMatrix() {
       key={todo.id}
       todo={todo}
       focused={isFocused(todo.id)}
+      settling={settlingId === todo.id}
       onClick={toggleFocusTodo}
       onDelete={deleteTodo}
       onDragStart={handleDragStart}
@@ -120,8 +146,6 @@ export default function EisenhowerMatrix() {
       deleteAria={t("focus.matrix.deleteAria", { text: todo.text })}
     />
   );
-
-  const unclassified = grouped.unclassified;
 
   return (
     <div className="matrix-container" aria-label={t("focus.matrix.title")}>
@@ -143,55 +167,77 @@ export default function EisenhowerMatrix() {
         </button>
       </form>
 
-      {/* 坐标轴提示：横轴＝紧急，纵轴＝重要 */}
+      {/* 坐标轴提示：横轴＝紧急（左紧急、右不紧急） */}
       <div className="matrix-axis-x">
         <span>← {t("focus.matrix.urgent")}</span>
         <span>{t("focus.matrix.notUrgent")} →</span>
       </div>
 
       <div className="matrix-board">
+        {/* 纵轴＝重要（上重要、下不重要），箭头稳定上下指向 */}
         <div className="matrix-axis-y" aria-hidden="true">
-          <span>↑ {t("focus.matrix.important")}</span>
-          <span>{t("focus.matrix.notImportant")} ↓</span>
+          <span className="matrix-axis-y-cap">↑</span>
+          <span className="matrix-axis-y-word">{t("focus.matrix.important")}</span>
+          <span className="matrix-axis-y-word muted">{t("focus.matrix.notImportant")}</span>
+          <span className="matrix-axis-y-cap">↓</span>
         </div>
 
-        <div className="matrix-grid">
-          {QUADRANTS.map((q) => (
+        <div
+          ref={planeRef}
+          className={`matrix-plane${overPlane ? " drag-over" : ""}`}
+          onDragOver={(e) => {
+            allow(e);
+            if (!overPlane) setOverPlane(true);
+          }}
+          onDragLeave={(e) => {
+            if (e.currentTarget === e.target) setOverPlane(false);
+          }}
+          onDrop={dropOnPlane}
+        >
+          {CORNERS.map((c) => (
+            <span key={c.id} className={`matrix-corner ${c.pos}`} aria-hidden="true">
+              {t(`focus.matrix.${c.id}`)}
+            </span>
+          ))}
+
+          {placed.length === 0 && (
+            <span className="matrix-plane-empty">{t("focus.matrix.dropHere")}</span>
+          )}
+
+          {placed.map((todo) => (
             <div
-              key={q.id}
-              className={`matrix-cell ${q.id}${dropZone === q.id ? " drag-over" : ""}`}
-              onDragOver={(e) => allowDrop(e, q.id)}
-              onDragLeave={() => setDropZone((z) => (z === q.id ? null : z))}
-              onDrop={(e) => handleDrop(e, q.id)}
+              key={todo.id}
+              className="matrix-node"
+              style={{
+                left: `${todo.matrixPos.x * 100}%`,
+                top: `${todo.matrixPos.y * 100}%`,
+              }}
+              onAnimationEnd={() =>
+                setSettlingId((s) => (s === todo.id ? null : s))
+              }
             >
-              <div className="matrix-cell-head">
-                <span className="matrix-cell-emoji">{q.emoji}</span>
-                <span className="matrix-cell-title">{t(`focus.matrix.${q.id}`)}</span>
-                <span className="matrix-cell-sub">{t(`focus.matrix.${q.id}Sub`)}</span>
-              </div>
-              <div className="matrix-cell-tags">
-                {grouped[q.id].length > 0 ? (
-                  grouped[q.id].map(renderTag)
-                ) : (
-                  <span className="matrix-cell-empty">{t("focus.matrix.dropHere")}</span>
-                )}
-              </div>
+              {renderTag(todo)}
             </div>
           ))}
         </div>
       </div>
 
-      {/* 未分类托盘：新建任务先落这里，拖入象限完成归类 */}
+      {/* 未分类托盘：新建任务先落这里，拖入平面完成摆放 */}
       <div
-        className={`matrix-tray${dropZone === "unclassified" ? " drag-over" : ""}`}
-        onDragOver={(e) => allowDrop(e, "unclassified")}
-        onDragLeave={() => setDropZone((z) => (z === "unclassified" ? null : z))}
-        onDrop={(e) => handleDrop(e, "unclassified")}
+        className={`matrix-tray${overTray ? " drag-over" : ""}`}
+        onDragOver={(e) => {
+          allow(e);
+          if (!overTray) setOverTray(true);
+        }}
+        onDragLeave={(e) => {
+          if (e.currentTarget === e.target) setOverTray(false);
+        }}
+        onDrop={dropOnTray}
       >
         <span className="matrix-tray-label">{t("focus.matrix.unclassified")}</span>
         <div className="matrix-tray-tags">
-          {unclassified.length > 0 ? (
-            unclassified.map(renderTag)
+          {unplaced.length > 0 ? (
+            unplaced.map(renderTag)
           ) : (
             <span className="matrix-cell-empty">{t("focus.matrix.trayEmpty")}</span>
           )}

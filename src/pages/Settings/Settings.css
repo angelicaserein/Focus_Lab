@@ -15,6 +15,48 @@
   color: var(--text-heading);
 }
 
+/* ── 分类 tab ── */
+.settings-header {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.settings-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.settings-tab {
+  padding: 8px 18px;
+  border-radius: 99px;
+  border: 2px solid var(--border-card);
+  background: var(--card);
+  color: var(--text-heading);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+}
+
+.settings-tab:hover:not(.active) {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.settings-tab.active {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.settings-tabpanel {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
 .settings-section {
   display: flex;
   flex-direction: column;

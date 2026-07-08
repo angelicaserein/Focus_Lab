@@ -106,14 +106,30 @@ function CameraRig({ verticalShift = 0.16, horizontalShift = 0 }) {
   const size = useThree((s) => s.size);
 
   useEffect(() => {
+    const aspect = size.width / size.height;
+    const portrait = aspect < 1;
+
+    // fov 是「垂直」视野角。竖屏手机（aspect < 1）下固定 45° 会让水平视野过窄，
+    // 猫被裁掉两侧 → 按 aspect 反算加宽 fov，保住水平取景（整只猫可见）；
+    // 桌面横屏维持 45°。上限 82° 兜住透视畸变。
+    const BASE_FOV = 45;
+    const baseHalfH = Math.atan(Math.tan((BASE_FOV * Math.PI) / 360)); // aspect=1 处的半水平角
+    camera.fov = portrait
+      ? Math.min((2 * Math.atan(Math.tan(baseHalfH) / aspect) * 180) / Math.PI, 82)
+      : BASE_FOV;
+
+    // 竖屏时悬浮卡回到屏幕中央盖住画面，模型也回正居中、少上移，避免顶到边被裁。
+    const hShift = portrait ? 0 : horizontalShift;
+    const vShift = portrait ? 0.05 : verticalShift;
+
     // setViewOffset shifts the frustum window; the centered model then renders
     // in the opposite direction, so we negate to make the props read naturally.
     // width/height stay full → this is a pure lens shift (no distortion).
     camera.setViewOffset(
       size.width,
       size.height,
-      -size.width * horizontalShift,
-      size.height * verticalShift,
+      -size.width * hShift,
+      size.height * vShift,
       size.width,
       size.height,
     );

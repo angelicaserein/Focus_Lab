@@ -369,7 +369,7 @@ const en = {
   "focus.reset": "Reset",
   // 专注 - 紧急/重要四象限
   "focus.matrix.title": "Priority matrix",
-  "focus.matrix.hint": "Drag tags between quadrants · tap to add to session",
+  "focus.matrix.hint": "Drop tasks anywhere · closer to top-left = more urgent & important · tap to add to session",
   "focus.matrix.addPlaceholder": "Add a task…",
   "focus.matrix.add": "Add",
   "focus.matrix.urgent": "Urgent",
@@ -385,7 +385,7 @@ const en = {
   "focus.matrix.q4": "Later",
   "focus.matrix.q4Sub": "not important · not urgent",
   "focus.matrix.unclassified": "Unsorted",
-  "focus.matrix.dropHere": "Drop here",
+  "focus.matrix.dropHere": "Drag tasks in — drop them wherever fits",
   "focus.matrix.trayEmpty": "New tasks land here — drag them into a quadrant",
   "focus.matrix.deleteAria": "Delete {text}",
   // 历史 - 聊天记录
@@ -469,6 +469,11 @@ const en = {
 
   // 设置页
   "settings.title": "Settings",
+  "settings.tab.appearance": "Appearance",
+  "settings.tab.timing": "Timing",
+  "settings.tab.tone": "Tone",
+  "settings.tab.language": "Language",
+  "settings.tab.data": "Data",
 
   // 设置 - 外观主题
   "settings.theme.title": "Appearance theme",
@@ -484,6 +489,7 @@ const en = {
 
   // 设置 - 专注偏好
   "settings.prefs.title": "Focus preferences",
+  "settings.prefs.appearanceTitle": "Flask & animation",
   "settings.prefs.hint": "Changes take effect immediately, applied on your next session.",
   "settings.prefs.presetsCountup": "Count-up presets (min)",
   "settings.prefs.presetsCountdown": "Countdown presets (min)",
@@ -918,7 +924,7 @@ const zh = {
   "focus.start": "▶ 开始专注",
   "focus.reset": "重置",
   "focus.matrix.title": "优先级矩阵",
-  "focus.matrix.hint": "拖动标签分配象限 · 点击加入本次专注",
+  "focus.matrix.hint": "把任务拖到平面任意位置 · 越靠左上越紧急重要 · 点击加入本次专注",
   "focus.matrix.addPlaceholder": "添加任务…",
   "focus.matrix.add": "添加",
   "focus.matrix.urgent": "紧急",
@@ -934,7 +940,7 @@ const zh = {
   "focus.matrix.q4": "有空再做",
   "focus.matrix.q4Sub": "不重要 · 不紧急",
   "focus.matrix.unclassified": "未分类",
-  "focus.matrix.dropHere": "拖到这里",
+  "focus.matrix.dropHere": "把任务拖进来，放在你觉得合适的位置",
   "focus.matrix.trayEmpty": "新任务先落在这里，拖入象限完成归类",
   "focus.matrix.deleteAria": "删除 {text}",
   // 历史 - 聊天记录
@@ -1014,6 +1020,11 @@ const zh = {
   "day.long.6": "周六",
 
   "settings.title": "设置",
+  "settings.tab.appearance": "外观",
+  "settings.tab.timing": "计时",
+  "settings.tab.tone": "语气",
+  "settings.tab.language": "语言",
+  "settings.tab.data": "数据",
 
   "settings.theme.title": "外观主题",
   "settings.theme.hint": "在「奖励」商城解锁皮肤后即可在此切换",
@@ -1026,6 +1037,7 @@ const zh = {
   "settings.lang.hint": "切换后立即在全应用生效。",
 
   "settings.prefs.title": "专注偏好",
+  "settings.prefs.appearanceTitle": "烧瓶与动画",
   "settings.prefs.hint": "更改即时生效，下次进入沉浸模式时应用。",
   "settings.prefs.presetsCountup": "正计时预设（分钟）",
   "settings.prefs.presetsCountdown": "倒计时预设（分钟）",

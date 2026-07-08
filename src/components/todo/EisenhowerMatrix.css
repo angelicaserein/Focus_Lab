@@ -89,77 +89,135 @@
 .matrix-axis-y {
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: space-between;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
+  gap: 2px;
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--text-muted);
-  padding: 2px 0;
+  padding: 2px 1px;
 }
 
-/* 2×2 象限网格 */
-.matrix-grid {
-  flex: 1;
-  min-width: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-auto-rows: minmax(120px, auto);
-  gap: 8px;
+/* 箭头保持水平书写，稳定上/下指向（表示重要度递增/递减） */
+.matrix-axis-y-cap {
+  font-size: 0.8rem;
+  line-height: 1;
 }
 
-.matrix-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px;
-  border-radius: 16px;
-  border: 1.5px solid var(--border-input);
-  background: var(--accent-bg-dim);
-  transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+/* 文字竖排以节省横向空间；上＝重要，下＝不重要 */
+.matrix-axis-y-word {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
 }
 
-/* 各象限主题色（依赖左侧色条与浅底） */
-.matrix-cell.q1 { border-left: 4px solid #e5484d; }
-.matrix-cell.q2 { border-left: 4px solid #3e63dd; }
-.matrix-cell.q3 { border-left: 4px solid #f5a623; }
-.matrix-cell.q4 { border-left: 4px solid #8b8d98; }
-
-.matrix-cell.drag-over {
-  border-color: var(--accent);
-  background: var(--accent-hover, var(--accent-bg));
-  box-shadow: inset 0 0 0 2px var(--accent);
-}
-
-.matrix-cell-head {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.matrix-cell-emoji {
-  font-size: 0.95rem;
-}
-
-.matrix-cell-title {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--text-heading);
-}
-
-.matrix-cell-sub {
-  font-size: 0.68rem;
+.matrix-axis-y-word.muted {
   color: var(--text-faint);
 }
 
-.matrix-cell-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-content: flex-start;
+/* 连续优先级平面：任务可放在任意位置 */
+.matrix-plane {
+  position: relative;
   flex: 1;
+  min-width: 0;
+  min-height: 300px;
+  border-radius: 18px;
+  border: 1.5px solid var(--border-input);
+  overflow: hidden;
+  /* 热力渐变：左上（重要+紧急）最热的红 → 右下（不重要+不紧急）最冷的蓝，
+     两条对角中段过渡橙/青，模拟热力图 */
+  background: linear-gradient(
+    135deg,
+    rgba(229, 72, 77, 0.22) 0%,
+    rgba(232, 140, 62, 0.15) 34%,
+    rgba(58, 168, 160, 0.13) 64%,
+    rgba(62, 99, 221, 0.17) 100%
+  );
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.matrix-plane.drag-over {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+/* 十字中线：仅作象限暗示 */
+.matrix-plane::before,
+.matrix-plane::after {
+  content: "";
+  position: absolute;
+  background: var(--border-input);
+  opacity: 0.5;
+  pointer-events: none;
+}
+.matrix-plane::before {
+  left: 50%;
+  top: 6%;
+  bottom: 6%;
+  width: 1px;
+}
+.matrix-plane::after {
+  top: 50%;
+  left: 6%;
+  right: 6%;
+  height: 1px;
+}
+
+/* 四角象限暗示文字（弱化，不抢视觉） */
+.matrix-corner {
+  position: absolute;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--text-heading);
+  opacity: 0.32;
+  pointer-events: none;
+  user-select: none;
+}
+.matrix-corner.tl { top: 8px; left: 10px; }
+.matrix-corner.tr { top: 8px; right: 10px; }
+.matrix-corner.bl { bottom: 8px; left: 10px; }
+.matrix-corner.br { bottom: 8px; right: 10px; }
+
+.matrix-plane-empty {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 70%;
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  opacity: 0.75;
+  pointer-events: none;
+  text-align: center;
+}
+
+/* 平面上的任务：绝对定位，中心对准落点 */
+.matrix-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  max-width: 46%;
+}
+
+/* 落下时的天平回摆：以顶端为支点轻晃几下再稳住 */
+@keyframes matrix-settle {
+  0%   { transform: rotate(0deg) translateY(-3px); }
+  22%  { transform: rotate(-5deg) translateY(0); }
+  46%  { transform: rotate(3deg); }
+  68%  { transform: rotate(-1.6deg); }
+  86%  { transform: rotate(0.8deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.matrix-tag.settling {
+  transform-origin: 50% 0;
+  animation: matrix-settle 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matrix-tag.settling {
+    animation: none;
+  }
 }
 
 .matrix-cell-empty {

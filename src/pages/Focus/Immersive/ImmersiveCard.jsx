@@ -25,7 +25,13 @@ export default function ImmersiveCard({ flaskProgress }) {
     ? (remaining >= 0 ? formatClock(remaining) : `+${formatClock(-remaining)}`)
     : formatClock(seconds);
 
-  const { nodeRef, handlers, position } = useDraggable({ x: 193, y: 28 });
+  // 桌面：卡片默认偏到左上侧、给 3D 模型让出画面中央。
+  // 手机（窄屏）：不加初始偏移，配合 CSS 让卡片居中显示在屏幕中央。
+  const initialCardOffset =
+    typeof window !== "undefined" && window.innerWidth <= 600
+      ? { x: 0, y: 0 }
+      : { x: 193, y: 28 };
+  const { nodeRef, handlers, position } = useDraggable(initialCardOffset);
 
   // picker: null = 收起；"add" = 添加；其它字符串 = 正在替换的 todo id
   const [picker, setPicker] = useState(null);
