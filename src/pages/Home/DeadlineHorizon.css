@@ -51,25 +51,26 @@
   );
 }
 
-/* 透视地面：底边宽、向右上方的灭点收拢，叠在热力渐变之上保留「路」的空间感 */
+/* 透视地面：顶边宽（脚边/近）、向右下方的灭点收拢（地平线/远），
+   叠在热力渐变之上保留「路」的空间感 */
 .ddl-road-floor {
   position: absolute;
   inset: 0;
   background: linear-gradient(
-    180deg,
+    0deg,
     transparent 38%,
     color-mix(in srgb, var(--accent) 6%, transparent) 100%
   );
-  clip-path: polygon(0% 100%, 100% 100%, 92% 38%, 88% 38%);
+  clip-path: polygon(0% 0%, 100% 0%, 92% 62%, 88% 62%);
   opacity: 0.8;
   pointer-events: none;
 }
 
-/* 「现在 / 你」锚点 */
+/* 「现在 / 你」锚点：近端在左上 */
 .ddl-road-you {
   position: absolute;
   left: 12px;
-  bottom: 12px;
+  top: 12px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -95,7 +96,7 @@
 
 .ddl-road-far-label {
   position: absolute;
-  top: calc(38% - 16px);
+  bottom: 12px;
   right: 12px;
   font-size: 0.66rem;
   font-weight: 700;

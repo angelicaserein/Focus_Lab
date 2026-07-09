@@ -26,6 +26,8 @@ import {
   Palette,
   Menu,
   X,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { useTodos } from "@/context/TodoContext";
 import { useDDL } from "@/context/DDLContext";
@@ -126,9 +128,24 @@ export default function Sidebar() {
   // 移动端抽屉开合。桌面端 CSS 里侧边栏常驻，这个状态只在窄屏生效。
   const [open, setOpen] = useState(false);
 
-  // 路由变化即收起抽屉（点导航跳转、或浏览器前进后退时）。
+  // 桌面端折叠（仿 Notion）：整条侧栏滑出屏幕、主内容铺满。状态持久化。
+  const [collapsed, setCollapsed] = useState(
+    () => localStorage.getItem("sidebar-collapsed") === "1",
+  );
+  // 折叠后把光标移到屏幕左缘，侧栏以浮层「窥视」滑入；移开即收回。peek 是临时态。
+  const [peek, setPeek] = useState(false);
+
+  // 折叠态挂到 body 上，让主内容区（.app-main）同步铺满。
+  useEffect(() => {
+    document.body.classList.toggle("sidebar-collapsed", collapsed);
+    localStorage.setItem("sidebar-collapsed", collapsed ? "1" : "0");
+    if (!collapsed) setPeek(false);
+  }, [collapsed]);
+
+  // 路由变化即收起抽屉/窥视（点导航跳转、或浏览器前进后退时）。
   useEffect(() => {
     setOpen(false);
+    setPeek(false);
   }, [pathname]);
 
   // 抽屉打开时按 Esc 关闭。
@@ -159,10 +176,45 @@ export default function Sidebar() {
         aria-hidden="true"
       />
 
-      <aside className={`sidebar${open ? " open" : ""}`}>
+      {/* 桌面端折叠后：贴左缘的隐形热区，鼠标移入即窥视展开 */}
+      {collapsed && (
+        <div
+          className="sidebar-hover-zone"
+          onMouseEnter={() => setPeek(true)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* 桌面端折叠后：左上角常驻的展开按钮（仿 Notion 的 » 把手） */}
+      {collapsed && (
+        <button
+          type="button"
+          className={`sidebar-launcher${peek ? " hidden" : ""}`}
+          onClick={() => setCollapsed(false)}
+          aria-label={t("sidebar.expandNav")}
+          title={t("sidebar.expandNav")}
+        >
+          <PanelLeftOpen size={20} strokeWidth={2} aria-hidden="true" />
+        </button>
+      )}
+
+      <aside
+        className={`sidebar${open ? " open" : ""}${collapsed ? " collapsed" : ""}${peek ? " peek" : ""}`}
+        onMouseEnter={() => collapsed && setPeek(true)}
+        onMouseLeave={() => setPeek(false)}
+      >
       <div className="sidebar-brand">
         <img className="sidebar-brand-logo" src="./icon-192.png" alt="" />
         <span className="sidebar-brand-name">Focus Lab</span>
+        <button
+          type="button"
+          className="sidebar-collapse-btn"
+          onClick={() => setCollapsed((v) => !v)}
+          aria-label={t(collapsed ? "sidebar.expandNav" : "sidebar.collapseNav")}
+          title={t(collapsed ? "sidebar.expandNav" : "sidebar.collapseNav")}
+        >
+          <PanelLeftClose size={18} strokeWidth={2} aria-hidden="true" />
+        </button>
       </div>
 
       {scenarios.length > 0 && (

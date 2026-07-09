@@ -16,6 +16,10 @@
   /* 纵向三段式：品牌 / 可滚动导航(flex:1) / 底部设置。 */
   display: flex;
   flex-direction: column;
+  /* 折叠/窥视时整条滑入滑出，平滑过渡。 */
+  transition:
+    transform 240ms var(--ease),
+    box-shadow 240ms var(--ease);
 }
 
 /* ── 顶部品牌区：Logo + App 名字 ── */
@@ -37,11 +41,38 @@
 }
 
 .sidebar-brand-name {
+  flex: 1;
+  min-width: 0;
   font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: -0.01em;
   color: var(--text-heading);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 桌面端折叠/展开按钮，靠右置于品牌区。窄屏抽屉里隐藏。 */
+.sidebar-collapse-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  color: var(--muted);
+  opacity: 0.7;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.sidebar-collapse-btn:hover {
+  background: var(--glass);
+  color: var(--accent);
+  opacity: 1;
 }
 
 /* 全局「当前情景」指示器/切换器，置于导航上方，任何页面都可见。 */
@@ -257,6 +288,88 @@
   line-height: 1;
 }
 
+/* ── 桌面端折叠态（仿 Notion）：整条侧栏滑出屏幕，主内容铺满；
+      鼠标移到左缘时以浮层「窥视」滑回。（仅宽屏生效，手机抽屉不受影响） ── */
+.sidebar-hover-zone,
+.sidebar-launcher {
+  display: none;
+}
+
+@media (min-width: 601px) {
+  /* 折叠：滑出左侧、脱离视觉占位 */
+  .sidebar.collapsed {
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+  /* 窥视：滑回并悬浮在内容之上（不推开内容），带阴影强调浮层感 */
+  .sidebar.collapsed.peek {
+    transform: translateX(0);
+    box-shadow: 6px 0 28px var(--shadow-lg, rgba(15, 23, 42, 0.22));
+  }
+
+  /* 主内容区在折叠时铺满，仅留一点左缘呼吸 */
+  body.sidebar-collapsed .app-main {
+    padding-left: 40px;
+    transition: padding-left 220ms var(--ease);
+  }
+
+  /* 贴左缘的隐形热区：触发窥视 */
+  .sidebar-hover-zone {
+    display: block;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 12px;
+    height: 100vh;
+    height: 100dvh;
+    /* 低于侧栏(999)：窥视滑入后由侧栏接管指针，避免在左缘反复触发抖动 */
+    z-index: 990;
+  }
+
+  /* 左上角常驻展开把手（» 按钮），窥视时淡出让位给真正的侧栏 */
+  .sidebar-launcher {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 1000;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--border-dark);
+    background: var(--card);
+    color: var(--muted);
+    box-shadow: 0 2px 10px var(--shadow-sm);
+    cursor: pointer;
+    opacity: 0.85;
+    transition:
+      opacity 180ms var(--ease),
+      background 180ms var(--ease),
+      color 180ms var(--ease),
+      transform 120ms var(--ease);
+  }
+  .sidebar-launcher:hover {
+    opacity: 1;
+    background: var(--accent-bg);
+    color: var(--accent);
+  }
+  .sidebar-launcher:active {
+    transform: scale(0.94);
+  }
+  .sidebar-launcher.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .sidebar-launcher:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 3px var(--bg),
+      0 0 0 5px var(--accent);
+  }
+}
+
 /* ── 移动端抽屉：汉堡按钮 + 背景遮罩（桌面端默认隐藏） ── */
 .sidebar-toggle {
   display: none;
@@ -303,6 +416,10 @@
   /* 抽屉打开时给品牌区留出汉堡按钮的位置，避免重叠 */
   .sidebar-brand {
     padding-left: 44px;
+  }
+  /* 折叠是桌面专属，手机抽屉里不显示折叠按钮 */
+  .sidebar-collapse-btn {
+    display: none;
   }
 
   .sidebar-toggle {

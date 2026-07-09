@@ -32,14 +32,15 @@ function urgencyClass(days) {
 }
 
 // 把每个 DDL 映射到路面坐标 + 透视参数
+// 对角走向：近/紧急 → 左上（热力红角），远 → 右下（冷蓝角），与背景热力方向一致。
 function projectDeadline(days) {
   const clamped = Math.min(Math.max(days, 0), HORIZON_DAYS);
   // sqrt 让临近的几天在画面上「铺开」，拥有更多空间，远期被压缩到地平线
   const t = Math.sqrt(clamped / HORIZON_DAYS); // 0(近) → 1(远)
   return {
     t,
-    left: 6 + t * 86, // 6% → 92%
-    top: 80 - t * 40, // 80%(脚边) → 40%(地平线)
+    left: 6 + t * 86, // 6%(近/左) → 92%(远/右)
+    top: 24 + t * 56, // 24%(近/上) → 80%(远/下)
     scale: 1 - t * 0.55, // 1 → 0.45
     opacity: 1 - t * 0.45, // 1 → 0.55
   };
@@ -67,13 +68,13 @@ export default function DeadlineHorizon() {
       // 远的先画、近的后画 → 近的盖在上层
       .sort((a, b) => b.days - a.days);
 
-    // 同一深度的路牌做微小竖直错位，减少重叠
+    // 同一深度的路牌做微小竖直错位，减少重叠（向下错开，避免顶到画面上沿）
     const seen = new Map();
     for (const p of list) {
       const bucket = Math.round(p.left / 7);
       const n = seen.get(bucket) ?? 0;
       seen.set(bucket, n + 1);
-      p.top -= n * 9 * p.scale;
+      p.top += n * 9 * p.scale;
     }
     return list;
   }, [todos]);
