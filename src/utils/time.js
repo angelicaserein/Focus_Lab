@@ -6,8 +6,15 @@ const MS_PER_DAY = 86_400_000;
 const TIME_FORMAT_OPTS = { hour: "2-digit", minute: "2-digit", hour12: false };
 
 // 返回 "YYYY-MM-DD" 格式的今日日期字符串（用于循环任务重置判断等）
+// 必须用本地年月日：toISOString() 是 UTC，在 UTC+8 的凌晨 0–8 点会返回昨天，
+// 与同处逻辑里的 new Date().getDay()（本地星期几）错位，导致循环任务凌晨漏重置、
+// DDL 弹窗/通知的「今日去重」失效。口径与 Calendar 的 dayKey 一致。
 export function getTodayStr() {
-  return new Date().toISOString().split("T")[0];
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 // 从某时间戳到现在经过的秒数（四舍五入）
