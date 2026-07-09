@@ -1,11 +1,27 @@
 .page-home {
-  width: min(860px, 100%);
+  width: min(1120px, 100%);
   margin: 0 auto;
   padding: 48px 24px 64px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 32px;
+}
+
+/* ── 桌面端：容器放宽后，给卡片更足的横向空间与呼吸感 ──
+   （手机侧 ≤600px 的构图完全不受影响：那里容器本就是 100%） */
+@media (min-width: 900px) {
+  .page-home {
+    padding: 56px 40px 72px;
+    gap: 40px;
+  }
+  /* 截止临近的「路」变宽后再抬高一点，透视纵深更舒展 */
+  .ddl-horizon-road {
+    height: 340px;
+  }
+  .ddl-horizon-wrap {
+    padding: 26px 28px;
+  }
 }
 
 /* ── 入场：三个模块错峰淡入上浮，给首屏一点节奏感 ── */

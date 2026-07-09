@@ -57,10 +57,31 @@ export default function ImmersiveCard({ flaskProgress }) {
 
   return (
     <>
+    {!cardVisible && (
+      <button
+        type="button"
+        className="immersive-card-reopen"
+        onClick={() => setCardVisible(true)}
+        title="展开专注卡片"
+        aria-label="展开专注卡片"
+      >
+        <span className="immersive-card-reopen-dot" />
+        展开卡片
+      </button>
+    )}
     <div className={`immersive-card-wrap ${cardVisible ? "visible" : ""}`}>
       <div ref={nodeRef} className="immersive-card-drag">
         <div className="immersive-card-row">
           <div className="immersive-card">
+            <button
+              type="button"
+              className="immersive-card-close"
+              onClick={() => setCardVisible(false)}
+              title="关闭卡片"
+              aria-label="关闭卡片"
+            >
+              ×
+            </button>
             <div className="immersive-eyebrow" {...handlers}>
               <span className={`immersive-status-dot ${isRunning ? "running" : ""}`} />
               {isRunning ? "专注中" : "已暂停"}

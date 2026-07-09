@@ -14,6 +14,8 @@ export const STORAGE_KEYS = {
   MEMOS:            "memos_v1",
   // 研究日志
   RESEARCH_RECORDS: "research_daily_v1",
+  // 项目甘特图：可编辑的任务列表（扁平结构，行号在渲染时按贪心排布，不落库）
+  GANTT_TASKS:      "gantt_tasks_v1",
   // 奖励系统
   COINS:            "coins_v1",
   REWARD_OWNED:     "reward_owned_v1",

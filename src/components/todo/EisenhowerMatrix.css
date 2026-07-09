@@ -1,5 +1,6 @@
 /* ── 紧急/重要四象限（专注页右栏） ── */
 .matrix-container {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -192,11 +193,20 @@
   text-align: center;
 }
 
-/* 平面上的任务：绝对定位，中心对准落点 */
+/* 平面上的任务：绝对定位，中心对准落点。
+   缩放随落点变化：越靠左上（重要+紧急）越大，落下/移动时平滑变形。 */
 .matrix-node {
   position: absolute;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(var(--matrix-scale, 1));
+  transform-origin: center;
   max-width: 46%;
+  transition: transform 260ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matrix-node {
+    transition: none;
+  }
 }
 
 /* 落下时的天平回摆：以顶端为支点轻晃几下再稳住 */
@@ -301,6 +311,32 @@
   max-width: 140px;
 }
 
+/* 「分一下」按钮：仅未分类托盘里出现 */
+.matrix-tag-sort {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border: 1px solid var(--border-accent, var(--border-input));
+  border-radius: 9px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.matrix-tag-sort:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.matrix-tag.focused .matrix-tag-sort {
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #fff;
+}
+
 .matrix-tag-del {
   display: inline-flex;
   align-items: center;
@@ -316,6 +352,132 @@
   line-height: 1;
   cursor: pointer;
   transition: opacity 120ms ease, background 120ms ease;
+}
+
+/* ── 「分一下」两步问答浮层 ── */
+.matrix-sort-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--card) 62%, transparent);
+  backdrop-filter: blur(3px);
+  animation: matrix-sort-fade 140ms ease;
+}
+
+@keyframes matrix-sort-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.matrix-sort-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 340px;
+  padding: 22px 20px 16px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border-input);
+  background: var(--card);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.18);
+}
+
+.matrix-sort-heading {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.matrix-sort-question {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text-heading);
+}
+
+.matrix-sort-answers {
+  display: flex;
+  gap: 10px;
+}
+
+.matrix-sort-answer {
+  flex: 1;
+  padding: 13px 10px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border-input);
+  background: var(--card);
+  color: var(--text-heading);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.matrix-sort-answer:hover {
+  transform: translateY(-1px);
+}
+
+.matrix-sort-answer.yes:hover {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.matrix-sort-answer.no:hover {
+  border-color: var(--text-muted);
+}
+
+.matrix-sort-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.matrix-sort-steps {
+  display: flex;
+  gap: 6px;
+}
+
+.matrix-sort-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border-input);
+  transition: background 150ms ease;
+}
+
+.matrix-sort-dot.active {
+  background: var(--accent);
+}
+
+.matrix-sort-nav {
+  padding: 4px 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.matrix-sort-nav:hover {
+  color: var(--text-heading);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matrix-sort-overlay { animation: none; }
+  .matrix-sort-answer:hover { transform: none; }
 }
 
 .matrix-tag-del:hover {

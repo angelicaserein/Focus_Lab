@@ -1,69 +1,74 @@
 /* ── 截止临近感 ──────────────────────────────────────────────────────────────
-   一条退向地平线的路，DDL 是路上的路牌：越近越大越鲜明，越远越小越淡。 */
+   一条退向地平线的路，DDL 是路上的路牌：越近越大越鲜明，越远越小越淡。
+   视觉语言沿用专注页「优先级平面」（EisenhowerMatrix）：卡片容器 + 大标题 +
+   带边框的热力渐变面板 + 芯片式标签。热端对准脚边（近/紧急），冷端退向地平线。 */
 .ddl-horizon-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border-input);
+  border-radius: 24px;
+  padding: 22px;
 }
 
 .ddl-horizon-header {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 14px;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .ddl-horizon-title {
-  font-size: 0.8rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  color: var(--text-muted);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  color: var(--text-heading);
 }
 
 .ddl-horizon-sub {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--text-faint);
 }
 
-/* ── 路面 ── */
+/* ── 路面（沿用 matrix-plane：带边框的热力渐变面板） ── */
 .ddl-horizon-road {
   position: relative;
   width: 100%;
-  height: 168px;
+  height: 300px;
   border-radius: 18px;
   overflow: hidden;
-  background:
-    radial-gradient(
-      120% 90% at 96% 38%,
-      color-mix(in srgb, var(--accent) 14%, transparent),
-      transparent 60%
-    ),
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--accent) 4%, transparent),
-      transparent 45%
-    );
-  border: 1px solid var(--border-input, rgba(15, 23, 42, 0.06));
+  border: 1.5px solid var(--border-input);
+  /* 热力渐变：左上最热的红 → 右下最冷的蓝，沿对角过渡橙/青，
+     与优先级平面（135deg）同一套热力方向 */
+  background: linear-gradient(
+    135deg,
+    rgba(229, 72, 77, 0.22) 0%,
+    rgba(232, 140, 62, 0.15) 34%,
+    rgba(58, 168, 160, 0.13) 64%,
+    rgba(62, 99, 221, 0.17) 100%
+  );
 }
 
-/* 透视地面：底边宽、向右上方的灭点收拢 */
+/* 透视地面：底边宽、向右上方的灭点收拢，叠在热力渐变之上保留「路」的空间感 */
 .ddl-road-floor {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     180deg,
     transparent 38%,
-    color-mix(in srgb, var(--accent) 7%, transparent) 100%
+    color-mix(in srgb, var(--accent) 6%, transparent) 100%
   );
   clip-path: polygon(0% 100%, 100% 100%, 92% 38%, 88% 38%);
-  opacity: 0.9;
+  opacity: 0.8;
+  pointer-events: none;
 }
 
 /* 「现在 / 你」锚点 */
 .ddl-road-you {
   position: absolute;
-  left: 10px;
+  left: 12px;
   bottom: 12px;
   display: flex;
   align-items: center;
@@ -79,33 +84,40 @@
   box-shadow: 0 0 0 4px var(--accent-glow);
 }
 
+/* 角落方位提示：沿用 matrix-corner 的弱化描述文字 */
 .ddl-you-label {
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   font-weight: 700;
-  color: var(--text-muted);
+  letter-spacing: 0.03em;
+  color: var(--text-heading);
+  opacity: 0.4;
 }
 
 .ddl-road-far-label {
   position: absolute;
   top: calc(38% - 16px);
   right: 12px;
-  font-size: 0.68rem;
-  color: var(--text-faint);
-  letter-spacing: 0.08em;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--text-heading);
+  opacity: 0.32;
 }
 
 .ddl-horizon-empty {
   position: absolute;
-  inset: 0;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   margin: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85rem;
+  max-width: 70%;
+  font-size: 0.72rem;
   color: var(--text-faint);
+  opacity: 0.75;
+  text-align: center;
 }
 
-/* ── 路牌 ── */
+/* ── 路牌（沿用 matrix-tag：芯片式标签） ── */
 .ddl-pin {
   position: absolute;
   transform: translate(-50%, -100%) scale(var(--pin-scale, 1));
@@ -119,11 +131,11 @@
   background: none;
   font: inherit;
   cursor: pointer;
-  transition: opacity 140ms ease, filter 140ms ease;
+  transition: transform 120ms ease, filter 140ms ease, opacity 140ms ease;
 }
 
 .ddl-pin:hover {
-  filter: brightness(1.06);
+  filter: brightness(1.04);
   opacity: 1;
 }
 
@@ -132,19 +144,23 @@
   flex-direction: column;
   align-items: center;
   gap: 1px;
-  padding: 4px 10px;
+  padding: 5px 10px;
   border-radius: 12px;
   max-width: 132px;
   background: var(--card);
-  box-shadow: 0 4px 14px var(--shadow-sm, rgba(15, 23, 42, 0.08));
-  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  border: 1.5px solid var(--border-accent, var(--border-input));
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.ddl-pin:hover .ddl-pin-flag {
+  transform: translateY(-1px);
 }
 
 .ddl-pin-days {
   font-size: 0.82rem;
   font-weight: 800;
   line-height: 1.1;
-  color: var(--accent);
+  color: var(--text-heading);
 }
 
 .ddl-pin-text {
@@ -163,7 +179,7 @@
   height: 16px;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--accent) 60%, transparent),
+    color-mix(in srgb, var(--accent) 55%, transparent),
     transparent
   );
 }
@@ -171,6 +187,9 @@
 /* ── 紧迫度配色 ── */
 .ddl-pin.soon .ddl-pin-flag {
   border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.ddl-pin.soon .ddl-pin-days {
+  color: var(--accent);
 }
 
 .ddl-pin.urgent .ddl-pin-days {
@@ -205,8 +224,11 @@
 }
 
 @media (max-width: 600px) {
+  .ddl-horizon-wrap {
+    padding: 18px;
+  }
   .ddl-horizon-road {
-    height: 150px;
+    height: 260px;
   }
   .ddl-pin-text {
     display: none;

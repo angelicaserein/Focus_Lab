@@ -27,7 +27,7 @@ const isPlaced = (todo) =>
   typeof todo.matrixPos.x === "number" &&
   typeof todo.matrixPos.y === "number";
 
-function TaskTag({ todo, focused, settling, onClick, onDelete, onDragStart, onDragEnd, deleteAria }) {
+function TaskTag({ todo, focused, settling, onClick, onDelete, onDragStart, onDragEnd, onSort, sortCta, sortAria, deleteAria }) {
   return (
     <span
       className={`matrix-tag${focused ? " focused" : ""}${settling ? " settling" : ""}`}
@@ -46,6 +46,19 @@ function TaskTag({ todo, focused, settling, onClick, onDelete, onDragStart, onDr
       title={todo.text}
     >
       <span className="matrix-tag-text">{todo.text}</span>
+      {onSort && (
+        <button
+          type="button"
+          className="matrix-tag-sort"
+          onClick={(e) => {
+            e.stopPropagation();
+            onSort(todo.id);
+          }}
+          aria-label={sortAria}
+        >
+          {sortCta}
+        </button>
+      )}
       <button
         type="button"
         className="matrix-tag-del"
@@ -71,6 +84,9 @@ export default function EisenhowerMatrix() {
   const [overPlane, setOverPlane] = useState(false);
   const [overTray, setOverTray] = useState(false);
   const [settlingId, setSettlingId] = useState(null);
+  // 「分一下」两步问答：sortId=正在归类的任务，sortUrgent=第一题答案（null 表示还在第一步）
+  const [sortId, setSortId] = useState(null);
+  const [sortUrgent, setSortUrgent] = useState(null);
   const planeRef = useRef(null);
 
   // 未完成任务：有合法坐标者摆在平面上，其余进入底部「未分类」托盘
@@ -133,7 +149,32 @@ export default function EisenhowerMatrix() {
     updateTodoProps(id, { matrixPos: undefined });
   };
 
-  const renderTag = (todo) => (
+  // 「分一下」两步问答
+  const startSort = (id) => {
+    setSortId(id);
+    setSortUrgent(null);
+  };
+  const cancelSort = () => {
+    setSortId(null);
+    setSortUrgent(null);
+  };
+  // 第二题作答后，把紧急/重要两答案换算成象限坐标并落位
+  //   横轴：左＝紧急(0.27)、右＝不紧急(0.73)；纵轴：上＝重要(0.27)、下＝不重要(0.73)
+  //   加轻微抖动，避免同象限多张卡完全重叠
+  const finishSort = (important) => {
+    if (!sortId) return;
+    const jitter = () => (Math.random() - 0.5) * 0.12;
+    const x = clamp((sortUrgent ? 0.27 : 0.73) + jitter(), 0.06, 0.94);
+    const y = clamp((important ? 0.27 : 0.73) + jitter(), 0.06, 0.94);
+    updateTodoProps(sortId, { matrixPos: { x, y } });
+    setSettlingId(sortId);
+    setSortId(null);
+    setSortUrgent(null);
+  };
+
+  const sortTodo = sortId ? todos.find((td) => td.id === sortId) : null;
+
+  const renderTag = (todo, sortable = false) => (
     <TaskTag
       key={todo.id}
       todo={todo}
@@ -143,6 +184,9 @@ export default function EisenhowerMatrix() {
       onDelete={deleteTodo}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onSort={sortable ? startSort : undefined}
+      sortCta={t("focus.matrix.sortCta")}
+      sortAria={t("focus.matrix.sortAria", { text: todo.text })}
       deleteAria={t("focus.matrix.deleteAria", { text: todo.text })}
     />
   );
@@ -204,13 +248,20 @@ export default function EisenhowerMatrix() {
             <span className="matrix-plane-empty">{t("focus.matrix.dropHere")}</span>
           )}
 
-          {placed.map((todo) => (
+          {placed.map((todo) => {
+            // 越靠左上（重要且紧急）卡片越大：以到左上角的接近度换算缩放
+            const weight =
+              (1 - todo.matrixPos.x) * 0.5 + (1 - todo.matrixPos.y) * 0.5;
+            const scale = 0.82 + weight * 0.46; // 0.82（右下）→ 1.28（左上）
+            return (
             <div
               key={todo.id}
               className="matrix-node"
               style={{
                 left: `${todo.matrixPos.x * 100}%`,
                 top: `${todo.matrixPos.y * 100}%`,
+                "--matrix-scale": scale.toFixed(3),
+                zIndex: Math.round(weight * 100),
               }}
               onAnimationEnd={() =>
                 setSettlingId((s) => (s === todo.id ? null : s))
@@ -218,7 +269,8 @@ export default function EisenhowerMatrix() {
             >
               {renderTag(todo)}
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -237,12 +289,80 @@ export default function EisenhowerMatrix() {
         <span className="matrix-tray-label">{t("focus.matrix.unclassified")}</span>
         <div className="matrix-tray-tags">
           {unplaced.length > 0 ? (
-            unplaced.map(renderTag)
+            unplaced.map((todo) => renderTag(todo, true))
           ) : (
             <span className="matrix-cell-empty">{t("focus.matrix.trayEmpty")}</span>
           )}
         </div>
       </div>
+
+      {/* 两步是非题：把「感觉放哪」拆成两个封闭问题，自动落到象限 */}
+      {sortTodo && (
+        <div className="matrix-sort-overlay" onClick={cancelSort} role="presentation">
+          <div
+            className="matrix-sort-card"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label={t("focus.matrix.sortHeading", { text: sortTodo.text })}
+          >
+            <span className="matrix-sort-heading">
+              {t("focus.matrix.sortHeading", { text: sortTodo.text })}
+            </span>
+
+            <p className="matrix-sort-question">
+              {sortUrgent === null
+                ? t("focus.matrix.qUrgent")
+                : t("focus.matrix.qImportant")}
+            </p>
+
+            <div className="matrix-sort-answers">
+              <button
+                type="button"
+                className="matrix-sort-answer yes"
+                onClick={() =>
+                  sortUrgent === null ? setSortUrgent(true) : finishSort(true)
+                }
+              >
+                {t("focus.matrix.answerYes")}
+              </button>
+              <button
+                type="button"
+                className="matrix-sort-answer no"
+                onClick={() =>
+                  sortUrgent === null ? setSortUrgent(false) : finishSort(false)
+                }
+              >
+                {t("focus.matrix.answerNo")}
+              </button>
+            </div>
+
+            <div className="matrix-sort-footer">
+              <div className="matrix-sort-steps" aria-hidden="true">
+                <span className="matrix-sort-dot active" />
+                <span className={`matrix-sort-dot${sortUrgent !== null ? " active" : ""}`} />
+              </div>
+              {sortUrgent !== null ? (
+                <button
+                  type="button"
+                  className="matrix-sort-nav"
+                  onClick={() => setSortUrgent(null)}
+                >
+                  {t("focus.matrix.sortBack")}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="matrix-sort-nav"
+                  onClick={cancelSort}
+                >
+                  {t("focus.matrix.sortCancel")}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

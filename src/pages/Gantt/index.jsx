@@ -1,33 +1,40 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
+import { Pencil, Plus, Check, RotateCcw } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { WEEKS, LANES, TOTAL_WEEKS, laneRowCount } from "./ganttData";
+import { WEEKS, LANES, TOTAL_WEEKS, buildLayout } from "./ganttData";
+import useGanttTasks from "./useGanttTasks";
+import GanttTaskModal from "./GanttTaskModal";
 import "./Gantt.css";
-
-// 把三条泳道摊平成带「绝对网格行号」的渲染指令：
-//   grid 第 1 行是周表头；之后每条泳道占 rowCount 行，依次往下排。
-// 这样一整张甘特图就是一个 CSS grid，表头列和任务列天然对齐。
-function useGanttLayout() {
-  return useMemo(() => {
-    const lanes = [];
-    let cursor = 2; // 第 1 行留给周表头
-    for (const lane of LANES) {
-      const rows = laneRowCount(lane);
-      lanes.push({ ...lane, startRow: cursor, rows });
-      cursor += rows;
-    }
-    const totalRows = cursor - 1; // 含表头的总行数
-    return { lanes, totalRows };
-  }, []);
-}
 
 export default function GanttPage() {
   const { t } = useLanguage();
-  const { lanes, totalRows } = useGanttLayout();
+  const { tasks, addTask, updateTask, removeTask, resetTasks } = useGanttTasks();
 
-  const taskCount = useMemo(
-    () => LANES.reduce((sum, l) => sum + l.tasks.length, 0),
-    [],
-  );
+  const [editing, setEditing] = useState(false);
+  // draft: null=关闭；{}=新增；{id,...}=编辑某条
+  const [draft, setDraft] = useState(null);
+
+  const { lanes, totalRows } = useMemo(() => buildLayout(tasks), [tasks]);
+
+  const handleSave = (patch) => {
+    if (draft?.id) updateTask(draft.id, patch);
+    else addTask(patch);
+    setDraft(null);
+  };
+
+  const handleDelete = (id) => {
+    removeTask(id);
+    setDraft(null);
+  };
+
+  const handleReset = () => {
+    if (window.confirm(t("gantt.edit.resetConfirm"))) resetTasks();
+  };
+
+  // 点任务条：编辑模式下打开编辑弹窗
+  const onBarClick = (task) => {
+    if (editing) setDraft(task);
+  };
 
   return (
     <div className="page-gantt">
@@ -44,7 +51,7 @@ export default function GanttPage() {
           <div className="gantt-summary-label">{t("gantt.stat.weeks")}</div>
         </div>
         <div className="gantt-summary-card">
-          <div className="gantt-summary-value">{taskCount}</div>
+          <div className="gantt-summary-value">{tasks.length}</div>
           <div className="gantt-summary-label">{t("gantt.stat.tasks")}</div>
         </div>
         <div className="gantt-summary-card">
@@ -55,15 +62,40 @@ export default function GanttPage() {
 
       {/* ── 甘特图卡片 ── */}
       <section className="gantt-card">
+        {/* 工具栏：编辑开关 + 新增 / 重置 */}
+        <div className="gantt-toolbar">
+          {editing && (
+            <>
+              <button type="button" className="gantt-btn primary sm" onClick={() => setDraft({})}>
+                <Plus size={15} aria-hidden="true" />
+                {t("gantt.edit.add")}
+              </button>
+              <button type="button" className="gantt-btn ghost sm" onClick={handleReset}>
+                <RotateCcw size={14} aria-hidden="true" />
+                {t("gantt.edit.reset")}
+              </button>
+            </>
+          )}
+          <button
+            type="button"
+            className={`gantt-btn sm ${editing ? "primary" : "ghost"}`}
+            style={{ marginLeft: "auto" }}
+            onClick={() => setEditing((v) => !v)}
+          >
+            {editing ? <Check size={15} aria-hidden="true" /> : <Pencil size={14} aria-hidden="true" />}
+            {t(editing ? "gantt.edit.done" : "gantt.edit.enter")}
+          </button>
+        </div>
+
         <div className="gantt-scroll">
           <div
-            className="gantt-grid"
+            className={`gantt-grid${editing ? " is-editing" : ""}`}
             style={{
               "--weeks": TOTAL_WEEKS,
               gridTemplateRows: `auto repeat(${totalRows - 1}, minmax(46px, auto))`,
             }}
           >
-            {/* 泳道底色带（铺在最底层） */}
+            {/* 泳道底色带 */}
             {lanes.map((lane) => (
               <div
                 key={`band-${lane.id}`}
@@ -72,19 +104,16 @@ export default function GanttPage() {
               />
             ))}
 
-            {/* 竖向周分隔线（覆盖所有泳道行） */}
+            {/* 竖向周分隔线 */}
             {WEEKS.map((_, i) => (
               <div
                 key={`guide-${i}`}
                 className="gantt-guide"
-                style={{
-                  gridColumn: i + 2,
-                  gridRow: `2 / span ${totalRows - 1}`,
-                }}
+                style={{ gridColumn: i + 2, gridRow: `2 / span ${totalRows - 1}` }}
               />
             ))}
 
-            {/* 左上角：Timeline 表头 */}
+            {/* 左上角 Timeline 表头 */}
             <div className="gantt-corner">{t("gantt.timeline")}</div>
 
             {/* 周表头 */}
@@ -107,25 +136,39 @@ export default function GanttPage() {
             ))}
 
             {/* 任务条 */}
-            {lanes.map((lane) =>
-              lane.tasks.map((task, i) => (
-                <div
-                  key={`${lane.id}-${i}`}
+            {lanes.flatMap((lane) =>
+              lane.tasks.map((task) => (
+                <button
+                  key={task.id}
+                  type="button"
                   className={`gantt-bar lane-${lane.id}`}
+                  disabled={!editing}
                   style={{
                     gridColumn: `${task.start + 1} / ${task.end + 2}`,
                     gridRow: lane.startRow + task.row,
                   }}
+                  onClick={() => onBarClick(task)}
                   title={`${task.title} · ${WEEKS[task.start - 1].label}–${WEEKS[task.end - 1].label}`}
                 >
                   <span className="gantt-bar-title">{task.title}</span>
-                  <span className="gantt-bar-tag">{task.tag}</span>
-                </div>
+                  {task.tag && <span className="gantt-bar-tag">{task.tag}</span>}
+                </button>
               )),
             )}
           </div>
         </div>
+
+        {editing && <p className="gantt-edithint">{t("gantt.edit.hint")}</p>}
       </section>
+
+      {draft !== null && (
+        <GanttTaskModal
+          draft={draft}
+          onSave={handleSave}
+          onDelete={handleDelete}
+          onClose={() => setDraft(null)}
+        />
+      )}
     </div>
   );
 }

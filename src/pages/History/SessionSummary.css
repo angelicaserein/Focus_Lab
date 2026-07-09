@@ -1,4 +1,4 @@
-/* ── 历史随记 & 分心记录（左栏持久展示） ── */
+/* ── 历史页：随记 & 分心记录回顾卡 ── */
 .session-summary {
   background: var(--card);
   border: 1px solid var(--border-input);

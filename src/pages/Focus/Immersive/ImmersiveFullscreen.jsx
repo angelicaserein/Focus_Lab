@@ -11,6 +11,11 @@ function isTyping() {
 
 // 沉浸模式右上角全屏开关：按钮 + F 快捷键提示。
 // 用浏览器原生 Fullscreen API 隐藏系统/浏览器边框，强化专注。
+// 手机 / PWA 无物理键盘、且 PWA 本就全屏，此开关无意义，直接不渲染。
+const isMobile =
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(max-width: 600px)").matches;
+
 export default function ImmersiveFullscreen() {
   const [isFullscreen, setIsFullscreen] = useState(() => !!document.fullscreenElement);
 
@@ -31,6 +36,7 @@ export default function ImmersiveFullscreen() {
 
   // F 键切换全屏（输入时不拦截）
   useEffect(() => {
+    if (isMobile) return undefined;
     const onKey = (e) => {
       if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.key.toLowerCase() !== "f") return;
@@ -41,6 +47,8 @@ export default function ImmersiveFullscreen() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [toggle]);
+
+  if (isMobile) return null;
 
   return (
     <button

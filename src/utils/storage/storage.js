@@ -113,6 +113,7 @@ const KEY_MAP = {
   distractions:  { key: STORAGE_KEYS.DISTRACTIONS     },
   chatHistory:   { key: STORAGE_KEYS.CHAT             },
   researchDaily: { key: STORAGE_KEYS.RESEARCH_RECORDS },
+  ganttTasks:    { key: STORAGE_KEYS.GANTT_TASKS      },
   taskAttrs:     { key: STORAGE_KEYS.TASK_ATTRS       },
   databases:     { key: STORAGE_KEYS.DATABASES        },
 };

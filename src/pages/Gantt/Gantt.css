@@ -165,11 +165,14 @@
   color: color-mix(in srgb, var(--lane) 78%, var(--text-heading));
 }
 
-/* 任务条 */
+/* 任务条（是个 button，做好样式重置） */
 .gantt-bar {
   z-index: 1;
   margin: 1px 3px;
   min-width: 0;
+  width: auto;
+  text-align: left;
+  font-family: inherit;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -179,12 +182,25 @@
   border: 1px solid color-mix(in srgb, var(--lane) 40%, transparent);
   box-shadow: 0 1px 4px var(--shadow-xs);
   cursor: default;
-  transition: transform 140ms cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow 140ms;
+  transition: transform 140ms cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow 140ms,
+    outline-color 140ms;
+  outline: 2px solid transparent;
+  outline-offset: 1px;
 }
 
-.gantt-bar:hover {
+.gantt-bar:disabled {
+  cursor: default;
+}
+
+/* 编辑模式下任务条可点，给出可交互的手感 */
+.gantt-grid.is-editing .gantt-bar {
+  cursor: pointer;
+}
+
+.gantt-grid.is-editing .gantt-bar:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px var(--shadow-sm);
+  outline-color: color-mix(in srgb, var(--lane) 60%, transparent);
 }
 
 .gantt-bar-title {
@@ -228,8 +244,195 @@
   --bar: color-mix(in srgb, var(--lane) 22%, var(--card));
 }
 
+/* ── 工具栏 ── */
+.gantt-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 2px 12px;
+}
+
+.gantt-edithint {
+  margin: 10px 2px 0;
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
+/* ── 通用按钮 ── */
+.gantt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1.5px solid transparent;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 160ms, color 160ms, border-color 160ms, opacity 160ms;
+}
+
+.gantt-btn.sm {
+  padding: 6px 13px;
+  font-size: 0.78rem;
+}
+
+.gantt-btn.primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 14px var(--accent-glow);
+}
+.gantt-btn.primary:hover {
+  background: var(--accent-deep);
+}
+.gantt-btn.primary:disabled {
+  opacity: 0.5;
+  cursor: default;
+  box-shadow: none;
+}
+
+.gantt-btn.ghost {
+  background: var(--accent-bg);
+  color: var(--accent-mid);
+  border-color: var(--border-accent);
+}
+.gantt-btn.ghost:hover {
+  background: var(--accent-bg-dim);
+}
+
+.gantt-btn.danger {
+  background: var(--danger-subtle);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 28%, transparent);
+}
+.gantt-btn.danger:hover {
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+}
+
+/* ── 编辑弹窗 ── */
+.gantt-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: color-mix(in srgb, var(--text-heading) 34%, transparent);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.gantt-modal {
+  width: min(460px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  border-radius: 22px;
+  box-shadow: 0 18px 50px var(--glass-shadow);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.gantt-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.gantt-modal-head h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.gantt-modal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent-bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 160ms, color 160ms;
+}
+.gantt-modal-close:hover {
+  background: var(--accent-bg-dim);
+  color: var(--accent-mid);
+}
+
+.gantt-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.gantt-field > span {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.gantt-field input,
+.gantt-field select {
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-input);
+  background: var(--card);
+  color: var(--text-body);
+  font-family: inherit;
+  font-size: 0.88rem;
+  transition: border-color 160ms, box-shadow 160ms;
+}
+
+.gantt-field input:focus,
+.gantt-field select:focus {
+  outline: none;
+  border-color: var(--border-accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.gantt-field-row {
+  display: flex;
+  gap: 12px;
+}
+
+.gantt-modal-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.gantt-modal-foot-right {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.gantt-modal-hint {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
 /* ── Responsive ── */
 @media (max-width: 640px) {
+  .gantt-field-row {
+    flex-direction: column;
+    gap: 12px;
+  }
   .gantt-summary {
     gap: 8px;
   }
