@@ -74,6 +74,69 @@
   color: rgba(255, 255, 255, 0.75);
 }
 
+/* ── 项目切换条 ── */
+.gantt-projbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.gantt-projtab {
+  padding: 7px 15px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 160ms, color 160ms, border-color 160ms;
+}
+.gantt-projtab:hover {
+  border-color: var(--border-accent);
+  color: var(--accent-mid);
+}
+.gantt-projtab.is-active {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 14px var(--accent-glow);
+}
+.gantt-projtab.add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent-mid);
+  border-style: dashed;
+}
+.gantt-projtab.add:hover {
+  background: var(--accent-bg);
+}
+
+/* ── 空状态 ── */
+.gantt-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 48px 24px;
+  background: var(--card);
+  border: 1.5px dashed var(--border-card);
+  border-radius: 24px;
+  text-align: center;
+}
+.gantt-empty.inner {
+  padding: 40px 24px;
+  border: none;
+}
+.gantt-empty p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
 /* ── 甘特图卡片 ── */
 .gantt-card {
   background: var(--card);
@@ -91,7 +154,7 @@
 
 .gantt-grid {
   display: grid;
-  grid-template-columns: 96px repeat(var(--weeks), minmax(64px, 1fr));
+  grid-template-columns: 96px repeat(var(--cols), minmax(64px, 1fr));
   min-width: 920px;
   column-gap: 0;
   row-gap: 6px;
@@ -230,18 +293,22 @@
   box-shadow: 0 1px 2px var(--shadow-xs);
 }
 
-/* ── 三条泳道的配色（全部由主色 --accent 派生，跟随主题切换） ── */
-.lane-documentation {
+/* ── 泳道配色：按渲染顺序循环取 4 档，全部由主色 --accent 派生，跟随主题切换 ── */
+.lane-0 {
   --lane: var(--accent);
   --bar: color-mix(in srgb, var(--accent) 32%, var(--card));
 }
-.lane-development {
+.lane-1 {
   --lane: color-mix(in srgb, var(--accent) 82%, var(--text-heading));
   --bar: color-mix(in srgb, var(--lane) 26%, var(--card));
 }
-.lane-evaluation {
+.lane-2 {
   --lane: color-mix(in srgb, var(--accent) 62%, var(--accent-deep));
   --bar: color-mix(in srgb, var(--lane) 22%, var(--card));
+}
+.lane-3 {
+  --lane: color-mix(in srgb, var(--accent) 70%, var(--accent-mid, var(--accent)));
+  --bar: color-mix(in srgb, var(--lane) 24%, var(--card));
 }
 
 /* ── 工具栏 ── */
@@ -425,6 +492,97 @@
   margin: 0;
   font-size: 0.72rem;
   color: var(--text-faint);
+}
+
+/* ── 泳道管理列表（项目设置弹窗内） ── */
+.gantt-lanelist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gantt-lanerow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gantt-lanerow input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 11px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-input);
+  background: var(--card);
+  color: var(--text-body);
+  font-family: inherit;
+  font-size: 0.86rem;
+  transition: border-color 160ms, box-shadow 160ms;
+}
+.gantt-lanerow input:focus {
+  outline: none;
+  border-color: var(--border-accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.gantt-lanerow-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.gantt-iconbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 140ms, color 140ms, border-color 140ms, opacity 140ms;
+}
+.gantt-iconbtn:hover:not(:disabled) {
+  border-color: var(--border-accent);
+  color: var(--accent-mid);
+}
+.gantt-iconbtn.danger:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+  color: var(--danger);
+}
+.gantt-iconbtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.gantt-laneadd {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.gantt-laneadd input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 11px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-input);
+  background: var(--card);
+  color: var(--text-body);
+  font-family: inherit;
+  font-size: 0.86rem;
+}
+.gantt-laneadd input:focus {
+  outline: none;
+  border-color: var(--border-accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+.gantt-laneadd .gantt-btn {
+  flex-shrink: 0;
 }
 
 /* ── Responsive ── */

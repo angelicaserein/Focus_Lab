@@ -9,7 +9,8 @@ import "./EisenhowerMatrix.css";
 //   横轴＝紧急度（左紧急、右不紧急），纵轴＝重要度（上重要、下不重要）。
 //   背景红→蓝热力渐变：越靠左上越「热」（重要且紧急）。
 //   落点写入 todo.matrixPos={x,y}（均为 0..1）；拖回底部托盘则清空定位。
-//   放下瞬间卡片轻晃几下再稳住，模拟落在天平上的手感。
+//   卡片大小随落点变化：越靠左上越大——拖动时用指针事件驱动，
+//   跟随光标的「幽灵卡」会实时缩放，边拖边变大/变小。
 //   点击标签＝加入/移出本次专注（与左栏「已选任务」联动）。
 
 // 四角象限暗示文字（沿用原 q1..q4 文案，仅作方位提示，不再是可落区）
@@ -22,25 +23,28 @@ const CORNERS = [
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
+// 落点 → 缩放：越靠左上（x、y 都小）越大。0.72（右下）→ 1.5（左上），对比更明显
+const scaleFor = (x, y) => 0.72 + ((1 - x) * 0.5 + (1 - y) * 0.5) * 0.78;
+
+// 拖动开始的位移阈值（px）：小于此值视作「点击」而非「拖动」
+const DRAG_THRESHOLD = 5;
+
 const isPlaced = (todo) =>
   !!todo.matrixPos &&
   typeof todo.matrixPos.x === "number" &&
   typeof todo.matrixPos.y === "number";
 
-function TaskTag({ todo, focused, settling, onClick, onDelete, onDragStart, onDragEnd, onSort, sortCta, sortAria, deleteAria }) {
+function TaskTag({ todo, focused, settling, dragging, onActivate, onDelete, onPointerDown, onSort, sortCta, sortAria, deleteAria }) {
   return (
     <span
-      className={`matrix-tag${focused ? " focused" : ""}${settling ? " settling" : ""}`}
-      draggable
-      onDragStart={(e) => onDragStart(e, todo.id)}
-      onDragEnd={onDragEnd}
-      onClick={() => onClick(todo.id)}
+      className={`matrix-tag${focused ? " focused" : ""}${settling ? " settling" : ""}${dragging ? " dragging" : ""}`}
+      onPointerDown={(e) => onPointerDown(e, todo)}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          onClick(todo.id);
+          onActivate(todo.id);
         }
       }}
       title={todo.text}
@@ -80,14 +84,16 @@ export default function EisenhowerMatrix() {
   const { t } = useLanguage();
 
   const [draft, setDraft] = useState("");
-  const [dragId, setDragId] = useState(null);
-  const [overPlane, setOverPlane] = useState(false);
-  const [overTray, setOverTray] = useState(false);
+  // 正在拖动的「幽灵卡」状态：{ id, text, x, y, scale, zone }（x/y 为视口坐标）
+  const [drag, setDrag] = useState(null);
   const [settlingId, setSettlingId] = useState(null);
   // 「分一下」两步问答：sortId=正在归类的任务，sortUrgent=第一题答案（null 表示还在第一步）
   const [sortId, setSortId] = useState(null);
   const [sortUrgent, setSortUrgent] = useState(null);
   const planeRef = useRef(null);
+  const trayRef = useRef(null);
+  // 拖动过程数据放 ref，避免 pointermove 里读到过期闭包
+  const dragRef = useRef(null);
 
   // 未完成任务：有合法坐标者摆在平面上，其余进入底部「未分类」托盘
   const { placed, unplaced } = useMemo(() => {
@@ -108,45 +114,85 @@ export default function EisenhowerMatrix() {
     setDraft("");
   };
 
-  const handleDragStart = (e, id) => {
-    setDragId(id);
-    e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("text/plain", id);
+  // 命中测试：光标落在平面 / 托盘 / 别处，并给出平面上的 0..1 坐标
+  const resolveZone = (clientX, clientY) => {
+    const inside = (r) =>
+      r && clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
+    const planeRect = planeRef.current?.getBoundingClientRect();
+    if (inside(planeRect)) {
+      const x = clamp((clientX - planeRect.left) / planeRect.width, 0.045, 0.955);
+      const y = clamp((clientY - planeRect.top) / planeRect.height, 0.06, 0.94);
+      return { zone: "plane", x, y };
+    }
+    const trayRect = trayRef.current?.getBoundingClientRect();
+    if (inside(trayRect)) return { zone: "tray", x: 0, y: 0 };
+    return { zone: null, x: 0, y: 0 };
   };
 
-  const handleDragEnd = () => {
-    setDragId(null);
-    setOverPlane(false);
-    setOverTray(false);
+  const stopDragListeners = () => {
+    window.removeEventListener("pointermove", handleMove);
+    window.removeEventListener("pointerup", handleUp);
+    window.removeEventListener("pointercancel", handleCancel);
   };
 
-  const allow = (e) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  };
+  function handleMove(e) {
+    const d = dragRef.current;
+    if (!d) return;
+    if (!d.moved) {
+      if (Math.hypot(e.clientX - d.startX, e.clientY - d.startY) < DRAG_THRESHOLD) return;
+      d.moved = true;
+    }
+    const { zone, x, y } = resolveZone(e.clientX, e.clientY);
+    // 平面内按落点实时缩放；托盘/别处给个统一的小尺寸
+    const scale = zone === "plane" ? scaleFor(x, y) : 0.9;
+    d.zone = zone;
+    setDrag({ id: d.id, text: d.text, x: e.clientX, y: e.clientY, scale, zone });
+  }
 
-  // 落在平面：按光标位置换算 0..1 坐标（卡片中心对准落点），并触发回摆
-  const dropOnPlane = (e) => {
-    e.preventDefault();
-    const id = dragId || e.dataTransfer.getData("text/plain");
-    setOverPlane(false);
-    setDragId(null);
-    if (!id || !planeRef.current) return;
-    const rect = planeRef.current.getBoundingClientRect();
-    const x = clamp((e.clientX - rect.left) / rect.width, 0.045, 0.955);
-    const y = clamp((e.clientY - rect.top) / rect.height, 0.06, 0.94);
-    updateTodoProps(id, { matrixPos: { x, y } });
-    setSettlingId(id);
-  };
+  function handleUp(e) {
+    stopDragListeners();
+    const d = dragRef.current;
+    dragRef.current = null;
+    if (!d) return;
+    if (!d.moved) {
+      // 没怎么动 → 当作点击：加入/移出本次专注
+      toggleFocusTodo(d.id);
+      setDrag(null);
+      return;
+    }
+    const { zone, x, y } = resolveZone(e.clientX, e.clientY);
+    if (zone === "plane") {
+      updateTodoProps(d.id, { matrixPos: { x, y } });
+      setSettlingId(d.id);
+    } else if (zone === "tray") {
+      updateTodoProps(d.id, { matrixPos: undefined });
+    }
+    // 落在别处：不改动，卡片回到原位
+    setDrag(null);
+  }
 
-  // 拖回托盘：清空定位
-  const dropOnTray = (e) => {
-    e.preventDefault();
-    const id = dragId || e.dataTransfer.getData("text/plain");
-    setOverTray(false);
-    setDragId(null);
-    if (!id) return;
-    updateTodoProps(id, { matrixPos: undefined });
+  function handleCancel() {
+    stopDragListeners();
+    dragRef.current = null;
+    setDrag(null);
+  }
+
+  const handlePointerDown = (e, todo) => {
+    // 只响应主键（左键/触摸/笔），且不抢删除/分一下按钮的点击
+    if (e.button !== undefined && e.button !== 0) return;
+    if (e.target.closest("button")) return;
+    e.preventDefault(); // 避免拖动时选中文字
+    dragRef.current = {
+      id: todo.id,
+      text: todo.text,
+      startX: e.clientX,
+      startY: e.clientY,
+      moved: false,
+      zone: null,
+    };
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp);
+    window.addEventListener("pointercancel", handleCancel);
   };
 
   // 「分一下」两步问答
@@ -180,16 +226,19 @@ export default function EisenhowerMatrix() {
       todo={todo}
       focused={isFocused(todo.id)}
       settling={settlingId === todo.id}
-      onClick={toggleFocusTodo}
+      dragging={drag?.id === todo.id}
+      onActivate={toggleFocusTodo}
       onDelete={deleteTodo}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
+      onPointerDown={handlePointerDown}
       onSort={sortable ? startSort : undefined}
       sortCta={t("focus.matrix.sortCta")}
       sortAria={t("focus.matrix.sortAria", { text: todo.text })}
       deleteAria={t("focus.matrix.deleteAria", { text: todo.text })}
     />
   );
+
+  const overPlane = drag?.zone === "plane";
+  const overTray = drag?.zone === "tray";
 
   return (
     <div className="matrix-container" aria-label={t("focus.matrix.title")}>
@@ -229,14 +278,6 @@ export default function EisenhowerMatrix() {
         <div
           ref={planeRef}
           className={`matrix-plane${overPlane ? " drag-over" : ""}`}
-          onDragOver={(e) => {
-            allow(e);
-            if (!overPlane) setOverPlane(true);
-          }}
-          onDragLeave={(e) => {
-            if (e.currentTarget === e.target) setOverPlane(false);
-          }}
-          onDrop={dropOnPlane}
         >
           {CORNERS.map((c) => (
             <span key={c.id} className={`matrix-corner ${c.pos}`} aria-hidden="true">
@@ -250,25 +291,24 @@ export default function EisenhowerMatrix() {
 
           {placed.map((todo) => {
             // 越靠左上（重要且紧急）卡片越大：以到左上角的接近度换算缩放
-            const weight =
-              (1 - todo.matrixPos.x) * 0.5 + (1 - todo.matrixPos.y) * 0.5;
-            const scale = 0.82 + weight * 0.46; // 0.82（右下）→ 1.28（左上）
+            const weight = (1 - todo.matrixPos.x) * 0.5 + (1 - todo.matrixPos.y) * 0.5;
+            const scale = scaleFor(todo.matrixPos.x, todo.matrixPos.y);
             return (
-            <div
-              key={todo.id}
-              className="matrix-node"
-              style={{
-                left: `${todo.matrixPos.x * 100}%`,
-                top: `${todo.matrixPos.y * 100}%`,
-                "--matrix-scale": scale.toFixed(3),
-                zIndex: Math.round(weight * 100),
-              }}
-              onAnimationEnd={() =>
-                setSettlingId((s) => (s === todo.id ? null : s))
-              }
-            >
-              {renderTag(todo)}
-            </div>
+              <div
+                key={todo.id}
+                className="matrix-node"
+                style={{
+                  left: `${todo.matrixPos.x * 100}%`,
+                  top: `${todo.matrixPos.y * 100}%`,
+                  "--matrix-scale": scale.toFixed(3),
+                  zIndex: Math.round(weight * 100),
+                }}
+                onAnimationEnd={() =>
+                  setSettlingId((s) => (s === todo.id ? null : s))
+                }
+              >
+                {renderTag(todo)}
+              </div>
             );
           })}
         </div>
@@ -276,15 +316,8 @@ export default function EisenhowerMatrix() {
 
       {/* 未分类托盘：新建任务先落这里，拖入平面完成摆放 */}
       <div
+        ref={trayRef}
         className={`matrix-tray${overTray ? " drag-over" : ""}`}
-        onDragOver={(e) => {
-          allow(e);
-          if (!overTray) setOverTray(true);
-        }}
-        onDragLeave={(e) => {
-          if (e.currentTarget === e.target) setOverTray(false);
-        }}
-        onDrop={dropOnTray}
       >
         <span className="matrix-tray-label">{t("focus.matrix.unclassified")}</span>
         <div className="matrix-tray-tags">
@@ -295,6 +328,23 @@ export default function EisenhowerMatrix() {
           )}
         </div>
       </div>
+
+      {/* 跟随光标的「幽灵卡」：实时缩放，越靠左上越大 */}
+      {drag && (
+        <div
+          className="matrix-drag-ghost"
+          style={{
+            left: `${drag.x}px`,
+            top: `${drag.y}px`,
+            transform: `translate(-50%, -50%) scale(${drag.scale})`,
+          }}
+          aria-hidden="true"
+        >
+          <span className={`matrix-tag${isFocused(drag.id) ? " focused" : ""}`}>
+            <span className="matrix-tag-text">{drag.text}</span>
+          </span>
+        </div>
+      )}
 
       {/* 两步是非题：把「感觉放哪」拆成两个封闭问题，自动落到象限 */}
       {sortTodo && (

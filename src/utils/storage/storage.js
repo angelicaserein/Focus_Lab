@@ -114,6 +114,7 @@ const KEY_MAP = {
   chatHistory:   { key: STORAGE_KEYS.CHAT             },
   researchDaily: { key: STORAGE_KEYS.RESEARCH_RECORDS },
   ganttTasks:    { key: STORAGE_KEYS.GANTT_TASKS      },
+  ganttProjects: { key: STORAGE_KEYS.GANTT_PROJECTS   },
   taskAttrs:     { key: STORAGE_KEYS.TASK_ATTRS       },
   databases:     { key: STORAGE_KEYS.DATABASES        },
 };

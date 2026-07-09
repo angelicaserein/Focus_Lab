@@ -14,8 +14,11 @@ export const STORAGE_KEYS = {
   MEMOS:            "memos_v1",
   // 研究日志
   RESEARCH_RECORDS: "research_daily_v1",
-  // 项目甘特图：可编辑的任务列表（扁平结构，行号在渲染时按贪心排布，不落库）
+  // 项目甘特图：v1 是单张写死研究计划的任务列表（已废弃，保留仅为兼容旧数据）
   GANTT_TASKS:      "gantt_tasks_v1",
+  // 通用甘特图 maker（v2 起）：多项目，每个项目含独立时间轴 / 泳道 / 任务
+  GANTT_PROJECTS:       "gantt_projects_v1",
+  GANTT_ACTIVE_PROJECT: "gantt_active_project_v1",
   // 奖励系统
   COINS:            "coins_v1",
   REWARD_OWNED:     "reward_owned_v1",
