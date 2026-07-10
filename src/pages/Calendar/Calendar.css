@@ -1,6 +1,6 @@
 /* ── Calendar / Timeline page ── */
 .page-calendar {
-  width: min(980px, 100%);
+  width: min(1200px, 100%);
   margin: 0 auto;
   padding: 8px 0 64px;
   display: flex;
