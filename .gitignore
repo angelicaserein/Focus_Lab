@@ -25,7 +25,13 @@ Thumbs.db
 # 本地待办 / 临时笔记（不进版本库）
 待办/
 
-# 论文编辑产生的临时 / 备份文件（不进版本库）
+# 论文草稿与编辑产生的临时 / 备份文件（不进版本库；研究稿件不入应用仓库）
+paper/
 *.bak
 paper_change_summary.txt
 paper_debug_excerpt.txt
+
+# 散落的截图 / 调试图（根目录不应有图片）
+/*.png
+/*.jpg
+/*.jpeg
