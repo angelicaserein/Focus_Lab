@@ -7,22 +7,19 @@
 //
 //  三种模式（与 aiChat.js / aiTasks.js 对齐，自动切换）：
 //  1. 生产环境（Vercel）→ 调用 /api/recommend 代理，API key 在服务器侧
-//  2. 本地开发 + 有 VITE_ANTHROPIC_API_KEY → 直接调用 SDK
+//  2. 本地开发 + 有 VITE_OPENAI_API_KEY → 直接调用 SDK
 //  3. 本地开发 + 无 key → 离线示例（给规则 Top1 套一句通用理由，便于跑通 UI）
 // ──────────────────────────────────────────────────────────────
 //
-//  注意：@anthropic-ai/sdk 只在「本地开发 + 有 key」这一分支用得到，且它是
+//  注意：openai SDK 只在「本地开发 + 有 key」这一分支用得到，且它是
 //  面向服务端的重依赖。这里用动态 import() 按需加载，避免把它静态打进浏览器
 //  懒加载 chunk —— 否则首次进入本页会触发 Vite 运行时重新优化依赖、整页刷新，
 //  期间新旧两份 React 并存导致「Invalid hook call / dispatcher is null」。
+//  三模式的机械件（配置 / hasApiKey / delay / SDK 直连 / 代理请求 / JSON 提取）见 aiClient.js。
 
-const API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || "";
-const IS_PROD = import.meta.env.PROD;
-const AI_MODEL = "claude-haiku-4-5-20251001";
+import { IS_PROD, hasApiKey, delay, chatComplete, postProxy, extractJson } from "@/utils/ai/aiClient";
 
-const delay = (ms) => new Promise((r) => setTimeout(r, ms));
-
-export const hasApiKey = () => Boolean(API_KEY) || IS_PROD;
+export { hasApiKey };
 
 // ── prompt 构建 ──────────────────────────────────────────────
 
@@ -70,20 +67,9 @@ export function buildUserPayload(candidates, { scenario, envProfile } = {}) {
 // 鲁棒解析模型输出：剥代码围栏、定位首个 JSON 对象、失败兜底空结果。
 // 返回 { order: string[], reasons: Record<id,string> }。
 export function parseRecommendJson(raw) {
-  const empty = { order: [], reasons: {} };
-  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
-    return normalizeResult(raw);
-  }
-  if (typeof raw !== "string") return empty;
-  let s = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
-  const start = s.indexOf("{");
-  const end = s.lastIndexOf("}");
-  if (start === -1 || end === -1 || end < start) return empty;
-  try {
-    return normalizeResult(JSON.parse(s.slice(start, end + 1)));
-  } catch {
-    return empty;
-  }
+  const obj =
+    raw && typeof raw === "object" && !Array.isArray(raw) ? raw : extractJson(raw, "object");
+  return obj ? normalizeResult(obj) : { order: [], reasons: {} };
 }
 
 function normalizeResult(obj) {
@@ -105,7 +91,7 @@ export async function rerankRecommendations(candidates, { scenario, envProfile }
   if (!candidates?.length) return { order: [], reasons: {} };
 
   // 本地开发且无 key → 离线示例：保持规则顺序，给 Top1 一句通用理由。
-  if (!API_KEY && !IS_PROD) {
+  if (!hasApiKey()) {
     await delay(400 + Math.random() * 300);
     const order = candidates.map((c) => c.id);
     const top = candidates[0];
@@ -115,29 +101,17 @@ export async function rerankRecommendations(candidates, { scenario, envProfile }
     };
   }
 
-  const payload = buildUserPayload(candidates, { scenario, envProfile });
-
   // 生产环境 → 服务器代理
   if (IS_PROD) {
-    const resp = await fetch("/api/recommend", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ candidates, scenario, envProfile }),
-    });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const { result } = await resp.json();
+    const { result } = await postProxy("/api/recommend", { candidates, scenario, envProfile });
     return parseRecommendJson(result);
   }
 
-  // 本地开发 + 有 key → 直连 SDK（按需动态加载，避免静态打进浏览器 chunk）
-  const { default: Anthropic } = await import("@anthropic-ai/sdk");
-  const client = new Anthropic({ apiKey: API_KEY, dangerouslyAllowBrowser: true });
-  const resp = await client.messages.create({
-    model: AI_MODEL,
-    max_tokens: 512,
+  // 本地开发 + 有 key → 直连 SDK
+  const raw = await chatComplete({
     system: buildSystemPrompt(),
-    messages: [{ role: "user", content: payload }],
+    user: buildUserPayload(candidates, { scenario, envProfile }),
+    maxTokens: 512,
   });
-  const raw = resp.content.map((b) => b.text).join("");
   return parseRecommendJson(raw);
 }

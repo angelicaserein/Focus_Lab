@@ -25,34 +25,40 @@ export function companionLine(t, mood = "idle", rng = Math.random) {
 // hue 决定身体渐变主色；badge 是头顶的小饰物 emoji（与全 app 的 emoji 风格一致）。
 export const DEFAULT_LOOK = { hue: 43, badge: null }; // 暖金，无饰物
 
-const OUTFIT_LOOK = {
-  outfit_leaf:  { hue: 138, badge: "🍃" },
-  outfit_star:  { hue: 265, badge: "⭐" },
-  outfit_moon:  { hue: 214, badge: "🌙" },
-  outfit_ember: { hue: 18,  badge: "🔥" },
-  outfit_bloom: { hue: 330, badge: "🌸" },
-};
+// 单一事实源：一件立绘皮肤同时是「可佩戴的视觉」和「祈愿池里的一件物品」，
+// 两处（lookForOutfit 的色调饰物 / WISH_POOL 的抽取项）都从这里派生，增删只改这一处。
+// 头顶饰物 badge 同时充当祈愿池里的 icon（同一枚 emoji），避免重复维护。
+const OUTFITS = [
+  { id: "outfit_leaf",  rarity: "common", hue: 138, badge: "🍃" },
+  { id: "outfit_moon",  rarity: "rare",   hue: 214, badge: "🌙" },
+  { id: "outfit_star",  rarity: "rare",   hue: 265, badge: "⭐" },
+  { id: "outfit_ember", rarity: "epic",   hue: 18,  badge: "🔥" },
+  { id: "outfit_bloom", rarity: "epic",   hue: 330, badge: "🌸" },
+];
+
+const OUTFIT_LOOK = Object.fromEntries(
+  OUTFITS.map(({ id, hue, badge }) => [id, { hue, badge }]),
+);
 
 // 佩戴的 outfit id → 立绘视觉参数（未佩戴 / 未知则回退默认暖金）。
 export function lookForOutfit(outfitId) {
   return OUTFIT_LOOK[outfitId] ?? DEFAULT_LOOK;
 }
 
+// —— 世界观回忆卡（收集向，不可佩戴）——
+const LORE = [
+  { id: "lore_lab",   rarity: "common", icon: "🔭" },
+  { id: "lore_lumi",  rarity: "common", icon: "🪔" },
+  { id: "lore_river", rarity: "rare",   icon: "🌊" },
+  { id: "lore_night", rarity: "epic",   icon: "🌌" },
+];
+
 // ── 图鉴 / 祈愿池 ────────────────────────────────────────
 // kind: "outfit"（可佩戴立绘皮肤）| "lore"（世界观回忆卡，收集向）
 // rarity: "common" | "rare" | "epic"（仅影响揭晓光效与抽取权重，不代表强弱）
 export const WISH_POOL = [
-  // —— 立绘皮肤 ——
-  { id: "outfit_leaf",  kind: "outfit", rarity: "common", icon: "🍃" },
-  { id: "outfit_moon",  kind: "outfit", rarity: "rare",   icon: "🌙" },
-  { id: "outfit_star",  kind: "outfit", rarity: "rare",   icon: "⭐" },
-  { id: "outfit_ember", kind: "outfit", rarity: "epic",   icon: "🔥" },
-  { id: "outfit_bloom", kind: "outfit", rarity: "epic",   icon: "🌸" },
-  // —— 世界观回忆卡 ——
-  { id: "lore_lab",   kind: "lore", rarity: "common", icon: "🔭" },
-  { id: "lore_lumi",  kind: "lore", rarity: "common", icon: "🪔" },
-  { id: "lore_river", kind: "lore", rarity: "rare",   icon: "🌊" },
-  { id: "lore_night", kind: "lore", rarity: "epic",   icon: "🌌" },
+  ...OUTFITS.map(({ id, rarity, badge }) => ({ id, kind: "outfit", rarity, icon: badge })),
+  ...LORE.map(({ id, rarity, icon }) => ({ id, kind: "lore", rarity, icon })),
 ];
 
 const ITEM_BY_ID = Object.fromEntries(WISH_POOL.map((it) => [it.id, it]));

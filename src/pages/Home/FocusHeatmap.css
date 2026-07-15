@@ -116,19 +116,19 @@
 }
 
 .heatmap-cell[data-level="0"] {
-  background: rgba(160, 120, 152, 0.09);
+  background: rgba(var(--accent-rgb), 0.09);
 }
 
 .heatmap-cell[data-level="1"] {
-  background: rgba(160, 120, 152, 0.3);
+  background: rgba(var(--accent-rgb), 0.3);
 }
 
 .heatmap-cell[data-level="2"] {
-  background: rgba(160, 120, 152, 0.54);
+  background: rgba(var(--accent-rgb), 0.54);
 }
 
 .heatmap-cell[data-level="3"] {
-  background: rgba(160, 120, 152, 0.76);
+  background: rgba(var(--accent-rgb), 0.76);
 }
 
 .heatmap-cell[data-level="4"] {
@@ -156,34 +156,14 @@
   border-radius: 2px;
 }
 
-.heatmap-legend-cell[data-level="0"] { background: rgba(160, 120, 152, 0.09); }
-.heatmap-legend-cell[data-level="1"] { background: rgba(160, 120, 152, 0.3); }
-.heatmap-legend-cell[data-level="2"] { background: rgba(160, 120, 152, 0.54); }
-.heatmap-legend-cell[data-level="3"] { background: rgba(160, 120, 152, 0.76); }
+.heatmap-legend-cell[data-level="0"] { background: rgba(var(--accent-rgb), 0.09); }
+.heatmap-legend-cell[data-level="1"] { background: rgba(var(--accent-rgb), 0.3); }
+.heatmap-legend-cell[data-level="2"] { background: rgba(var(--accent-rgb), 0.54); }
+.heatmap-legend-cell[data-level="3"] { background: rgba(var(--accent-rgb), 0.76); }
 .heatmap-legend-cell[data-level="4"] { background: var(--accent); }
 
-/* ── Night / Pink theme overrides ── */
+/* Night 主题：空格子(level 0)在暗背景上要更亮一点才看得见 */
 [data-theme="night"] .heatmap-cell[data-level="0"],
 [data-theme="night"] .heatmap-legend-cell[data-level="0"] {
   background: rgba(192, 154, 184, 0.12);
-}
-
-[data-theme="pink"] .heatmap-cell[data-level="0"],
-[data-theme="pink"] .heatmap-legend-cell[data-level="0"] {
-  background: rgba(224, 117, 168, 0.09);
-}
-
-[data-theme="pink"] .heatmap-cell[data-level="1"],
-[data-theme="pink"] .heatmap-legend-cell[data-level="1"] {
-  background: rgba(224, 117, 168, 0.3);
-}
-
-[data-theme="pink"] .heatmap-cell[data-level="2"],
-[data-theme="pink"] .heatmap-legend-cell[data-level="2"] {
-  background: rgba(224, 117, 168, 0.54);
-}
-
-[data-theme="pink"] .heatmap-cell[data-level="3"],
-[data-theme="pink"] .heatmap-legend-cell[data-level="3"] {
-  background: rgba(224, 117, 168, 0.76);
 }

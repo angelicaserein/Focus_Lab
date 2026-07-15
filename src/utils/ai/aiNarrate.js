@@ -7,19 +7,16 @@
 //
 //  三种模式（与 aiChat.js / aiRecommend.js 对齐，自动切换）：
 //  1. 生产环境（Vercel）→ 调用 /api/narrate 代理，API key 在服务器侧
-//  2. 本地开发 + 有 VITE_ANTHROPIC_API_KEY → 直接调用 SDK
+//  2. 本地开发 + 有 VITE_OPENAI_API_KEY → 直接调用 SDK
 //  3. 无 key → 本地模板旁白（按 variant 轮换措辞，refresh 也能换一段）
 //
-//  注意：@anthropic-ai/sdk 用动态 import() 按需加载，避免静态打进浏览器 chunk
-//  触发 Vite 运行时重优化 + 整页刷新（详见 aiRecommend.js 注释）。
+//  注意：openai SDK 用动态 import() 按需加载，避免静态打进浏览器 chunk
+//  触发 Vite 运行时重优化 + 整页刷新（详见 aiClient.js 注释）。
+//  三模式的机械件（配置 / hasApiKey / delay / SDK 直连 / 代理请求）见 aiClient.js。
 
-const API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || "";
-const IS_PROD = import.meta.env.PROD;
-const AI_MODEL = "claude-haiku-4-5-20251001";
+import { IS_PROD, hasApiKey, delay, chatComplete, postProxy } from "@/utils/ai/aiClient";
 
-const delay = (ms) => new Promise((r) => setTimeout(r, ms));
-
-export const hasApiKey = () => Boolean(API_KEY) || IS_PROD;
+export { hasApiKey };
 
 export function buildSystemPrompt(lang) {
   const zh = lang !== "en";
@@ -31,9 +28,10 @@ export function buildSystemPrompt(lang) {
     zh ? "规则：" : "Rules:",
     zh ? "- 用第二人称「你」，2~3 句，温暖、有画面感、像 RPG 旁白。"
       : "- Second person, 2-3 sentences, warm and vivid, like RPG narration.",
-    zh ? "- ADHD 友好：庆祝「出现即胜利」，绝不施压、不催促、不评判、不报「还差多少」。"
-      : "- ADHD-friendly: celebrate simply showing up; never pressure, nag, judge, or mention how far 'behind' they are.",
-    zh ? "- 自然融入给到的事实，但不要罗列数字。" : "- Weave in the given facts naturally, without listing numbers.",
+    zh ? "- ADHD 友好：庆祝「出现即胜利」，绝不施压、不催促、不评判。"
+      : "- ADHD-friendly: celebrate simply showing up; never pressure, nag, or judge.",
+    zh ? "- 自然融入给到的事实（含具体数字，如累计时长、连续天数），但要织进叙事，别堆成数据清单。"
+      : "- Weave in the given facts — including concrete numbers like total minutes or streak days — naturally into the story, not as a bare list.",
     zh ? "- 只输出这段叙事本身，不要标题、不要引号、不要解释。"
       : "- Output only the narration itself — no title, no quotes, no explanation.",
     zh ? "- 全程用中文。" : "- Write entirely in English.",
@@ -137,10 +135,10 @@ export function buildForemanSystem(lang) {
       : "You are the Foreman of an automated factory, broadcasting the current production status in one line — brisk, with a touch of industrial romance, like a shop-floor announcement.",
     zh ? "规则：" : "Rules:",
     zh ? "- 只输出 1 句，简短有力。" : "- Output exactly 1 short, punchy line.",
-    zh ? "- ADHD 友好：肯定「已经产出的」，绝不催促、不施压、不报「还差多少」。"
-      : "- ADHD-friendly: affirm what's already produced; never nag, pressure, or mention how far 'behind'.",
-    zh ? "- 自然带入给到的事实，不罗列数字。只输出这句播报本身。"
-      : "- Weave in the facts naturally, no number-listing. Output only the line itself.",
+    zh ? "- ADHD 友好：肯定「已经产出的」，绝不催促、不施压。"
+      : "- ADHD-friendly: affirm what's already produced; never nag or pressure.",
+    zh ? "- 自然带入给到的事实（可含具体数字，如产量），别写成干巴巴的数据。只输出这句播报本身。"
+      : "- Weave in the facts naturally (concrete numbers like output are fine), not as dry stats. Output only the line itself.",
     zh ? "- 用中文。" : "- Write in English.",
   ].join("\n");
 }
@@ -191,10 +189,10 @@ export function buildLumiSystem(lang) {
     zh ? "规则：" : "Rules:",
     zh ? "- 只说 1 句短话（不超过约 25 字），像身边伙伴的轻声陪伴，可带一点童趣。"
       : "- Say exactly 1 short line (under ~20 words), like a companion beside them — a little playful is fine.",
-    zh ? "- ADHD 友好：庆祝「你出现了」，绝不催促、不施压、不评判、不报「还差多少」。"
-      : "- ADHD-friendly: celebrate that they showed up; never nag, pressure, judge, or mention how far 'behind'.",
-    zh ? "- 自然带入给到的情境（当前状态、选了几件任务、情景），但不要罗列数字。"
-      : "- Weave in the given context (current state, tasks chosen, scenario) naturally, without listing numbers.",
+    zh ? "- ADHD 友好：庆祝「你出现了」，绝不催促、不施压、不评判。"
+      : "- ADHD-friendly: celebrate that they showed up; never nag, pressure, or judge.",
+    zh ? "- 自然带入给到的情境（当前状态、选了几件任务、情景），提到数字也没关系，但要说得像陪伴的话，别像报数。"
+      : "- Weave in the given context (current state, tasks chosen, scenario) naturally; mentioning numbers is fine, but keep it companionable, not a readout.",
     zh ? "- 只输出这一句本身，不要标题、不要引号、不要解释。"
       : "- Output only the line itself — no title, no quotes, no explanation.",
     zh ? "- 用中文。" : "- Write in English.",
@@ -286,33 +284,24 @@ async function runNarration(persona, ctx, { lang = "zh", variant = 0 } = {}) {
   const p = PERSONA[persona] ?? PERSONA.journey;
   const fallback = () => p.local(ctx, lang, variant);
 
-  if (!API_KEY && !IS_PROD) {
+  if (!hasApiKey()) {
     await delay(300 + Math.random() * 300);
     return { text: fallback(), source: "local" };
   }
 
   try {
+    let raw;
     if (IS_PROD) {
-      const resp = await fetch("/api/narrate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ context: ctx, lang, persona }),
+      const { result } = await postProxy("/api/narrate", { context: ctx, lang, persona });
+      raw = result;
+    } else {
+      raw = await chatComplete({
+        system: p.system(lang),
+        user: p.payload(ctx, lang),
+        maxTokens: p.maxTokens,
       });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const { result } = await resp.json();
-      const text = cleanNarration(result);
-      return text ? { text, source: "ai" } : { text: fallback(), source: "local" };
     }
-
-    const { default: Anthropic } = await import("@anthropic-ai/sdk");
-    const client = new Anthropic({ apiKey: API_KEY, dangerouslyAllowBrowser: true });
-    const resp = await client.messages.create({
-      model: AI_MODEL,
-      max_tokens: p.maxTokens,
-      system: p.system(lang),
-      messages: [{ role: "user", content: p.payload(ctx, lang) }],
-    });
-    const text = cleanNarration(resp.content.map((b) => b.text).join(""));
+    const text = cleanNarration(raw);
     return text ? { text, source: "ai" } : { text: fallback(), source: "local" };
   } catch {
     return { text: fallback(), source: "local" };

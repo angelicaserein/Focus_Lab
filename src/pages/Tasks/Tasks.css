@@ -8,6 +8,13 @@
   gap: 20px;
 }
 
+/* 顶部的 TO DO LIST 与专注页共用组件，其 .todo-container 自带 max-width:680px
+   （为专注页窄列设计）。在任务库这里要撑满页宽，才能和下方任务库表格左右对齐，
+   否则卡片只有 680px、左对齐，右侧留一大块空。 */
+.tasks-page > .todo-container {
+  max-width: 100%;
+}
+
 /* ── Header ── */
 .tasks-header {
   display: flex;

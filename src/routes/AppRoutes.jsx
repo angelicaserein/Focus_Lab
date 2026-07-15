@@ -5,60 +5,37 @@ import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import PageSkeleton from "@/components/ui/PageSkeleton";
 import { useFeatures } from "@/context/FeatureContext";
 
-// 各页面的动态 import 单独抽出来：既给 lazy() 用，也用于「空闲预取」。
-const importers = [
-  () => import("@/pages/Home"),
-  () => import("@/pages/Focus"),
-  () => import("@/pages/History"),
-  () => import("@/pages/Scenario"),
-  () => import("@/pages/Reward"),
-  () => import("@/pages/Settings"),
-  () => import("@/pages/Research"),
-  () => import("@/pages/ScenarioStats"),
-  () => import("@/pages/Analytics"),
-  () => import("@/pages/Tasks"),
-  () => import("@/pages/DDLReminders"),
-  () => import("@/pages/Memo"),
-  () => import("@/pages/Calendar"),
-  () => import("@/pages/Character"),
-  () => import("@/pages/SkillTree"),
-  () => import("@/pages/Industry"),
-  () => import("@/pages/Gantt"),
-  () => import("@/pages/Wish"),
-  () => import("@/pages/World"),
-  () => import("@/pages/FunctionTree"),
+// 路由表：每项描述一个页面。core 为真的是核心功能，始终可达；
+// 其余为可开关功能，被功能树关掉时直接访问会弹回主页。
+// importer 既喂给 lazy() 拆分 chunk，也用于「空闲预取」。
+const ROUTES = [
+  { path: "/",               importer: () => import("@/pages/Home"),         core: true },
+  { path: "/settings",       importer: () => import("@/pages/Settings"),     core: true },
+  { path: "/functiontree",   importer: () => import("@/pages/FunctionTree"), core: true },
+  { path: "/skilltree",      importer: () => import("@/pages/SkillTree") },
+  { path: "/focus",          importer: () => import("@/pages/Focus") },
+  { path: "/history",        importer: () => import("@/pages/History") },
+  { path: "/scenario",       importer: () => import("@/pages/Scenario") },
+  { path: "/reward",         importer: () => import("@/pages/Reward") },
+  { path: "/research",       importer: () => import("@/pages/Research") },
+  { path: "/scenario-stats", importer: () => import("@/pages/ScenarioStats") },
+  { path: "/analytics",      importer: () => import("@/pages/Analytics") },
+  { path: "/tasks",          importer: () => import("@/pages/Tasks") },
+  { path: "/ddl",            importer: () => import("@/pages/DDLReminders") },
+  { path: "/memo",           importer: () => import("@/pages/Memo") },
+  { path: "/calendar",       importer: () => import("@/pages/Calendar") },
+  { path: "/character",      importer: () => import("@/pages/Character") },
+  { path: "/industry",       importer: () => import("@/pages/Industry") },
+  { path: "/gantt",          importer: () => import("@/pages/Gantt") },
+  { path: "/wish",           importer: () => import("@/pages/Wish") },
+  { path: "/world",          importer: () => import("@/pages/World") },
 ];
 
-const [
-  homeImp, focusImp, historyImp, scenarioImp, rewardImp, settingsImp,
-  researchImp, scenarioStatsImp, analyticsImp, tasksImp, ddlImp, memoImp,
-  calendarImp, characterImp, skillTreeImp, industryImp, ganttImp, wishImp, worldImp,
-  functionTreeImp,
-] = importers;
-
-const Home = lazy(homeImp);
-const Focus = lazy(focusImp);
-const History = lazy(historyImp);
-const Scenario = lazy(scenarioImp);
-const Reward = lazy(rewardImp);
-const Settings = lazy(settingsImp);
-const Research = lazy(researchImp);
-const ScenarioStats = lazy(scenarioStatsImp);
-const Analytics = lazy(analyticsImp);
-const Tasks = lazy(tasksImp);
-const DDLReminders = lazy(ddlImp);
-const Memo = lazy(memoImp);
-const Calendar = lazy(calendarImp);
-const Character = lazy(characterImp);
-const SkillTree = lazy(skillTreeImp);
-const Industry = lazy(industryImp);
-const Gantt = lazy(ganttImp);
-const Wish = lazy(wishImp);
-const World = lazy(worldImp);
-const FunctionTree = lazy(functionTreeImp);
+// 每个路由项预先绑定好 lazy 组件，避免渲染期反复创建。
+const routes = ROUTES.map((r) => ({ ...r, Component: lazy(r.importer) }));
 
 // 被功能树「关掉」的功能，其路由要真正不可达：直接访问时弹回主页，
-// 与侧边栏隐藏该入口保持一致。核心功能（isEnabled 恒真）不受影响。
+// 与侧边栏隐藏该入口保持一致。核心功能（core=true）不受此限制。
 function FeatureGate({ path, children }) {
   const { isEnabled } = useFeatures();
   return isEnabled(path) ? children : <Navigate to="/" replace />;
@@ -69,7 +46,7 @@ export default function AppRoutes() {
   // 这样大多数导航在点击时 chunk 已就绪、Suspense 根本不触发，
   // 也就不会出现骨架屏「闪一下」。预取失败无所谓，静默忽略。
   useEffect(() => {
-    const prefetch = () => importers.forEach((imp) => imp().catch(() => {}));
+    const prefetch = () => routes.forEach((r) => r.importer().catch(() => {}));
     const ric = window.requestIdleCallback;
     if (ric) {
       const id = ric(prefetch, { timeout: 3000 });
@@ -86,28 +63,21 @@ export default function AppRoutes() {
         <ErrorBoundary>
           <Suspense fallback={<PageSkeleton />}>
             <Routes>
-              {/* 核心功能：始终可达 */}
-              <Route path="/" element={<Home />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/functiontree" element={<FunctionTree />} />
-              {/* 可开关功能：被功能树关掉时弹回主页 */}
-              <Route path="/skilltree" element={<FeatureGate path="/skilltree"><SkillTree /></FeatureGate>} />
-              <Route path="/focus" element={<FeatureGate path="/focus"><Focus /></FeatureGate>} />
-              <Route path="/history" element={<FeatureGate path="/history"><History /></FeatureGate>} />
-              <Route path="/scenario" element={<FeatureGate path="/scenario"><Scenario /></FeatureGate>} />
-              <Route path="/reward" element={<FeatureGate path="/reward"><Reward /></FeatureGate>} />
-              <Route path="/research" element={<FeatureGate path="/research"><Research /></FeatureGate>} />
-              <Route path="/scenario-stats" element={<FeatureGate path="/scenario-stats"><ScenarioStats /></FeatureGate>} />
-              <Route path="/analytics" element={<FeatureGate path="/analytics"><Analytics /></FeatureGate>} />
-              <Route path="/tasks" element={<FeatureGate path="/tasks"><Tasks /></FeatureGate>} />
-              <Route path="/ddl" element={<FeatureGate path="/ddl"><DDLReminders /></FeatureGate>} />
-              <Route path="/memo" element={<FeatureGate path="/memo"><Memo /></FeatureGate>} />
-              <Route path="/calendar" element={<FeatureGate path="/calendar"><Calendar /></FeatureGate>} />
-              <Route path="/character" element={<FeatureGate path="/character"><Character /></FeatureGate>} />
-              <Route path="/industry" element={<FeatureGate path="/industry"><Industry /></FeatureGate>} />
-              <Route path="/gantt" element={<FeatureGate path="/gantt"><Gantt /></FeatureGate>} />
-              <Route path="/wish" element={<FeatureGate path="/wish"><Wish /></FeatureGate>} />
-              <Route path="/world" element={<FeatureGate path="/world"><World /></FeatureGate>} />
+              {routes.map(({ path, core, Component }) => (
+                <Route
+                  key={path}
+                  path={path}
+                  element={
+                    core ? (
+                      <Component />
+                    ) : (
+                      <FeatureGate path={path}>
+                        <Component />
+                      </FeatureGate>
+                    )
+                  }
+                />
+              ))}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

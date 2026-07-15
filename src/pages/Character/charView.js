@@ -1,5 +1,5 @@
 // 角色卡的展示层小工具：把 characterUtils 的原始数据翻成界面文案。
-// 两套皮肤（modern / pixel）与结算卡共用，避免各自重复 metricKind 分支与 i18n 拼 key。
+// 现代皮肤与结算卡共用，避免各自重复 metricKind 分支与 i18n 拼 key。
 //
 // ADHD 友好原则：不用「评判类数字」（等级序号 / X-of-Y 分母 / 达成率% / 排名 / 连续 KPI），
 // 这些会把行为量化成分数、不断提示「还没达到」。改用质化的阶段名、温柔措辞、
@@ -63,10 +63,4 @@ export function momentumText(t, streak) {
 // 经验来源的相对贡献 → 0~1 填充比例（无数字）。让「哪一项贡献大」用长短表达，而非点数。
 export function contributionFraction(xp, max) {
   return max > 0 ? Math.max(0, Math.min(1, xp / max)) : 0;
-}
-
-// 相对贡献 → 1~n 的点数（像素皮肤用实心/空心点表达强弱）。
-export function contributionDots(xp, max, n = 5) {
-  if (max <= 0 || xp <= 0) return 0;
-  return Math.max(1, Math.round((xp / max) * n));
 }

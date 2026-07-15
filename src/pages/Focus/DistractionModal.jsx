@@ -1,65 +1,30 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import "./DistractionModal.css";
 
 const TAGS = ["手机/屏幕", "思绪游荡", "外部打扰", "去干别的", "其他"];
-const AUTO_CLOSE_SECS = 3;
 
-export default function DistractionModal({ onTag, onUndo, onClose }) {
+// 分心标签浮层。刻意不做「点外面 / 倒计时」自动关闭：输入途中误触外部会把没记完的
+// 分心悄悄丢掉。只能走两条明确出口——「完成」(填了内容) 或「懒得写原因」(留空存档)。
+export default function DistractionModal({ onTag, onSkip }) {
   const [selectedTag, setSelectedTag] = useState(null);
   const [note, setNote] = useState("");
-  const [countdown, setCountdown] = useState(AUTO_CLOSE_SECS);
-  const countdownRef = useRef(AUTO_CLOSE_SECS);
-  const timerRef = useRef(null);
-  const interactedRef = useRef(false);
 
-  const stopCountdown = () => {
-    clearInterval(timerRef.current);
-    timerRef.current = null;
-    setCountdown(null);
-  };
-
-  const handleInteract = () => {
-    if (!interactedRef.current) {
-      interactedRef.current = true;
-      stopCountdown();
-    }
-  };
-
-  useEffect(() => {
-    timerRef.current = setInterval(() => {
-      countdownRef.current -= 1;
-      setCountdown(countdownRef.current);
-      if (countdownRef.current <= 0) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-        onClose();
-      }
-    }, 1000);
-    return () => clearInterval(timerRef.current);
-  }, [onClose]);
+  const hasContent = Boolean(selectedTag) || note.trim().length > 0;
 
   const handleTagSelect = (tag) => {
-    handleInteract();
     setSelectedTag((prev) => (prev === tag ? null : tag));
   };
 
   const handleDone = () => {
+    if (!hasContent) return;
     onTag(selectedTag, note.trim());
   };
 
-  const handleUndo = () => {
-    stopCountdown();
-    onUndo();
-  };
-
   return (
-    <div className="distraction-modal-backdrop" onClick={onClose}>
-      <div className="distraction-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="distraction-modal-backdrop">
+      <div className="distraction-modal">
         <div className="distraction-modal-title">
           <span>分什么神了？</span>
-          {countdown !== null && (
-            <span className="distraction-countdown">{countdown}s</span>
-          )}
         </div>
         <div className="distraction-tags">
           {TAGS.map((tag) => (
@@ -78,17 +43,19 @@ export default function DistractionModal({ onTag, onUndo, onClose }) {
           placeholder="还想记点什么…"
           value={note}
           maxLength={100}
-          onChange={(e) => {
-            handleInteract();
-            setNote(e.target.value);
-          }}
+          onChange={(e) => setNote(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleDone()}
         />
         <div className="distraction-modal-actions">
-          <button type="button" className="distraction-undo-btn" onClick={handleUndo}>
-            撤销这次
+          <button type="button" className="distraction-skip-btn" onClick={onSkip}>
+            懒得写原因
           </button>
-          <button type="button" className="distraction-done-btn" onClick={handleDone}>
+          <button
+            type="button"
+            className="distraction-done-btn"
+            onClick={handleDone}
+            disabled={!hasContent}
+          >
             完成
           </button>
         </div>

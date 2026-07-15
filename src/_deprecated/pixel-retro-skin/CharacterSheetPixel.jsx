@@ -1,3 +1,7 @@
+// ⚠️ 已废弃：像素复古皮肤（8-bit 对话框 + 分段经验条 + 等宽像素字）。
+// 曾是角色卡页的两套可切换皮肤之一，2026-07 起从 App 移除，只保留「简约现代」皮肤。
+// 归档于此，未挂载、不参与构建；若要复活，把它接回 src/pages/Character/index.jsx 并恢复皮肤切换即可。
+// 依赖：本目录的 pixel-skin.css，以及 @/pages/Character/charView 的展示层小工具。
 import React from "react";
 import { formatDuration } from "@/utils/time";
 import {
@@ -6,14 +10,18 @@ import {
   growthStageText,
   growthPhraseText,
   momentumText,
-  contributionDots,
-} from "./charView";
+} from "@/pages/Character/charView";
+import "./pixel-skin.css";
 
-// 像素复古皮肤：8-bit 对话框边框 + 分段式经验条 + 等宽像素字。
 // 用 12 段的分段条模拟老式 RPG 的经验格子，视觉上比连续条更「游戏感」。
-// 不显示评判类数字（LV 序号 / EXP 分母 / X-of-Y），改用阶段名·成长措辞·点阵强弱。
 const SEGMENTS = 12;
 const DOT_SCALE = 5;
+
+// 相对贡献 → 1~n 的点数（像素皮肤专用：实心/空心点表达强弱）。原在 charView，随皮肤一起归档。
+function contributionDots(xp, max, n = 5) {
+  if (max <= 0 || xp <= 0) return 0;
+  return Math.max(1, Math.round((xp / max) * n));
+}
 
 function SegBar({ progress }) {
   const filled = Math.round(progress * SEGMENTS);

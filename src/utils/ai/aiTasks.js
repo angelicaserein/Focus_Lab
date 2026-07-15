@@ -6,26 +6,21 @@
 //
 //  三种模式（与 aiChat.js 对齐，自动切换）：
 //  1. 生产环境（Vercel）→ 调用 /api/extract-tasks 代理，API key 在服务器侧
-//  2. 本地开发 + 有 VITE_ANTHROPIC_API_KEY → 直接调用 SDK
+//  2. 本地开发 + 有 VITE_OPENAI_API_KEY → 直接调用 SDK
 //  3. 本地开发 + 无 key → 返回示例候选（便于离线跑通 UI）
 //
 //  结构化字段只映射到「目标库真实存在的同名列」，缺列的字段自动跳过。
 // ──────────────────────────────────────────────────────────────
 //
-//  @anthropic-ai/sdk 仅「本地开发 + 有 key」分支用到，改为按需动态 import()，
-//  不静态打进浏览器懒加载 chunk（避免 Vite 运行时重新优化 → 双份 React 崩溃）。
+//  三模式的机械件（配置 / hasApiKey / delay / SDK 直连 / 代理请求 / JSON 提取）见 aiClient.js。
 
-const API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || "";
-const IS_PROD = import.meta.env.PROD;
-const AI_MODEL = "claude-haiku-4-5-20251001";
+import { IS_PROD, hasApiKey, delay, chatComplete, postProxy, extractJson } from "@/utils/ai/aiClient";
+
+export { hasApiKey };
 
 // 抽取识别的约定列 id（与 taskAttrDefaults.js 一致）。
 // 仅当目标库存在同 id 的列时，对应字段才会被应用。
 const KNOWN_ATTR_IDS = ["priority", "tags", "dueDate", "estimatedMins", "notes"];
-
-export const hasApiKey = () => Boolean(API_KEY) || IS_PROD;
-
-const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ── prompt 构建 ──────────────────────────────────────────────
 
@@ -81,23 +76,12 @@ function buildSystemPrompt(schemaHint) {
 // 鲁棒解析模型输出：剥代码围栏、定位首个 JSON 数组、失败兜底 []。
 export function parseTasksJson(raw) {
   if (Array.isArray(raw)) return raw.filter((t) => t && typeof t.text === "string");
-  if (typeof raw !== "string") return [];
-  let s = raw.trim();
-  // 去掉 ```json ... ``` 或 ``` ... ``` 围栏
-  s = s.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
-  // 定位首个 '[' 到最后一个 ']'，容忍前后的解释性文字
-  const start = s.indexOf("[");
-  const end = s.lastIndexOf("]");
-  if (start === -1 || end === -1 || end < start) return [];
-  try {
-    const arr = JSON.parse(s.slice(start, end + 1));
-    if (!Array.isArray(arr)) return [];
-    return arr
-      .filter((t) => t && typeof t.text === "string" && t.text.trim())
-      .map((t) => ({ text: t.text.trim(), attrs: extractRawAttrs(t) }));
-  } catch {
-    return [];
-  }
+  // 剥围栏 + 定位首个 '[' 到最后一个 ']'，容忍前后的解释性文字
+  const arr = extractJson(raw, "array");
+  if (!Array.isArray(arr)) return [];
+  return arr
+    .filter((t) => t && typeof t.text === "string" && t.text.trim())
+    .map((t) => ({ text: t.text.trim(), attrs: extractRawAttrs(t) }));
 }
 
 // 从模型给的任务对象里挑出已知属性字段（其余忽略）。校验留给 sanitizeTaskAttrs。
@@ -168,7 +152,7 @@ function sampleTasks(database) {
   const has = (id) => (database?.attrs ?? []).some((a) => a.id === id);
   const t1 = { text: "示例：给下周的报告列个大纲", attrs: {} };
   const t2 = { text: "示例：回复导师的邮件", attrs: {} };
-  if (has("priority")) t2.attrs.priority = "high";
+  if (has("priority")) t2.attrs.priority = "urgent_important";
   if (has("tags")) t1.attrs.tags = ["deep_work"];
   if (has("estimatedMins")) t1.attrs.estimatedMins = 25;
   return [t1, t2];
@@ -185,32 +169,22 @@ export async function extractTasksFromText(text, { database } = {}) {
   const schemaHint = buildSchemaHint(database);
 
   // 本地开发且无 key → 示例候选
-  if (!API_KEY && !IS_PROD) {
+  if (!hasApiKey()) {
     await delay(500 + Math.random() * 400);
     return sampleTasks(database);
   }
 
   // 生产环境 → 服务器代理
   if (IS_PROD) {
-    const resp = await fetch("/api/extract-tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: input, schemaHint }),
-    });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const { tasks } = await resp.json();
+    const { tasks } = await postProxy("/api/extract-tasks", { text: input, schemaHint });
     return parseTasksJson(tasks);
   }
 
-  // 本地开发 + 有 key → 直连 SDK（按需动态加载，避免静态打进浏览器 chunk）
-  const { default: Anthropic } = await import("@anthropic-ai/sdk");
-  const client = new Anthropic({ apiKey: API_KEY, dangerouslyAllowBrowser: true });
-  const resp = await client.messages.create({
-    model: AI_MODEL,
-    max_tokens: 1024,
+  // 本地开发 + 有 key → 直连 SDK
+  const raw = await chatComplete({
     system: buildSystemPrompt(schemaHint),
-    messages: [{ role: "user", content: input }],
+    user: input,
+    maxTokens: 1024,
   });
-  const raw = resp.content.map((b) => b.text).join("");
   return parseTasksJson(raw);
 }

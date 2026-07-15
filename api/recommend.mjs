@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 
 // 情景推荐精排代理：浏览器把候选任务 + 当前情景发来，API key 留在服务器侧。
 // 返回 { result }（模型原始文本，前端再 parse/兜底）。
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return res.status(503).json({ error: "AI not configured" });
   }
@@ -57,14 +57,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    const client = new Anthropic({ apiKey });
-    const resp = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 512,
-      system: buildSystemPrompt(),
-      messages: [{ role: "user", content: buildUserPayload(candidates, scenario, envProfile) }],
+    const client = new OpenAI({ apiKey });
+    const resp = await client.chat.completions.create({
+      model: "gpt-5.5",
+      max_completion_tokens: 512,
+      messages: [
+        { role: "system", content: buildSystemPrompt() },
+        { role: "user", content: buildUserPayload(candidates, scenario, envProfile) },
+      ],
     });
-    return res.json({ result: resp.content.map((b) => b.text).join("") });
+    return res.json({ result: resp.choices[0]?.message?.content ?? "" });
   } catch (e) {
     console.error("[api/recommend]", e.message);
     return res.status(500).json({ error: "AI request failed" });

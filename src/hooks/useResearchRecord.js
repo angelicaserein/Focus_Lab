@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useFocus } from "@/context/FocusContext";
 import useLocalStorage from "@/hooks/common/useLocalStorage";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
@@ -11,6 +11,9 @@ export default function useResearchRecord(dateStr) {
   const [distractions] = useLocalStorage(STORAGE_KEYS.DISTRACTIONS, []);
   const [draft, setDraft] = useState(() => buildEmptyRecord(todayDateStr()));
   const [savedAnim, setSavedAnim] = useState(false);
+  // 「已保存」闪现计时器：存 ref 以便重复保存时复位、卸载时清理（避免 setState-after-unmount）。
+  const savedTimerRef = useRef(null);
+  useEffect(() => () => clearTimeout(savedTimerRef.current), []);
 
   const autoData = useMemo(
     () => computeAutoData(focusRecords, distractions, dateStr),
@@ -58,7 +61,8 @@ export default function useResearchRecord(dateStr) {
       return [...prev, record];
     });
     setSavedAnim(true);
-    setTimeout(() => setSavedAnim(false), 2000);
+    clearTimeout(savedTimerRef.current);
+    savedTimerRef.current = setTimeout(() => setSavedAnim(false), 2000);
   }, [dateStr, draft, autoData, existingRecord, setRecords]);
 
   return {

@@ -1,7 +1,19 @@
-import React, { useMemo, useState, useRef } from "react";
+import React, { useMemo, useState } from "react";
 import { useTodos } from "@/context/TodoContext";
 import { useFocus } from "@/context/FocusContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { assignMatrixPositions } from "@/utils/ai/aiMatrixAssign";
+import { useMatrixDrag } from "@/hooks/task/useMatrixDrag";
+import {
+  clamp,
+  scaleFor,
+  isPlaced,
+  PLANE_X_MIN,
+  PLANE_X_MAX,
+  PLANE_Y_MIN,
+  PLANE_Y_MAX,
+} from "@/utils/task/matrixGeometry";
+import MatrixSortDialog from "./MatrixSortDialog";
 import "./EisenhowerMatrix.css";
 
 // 紧急/重要优先级平面（艾森豪威尔矩阵的连续版）：
@@ -12,27 +24,8 @@ import "./EisenhowerMatrix.css";
 //   卡片大小随落点变化：越靠左上越大——拖动时用指针事件驱动，
 //   跟随光标的「幽灵卡」会实时缩放，边拖边变大/变小。
 //   点击标签＝加入/移出本次专注（与左栏「已选任务」联动）。
-
-// 四角象限暗示文字（沿用原 q1..q4 文案，仅作方位提示，不再是可落区）
-const CORNERS = [
-  { id: "q1", pos: "tl" }, // 左上：重要 + 紧急
-  { id: "q2", pos: "tr" }, // 右上：重要 + 不紧急
-  { id: "q3", pos: "bl" }, // 左下：不重要 + 紧急
-  { id: "q4", pos: "br" }, // 右下：不重要 + 不紧急
-];
-
-const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
-
-// 落点 → 缩放：越靠左上（x、y 都小）越大。0.72（右下）→ 1.5（左上），对比更明显
-const scaleFor = (x, y) => 0.72 + ((1 - x) * 0.5 + (1 - y) * 0.5) * 0.78;
-
-// 拖动开始的位移阈值（px）：小于此值视作「点击」而非「拖动」
-const DRAG_THRESHOLD = 5;
-
-const isPlaced = (todo) =>
-  !!todo.matrixPos &&
-  typeof todo.matrixPos.x === "number" &&
-  typeof todo.matrixPos.y === "number";
+//
+// 拖拽细节抽到 useMatrixDrag，两步归类弹窗抽到 MatrixSortDialog，几何换算在 matrixGeometry。
 
 function TaskTag({ todo, focused, settling, dragging, onActivate, onDelete, onPointerDown, onSort, sortCta, sortAria, deleteAria }) {
   return (
@@ -84,16 +77,23 @@ export default function EisenhowerMatrix() {
   const { t } = useLanguage();
 
   const [draft, setDraft] = useState("");
-  // 正在拖动的「幽灵卡」状态：{ id, text, x, y, scale, zone }（x/y 为视口坐标）
-  const [drag, setDrag] = useState(null);
   const [settlingId, setSettlingId] = useState(null);
   // 「分一下」两步问答：sortId=正在归类的任务，sortUrgent=第一题答案（null 表示还在第一步）
   const [sortId, setSortId] = useState(null);
   const [sortUrgent, setSortUrgent] = useState(null);
-  const planeRef = useRef(null);
-  const trayRef = useRef(null);
-  // 拖动过程数据放 ref，避免 pointermove 里读到过期闭包
-  const dragRef = useRef(null);
+  // AI 自动分配：aiBusy=正在请求，aiError=上次失败提示
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiError, setAiError] = useState(false);
+
+  // 拖拽：落在平面写落点并触发落座动画，拖回托盘清定位，轻点则切换专注选择
+  const { drag, planeRef, trayRef, handlePointerDown } = useMatrixDrag({
+    onPlace: (id, pos) => {
+      updateTodoProps(id, { matrixPos: pos });
+      setSettlingId(id);
+    },
+    onTray: (id) => updateTodoProps(id, { matrixPos: undefined }),
+    onActivate: toggleFocusTodo,
+  });
 
   // 未完成任务：有合法坐标者摆在平面上，其余进入底部「未分类」托盘
   const { placed, unplaced } = useMemo(() => {
@@ -114,87 +114,6 @@ export default function EisenhowerMatrix() {
     setDraft("");
   };
 
-  // 命中测试：光标落在平面 / 托盘 / 别处，并给出平面上的 0..1 坐标
-  const resolveZone = (clientX, clientY) => {
-    const inside = (r) =>
-      r && clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
-    const planeRect = planeRef.current?.getBoundingClientRect();
-    if (inside(planeRect)) {
-      const x = clamp((clientX - planeRect.left) / planeRect.width, 0.045, 0.955);
-      const y = clamp((clientY - planeRect.top) / planeRect.height, 0.06, 0.94);
-      return { zone: "plane", x, y };
-    }
-    const trayRect = trayRef.current?.getBoundingClientRect();
-    if (inside(trayRect)) return { zone: "tray", x: 0, y: 0 };
-    return { zone: null, x: 0, y: 0 };
-  };
-
-  const stopDragListeners = () => {
-    window.removeEventListener("pointermove", handleMove);
-    window.removeEventListener("pointerup", handleUp);
-    window.removeEventListener("pointercancel", handleCancel);
-  };
-
-  function handleMove(e) {
-    const d = dragRef.current;
-    if (!d) return;
-    if (!d.moved) {
-      if (Math.hypot(e.clientX - d.startX, e.clientY - d.startY) < DRAG_THRESHOLD) return;
-      d.moved = true;
-    }
-    const { zone, x, y } = resolveZone(e.clientX, e.clientY);
-    // 平面内按落点实时缩放；托盘/别处给个统一的小尺寸
-    const scale = zone === "plane" ? scaleFor(x, y) : 0.9;
-    d.zone = zone;
-    setDrag({ id: d.id, text: d.text, x: e.clientX, y: e.clientY, scale, zone });
-  }
-
-  function handleUp(e) {
-    stopDragListeners();
-    const d = dragRef.current;
-    dragRef.current = null;
-    if (!d) return;
-    if (!d.moved) {
-      // 没怎么动 → 当作点击：加入/移出本次专注
-      toggleFocusTodo(d.id);
-      setDrag(null);
-      return;
-    }
-    const { zone, x, y } = resolveZone(e.clientX, e.clientY);
-    if (zone === "plane") {
-      updateTodoProps(d.id, { matrixPos: { x, y } });
-      setSettlingId(d.id);
-    } else if (zone === "tray") {
-      updateTodoProps(d.id, { matrixPos: undefined });
-    }
-    // 落在别处：不改动，卡片回到原位
-    setDrag(null);
-  }
-
-  function handleCancel() {
-    stopDragListeners();
-    dragRef.current = null;
-    setDrag(null);
-  }
-
-  const handlePointerDown = (e, todo) => {
-    // 只响应主键（左键/触摸/笔），且不抢删除/分一下按钮的点击
-    if (e.button !== undefined && e.button !== 0) return;
-    if (e.target.closest("button")) return;
-    e.preventDefault(); // 避免拖动时选中文字
-    dragRef.current = {
-      id: todo.id,
-      text: todo.text,
-      startX: e.clientX,
-      startY: e.clientY,
-      moved: false,
-      zone: null,
-    };
-    window.addEventListener("pointermove", handleMove);
-    window.addEventListener("pointerup", handleUp);
-    window.addEventListener("pointercancel", handleCancel);
-  };
-
   // 「分一下」两步问答
   const startSort = (id) => {
     setSortId(id);
@@ -204,18 +123,57 @@ export default function EisenhowerMatrix() {
     setSortId(null);
     setSortUrgent(null);
   };
-  // 第二题作答后，把紧急/重要两答案换算成象限坐标并落位
+  // 第一步记下紧急度答案；第二步作答后收尾落位
+  const answerSort = (value) => {
+    if (sortUrgent === null) setSortUrgent(value);
+    else finishSort(value);
+  };
+  // 把紧急/重要两答案换算成象限坐标并落位
   //   横轴：左＝紧急(0.27)、右＝不紧急(0.73)；纵轴：上＝重要(0.27)、下＝不重要(0.73)
   //   加轻微抖动，避免同象限多张卡完全重叠
   const finishSort = (important) => {
     if (!sortId) return;
     const jitter = () => (Math.random() - 0.5) * 0.12;
-    const x = clamp((sortUrgent ? 0.27 : 0.73) + jitter(), 0.06, 0.94);
-    const y = clamp((important ? 0.27 : 0.73) + jitter(), 0.06, 0.94);
+    const x = clamp((sortUrgent ? 0.27 : 0.73) + jitter(), PLANE_Y_MIN, PLANE_Y_MAX);
+    const y = clamp((important ? 0.27 : 0.73) + jitter(), PLANE_Y_MIN, PLANE_Y_MAX);
     updateTodoProps(sortId, { matrixPos: { x, y } });
     setSettlingId(sortId);
     setSortId(null);
     setSortUrgent(null);
+  };
+
+  // AI 自动分配：把托盘里的未分类任务一次性交给模型估紧急/重要度，
+  //   换算成落点写入 matrixPos。urgency→x（越紧急越靠左）、importance→y（越重要越靠上）。
+  //   加轻微抖动，避免同分任务完全重叠；失败/无结果给一句温柔提示。
+  const autoAssign = async () => {
+    if (aiBusy || unplaced.length === 0) return;
+    setAiBusy(true);
+    setAiError(false);
+    try {
+      const tasks = unplaced.map((td) => ({ id: td.id, text: td.text, attrs: td.attrs }));
+      const { positions } = await assignMatrixPositions(tasks);
+      let applied = 0;
+      const jitter = () => (Math.random() - 0.5) * 0.06;
+      for (const td of unplaced) {
+        const p = positions[td.id];
+        if (!p) continue;
+        const x = clamp(1 - p.urgency + jitter(), PLANE_X_MIN, PLANE_X_MAX);
+        const y = clamp(1 - p.importance + jitter(), PLANE_Y_MIN, PLANE_Y_MAX);
+        updateTodoProps(td.id, { matrixPos: { x, y } });
+        applied++;
+      }
+      if (applied === 0) {
+        // 调用成功但一条落点都没算出来：多半是模型返回被截断/解析为空
+        console.warn("[matrixAssign] 空结果：模型未返回可用落点", { asked: unplaced.length, positions });
+        setAiError(true);
+      }
+    } catch (e) {
+      // API 调用本身抛错（网络/鉴权/模型报错）
+      console.error("[matrixAssign] 调用失败", e);
+      setAiError(true);
+    } finally {
+      setAiBusy(false);
+    }
   };
 
   const sortTodo = sortId ? todos.find((td) => td.id === sortId) : null;
@@ -240,10 +198,50 @@ export default function EisenhowerMatrix() {
   const overPlane = drag?.zone === "plane";
   const overTray = drag?.zone === "tray";
 
+  // 天平：整块平面架在正中的支点上，按卡片「加权重心」偏移向重的一侧倾倒。
+  //   质量＝卡片大小（越靠左上越重）；重心越偏离中心，倾角越大。
+  //   正在拖动的卡片也计入，于是拖动时板子实时跟着倒。
+  const tilt = useMemo(() => {
+    let mass = 0;
+    let sx = 0;
+    let sy = 0;
+    const add = (x, y, m) => {
+      mass += m;
+      sx += m * x;
+      sy += m * y;
+    };
+    for (const td of placed) {
+      add(td.matrixPos.x, td.matrixPos.y, scaleFor(td.matrixPos.x, td.matrixPos.y));
+    }
+    if (drag && drag.zone === "plane") add(drag.fx, drag.fy, drag.scale);
+    if (mass === 0) return { rx: 0, ry: 0 };
+    const cx = sx / mass - 0.5; // 重心相对中心的水平偏移 (-0.5..0.5)
+    const cy = sy / mass - 0.5; // 垂直偏移
+    const GAIN = 13; // 每单位偏移对应的倾角（度）
+    const cap = (v) => Math.max(-6, Math.min(6, v));
+    // 载荷偏下 → 下沿沉；偏右 → 右沿沉（放哪边哪边压下去）
+    return { rx: cap(-cy * GAIN), ry: cap(cx * GAIN) };
+  }, [placed, drag]);
+
   return (
     <div className="matrix-container" aria-label={t("focus.matrix.title")}>
       <div className="matrix-header">
-        <span className="matrix-title">{t("focus.matrix.title")}</span>
+        <span className="matrix-title">
+          {t("focus.matrix.title")}
+          {/* 信息提示（help icon）：悬停/聚焦时说明整张热力图的含义 */}
+          <span className="matrix-info">
+            <button
+              type="button"
+              className="matrix-info-btn"
+              aria-label={t("focus.matrix.infoAria")}
+            >
+              ?
+            </button>
+            <span className="matrix-info-tip" role="tooltip">
+              {t("focus.matrix.info")}
+            </span>
+          </span>
+        </span>
         <span className="matrix-hint">{t("focus.matrix.hint")}</span>
       </div>
 
@@ -260,31 +258,12 @@ export default function EisenhowerMatrix() {
         </button>
       </form>
 
-      {/* 坐标轴提示：横轴＝紧急（左紧急、右不紧急） */}
-      <div className="matrix-axis-x">
-        <span>← {t("focus.matrix.urgent")}</span>
-        <span>{t("focus.matrix.notUrgent")} →</span>
-      </div>
-
       <div className="matrix-board">
-        {/* 纵轴＝重要（上重要、下不重要），箭头稳定上下指向 */}
-        <div className="matrix-axis-y" aria-hidden="true">
-          <span className="matrix-axis-y-cap">↑</span>
-          <span className="matrix-axis-y-word">{t("focus.matrix.important")}</span>
-          <span className="matrix-axis-y-word muted">{t("focus.matrix.notImportant")}</span>
-          <span className="matrix-axis-y-cap">↓</span>
-        </div>
-
         <div
           ref={planeRef}
           className={`matrix-plane${overPlane ? " drag-over" : ""}`}
+          style={{ transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)` }}
         >
-          {CORNERS.map((c) => (
-            <span key={c.id} className={`matrix-corner ${c.pos}`} aria-hidden="true">
-              {t(`focus.matrix.${c.id}`)}
-            </span>
-          ))}
-
           {placed.length === 0 && (
             <span className="matrix-plane-empty">{t("focus.matrix.dropHere")}</span>
           )}
@@ -297,6 +276,7 @@ export default function EisenhowerMatrix() {
               <div
                 key={todo.id}
                 className="matrix-node"
+                data-todo-id={todo.id}
                 style={{
                   left: `${todo.matrixPos.x * 100}%`,
                   top: `${todo.matrixPos.y * 100}%`,
@@ -319,7 +299,26 @@ export default function EisenhowerMatrix() {
         ref={trayRef}
         className={`matrix-tray${overTray ? " drag-over" : ""}`}
       >
-        <span className="matrix-tray-label">{t("focus.matrix.unclassified")}</span>
+        <div className="matrix-tray-head">
+          <span className="matrix-tray-label">{t("focus.matrix.unclassified")}</span>
+          {unplaced.length > 0 && (
+            <button
+              type="button"
+              className="matrix-ai-assign"
+              onClick={autoAssign}
+              disabled={aiBusy}
+              aria-label={t("focus.matrix.aiAssignAria")}
+            >
+              <span className="matrix-ai-assign-icon" aria-hidden="true">✨</span>
+              {aiBusy ? t("focus.matrix.aiAssigning") : t("focus.matrix.aiAssign")}
+            </button>
+          )}
+        </div>
+        {aiError && (
+          <span className="matrix-ai-error" role="status">
+            {t("focus.matrix.aiAssignError")}
+          </span>
+        )}
         <div className="matrix-tray-tags">
           {unplaced.length > 0 ? (
             unplaced.map((todo) => renderTag(todo, true))
@@ -348,70 +347,14 @@ export default function EisenhowerMatrix() {
 
       {/* 两步是非题：把「感觉放哪」拆成两个封闭问题，自动落到象限 */}
       {sortTodo && (
-        <div className="matrix-sort-overlay" onClick={cancelSort} role="presentation">
-          <div
-            className="matrix-sort-card"
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            aria-label={t("focus.matrix.sortHeading", { text: sortTodo.text })}
-          >
-            <span className="matrix-sort-heading">
-              {t("focus.matrix.sortHeading", { text: sortTodo.text })}
-            </span>
-
-            <p className="matrix-sort-question">
-              {sortUrgent === null
-                ? t("focus.matrix.qUrgent")
-                : t("focus.matrix.qImportant")}
-            </p>
-
-            <div className="matrix-sort-answers">
-              <button
-                type="button"
-                className="matrix-sort-answer yes"
-                onClick={() =>
-                  sortUrgent === null ? setSortUrgent(true) : finishSort(true)
-                }
-              >
-                {t("focus.matrix.answerYes")}
-              </button>
-              <button
-                type="button"
-                className="matrix-sort-answer no"
-                onClick={() =>
-                  sortUrgent === null ? setSortUrgent(false) : finishSort(false)
-                }
-              >
-                {t("focus.matrix.answerNo")}
-              </button>
-            </div>
-
-            <div className="matrix-sort-footer">
-              <div className="matrix-sort-steps" aria-hidden="true">
-                <span className="matrix-sort-dot active" />
-                <span className={`matrix-sort-dot${sortUrgent !== null ? " active" : ""}`} />
-              </div>
-              {sortUrgent !== null ? (
-                <button
-                  type="button"
-                  className="matrix-sort-nav"
-                  onClick={() => setSortUrgent(null)}
-                >
-                  {t("focus.matrix.sortBack")}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="matrix-sort-nav"
-                  onClick={cancelSort}
-                >
-                  {t("focus.matrix.sortCancel")}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+        <MatrixSortDialog
+          todo={sortTodo}
+          urgent={sortUrgent}
+          onAnswer={answerSort}
+          onBack={() => setSortUrgent(null)}
+          onCancel={cancelSort}
+          t={t}
+        />
       )}
     </div>
   );

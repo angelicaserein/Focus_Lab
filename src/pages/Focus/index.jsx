@@ -22,6 +22,7 @@ import { FocusSessionContext } from "@/pages/Focus/FocusSessionContext";
 const ImmersiveView = lazy(() => import("@/pages/Focus/Immersive"));
 import FocusConsole from "@/pages/Focus/FocusConsole";
 import DistractionModal from "@/pages/Focus/DistractionModal";
+import DistractionUndoToast from "@/pages/Focus/DistractionUndoToast";
 import SessionRewardCard from "@/pages/Focus/SessionRewardCard";
 import { computeCharacter, computeSessionReward } from "@/utils/character/characterUtils";
 import "./Focus.css";
@@ -81,10 +82,36 @@ export default function FocusPage() {
     startProactiveDistraction,
     endProactiveDistraction,
     handleDistractionTag,
-    handleDistractionUndo,
-    dismissPendingDistraction,
+    skipDistractionTag,
+    removeDistraction,
     flushProactiveDistraction,
   } = useDistractionTracking({ getSession, focusedTodoIds, isRunning, togglePause });
+
+  // 分心存档后的撤回 toast：{ id, blank }。id 供撤回删除，blank 决定文案。
+  const [distractionUndo, setDistractionUndo] = useState(null);
+  const clearDistractionUndo = useCallback(() => setDistractionUndo(null), []);
+
+  // 「完成」：写入 tag/note 后弹撤回 toast。捕获当前 pendingId 供撤回删除。
+  const handleDistractionDone = useCallback(
+    (tag, note) => {
+      const id = pendingDistractionId;
+      handleDistractionTag(tag, note);
+      if (id) setDistractionUndo({ id, blank: false });
+    },
+    [pendingDistractionId, handleDistractionTag],
+  );
+
+  // 「懒得记」：保留空白记录，同样弹撤回 toast。
+  const handleDistractionSkip = useCallback(() => {
+    const id = pendingDistractionId;
+    skipDistractionTag();
+    if (id) setDistractionUndo({ id, blank: true });
+  }, [pendingDistractionId, skipDistractionTag]);
+
+  const handleDistractionUndoToast = useCallback(() => {
+    if (distractionUndo) removeDistraction(distractionUndo.id);
+    setDistractionUndo(null);
+  }, [distractionUndo, removeDistraction]);
 
   const { sessionNotes, addNote } = useSessionNotes({ sessionStartTs, getSession, focusedTodoIds });
 
@@ -234,11 +261,16 @@ export default function FocusPage() {
     <FocusSessionContext.Provider value={sessionCtxValue}>
       {pendingDistractionId && (
         <DistractionModal
-          onTag={handleDistractionTag}
-          onUndo={handleDistractionUndo}
-          onClose={dismissPendingDistraction}
+          onTag={handleDistractionDone}
+          onSkip={handleDistractionSkip}
         />
       )}
+
+      <DistractionUndoToast
+        pending={distractionUndo}
+        onUndo={handleDistractionUndoToast}
+        onDismiss={clearDistractionUndo}
+      />
       {isImmersive && (
         <Suspense fallback={null}>
           <ImmersiveView />

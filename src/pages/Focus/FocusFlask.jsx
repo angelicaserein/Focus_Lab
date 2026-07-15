@@ -31,15 +31,17 @@ export default function FocusFlask({ progress, params }) {
           fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="2.5" strokeLinecap="round"
         />
         {cap && (
-          <rect
-            x={cap.x} y={cap.y} width={cap.w} height={cap.h} rx={cap.rx}
-            fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.3)" strokeWidth="1"
+          // 软木塞：暖棕色实心塞子，明显区别于半透明玻璃瓶身
+          <path
+            d={cap}
+            fill="rgba(198,150,96,0.85)" stroke="rgba(120,84,44,0.6)" strokeWidth="1"
           />
         )}
         {rim && (
-          <rect
-            x={rim.x} y={rim.y} width={rim.w} height={rim.h} rx={rim.rx}
-            fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.3)" strokeWidth="1"
+          // 敞口：深色椭圆开口，像俯视看进空瓶
+          <ellipse
+            cx={rim.cx} cy={rim.cy} rx={rim.rx} ry={rim.ry}
+            fill="rgba(0,0,0,0.28)" stroke="rgba(255,255,255,0.45)" strokeWidth="1.2"
           />
         )}
       </svg>

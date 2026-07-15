@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 
 // 任务抽取代理：浏览器把笔记文本 + 目标库字段说明发来，
 // API key 留在服务器侧。返回 { tasks }（模型原始输出，前端再 parse/清洗）。
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return res.status(503).json({ error: "AI not configured" });
   }
@@ -35,14 +35,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    const client = new Anthropic({ apiKey });
-    const resp = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 1024,
-      system: buildSystemPrompt(schemaHint),
-      messages: [{ role: "user", content: text.trim() }],
+    const client = new OpenAI({ apiKey });
+    const resp = await client.chat.completions.create({
+      model: "gpt-5.5",
+      max_completion_tokens: 1024,
+      messages: [
+        { role: "system", content: buildSystemPrompt(schemaHint) },
+        { role: "user", content: text.trim() },
+      ],
     });
-    return res.json({ tasks: resp.content.map((b) => b.text).join("") });
+    return res.json({ tasks: resp.choices[0]?.message?.content ?? "" });
   } catch (e) {
     console.error("[api/extract-tasks]", e.message);
     return res.status(500).json({ error: "AI request failed" });

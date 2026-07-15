@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 
 // 语气包生成代理（镜像 api/chat.mjs）：前端传来组织好的 system / user，
 // 返回一个 { key: text } 的 JSON 覆盖表。API key 仅在服务器侧。
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return res.status(503).json({ error: "AI not configured" });
   }
@@ -31,14 +31,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    const client = new Anthropic({ apiKey });
-    const resp = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 1024,
-      system,
-      messages: [{ role: "user", content: user }],
+    const client = new OpenAI({ apiKey });
+    const resp = await client.chat.completions.create({
+      model: "gpt-5.5",
+      max_completion_tokens: 1024,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
     });
-    const text = resp.content.map((b) => b.text).join("");
+    const text = resp.choices[0]?.message?.content ?? "";
     const phrases = parsePhrases(text);
     if (!phrases) return res.status(502).json({ error: "Bad AI output" });
     return res.json({ phrases });

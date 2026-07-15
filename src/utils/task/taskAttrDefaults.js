@@ -8,11 +8,13 @@ export const TASK_ATTR_DEFAULTS = [
     system: true,
     visible: true,
     order: 0,
+    // 艾森豪威尔四象限（紧急 × 重要），替代原来的线性 紧急/高/中/低。
+    // sortWeight 保留：重要且紧急最高，供排序 / 情景推荐沿用。
     options: [
-      { id: "urgent", label: "紧急", color: "#ef4444", sortWeight: 4 },
-      { id: "high",   label: "高",   color: "#f97316", sortWeight: 3 },
-      { id: "medium", label: "中",   color: "#3b82f6", sortWeight: 2 },
-      { id: "low",    label: "低",   color: "#9ca3af", sortWeight: 1 },
+      { id: "urgent_important", label: "重要且紧急",   color: "#ef4444", sortWeight: 4 },
+      { id: "important",        label: "重要不紧急",   color: "#3b82f6", sortWeight: 3 },
+      { id: "urgent",           label: "紧急不重要",   color: "#f97316", sortWeight: 2 },
+      { id: "trivial",          label: "不重要不紧急", color: "#9ca3af", sortWeight: 1 },
     ],
   },
   {

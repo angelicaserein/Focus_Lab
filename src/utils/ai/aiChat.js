@@ -3,20 +3,16 @@
 //
 //  三种模式（自动切换）：
 //  1. 生产环境（Vercel）→ 调用 /api/chat 代理，API key 在服务器侧
-//  2. 本地开发 + 有 VITE_ANTHROPIC_API_KEY → 直接调用 SDK
+//  2. 本地开发 + 有 VITE_OPENAI_API_KEY → 直接调用 SDK
 //  3. 本地开发 + 无 key → 轮换示例回复
 //
 //  本地配置：项目根目录建 .env 文件：
-//      VITE_ANTHROPIC_API_KEY=sk-ant-...
+//      VITE_OPENAI_API_KEY=sk-...
 //  改完 .env 需要重启 `npm run dev` 才生效。
-// ──────────────────────────────────────────────────────────────
 //
-//  @anthropic-ai/sdk 仅「本地开发 + 有 key」分支用到，改为按需动态 import()，
-//  不静态打进浏览器懒加载 chunk（避免 Vite 运行时重新优化 → 双份 React 崩溃）。
-
-const API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || "";
-const IS_PROD = import.meta.env.PROD;
-const AI_MODEL = "claude-haiku-4-5-20251001";
+//  三模式的机械件（配置 / hasApiKey / delay / SDK 直连 / 代理请求）见 aiClient.js。
+// ──────────────────────────────────────────────────────────────
+import { IS_PROD, hasApiKey, delay, chatComplete, postProxy } from "@/utils/ai/aiClient";
 
 const SYSTEM_PROMPT =
   "你是一个温柔、简洁的 ADHD 专注陪伴助手。每次回复不超过 2 句话，用中文，语气轻松鼓励。";
@@ -30,10 +26,14 @@ const SAMPLE_REPLIES = [
   "累了就停一下，喝口水再继续也可以。",
 ];
 
-const delay = (ms) => new Promise((r) => setTimeout(r, ms));
+export { hasApiKey };
 
-// UI 用它来判断「AI 模式」还是「示例模式」
-export const hasApiKey = () => Boolean(API_KEY) || IS_PROD;
+// 把 UI 的 {role:'user'|'ai', text} 转成 OpenAI 的 {role, content}。
+const toChatMsgs = (messages) =>
+  messages.map((m) => ({
+    role: m.role === "ai" ? "assistant" : "user",
+    content: m.text,
+  }));
 
 // messages: [{ role: 'user' | 'ai', text }]
 export async function getAiReply(messages) {
@@ -44,23 +44,12 @@ export async function getAiReply(messages) {
   };
 
   // 本地开发且无 API key → 示例回复
-  if (!API_KEY && !IS_PROD) return sampleReply();
+  if (!hasApiKey()) return sampleReply();
 
   // 生产环境 → 调用服务器代理（API key 不暴露给浏览器）
   if (IS_PROD) {
     try {
-      const resp = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: messages.map((m) => ({
-            role: m.role === "ai" ? "assistant" : "user",
-            content: m.text,
-          })),
-        }),
-      });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const { text } = await resp.json();
+      const { text } = await postProxy("/api/chat", { messages: toChatMsgs(messages) });
       return text;
     } catch {
       return sampleReply();
@@ -69,18 +58,10 @@ export async function getAiReply(messages) {
 
   // 本地开发 + 有 API key → 直接调用 SDK
   try {
-    const { default: Anthropic } = await import("@anthropic-ai/sdk");
-    const client = new Anthropic({ apiKey: API_KEY, dangerouslyAllowBrowser: true });
-    const resp = await client.messages.create({
-      model: AI_MODEL,
-      max_tokens: 256,
-      system: SYSTEM_PROMPT,
-      messages: messages.map((m) => ({
-        role: m.role === "ai" ? "assistant" : "user",
-        content: m.text,
-      })),
+    return await chatComplete({
+      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...toChatMsgs(messages)],
+      maxTokens: 256,
     });
-    return resp.content.map((b) => b.text).join("");
   } catch {
     return sampleReply();
   }

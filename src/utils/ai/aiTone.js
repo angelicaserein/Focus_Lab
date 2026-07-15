@@ -2,7 +2,7 @@
 //  语气包生成调用封装（照搬 aiChat.js 的三模式分流）
 //
 //  1. 生产环境（Vercel）→ 调 /api/tone 代理，API key 在服务器侧
-//  2. 本地开发 + 有 VITE_ANTHROPIC_API_KEY → 动态 import SDK 直连
+//  2. 本地开发 + 有 VITE_OPENAI_API_KEY → 动态 import SDK 直连
 //  3. 本地开发 + 无 key → 返回示例语气包（离线也能演示整套替换）
 //
 //  产物：{ phrases: { <i18nKey>: text }, mode: 'ai' | 'example' }
@@ -10,13 +10,9 @@
 // ──────────────────────────────────────────────────────────────
 import { TRANSLATIONS, DEFAULT_LANG } from "@/i18n/translations";
 import { TONE_SLOTS, sanitizeTonePhrases, SAMPLE_TONE_PACKS } from "@/utils/ai/tonePack";
+import { IS_PROD, hasApiKey, chatComplete, postProxy, extractJson } from "@/utils/ai/aiClient";
 
-const API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || "";
-const IS_PROD = import.meta.env.PROD;
-const AI_MODEL = "claude-haiku-4-5-20251001";
-
-// UI 用它来提示「AI 模式」还是「示例模式」
-export const hasApiKey = () => Boolean(API_KEY) || IS_PROD;
+export { hasApiKey };
 
 // 组织给模型看的「槽位清单」：key + 用途说明 + 当前默认文案（同尺度参考）。
 function buildSlotList(lang) {
@@ -35,9 +31,9 @@ function systemPrompt(lang) {
     `Write every string in ${langName}.`,
     "Hard rules:",
     "- Keep each string SHORT (a few words, like the defaults).",
-    "- NEVER include numbers, scores, percentages, levels, or 'X of Y' — these are meant to feel encouraging and non-judgmental (the app serves people with ADHD).",
-    "- Preserve any {placeholder} token EXACTLY as given.",
-    "- Keep the same meaning/role as each slot's description; only the voice changes.",
+    "- Only the voice changes; keep the same meaning/role as each slot's description.",
+    "- Preserve any {placeholder} token EXACTLY as given (these carry live values like levels or counts).",
+    "- Keep the tone encouraging, never pressuring or judgmental (the app serves people with ADHD).",
     "Reply with ONLY a JSON object mapping each given key to its rewritten string. No markdown, no commentary.",
   ].join("\n");
 }
@@ -51,19 +47,6 @@ function userPrompt(tone, lang) {
   ].join("\n");
 }
 
-// 从模型文本里稳妥地取出第一个 JSON 对象。
-function parsePhrases(text) {
-  if (!text) return null;
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start < 0 || end <= start) return null;
-  try {
-    return JSON.parse(text.slice(start, end + 1));
-  } catch {
-    return null;
-  }
-}
-
 const sample = (lang) => ({
   phrases: sanitizeTonePhrases(SAMPLE_TONE_PACKS[lang] ?? SAMPLE_TONE_PACKS[DEFAULT_LANG]),
   mode: "example",
@@ -75,23 +58,17 @@ export async function generateTonePack(tone, lang = DEFAULT_LANG) {
   if (!clean) throw new Error("empty tone");
 
   // 本地开发且无 key → 示例语气包
-  if (!API_KEY && !IS_PROD) return sample(lang);
+  if (!hasApiKey()) return sample(lang);
 
   // 生产环境 → 服务器代理
   if (IS_PROD) {
     try {
-      const resp = await fetch("/api/tone", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tone: clean,
-          lang,
-          system: systemPrompt(lang),
-          user: userPrompt(clean, lang),
-        }),
+      const { phrases } = await postProxy("/api/tone", {
+        tone: clean,
+        lang,
+        system: systemPrompt(lang),
+        user: userPrompt(clean, lang),
       });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const { phrases } = await resp.json();
       const clean2 = sanitizeTonePhrases(phrases);
       if (Object.keys(clean2).length === 0) throw new Error("empty phrases");
       return { phrases: clean2, mode: "ai" };
@@ -102,16 +79,12 @@ export async function generateTonePack(tone, lang = DEFAULT_LANG) {
 
   // 本地开发 + 有 key → SDK 直连
   try {
-    const { default: Anthropic } = await import("@anthropic-ai/sdk");
-    const client = new Anthropic({ apiKey: API_KEY, dangerouslyAllowBrowser: true });
-    const resp = await client.messages.create({
-      model: AI_MODEL,
-      max_tokens: 1024,
+    const text = await chatComplete({
       system: systemPrompt(lang),
-      messages: [{ role: "user", content: userPrompt(clean, lang) }],
+      user: userPrompt(clean, lang),
+      maxTokens: 1024,
     });
-    const text = resp.content.map((b) => b.text).join("");
-    const clean2 = sanitizeTonePhrases(parsePhrases(text));
+    const clean2 = sanitizeTonePhrases(extractJson(text, "object"));
     if (Object.keys(clean2).length === 0) throw new Error("empty phrases");
     return { phrases: clean2, mode: "ai" };
   } catch {

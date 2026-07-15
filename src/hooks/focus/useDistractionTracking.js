@@ -85,14 +85,14 @@ export default function useDistractionTracking({ getSession, focusedTodoIds, isR
     dispatch({ type: "TAG" });
   }, [pendingId, setDistractions]);
 
-  const handleDistractionUndo = useCallback(() => {
-    if (pendingId) {
-      setDistractions((prev) => prev.filter((d) => d.id !== pendingId));
-    }
-    dispatch({ type: "UNDO" });
-  }, [pendingId, setDistractions]);
+  // 「懒得记」：保留已建的空白记录、仅关闭弹窗（回到 idle，不删记录）。
+  const skipDistractionTag = useCallback(() => dispatch({ type: "DISMISS" }), []);
 
-  const dismissPendingDistraction = useCallback(() => dispatch({ type: "DISMISS" }), []);
+  // 存档后的撤回入口：按 id 删掉这条分心（供「已记下 · 撤回」toast 使用）。
+  const removeDistraction = useCallback(
+    (id) => setDistractions((prev) => prev.filter((d) => d.id !== id)),
+    [setDistractions],
+  );
 
   // 会话结束时如果还在主动分心中，结束它并返回额外秒数
   const flushProactiveDistraction = useCallback(() => {
@@ -114,8 +114,8 @@ export default function useDistractionTracking({ getSession, focusedTodoIds, isR
     startProactiveDistraction,
     endProactiveDistraction,
     handleDistractionTag,
-    handleDistractionUndo,
-    dismissPendingDistraction,
+    skipDistractionTag,
+    removeDistraction,
     flushProactiveDistraction,
   };
 }

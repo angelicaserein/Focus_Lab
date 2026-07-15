@@ -440,7 +440,7 @@
 
 .immersive-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(160, 120, 152, 0.22);
+  box-shadow: 0 4px 16px rgba(var(--accent-rgb), 0.22);
 }
 
 .immersive-btn:active:not(:disabled) {

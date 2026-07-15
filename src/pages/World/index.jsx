@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
 import { useScenarios } from "@/context/ScenarioContext";
 import useCharacter from "@/hooks/character/useCharacter";
@@ -20,9 +21,28 @@ import "./World.css";
 // 沿用星图「全部从行为推导」的原则，只是换成一张可探索的世界地图叙事。
 export default function WorldPage() {
   const { t, lang } = useLanguage();
-  const { scenarios } = useScenarios();
+  const navigate = useNavigate();
+  const { scenarios, clearActiveScenario } = useScenarios();
   const char = useCharacter();
   const [outfit] = useLocalStorage(STORAGE_KEYS.COMPANION_OUTFIT, null);
+
+  // 点一片区域 = 进专注页开始探索。
+  //   具体情景区域 → 带着该情景启动（沿用情景页「快速启动」的 router state 约定）；未探索的也可点，那正是「第一次去踩点」。
+  //   「未定之野」= 不属于任何情景的自由探索 → 清掉当前情景、以「无情景」进专注。
+  const launchRegion = (r) => {
+    if (r.wilds) {
+      clearActiveScenario();
+      navigate("/focus");
+      return;
+    }
+    navigate("/focus", { state: { scenarioId: r.id } });
+  };
+  const onRegionKey = (e, r) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      launchRegion(r);
+    }
+  };
 
   const regions = useMemo(
     () => computeRegions(scenarios, char.skills),
@@ -86,11 +106,16 @@ export default function WorldPage() {
                   />
                 ))}
 
-                {/* 区域节点 */}
+                {/* 区域节点：点一下=进入这片区域开始专注（未定之野=自由探索） */}
                 {nodes.map((n) => (
                   <g
                     key={`node-${n.id}`}
-                    className={`world-node${n.explored ? " explored" : " undiscovered"}`}
+                    className={`world-node clickable${n.explored ? " explored" : " undiscovered"}`}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={t("world.enter", { name: regionName(n) })}
+                    onClick={() => launchRegion(n)}
+                    onKeyDown={(e) => onRegionKey(e, n)}
                   >
                     <circle cx={n.x} cy={n.y} r={n.r} />
                     <text className="world-node-icon" x={n.x} y={n.y} dy="1" style={{ fontSize: n.r }}>
@@ -123,29 +148,41 @@ export default function WorldPage() {
             </div>
           </div>
 
-          {/* 区域详情卡：名称 + 质化探索措辞 + 专注时长（中性事实，允许） */}
+          {/* 提示：地图/卡片都是入口，点一下就去那片区域专注 */}
+          <p className="world-tap-hint">{t("world.tapHint")}</p>
+
+          {/* 区域详情卡：名称 + 质化探索措辞 + 专注时长（中性事实，允许）。点一下=进入这片区域专注 */}
           <div className="world-regions">
-            {regions.map((r) => (
-              <div key={r.id} className={`world-region${r.explored ? " explored" : ""}`}>
-                <div className="world-region-icon" aria-hidden="true">
-                  {r.explored ? r.icon : "🌫️"}
-                </div>
-                <div className="world-region-body">
-                  <div className="world-region-name">{regionName(r)}</div>
-                  <div className="world-region-phrase">
-                    {t(`world.phase.${explorationPhraseKey(r.explored, r.progress)}`)}
+            {regions.map((r) => {
+              const p = Math.max(0, Math.min(1, r.progress || 0));
+              return (
+                <button
+                  key={r.id}
+                  type="button"
+                  className={`world-region clickable${r.explored ? " explored" : ""}`}
+                  onClick={() => launchRegion(r)}
+                  aria-label={t("world.enter", { name: regionName(r) })}
+                >
+                  <div className="world-region-icon" aria-hidden="true">
+                    {r.explored ? r.icon : "🌫️"}
                   </div>
-                  {r.explored && (
-                    <div className="world-region-bar" aria-hidden="true">
-                      <div className="world-region-fill" style={{ width: `${Math.round(r.p * 100)}%` }} />
+                  <div className="world-region-body">
+                    <div className="world-region-name">{regionName(r)}</div>
+                    <div className="world-region-phrase">
+                      {t(`world.phase.${explorationPhraseKey(r.explored, r.progress)}`)}
                     </div>
+                    {r.explored && (
+                      <div className="world-region-bar" aria-hidden="true">
+                        <div className="world-region-fill" style={{ width: `${Math.round(p * 100)}%` }} />
+                      </div>
+                    )}
+                  </div>
+                  {r.explored && r.secs > 0 && (
+                    <div className="world-region-time">{formatDuration(r.secs)}</div>
                   )}
-                </div>
-                {r.explored && r.secs > 0 && (
-                  <div className="world-region-time">{formatDuration(r.secs)}</div>
-                )}
-              </div>
-            ))}
+                </button>
+              );
+            })}
           </div>
 
           {char.lockedSkillCount > 0 && regions.every((r) => r.explored) && (

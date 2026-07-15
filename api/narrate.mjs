@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 
 // 游戏主持人「旅程旁白」代理：浏览器把角色状态摘要发来，API key 留在服务器侧。
 // 返回 { result }（模型原始文本，前端直接展示 / 失败兜底本地模板）。
@@ -16,11 +16,11 @@ function buildSystemPrompt(lang) {
       ? "- 用第二人称「你」，2~3 句，温暖、有画面感、像 RPG 旁白。"
       : "- Second person, 2-3 sentences, warm and vivid, like RPG narration.",
     zh
-      ? "- ADHD 友好：庆祝「出现即胜利」，绝不施压、不催促、不评判、不报「还差多少」。"
-      : "- ADHD-friendly: celebrate simply showing up; never pressure, nag, judge, or mention how far 'behind' they are.",
+      ? "- ADHD 友好：庆祝「出现即胜利」，绝不施压、不催促、不评判。"
+      : "- ADHD-friendly: celebrate simply showing up; never pressure, nag, or judge.",
     zh
-      ? "- 自然融入给到的事实（成长阶段、势头、最投入的方向等），但不要罗列数字。"
-      : "- Weave in the given facts (growth stage, momentum, strongest focus, etc.) naturally, without listing numbers.",
+      ? "- 自然融入给到的事实（成长阶段、势头、最投入的方向，以及累计时长、连续天数等具体数字），但要织进叙事，别堆成数据清单。"
+      : "- Weave in the given facts (growth stage, momentum, strongest focus, plus concrete numbers like total minutes or streak days) naturally into the story, not as a bare list.",
     zh
       ? "- 只输出这段叙事本身，不要标题、不要引号、不要解释。"
       : "- Output only the narration itself — no title, no quotes, no explanation.",
@@ -53,10 +53,10 @@ function buildForemanSystem(lang) {
       : "You are the Foreman of an automated factory, broadcasting the current production status in one line — brisk, with a touch of industrial romance, like a shop-floor announcement.",
     zh ? "规则：" : "Rules:",
     zh ? "- 只输出 1 句，简短有力。" : "- Output exactly 1 short, punchy line.",
-    zh ? "- ADHD 友好：肯定「已经产出的」，绝不催促、不施压、不报「还差多少」。"
-      : "- ADHD-friendly: affirm what's already produced; never nag, pressure, or mention how far 'behind'.",
-    zh ? "- 自然带入给到的事实，不罗列数字。只输出这句播报本身。"
-      : "- Weave in the facts naturally, no number-listing. Output only the line itself.",
+    zh ? "- ADHD 友好：肯定「已经产出的」，绝不催促、不施压。"
+      : "- ADHD-friendly: affirm what's already produced; never nag or pressure.",
+    zh ? "- 自然带入给到的事实（可含具体数字，如产量），别写成干巴巴的数据。只输出这句播报本身。"
+      : "- Weave in the facts naturally (concrete numbers like output are fine), not as dry stats. Output only the line itself.",
     zh ? "- 用中文。" : "- Write in English.",
   ].join("\n");
 }
@@ -83,10 +83,10 @@ function buildLumiSystem(lang) {
     zh ? "规则：" : "Rules:",
     zh ? "- 只说 1 句短话（不超过约 25 字），像身边伙伴的轻声陪伴，可带一点童趣。"
       : "- Say exactly 1 short line (under ~20 words), like a companion beside them — a little playful is fine.",
-    zh ? "- ADHD 友好：庆祝「你出现了」，绝不催促、不施压、不评判、不报「还差多少」。"
-      : "- ADHD-friendly: celebrate that they showed up; never nag, pressure, judge, or mention how far 'behind'.",
-    zh ? "- 自然带入给到的情境，但不要罗列数字。只输出这一句本身，不要引号、不要解释。"
-      : "- Weave in the given context naturally, no number-listing. Output only the line itself — no quotes, no explanation.",
+    zh ? "- ADHD 友好：庆祝「你出现了」，绝不催促、不施压、不评判。"
+      : "- ADHD-friendly: celebrate that they showed up; never nag, pressure, or judge.",
+    zh ? "- 自然带入给到的情境，提到数字也没关系，但要说得像陪伴的话，别像报数。只输出这一句本身，不要引号、不要解释。"
+      : "- Weave in the given context naturally; mentioning numbers is fine, but keep it companionable, not a readout. Output only the line itself — no quotes, no explanation.",
     zh ? "- 用中文。" : "- Write in English.",
   ].join("\n");
 }
@@ -118,7 +118,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return res.status(503).json({ error: "AI not configured" });
   }
@@ -127,14 +127,16 @@ export default async function handler(req, res) {
   const p = PERSONA[persona] ?? PERSONA.journey;
 
   try {
-    const client = new Anthropic({ apiKey });
-    const resp = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: p.maxTokens,
-      system: p.system(lang),
-      messages: [{ role: "user", content: p.payload(context, lang) }],
+    const client = new OpenAI({ apiKey });
+    const resp = await client.chat.completions.create({
+      model: "gpt-5.5",
+      max_completion_tokens: p.maxTokens,
+      messages: [
+        { role: "system", content: p.system(lang) },
+        { role: "user", content: p.payload(context, lang) },
+      ],
     });
-    return res.json({ result: resp.content.map((b) => b.text).join("") });
+    return res.json({ result: resp.choices[0]?.message?.content ?? "" });
   } catch (e) {
     console.error("[api/narrate]", e.message);
     return res.status(500).json({ error: "AI request failed" });

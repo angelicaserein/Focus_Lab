@@ -162,6 +162,23 @@ export function loadVersioned(key, version, defaultValue = []) {
 }
 
 /**
+ * 从 localStorage 读取单个标量（非数组）值，解包 { version, data } 包装；
+ * 兼容旧裸格式。可选 validate 谓词：解包后的值不合法时回退 defaultValue。
+ * （loadVersioned 只认数组，标量场景用本函数，避免各处重复内联 try/catch 解包。）
+ */
+export function loadVersionedScalar(key, validate = null, defaultValue = null) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return defaultValue;
+    const value = unwrapVersioned(JSON.parse(raw));
+    if (validate && !validate(value)) return defaultValue;
+    return value;
+  } catch {
+    return defaultValue;
+  }
+}
+
+/**
  * 在 app 启动时调用一次（main.jsx），在任何 Context 读取数据前执行。
  * 读取所有数据 → 顺序执行迁移函数 → 写回（统一 versioned 格式）→ 更新 schema 版本号。
  */

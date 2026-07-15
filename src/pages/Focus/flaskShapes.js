@@ -2,10 +2,12 @@
 // 三个预设（圆底 / 锥形 / 烧杯）只是参数空间里的几个取样点，用户可在设置页
 // 用滑杆继续微调，圆底↔锥形↔烧杯本质上是同一条连续谱。
 //
-// 坐标系：viewBox 80x130，瓶身中线 cx=40，瓶颈顶端固定在 y=16，
+// 坐标系：viewBox 80x130，瓶身中线 cx=40，
 // 底部固定在 y=128（液面填充逻辑依赖这个底，勿改）。
+// 瓶口顶端 y 不再写死：由 neckLen（瓶口长度）自 shoulderY 上推得到，
+// 这样瓶口长度可独立于瓶肩位置自由调节。
 const CX = 40;
-const NECK_TOP = 16;
+const NECK_TOP_MIN = 10; // 瓶口顶端最高只能到这，给瓶塞/杯沿留出画布空间
 const BASE_Y = 128;
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
@@ -13,15 +15,16 @@ const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 // 可调参数及其滑杆范围。key 对应 i18n：settings.prefs.flaskParam.<key>
 export const FLASK_PARAM_DEFS = [
   { key: "neckHalf",    min: 5,  max: 30, step: 1 }, // 瓶颈半宽
-  { key: "shoulderY",   min: 20, max: 96, step: 1 }, // 瓶肩起点（越大瓶颈越长）
+  { key: "neckLen",     min: 4,  max: 70, step: 1 }, // 瓶口长度（从瓶肩上推到瓶口顶端）
+  { key: "shoulderY",   min: 20, max: 96, step: 1 }, // 瓶肩位置（越大瓶身越靠下）
   { key: "bodyHalf",    min: 18, max: 37, step: 1 }, // 瓶身最大半宽
   { key: "bottomRound", min: 0,  max: 37, step: 1 }, // 底部圆角：0=平底(锥形) → 大=圆底
 ];
 
 export const FLASK_PRESETS = {
-  round:    { neckHalf: 14, shoulderY: 44, bodyHalf: 34, bottomRound: 30, open: false },
-  triangle: { neckHalf: 8,  shoulderY: 42, bodyHalf: 34, bottomRound: 6,  open: false },
-  beaker:   { neckHalf: 26, shoulderY: 24, bodyHalf: 28, bottomRound: 5,  open: true },
+  round:    { neckHalf: 14, neckLen: 28, shoulderY: 44, bodyHalf: 34, bottomRound: 30, open: false },
+  triangle: { neckHalf: 8,  neckLen: 26, shoulderY: 42, bodyHalf: 34, bottomRound: 6,  open: false },
+  beaker:   { neckHalf: 26, neckLen: 8,  shoulderY: 24, bodyHalf: 28, bottomRound: 5,  open: true },
 };
 
 export const FLASK_PRESET_ORDER = ["round", "triangle", "beaker"];
@@ -35,6 +38,8 @@ export function buildFlask(raw = {}) {
   const bottomRound = clamp(Math.min(raw.bottomRound ?? 20, bodyHalf), 0, bodyHalf);
   // 瓶肩不能低于底部圆角起点，否则轮廓翻折
   const shoulderY = clamp(raw.shoulderY ?? 44, 20, BASE_Y - bottomRound - 8);
+  // 瓶口顶端 = 瓶肩上推 neckLen；夹取到 [NECK_TOP_MIN, 瓶肩上方 6px]，保证瓶口始终可见
+  const neckTop = clamp(shoulderY - (raw.neckLen ?? 28), NECK_TOP_MIN, shoulderY - 6);
   const open = !!raw.open;
 
   const lNeck = CX - neckHalf, rNeck = CX + neckHalf;
@@ -42,25 +47,42 @@ export function buildFlask(raw = {}) {
   const yCorner = BASE_Y - bottomRound;
 
   const path = [
-    `M ${lNeck},${NECK_TOP}`,
+    `M ${lNeck},${neckTop}`,
     `L ${lNeck},${shoulderY}`,
     `L ${lBody},${yCorner}`,
     `Q ${lBody},${BASE_Y} ${lBody + bottomRound},${BASE_Y}`,
     `L ${rBody - bottomRound},${BASE_Y}`,
     `Q ${rBody},${BASE_Y} ${rBody},${yCorner}`,
     `L ${rNeck},${shoulderY}`,
-    `L ${rNeck},${NECK_TOP}`,
+    `L ${rNeck},${neckTop}`,
     "Z",
   ].join(" ");
 
   const highlight = [
-    `M ${lNeck + 2},${NECK_TOP + 4}`,
+    `M ${lNeck + 2},${neckTop + 4}`,
     `L ${lNeck + 2},${shoulderY}`,
     `L ${lBody + 4},${Math.max(shoulderY + 4, yCorner - 6)}`,
   ].join(" ");
 
-  const cap = open ? null : { x: lNeck - 2, y: 0, w: 2 * neckHalf + 4, h: 17, rx: 5 };
-  const rim = open ? { x: lNeck - 3, y: 5, w: 2 * neckHalf + 6, h: 9, rx: 3 } : null;
+  // 带瓶塞：一枚上宽下窄的软木塞，坐在瓶口上，明显高出瓶身。
+  // 敞口：把瓶口画成一圈深色椭圆开口（像从上往下看进空瓶），一眼可辨。
+  const capTopHalf = neckHalf + 3;
+  const capBotHalf = neckHalf + 0.5;
+  const capTopY = neckTop - 9;
+  const capBotY = neckTop + 4;
+  const cap = open
+    ? null
+    : [
+        `M ${CX - capTopHalf + 2},${capTopY}`,
+        `L ${CX + capTopHalf - 2},${capTopY}`,
+        `Q ${CX + capTopHalf},${capTopY} ${CX + capTopHalf},${capTopY + 2}`,
+        `L ${CX + capBotHalf},${capBotY}`,
+        `L ${CX - capBotHalf},${capBotY}`,
+        `L ${CX - capTopHalf},${capTopY + 2}`,
+        `Q ${CX - capTopHalf},${capTopY} ${CX - capTopHalf + 2},${capTopY}`,
+        "Z",
+      ].join(" ");
+  const rim = open ? { cx: CX, cy: neckTop, rx: neckHalf, ry: 3.4 } : null;
 
   return { path, highlight, cap, rim };
 }

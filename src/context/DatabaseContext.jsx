@@ -1,6 +1,6 @@
 import React, { useReducer, useState, useContext, useMemo } from "react";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
-import { loadVersioned, WRAPPER_VERSION } from "@/utils/storage/storage";
+import { loadVersioned, loadVersionedScalar, WRAPPER_VERSION } from "@/utils/storage/storage";
 import usePersistedWrite from "@/hooks/common/usePersistedWrite";
 import { DATABASE_TEMPLATES } from "@/utils/task/databaseTemplates";
 
@@ -65,15 +65,11 @@ function loadDatabases() {
 }
 
 function loadActiveDbId(databases) {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.ACTIVE_DB);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      const id = parsed?.data ?? parsed;
-      if (typeof id === "string" && databases.some(d => d.id === id)) return id;
-    }
-  } catch { /* ignore */ }
-  return databases[0]?.id ?? DEFAULT_DB_ID;
+  return loadVersionedScalar(
+    STORAGE_KEYS.ACTIVE_DB,
+    (id) => typeof id === "string" && databases.some(d => d.id === id),
+    databases[0]?.id ?? DEFAULT_DB_ID,
+  );
 }
 
 const cloneAttr = (a) => ({

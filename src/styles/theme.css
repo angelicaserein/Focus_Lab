@@ -6,12 +6,17 @@
  *
  *  改完保存即可看到效果（dev server 热更新，无需刷新）。
  *
- *  ⚠ 注意带 rgba 的变量：
- *    括号里的三个数字是对应主色的 RGB 分量。
- *    如果改了某个主色（比如 --accent），需要把下方
- *    "来自 --accent" 注释那组 rgba 里的数字也同步改掉。
- *    例：--accent 改成 #4A90D9 → RGB = 74, 144, 217
- *       → 把 rgba(160, 120, 152, ...) 改成 rgba(74, 144, 217, ...)
+ *  ✅ 想换主色？只改两个变量：
+ *       --accent      主色 hex（按钮、选中态、高亮）
+ *       --accent-rgb  同一颜色的 "R, G, B" 三个数字
+ *     所有带透明度的衍生色（--accent-bg / --border-card / 计时器
+ *     轨道…）都由 --accent-rgb 自动算出，不必再手动同步 rgba 数字。
+ *
+ *  新增一个主题皮肤时，通常只需覆盖下面这几个变量：
+ *       --bg --card --accent --accent-rgb --accent-mid --accent-deep
+ *       --text-heading --on-accent-light
+ *     其余衍生色会跟着 --accent-rgb 走。若某皮肤要单独微调某条
+ *     边框/阴影，再按需覆盖对应变量即可（见 night 皮肤）。
  * ══════════════════════════════════════════════════════════
  */
 
@@ -24,12 +29,16 @@
   /* 主色 — 整个网站最醒目的品牌色 */
   --accent: #a07898;
 
-  /* 来自 --accent (160, 120, 152) 的透明衍生版，改 --accent 时同步改这组 */
-  --accent-bg: rgba(160, 120, 152, 0.1); /* 激活背景、标签底色 */
-  --accent-bg-dim: rgba(160, 120, 152, 0.08); /* 次级按钮背景 */
-  --accent-hover: rgba(160, 120, 152, 0.07); /* hover 遮罩 */
-  --accent-border: rgba(160, 120, 152, 0.14); /* 次级按钮边框 */
-  --accent-glow: rgba(160, 120, 152, 0.28); /* 普通按钮阴影 */
+  /* 主色的 RGB 三元组 — 下面所有 rgba(var(--accent-rgb), …) 衍生色的来源。
+     换主题时改这一行，其余透明衍生色自动跟随。 */
+  --accent-rgb: 160, 120, 152;
+
+  /* 由 --accent-rgb 自动派生的透明衍生色（改主色无需动这里） */
+  --accent-bg: rgba(var(--accent-rgb), 0.1); /* 激活背景、标签底色 */
+  --accent-bg-dim: rgba(var(--accent-rgb), 0.08); /* 次级按钮背景 */
+  --accent-hover: rgba(var(--accent-rgb), 0.07); /* hover 遮罩 */
+  --accent-border: rgba(var(--accent-rgb), 0.14); /* 次级按钮边框 */
+  --accent-glow: rgba(var(--accent-rgb), 0.28); /* 普通按钮阴影 */
 
   /* ┌─────────────────────────────────────────────────────┐
      │  主色深浅系列                                        │
@@ -98,23 +107,17 @@
      │  边框                                                │
      └─────────────────────────────────────────────────────┘ */
 
-  /* 计时器圆环轨道色（来自 --accent） */
-  --timer-track: rgba(160, 120, 152, 0.1);
+  /* 计时器圆环轨道色（派生自 --accent-rgb） */
+  --timer-track: rgba(var(--accent-rgb), 0.1);
 
   /* 主色背景上的淡色文字（如选中卡片上的小字） */
   --on-accent-light: #e0cedd;
 
-  /* 卡片细边框（来自 --accent） */
-  --border-card: rgba(160, 120, 152, 0.12);
-
-  /* 空状态虚线边框 */
-  --border-dashed: rgba(160, 120, 152, 0.22);
-
-  /* 任务卡片边框 */
-  --border-pill: rgba(160, 120, 152, 0.14);
-
-  /* 输入框、按钮描边 */
-  --border-accent: rgba(160, 120, 152, 0.18);
+  /* 以下 4 条边框均派生自 --accent-rgb */
+  --border-card: rgba(var(--accent-rgb), 0.12); /* 卡片细边框 */
+  --border-dashed: rgba(var(--accent-rgb), 0.22); /* 空状态虚线边框 */
+  --border-pill: rgba(var(--accent-rgb), 0.14); /* 任务卡片边框 */
+  --border-accent: rgba(var(--accent-rgb), 0.18); /* 输入框、按钮描边 */
 
   /* 侧边栏分割线、容器边框 — 中性深色 */
   --border-dark: rgba(15, 23, 42, 0.1);
@@ -156,6 +159,7 @@
 
 /* ══════════════════════════════════════════════════════════
    暗夜皮肤（奖励商城可购，购后 <html data-theme="night">）
+   —— 保留默认紫主色，只改中性色与暗底上的边框可见度
    ══════════════════════════════════════════════════════════ */
 :root[data-theme="night"] {
   --bg:           #0f0f1a;
@@ -166,13 +170,15 @@
   --text-faint:   #5a5070;
   --text-placeholder: #4a4060;
 
+  /* 暗底需要更明显的边框，故这几条在派生值上再加一档不透明度 */
+  --border-card:     rgba(var(--accent-rgb), 0.18);
+  --border-pill:     rgba(var(--accent-rgb), 0.18);
+  --border-accent:   rgba(var(--accent-rgb), 0.22);
+
+  /* 中性边框改成浅色描边 */
   --border-dark:     rgba(255, 255, 255, 0.08);
   --border-input:    rgba(255, 255, 255, 0.06);
-  --border-card:     rgba(160, 120, 152, 0.18);
   --border-checkbox: rgba(255, 255, 255, 0.08);
-  --border-dashed:   rgba(160, 120, 152, 0.22);
-  --border-pill:     rgba(160, 120, 152, 0.18);
-  --border-accent:   rgba(160, 120, 152, 0.22);
 
   --shadow-xs: rgba(0, 0, 0, 0.25);
   --shadow-sm: rgba(0, 0, 0, 0.35);
@@ -181,197 +187,104 @@
 }
 
 /* ══════════════════════════════════════════════════════════
-   粉色主题（奖励商城可购，购后 <html data-theme="pink">）
+   彩色主题皮肤（奖励商城可购）
+   —— 每套只改主色与少量文字/底色，透明衍生色全部跟随 --accent-rgb
    ══════════════════════════════════════════════════════════ */
+
+/* 粉色 <html data-theme="pink"> */
 :root[data-theme="pink"] {
   --bg:   #fff0f8;
   --card: #fff5fa;
 
-  /* 主色改为更暖的粉，RGB = 224, 117, 168 */
   --accent:      #e075a8;
+  --accent-rgb:  224, 117, 168;
   --accent-mid:  #c0507e;
   --accent-deep: #d05090;
 
-  --accent-bg:     rgba(224, 117, 168, 0.10);
-  --accent-bg-dim: rgba(224, 117, 168, 0.08);
-  --accent-hover:  rgba(224, 117, 168, 0.07);
-  --accent-border: rgba(224, 117, 168, 0.14);
-  --accent-glow:   rgba(224, 117, 168, 0.28);
-
-  --timer-track:  rgba(224, 117, 168, 0.10);
-  --border-card:  rgba(224, 117, 168, 0.15);
-  --border-pill:  rgba(224, 117, 168, 0.14);
-  --border-accent: rgba(224, 117, 168, 0.18);
-  --border-dashed: rgba(224, 117, 168, 0.22);
-
-  --text-heading: #3d1030;
+  --text-heading:    #3d1030;
   --on-accent-light: #fce8f3;
 }
 
-/* ══════════════════════════════════════════════════════════
-   海洋蓝（奖励商城可购，购后 <html data-theme="ocean">）
-   ══════════════════════════════════════════════════════════ */
+/* 海洋蓝 <html data-theme="ocean"> */
 :root[data-theme="ocean"] {
   --bg:   #eef6fc;
   --card: #f8fbff;
 
-  /* 主色改为清爽海蓝，RGB = 74, 144, 217 */
   --accent:      #4a90d9;
+  --accent-rgb:  74, 144, 217;
   --accent-mid:  #3a72b0;
   --accent-deep: #4180c4;
 
-  --accent-bg:     rgba(74, 144, 217, 0.10);
-  --accent-bg-dim: rgba(74, 144, 217, 0.08);
-  --accent-hover:  rgba(74, 144, 217, 0.07);
-  --accent-border: rgba(74, 144, 217, 0.14);
-  --accent-glow:   rgba(74, 144, 217, 0.28);
-
-  --timer-track:  rgba(74, 144, 217, 0.10);
-  --border-card:  rgba(74, 144, 217, 0.15);
-  --border-pill:  rgba(74, 144, 217, 0.14);
-  --border-accent: rgba(74, 144, 217, 0.18);
-  --border-dashed: rgba(74, 144, 217, 0.22);
-
-  --text-heading: #0f2b4a;
+  --text-heading:    #0f2b4a;
   --on-accent-light: #d6e8f7;
 }
 
-/* ══════════════════════════════════════════════════════════
-   森林绿（奖励商城可购，购后 <html data-theme="forest">）
-   ══════════════════════════════════════════════════════════ */
+/* 森林绿 <html data-theme="forest"> */
 :root[data-theme="forest"] {
   --bg:   #eef7f0;
   --card: #f8fdf9;
 
-  /* 主色改为舒缓森绿，RGB = 74, 157, 110 */
   --accent:      #4a9d6e;
+  --accent-rgb:  74, 157, 110;
   --accent-mid:  #3a7d57;
   --accent-deep: #418c61;
 
-  --accent-bg:     rgba(74, 157, 110, 0.10);
-  --accent-bg-dim: rgba(74, 157, 110, 0.08);
-  --accent-hover:  rgba(74, 157, 110, 0.07);
-  --accent-border: rgba(74, 157, 110, 0.14);
-  --accent-glow:   rgba(74, 157, 110, 0.28);
-
-  --timer-track:  rgba(74, 157, 110, 0.10);
-  --border-card:  rgba(74, 157, 110, 0.15);
-  --border-pill:  rgba(74, 157, 110, 0.14);
-  --border-accent: rgba(74, 157, 110, 0.18);
-  --border-dashed: rgba(74, 157, 110, 0.22);
-
-  --text-heading: #123024;
+  --text-heading:    #123024;
   --on-accent-light: #d6ede0;
 }
 
-/* ══════════════════════════════════════════════════════════
-   蜜橘暖阳（奖励商城可购，购后 <html data-theme="sunset">）
-   ══════════════════════════════════════════════════════════ */
+/* 蜜橘暖阳 <html data-theme="sunset"> */
 :root[data-theme="sunset"] {
   --bg:   #fff4ec;
   --card: #fffaf6;
 
-  /* 主色改为温暖橘阳，RGB = 232, 135, 74 */
   --accent:      #e8874a;
+  --accent-rgb:  232, 135, 74;
   --accent-mid:  #c66d38;
   --accent-deep: #d67840;
 
-  --accent-bg:     rgba(232, 135, 74, 0.10);
-  --accent-bg-dim: rgba(232, 135, 74, 0.08);
-  --accent-hover:  rgba(232, 135, 74, 0.07);
-  --accent-border: rgba(232, 135, 74, 0.14);
-  --accent-glow:   rgba(232, 135, 74, 0.28);
-
-  --timer-track:  rgba(232, 135, 74, 0.10);
-  --border-card:  rgba(232, 135, 74, 0.15);
-  --border-pill:  rgba(232, 135, 74, 0.14);
-  --border-accent: rgba(232, 135, 74, 0.18);
-  --border-dashed: rgba(232, 135, 74, 0.22);
-
-  --text-heading: #4a2410;
+  --text-heading:    #4a2410;
   --on-accent-light: #fbe4d3;
 }
 
-/* ══════════════════════════════════════════════════════════
-   薰衣草（奖励商城可购，购后 <html data-theme="lavender">）
-   ══════════════════════════════════════════════════════════ */
+/* 薰衣草 <html data-theme="lavender"> */
 :root[data-theme="lavender"] {
   --bg:   #f3f0fc;
   --card: #faf9ff;
 
-  /* 主色改为柔和薰衣草紫，RGB = 157, 140, 228 */
   --accent:      #9d8ce4;
+  --accent-rgb:  157, 140, 228;
   --accent-mid:  #7a68c8;
   --accent-deep: #8877d6;
 
-  --accent-bg:     rgba(157, 140, 228, 0.10);
-  --accent-bg-dim: rgba(157, 140, 228, 0.08);
-  --accent-hover:  rgba(157, 140, 228, 0.07);
-  --accent-border: rgba(157, 140, 228, 0.14);
-  --accent-glow:   rgba(157, 140, 228, 0.28);
-
-  --timer-track:  rgba(157, 140, 228, 0.10);
-  --border-card:  rgba(157, 140, 228, 0.15);
-  --border-pill:  rgba(157, 140, 228, 0.14);
-  --border-accent: rgba(157, 140, 228, 0.18);
-  --border-dashed: rgba(157, 140, 228, 0.22);
-
-  --text-heading: #2a2150;
+  --text-heading:    #2a2150;
   --on-accent-light: #e8e3f8;
 }
 
-/* ══════════════════════════════════════════════════════════
-   薄荷青（奖励商城可购，购后 <html data-theme="teal">）
-   ══════════════════════════════════════════════════════════ */
+/* 薄荷青 <html data-theme="teal"> */
 :root[data-theme="teal"] {
   --bg:   #ecf8f6;
   --card: #f6fdfc;
 
-  /* 主色改为清透薄荷青，RGB = 63, 179, 168 */
   --accent:      #3fb3a8;
+  --accent-rgb:  63, 179, 168;
   --accent-mid:  #2f8f86;
   --accent-deep: #379e94;
 
-  --accent-bg:     rgba(63, 179, 168, 0.10);
-  --accent-bg-dim: rgba(63, 179, 168, 0.08);
-  --accent-hover:  rgba(63, 179, 168, 0.07);
-  --accent-border: rgba(63, 179, 168, 0.14);
-  --accent-glow:   rgba(63, 179, 168, 0.28);
-
-  --timer-track:  rgba(63, 179, 168, 0.10);
-  --border-card:  rgba(63, 179, 168, 0.15);
-  --border-pill:  rgba(63, 179, 168, 0.14);
-  --border-accent: rgba(63, 179, 168, 0.18);
-  --border-dashed: rgba(63, 179, 168, 0.22);
-
-  --text-heading: #0f3330;
+  --text-heading:    #0f3330;
   --on-accent-light: #d3efec;
 }
 
-/* ══════════════════════════════════════════════════════════
-   蜜桃（奖励商城可购，购后 <html data-theme="peach">）
-   ══════════════════════════════════════════════════════════ */
+/* 蜜桃 <html data-theme="peach"> */
 :root[data-theme="peach"] {
   --bg:   #fff2ef;
   --card: #fffaf8;
 
-  /* 主色改为柔嫩蜜桃，RGB = 239, 154, 138 */
   --accent:      #ef9a8a;
+  --accent-rgb:  239, 154, 138;
   --accent-mid:  #cf7565;
   --accent-deep: #dd8474;
 
-  --accent-bg:     rgba(239, 154, 138, 0.10);
-  --accent-bg-dim: rgba(239, 154, 138, 0.08);
-  --accent-hover:  rgba(239, 154, 138, 0.07);
-  --accent-border: rgba(239, 154, 138, 0.14);
-  --accent-glow:   rgba(239, 154, 138, 0.28);
-
-  --timer-track:  rgba(239, 154, 138, 0.10);
-  --border-card:  rgba(239, 154, 138, 0.15);
-  --border-pill:  rgba(239, 154, 138, 0.14);
-  --border-accent: rgba(239, 154, 138, 0.18);
-  --border-dashed: rgba(239, 154, 138, 0.22);
-
-  --text-heading: #4a1f18;
+  --text-heading:    #4a1f18;
   --on-accent-light: #fce4de;
 }

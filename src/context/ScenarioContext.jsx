@@ -1,5 +1,9 @@
 import React, { useReducer, useState, useContext, useCallback } from "react";
-import { loadVersioned, WRAPPER_VERSION } from "@/utils/storage/storage";
+import {
+  loadVersioned,
+  loadVersionedScalar,
+  WRAPPER_VERSION,
+} from "@/utils/storage/storage";
 import useUndoDelete from "@/hooks/common/useUndoDelete";
 import usePersistedWrite from "@/hooks/common/usePersistedWrite";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
@@ -54,14 +58,8 @@ const ScenarioContext = React.createContext(null);
 // 读取可自定义选项表，补齐缺失的 kind（容忍旧/残缺数据），并保证每项形状合法。
 // 注意：scenarioOptions 是对象（非数组），不能用只认数组的 loadVersioned，需手动拆包。
 function loadScenarioOptions() {
-  let stored = null;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.SCENARIO_OPTIONS);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      stored = parsed?.data ?? parsed; // 兼容裸对象与 { version, data } 包装
-    }
-  } catch { /* ignore */ }
+  // 兼容裸对象与 { version, data } 包装；解包失败/无值时回退 null。
+  const stored = loadVersionedScalar(STORAGE_KEYS.SCENARIO_OPTIONS);
   const out = {};
   for (const kind of Object.keys(DEFAULT_SCENARIO_OPTIONS)) {
     const list = Array.isArray(stored?.[kind]) ? stored[kind] : DEFAULT_SCENARIO_OPTIONS[kind];
@@ -74,15 +72,11 @@ function loadScenarioOptions() {
 
 // 从 localStorage 读取「当前情景」id（标量，非数组），兼容旧裸格式与 versioned 包装。
 function loadActiveScenarioId() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.ACTIVE_SCENARIO);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      const id = parsed?.data ?? parsed;
-      if (typeof id === "string") return id;
-    }
-  } catch { /* ignore */ }
-  return null;
+  return loadVersionedScalar(
+    STORAGE_KEYS.ACTIVE_SCENARIO,
+    (id) => typeof id === "string",
+    null,
+  );
 }
 
 // activeScenarioId 是全局唯一的「当前情景」（单选，持久化）：

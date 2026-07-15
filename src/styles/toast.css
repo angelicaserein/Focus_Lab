@@ -56,6 +56,11 @@
   transform: scale(0.94);
 }
 
+/* 分心撤回 toast：专注会话里沉浸层(z 2000+)盖在上面，需抬到其之上才看得见。 */
+.distraction-undo-toast {
+  z-index: 10000;
+}
+
 @media (max-width: 480px) {
   .toast {
     left: 16px;
