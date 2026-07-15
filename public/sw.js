@@ -12,7 +12,7 @@
  * 升级：改动需要让旧缓存失效时，把 CACHE_VERSION 加一即可。
  */
 
-const CACHE_VERSION = "focuslab-v4";
+const CACHE_VERSION = "focuslab-v10";
 
 // 安装时预缓存的「应用外壳」。带 hash 的 JS/CSS 不在此列——它们文件名每次构建都变，
 // 无法静态写死，改由运行时缓存兜底（首次联网访问后即可离线复用）。

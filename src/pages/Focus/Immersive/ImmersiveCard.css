@@ -204,37 +204,6 @@
   color: var(--text-body);
 }
 
-/* 正计时 / 倒计时 分段切换（沉浸卡内） */
-.immersive-mode-toggle {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  width: 100%;
-  max-width: 360px;
-  padding: 3px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.immersive-mode-btn {
-  padding: 6px 10px;
-  border: none;
-  border-radius: 9px;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  cursor: pointer;
-  transition: background 160ms ease, color 160ms ease;
-}
-
-.immersive-mode-btn.active {
-  background: var(--accent);
-  color: #fff;
-}
-
 /* 情境标签 */
 .immersive-scenario {
   font-size: 0.72rem;

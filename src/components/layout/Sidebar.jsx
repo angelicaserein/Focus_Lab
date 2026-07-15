@@ -20,6 +20,7 @@ import {
   Gift,
   Sparkles,
   FlaskConical,
+  BookOpen,
   Settings,
   Coins,
   Languages,
@@ -67,6 +68,7 @@ const NAV_SECTIONS = [
   {
     titleKey: "nav.section.config",
     items: [
+      { to: "/tutorial",     labelKey: "nav.tutorial",     Icon: BookOpen },
       { to: "/functiontree", labelKey: "nav.functiontree", Icon: ListTree },
       { to: "/scenario",     labelKey: "nav.scenario",     Icon: Layers },
       { to: "/reward",       labelKey: "nav.reward",       Icon: Gift },

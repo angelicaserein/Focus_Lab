@@ -159,21 +159,36 @@
 
 /* ══════════════════════════════════════════════════════════
    暗夜皮肤（奖励商城可购，购后 <html data-theme="night">）
-   —— 保留默认紫主色，只改中性色与暗底上的边框可见度
+   —— 深靛底 + 提亮的丁香紫主色。关键：暗底上必须把主色系整体
+      调亮（accent / mid / deep），否则标签文字、次级按钮文字会
+      糊进背景里。
    ══════════════════════════════════════════════════════════ */
 :root[data-theme="night"] {
-  --bg:           #0f0f1a;
-  --card:         #1a1a2e;
-  --text-heading: #e8e0f0;
-  --text-body:    #c9c0d8;
-  --text-muted:   #8a80a0;
-  --text-faint:   #5a5070;
-  --text-placeholder: #4a4060;
+  /* 底色偏暖靛，跟丁香紫主色更协调（原 #0f0f1a 偏死蓝黑） */
+  --bg:           #14121f;
+  --card:         #1e1b30;
+
+  /* 主色整体提亮：暗底上要发光，不能用默认那支发闷的灰紫 */
+  --accent:      #c8a0d4;
+  --accent-rgb:  200, 160, 212;
+  /* mid / deep 在亮色主题里是"更深"，暗底上必须反过来取"更亮"，
+     否则用它们的标签/次级文字几乎看不见 */
+  --accent-mid:  #d9bce3;
+  --accent-deep: #bb8fca;
+
+  --text-heading: #ece4f4;
+  --text-body:    #cdc4dd;
+  --text-muted:   #948aac;
+  --text-faint:   #625877;
+  --text-placeholder: #4c4266;
+
+  /* 主色背景上的淡字，配新的更亮主色 */
+  --on-accent-light: #efe4f5;
 
   /* 暗底需要更明显的边框，故这几条在派生值上再加一档不透明度 */
-  --border-card:     rgba(var(--accent-rgb), 0.18);
-  --border-pill:     rgba(var(--accent-rgb), 0.18);
-  --border-accent:   rgba(var(--accent-rgb), 0.22);
+  --border-card:     rgba(var(--accent-rgb), 0.20);
+  --border-pill:     rgba(var(--accent-rgb), 0.20);
+  --border-accent:   rgba(var(--accent-rgb), 0.26);
 
   /* 中性边框改成浅色描边 */
   --border-dark:     rgba(255, 255, 255, 0.08);
@@ -183,7 +198,7 @@
   --shadow-xs: rgba(0, 0, 0, 0.25);
   --shadow-sm: rgba(0, 0, 0, 0.35);
 
-  --immersive-bg-edge: #0d0d1f;
+  --immersive-bg-edge: #0f0d1c;
 }
 
 /* ══════════════════════════════════════════════════════════

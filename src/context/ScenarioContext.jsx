@@ -148,6 +148,21 @@ export function ScenarioProvider({ children }) {
     }));
   }, []);
 
+  // 批量追加已成形的选项（带 id）。AI 情境配置落地时用：先把新提出的设备/交流
+  // 规则一次性写入选项表，再用同一批 id 更新 settings，保证引用不悬空。
+  const addScenarioOptions = useCallback((additions = {}) => {
+    setScenarioOptions((prev) => {
+      const next = { ...prev };
+      for (const kind of Object.keys(additions)) {
+        const items = additions[kind];
+        if (Array.isArray(items) && items.length) {
+          next[kind] = [...(prev[kind] ?? []), ...items];
+        }
+      }
+      return next;
+    });
+  }, []);
+
   const addScenario = (title, description = "") => {
     const t = title.trim();
     if (!t) return;
@@ -191,6 +206,7 @@ export function ScenarioProvider({ children }) {
     updateScenarioSettings,
     scenarioOptions,
     addScenarioOption,
+    addScenarioOptions,
     updateScenarioOption,
     removeScenarioOption,
     pendingDelete,

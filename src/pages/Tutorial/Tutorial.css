@@ -1,0 +1,214 @@
+.page-tutorial {
+  width: min(820px, 100%);
+  margin: 0 auto;
+  padding: 48px 24px 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* ── 页头 ── */
+.tutorial-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tutorial-title {
+  margin: 0;
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  letter-spacing: -0.02em;
+}
+.tutorial-subtitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+.tutorial-intro {
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+  max-width: 60ch;
+}
+
+/* ── 流程时间线 ── */
+.tutorial-flow {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tutorial-stage {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 18px;
+  animation: tutorial-enter 460ms var(--ease, ease) both;
+}
+.tutorial-stage:nth-child(1) { animation-delay: 40ms; }
+.tutorial-stage:nth-child(2) { animation-delay: 100ms; }
+.tutorial-stage:nth-child(3) { animation-delay: 160ms; }
+.tutorial-stage:nth-child(4) { animation-delay: 220ms; }
+.tutorial-stage:nth-child(5) { animation-delay: 280ms; }
+.tutorial-stage:nth-child(6) { animation-delay: 340ms; }
+
+/* 左侧竖轴：圆形节点 + 向下延伸的连线 */
+.tutorial-stage-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.tutorial-stage-num {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent-bg);
+  color: var(--accent);
+  border: 1px solid var(--accent-border, var(--border-card));
+}
+/* 节点下方的连线：最后一个阶段不画 */
+.tutorial-stage:not(:last-child) .tutorial-stage-rail::after {
+  content: "";
+  flex: 1 1 auto;
+  width: 2px;
+  min-height: 24px;
+  background: linear-gradient(var(--border-card), transparent);
+}
+
+.tutorial-stage-body {
+  background: var(--card);
+  border: 1px solid var(--border-card);
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: var(--shadow-xs);
+}
+.tutorial-stage-step {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+.tutorial-stage-title {
+  margin: 4px 0 0;
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+.tutorial-stage-desc {
+  margin: 8px 0 0;
+  font-size: 0.94rem;
+  line-height: 1.65;
+  color: var(--text-body);
+}
+
+/* ── 「去这里」入口按钮 ── */
+.tutorial-links {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tutorial-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-pill, var(--border-card));
+  background: var(--bg);
+  color: var(--text-body);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, color 140ms ease,
+    background 140ms ease;
+}
+.tutorial-link:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-bg-dim, var(--accent-bg));
+}
+.tutorial-link:active {
+  transform: scale(0.97);
+}
+.tutorial-link:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.tutorial-link-arrow {
+  opacity: 0.55;
+  transition: transform 140ms ease;
+}
+.tutorial-link:hover .tutorial-link-arrow {
+  transform: translateX(2px);
+  opacity: 1;
+}
+
+/* ── 底部小贴士 ── */
+.tutorial-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border, var(--border-card));
+  color: var(--accent);
+}
+.tutorial-tip-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+.tutorial-tip-body {
+  margin: 5px 0 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-body);
+}
+
+@keyframes tutorial-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+  .page-tutorial {
+    padding: 32px 16px 56px;
+  }
+  .tutorial-stage {
+    grid-template-columns: 40px 1fr;
+    gap: 12px;
+  }
+  .tutorial-stage-num {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tutorial-stage {
+    animation: none;
+  }
+  .tutorial-link,
+  .tutorial-link:hover,
+  .tutorial-link:active {
+    transition: none;
+    transform: none;
+  }
+}

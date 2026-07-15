@@ -443,6 +443,188 @@
   cursor: not-allowed;
 }
 
+/* ── AI 情境配置助手：描述框 + 预览 ───────────────────────── */
+.scenario-ai-config {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px dashed var(--accent-border);
+  background: var(--accent-bg-dim, var(--accent-hover));
+}
+
+.scenario-ai-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.scenario-ai-input {
+  flex: 1;
+  min-width: 0;
+  resize: vertical;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-input);
+  background: var(--card);
+  color: var(--text-body);
+  font-size: 14px;
+  line-height: 1.5;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 160ms var(--ease);
+}
+.scenario-ai-input::placeholder {
+  color: var(--text-placeholder);
+}
+.scenario-ai-input:focus {
+  border-color: var(--accent-glow);
+}
+
+.scenario-ai-btn {
+  flex-shrink: 0;
+  align-self: stretch;
+  border: 1px solid var(--accent-border);
+  background: var(--card);
+  color: var(--accent-deep);
+  border-radius: 12px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 160ms var(--ease),
+    color 160ms var(--ease);
+}
+.scenario-ai-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: white;
+}
+.scenario-ai-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.scenario-ai-error,
+.scenario-ai-hint {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.scenario-ai-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--card);
+  border: 1px solid var(--border-input);
+  animation: fadeInDown 240ms var(--ease) both;
+}
+
+.scenario-ai-note {
+  font-size: 13px;
+  color: var(--accent-deep);
+  line-height: 1.5;
+}
+
+.scenario-ai-empty {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.scenario-ai-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.scenario-ai-key {
+  flex-shrink: 0;
+  width: 4.5em;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+
+.scenario-ai-vals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.scenario-ai-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--accent-deep);
+  font-size: 13px;
+}
+.scenario-ai-chip em {
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 0 4px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: white;
+}
+.scenario-ai-chip.is-new em {
+  background: var(--accent);
+}
+.scenario-ai-chip.is-unmatched {
+  border-style: dashed;
+  color: var(--muted);
+  background: transparent;
+}
+.scenario-ai-chip.is-unmatched em {
+  background: var(--text-faint, var(--muted));
+}
+
+.scenario-ai-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.scenario-ai-apply {
+  border: none;
+  background: var(--accent);
+  color: white;
+  border-radius: 10px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 160ms var(--ease);
+}
+.scenario-ai-apply:hover {
+  opacity: 0.9;
+}
+
+.scenario-ai-dismiss {
+  border: 1px solid var(--border-input);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 10px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 160ms var(--ease);
+}
+.scenario-ai-dismiss:hover {
+  color: var(--accent);
+}
+
 .scenario-stats-link {
   font-size: 0.82rem;
   font-weight: 600;

@@ -31,10 +31,10 @@ export default function FocusFlask({ progress, params }) {
           fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="2.5" strokeLinecap="round"
         />
         {cap && (
-          // 软木塞：暖棕色实心塞子，明显区别于半透明玻璃瓶身
+          // 瓶塞：偏透明的玻璃塞，仅比瓶身略实一点，保持通透质感
           <path
             d={cap}
-            fill="rgba(198,150,96,0.85)" stroke="rgba(120,84,44,0.6)" strokeWidth="1"
+            fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.5)" strokeWidth="1.2"
           />
         )}
         {rim && (

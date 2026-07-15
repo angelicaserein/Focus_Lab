@@ -57,6 +57,54 @@
 }
 .tasks-add-btn:hover { opacity: 0.85; }
 
+/* 标题右侧动作区：排截止日助手 + 新建任务 */
+.tasks-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tasks-assist-btn {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+  color: var(--text-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+}
+.tasks-assist-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* 排截止日助手：每行任务标题 + 快捷排期控件 */
+.dda-task {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 8px;
+}
+.dda-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.dda-controls .date-preset-btn { flex: 0 0 auto; }
+.dda-date { width: auto; min-width: 130px; }
+.dda-clear {
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.dda-clear:hover { color: #ef4444; }
+
 /* ── Toolbar ── */
 .tasks-toolbar {
   background: var(--card);
@@ -550,6 +598,57 @@
 }
 
 .date-input { min-width: 110px; }
+
+/* 截止日期快捷选择弹层（AttrCellDate，渲染在 Popover 内） */
+.date-picker-pop {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  min-width: 200px;
+}
+
+.date-preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.date-preset-btn {
+  flex: 1 1 auto;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+  color: var(--text-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+}
+
+.date-preset-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.date-preset-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.date-clear-btn {
+  padding: 5px 10px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.date-clear-btn:hover { color: #ef4444; }
 
 .est-input-wrap {
   display: flex;

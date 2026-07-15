@@ -13,7 +13,7 @@ export default function ImmersiveCard({ flaskProgress }) {
     isRunning, seconds, selectedTodos, availableTodos,
     scenarioTitle, scenarioDescription, cardVisible, setCardVisible,
     animEnabled, setAnimEnabled,
-    timerMode = "countup", setTimerMode, targetMins = 25,
+    timerMode = "countup", targetMins = 25,
     onSettle, onAddFocus, onCreateFocus, onReplaceFocus,
     onTogglePause, onReset, onStop,
   } = useFocusSession();
@@ -86,25 +86,6 @@ export default function ImmersiveCard({ flaskProgress }) {
               <span className={`immersive-status-dot ${isRunning ? "running" : ""}`} />
               {isRunning ? "专注中" : "已暂停"}
               <span className="immersive-time">{clockText}</span>
-            </div>
-
-            <div className="immersive-mode-toggle" role="group" aria-label="计时模式">
-              <button
-                type="button"
-                className={`immersive-mode-btn${!isCountdown ? " active" : ""}`}
-                onClick={() => setTimerMode("countup")}
-                aria-pressed={!isCountdown}
-              >
-                正计时
-              </button>
-              <button
-                type="button"
-                className={`immersive-mode-btn${isCountdown ? " active" : ""}`}
-                onClick={() => setTimerMode("countdown")}
-                aria-pressed={isCountdown}
-              >
-                倒计时
-              </button>
             </div>
 
             {scenarioTitle && (

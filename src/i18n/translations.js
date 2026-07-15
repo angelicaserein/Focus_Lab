@@ -14,6 +14,8 @@ import focus from "./focus";
 import todo from "./todo";
 import settings from "./settings";
 import gantt from "./gantt";
+import reminder from "./reminder";
+import tutorial from "./tutorial";
 
 export const LANGUAGES = [
   { id: "en", label: "English" },
@@ -37,6 +39,8 @@ const MODULES = [
   todo,
   settings,
   gantt,
+  reminder,
+  tutorial,
 ];
 
 // 把 { key: { en, zh } } 的并置结构，按语言拆平成 { en: {...}, zh: {...} }。

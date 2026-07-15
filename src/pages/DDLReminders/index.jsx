@@ -17,10 +17,11 @@ import "./DDLReminders.css";
 const QUICK_DAYS = [1, 3, 7, 14, 30];
 
 // ── 添加节点表单 ──────────────────────────────────────────────────────────────
-function AddCheckpointForm({ todoId, dueDate, onClose }) {
+function AddCheckpointForm({ todoId, todoText, dueDate, onClose }) {
   const { addCheckpoint } = useDDL();
   const { t } = useLanguage();
   const [days, setDays] = useState("");
+  // 文案默认用任务标题，留空即沿用标题——省去每次重复手打
   const [message, setMessage] = useState("");
 
   const maxDays = useMemo(() => {
@@ -31,8 +32,8 @@ function AddCheckpointForm({ todoId, dueDate, onClose }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     const d = parseInt(days, 10);
-    if (!d || d < 1 || !message.trim()) return;
-    addCheckpoint(todoId, { daysBeforeDeadline: d, message });
+    if (!d || d < 1) return;
+    addCheckpoint(todoId, { daysBeforeDeadline: d, message: message.trim() || todoText });
     setDays("");
     setMessage("");
     onClose();
@@ -71,7 +72,7 @@ function AddCheckpointForm({ todoId, dueDate, onClose }) {
         <input
           className="ddl-add-msg"
           type="text"
-          placeholder={t("ddl.form.msgPlaceholder")}
+          placeholder={todoText}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           maxLength={80}
@@ -79,7 +80,7 @@ function AddCheckpointForm({ todoId, dueDate, onClose }) {
         />
       </div>
       <div className="ddl-add-form-actions">
-        <button type="submit" className="ddl-save-btn" disabled={!days || !message.trim()}>
+        <button type="submit" className="ddl-save-btn" disabled={!days}>
           {t("ddl.form.save")}
         </button>
         <button type="button" className="ddl-cancel-btn" onClick={onClose}>
@@ -155,6 +156,7 @@ function DDLCard({ todo }) {
       {showForm ? (
         <AddCheckpointForm
           todoId={todo.id}
+          todoText={todo.text}
           dueDate={todo.attrs?.dueDate}
           onClose={() => setShowForm(false)}
         />

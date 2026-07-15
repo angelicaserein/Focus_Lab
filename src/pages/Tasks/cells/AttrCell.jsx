@@ -15,7 +15,8 @@ export default function AttrCell({ attrDef, todo, onSave }) {
   const value = todo.attrs?.[attrDef.id];
   const { id: attrId, type, options = [], unit } = attrDef;
 
-  const isPopup = type === "select" || type === "multiselect";
+  // date 也走 Popover（预设按钮 + 日期框），避免在窄单元格里内联展开挤破布局
+  const isPopup = type === "select" || type === "multiselect" || type === "date";
 
   // 系统「截止日期」列：日期旁带一个开关，决定它是否算真正的 DDL
   // （联动主页截止图 + 提醒）。dueDateActive 缺省视为开启。
@@ -48,18 +49,8 @@ export default function AttrCell({ attrDef, todo, onSave }) {
     if (e.key === "Escape") setIsEditing(false);
   };
 
-  // Inline editors (text / date / number) replace the cell content in place.
+  // Inline editors (text / number) replace the cell content in place.
   if (isEditing && !isPopup) {
-    if (type === "date") {
-      return (
-        <AttrCellDate
-          value={draft}
-          onChange={setDraft}
-          onBlur={handleInlineBlur}
-          onKeyDown={handleInlineKey}
-        />
-      );
-    }
     if (type === "number") {
       return (
         <AttrCellNumber
@@ -113,6 +104,14 @@ export default function AttrCell({ attrDef, todo, onSave }) {
             value={value ?? []}
             onChange={(v) => onSave(attrId, v)}
             onClose={() => setIsEditing(false)}
+          />
+        </Popover>
+      )}
+      {isEditing && type === "date" && (
+        <Popover anchorEl={displayRef.current} onClose={() => setIsEditing(false)}>
+          <AttrCellDate
+            value={value ?? ""}
+            onPick={(v) => commit(v)}
           />
         </Popover>
       )}

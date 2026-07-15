@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useLayoutEffect, useMemo, useState } from "react";
 import { useTodos } from "@/context/TodoContext";
 import { useFocus } from "@/context/FocusContext";
 import { useLanguage } from "@/context/LanguageContext";
@@ -8,6 +8,8 @@ import {
   clamp,
   scaleFor,
   isPlaced,
+  snapOutOfGutter,
+  relaxOverlaps,
   PLANE_X_MIN,
   PLANE_X_MAX,
   PLANE_Y_MIN,
@@ -88,7 +90,8 @@ export default function EisenhowerMatrix() {
   // 拖拽：落在平面写落点并触发落座动画，拖回托盘清定位，轻点则切换专注选择
   const { drag, planeRef, trayRef, handlePointerDown } = useMatrixDrag({
     onPlace: (id, pos) => {
-      updateTodoProps(id, { matrixPos: pos });
+      // 先把落点推出十字死区（归入邻近象限），再交给防重叠松弛收尾
+      updateTodoProps(id, { matrixPos: snapOutOfGutter(pos) });
       setSettlingId(id);
     },
     onTray: (id) => updateTodoProps(id, { matrixPos: undefined }),
@@ -105,6 +108,43 @@ export default function EisenhowerMatrix() {
     }
     return { placed, unplaced };
   }, [todos]);
+
+  // 统一防重叠：任何摆放变化（拖拽 / 分一下 / AI 分配）后，量出各卡片在平面内的
+  //   实际矩形，做一遍相互推开的松弛，把结果回写为落点。三条路径共用这一处收尾。
+  //   尺寸用 offsetWidth×scale、位置用 matrixPos 直接算——不走 getBoundingClientRect，
+  //   于是不受平面 3D 倾倒（天平）影响，测量稳定、不会和倾角互相拉扯。
+  useLayoutEffect(() => {
+    const plane = planeRef.current;
+    if (!plane || placed.length < 2) return;
+    const planeW = plane.clientWidth;
+    const planeH = plane.clientHeight;
+    if (!planeW || !planeH) return;
+    const items = [];
+    for (const td of placed) {
+      const node = plane.querySelector(`[data-todo-id="${td.id}"]`);
+      if (!node) continue;
+      const s = scaleFor(td.matrixPos.x, td.matrixPos.y);
+      items.push({
+        id: td.id,
+        cx: td.matrixPos.x * planeW,
+        cy: td.matrixPos.y * planeH,
+        halfW: (node.offsetWidth * s) / 2,
+        halfH: (node.offsetHeight * s) / 2,
+      });
+    }
+    if (items.length < 2) return;
+    if (!relaxOverlaps(items, planeW, planeH)) return;
+    const byId = new Map(placed.map((td) => [td.id, td]));
+    for (const it of items) {
+      const td = byId.get(it.id);
+      const nx = clamp(it.cx / planeW, PLANE_X_MIN, PLANE_X_MAX);
+      const ny = clamp(it.cy / planeH, PLANE_Y_MIN, PLANE_Y_MAX);
+      // 只回写真正被推动的卡片，避免无谓的重渲染 / 存储写入并让 effect 收敛
+      if (Math.abs(td.matrixPos.x - nx) > 0.003 || Math.abs(td.matrixPos.y - ny) > 0.003) {
+        updateTodoProps(it.id, { matrixPos: { x: nx, y: ny } });
+      }
+    }
+  }, [placed, updateTodoProps, planeRef]);
 
   const submit = (e) => {
     e.preventDefault();
@@ -130,13 +170,13 @@ export default function EisenhowerMatrix() {
   };
   // 把紧急/重要两答案换算成象限坐标并落位
   //   横轴：左＝紧急(0.27)、右＝不紧急(0.73)；纵轴：上＝重要(0.27)、下＝不重要(0.73)
-  //   加轻微抖动，避免同象限多张卡完全重叠
+  //   加轻微抖动错开起点，防重叠松弛（useLayoutEffect）负责最终不重叠
   const finishSort = (important) => {
     if (!sortId) return;
     const jitter = () => (Math.random() - 0.5) * 0.12;
-    const x = clamp((sortUrgent ? 0.27 : 0.73) + jitter(), PLANE_Y_MIN, PLANE_Y_MAX);
+    const x = clamp((sortUrgent ? 0.27 : 0.73) + jitter(), PLANE_X_MIN, PLANE_X_MAX);
     const y = clamp((important ? 0.27 : 0.73) + jitter(), PLANE_Y_MIN, PLANE_Y_MAX);
-    updateTodoProps(sortId, { matrixPos: { x, y } });
+    updateTodoProps(sortId, { matrixPos: snapOutOfGutter({ x, y }) });
     setSettlingId(sortId);
     setSortId(null);
     setSortUrgent(null);
@@ -159,7 +199,7 @@ export default function EisenhowerMatrix() {
         if (!p) continue;
         const x = clamp(1 - p.urgency + jitter(), PLANE_X_MIN, PLANE_X_MAX);
         const y = clamp(1 - p.importance + jitter(), PLANE_Y_MIN, PLANE_Y_MAX);
-        updateTodoProps(td.id, { matrixPos: { x, y } });
+        updateTodoProps(td.id, { matrixPos: snapOutOfGutter({ x, y }) });
         applied++;
       }
       if (applied === 0) {
@@ -281,7 +321,7 @@ export default function EisenhowerMatrix() {
                   left: `${todo.matrixPos.x * 100}%`,
                   top: `${todo.matrixPos.y * 100}%`,
                   "--matrix-scale": scale.toFixed(3),
-                  zIndex: Math.round(weight * 100),
+                  zIndex: Math.round(weight * 100) + 1,
                 }}
                 onAnimationEnd={() =>
                   setSettlingId((s) => (s === todo.id ? null : s))

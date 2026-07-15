@@ -47,11 +47,11 @@ describe("parseTasksJson", () => {
 describe("sanitizeTaskAttrs", () => {
   it("保留合法的 select / multiselect / date / number 值", () => {
     const { attrs, dropped } = sanitizeTaskAttrs(
-      { priority: "high", tags: ["deep_work", "reading"], dueDate: "2026-07-01", estimatedMins: "30", notes: "记得带U盘" },
+      { priority: "urgent_important", tags: ["deep_work", "reading"], dueDate: "2026-07-01", estimatedMins: "30", notes: "记得带U盘" },
       fullDb,
     );
     expect(attrs).toEqual({
-      priority: "high",
+      priority: "urgent_important",
       tags: ["deep_work", "reading"],
       dueDate: "2026-07-01",
       estimatedMins: 30,
@@ -79,8 +79,8 @@ describe("sanitizeTaskAttrs", () => {
   });
 
   it("忽略未知属性 id", () => {
-    const { attrs } = sanitizeTaskAttrs({ color: "red", priority: "low" }, fullDb);
-    expect(attrs).toEqual({ priority: "low" });
+    const { attrs } = sanitizeTaskAttrs({ color: "red", priority: "trivial" }, fullDb);
+    expect(attrs).toEqual({ priority: "trivial" });
   });
 });
 
@@ -92,7 +92,7 @@ describe("buildSchemaHint", () => {
   it("含列时列出合法 option id", () => {
     const hint = buildSchemaHint(fullDb);
     expect(hint).toContain("priority");
-    expect(hint).toContain('"high"');
+    expect(hint).toContain('"urgent_important"');
     expect(hint).toContain("YYYY-MM-DD");
   });
 });

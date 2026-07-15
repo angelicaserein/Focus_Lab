@@ -7,6 +7,7 @@ import DatabaseTabs from "@/pages/Tasks/DatabaseTabs";
 import TasksToolbar from "@/pages/Tasks/TasksToolbar";
 import TodoRow from "@/pages/Tasks/TodoRow";
 import TodoApp from "@/components/todo/TodoApp";
+import DueDateAssistant from "@/pages/Tasks/DueDateAssistant";
 import useTaskQuery from "@/pages/Tasks/useTaskQuery";
 import { applyQuery, buildQueryFields } from "@/pages/Tasks/taskQuery";
 import "./Tasks.css";
@@ -48,7 +49,14 @@ export default function Tasks() {
 
   const [showNewRow,   setShowNewRow]   = useState(false);
   const [newTaskText,  setNewTaskText]  = useState("");
+  const [showDueAssist, setShowDueAssist] = useState(false);
   const newInputRef = useRef(null);
+
+  // 「排截止日」助手的候选：当前库里未完成、还没设截止日的任务
+  const undatedTodos = useMemo(
+    () => dbTodos.filter(t => !t.completed && !t.attrs?.dueDate),
+    [dbTodos],
+  );
 
   // null = closed, "new" = adding new attr, attrId string = editing existing
   const [editingAttrId, setEditingAttrId] = useState(null);
@@ -98,7 +106,14 @@ export default function Tasks() {
           <h1 className="tasks-title">任务库</h1>
           <span className="tasks-count">{filtered.length} 个任务</span>
         </div>
-        <button className="tasks-add-btn" onClick={() => setShowNewRow(true)}>+ 新建任务</button>
+        <div className="tasks-header-actions">
+          {undatedTodos.length > 0 && (
+            <button className="tasks-assist-btn" onClick={() => setShowDueAssist(true)}>
+              🗓 排截止日 · {undatedTodos.length}
+            </button>
+          )}
+          <button className="tasks-add-btn" onClick={() => setShowNewRow(true)}>+ 新建任务</button>
+        </div>
       </div>
 
       <DatabaseTabs />
@@ -199,6 +214,14 @@ export default function Tasks() {
           </button>
         )}
       </div>
+
+      {showDueAssist && (
+        <DueDateAssistant
+          candidates={undatedTodos}
+          onAssign={(id, date) => setTodoAttr(id, "dueDate", date)}
+          onClose={() => setShowDueAssist(false)}
+        />
+      )}
 
       {editingAttrId && (
         <AttrHeaderEditor

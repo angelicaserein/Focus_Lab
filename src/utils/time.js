@@ -17,6 +17,21 @@ export function getTodayStr() {
   return `${y}-${m}-${day}`;
 }
 
+// Date 对象 → 本地 "YYYY-MM-DD"（口径同 getTodayStr，避免 UTC 偏移）
+export function toDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+// 今天 + n 天的本地日期字符串（n 可为负）。addDays(0)=今天，addDays(1)=明天。
+export function addDays(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return toDateStr(d);
+}
+
 // 从某时间戳到现在经过的秒数（四舍五入）
 export function getElapsedSecs(startTs) {
   return Math.round((Date.now() - startTs) / 1000);

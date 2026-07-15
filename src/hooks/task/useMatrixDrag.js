@@ -42,46 +42,6 @@ export function useMatrixDrag({ onPlace, onTray, onActivate }) {
     return { zone: null, x: 0, y: 0 };
   };
 
-  // 防重叠：把落点当作矩形，沿最小穿透轴推开与已有卡片的重叠（AABB 分离），
-  //   selfId 为正在移动的卡片（重新摆放时排除自身）。坐标均为平面内像素。
-  const separate = (rect, ownW, ownH, cx, cy, selfId) => {
-    const gap = 8;
-    const neighbors = [];
-    planeRef.current.querySelectorAll(".matrix-node").forEach((n) => {
-      if (n.dataset.todoId === selfId) return;
-      const r = n.getBoundingClientRect();
-      neighbors.push({
-        x: r.left - rect.left + r.width / 2,
-        y: r.top - rect.top + r.height / 2,
-        halfW: r.width / 2,
-        halfH: r.height / 2,
-      });
-    });
-    const ownHalfW = ownW / 2;
-    const ownHalfH = ownH / 2;
-    for (let iter = 0; iter < 40; iter++) {
-      let moved = false;
-      for (const nb of neighbors) {
-        const minX = ownHalfW + nb.halfW + gap;
-        const minY = ownHalfH + nb.halfH + gap;
-        const dx = cx - nb.x;
-        const dy = cy - nb.y;
-        const ox = minX - Math.abs(dx);
-        const oy = minY - Math.abs(dy);
-        if (ox > 0 && oy > 0) {
-          // 沿穿透较浅的一轴推开，得到更紧凑的排布
-          if (ox <= oy) cx += dx < 0 ? -ox : ox;
-          else cy += dy < 0 ? -oy : oy;
-          moved = true;
-        }
-      }
-      cx = clamp(cx, ownHalfW, rect.width - ownHalfW);
-      cy = clamp(cy, ownHalfH, rect.height - ownHalfH);
-      if (!moved) break;
-    }
-    return { cx, cy };
-  };
-
   const stopDragListeners = () => {
     window.removeEventListener("pointermove", handleMove);
     window.removeEventListener("pointerup", handleUp);
@@ -123,16 +83,8 @@ export function useMatrixDrag({ onPlace, onTray, onActivate }) {
     const cardY = e.clientY - d.offsetY;
     const { zone, x, y } = resolveZone(cardX, cardY);
     if (zone === "plane") {
-      const rect = planeRef.current.getBoundingClientRect();
-      // 用仍在 DOM 里的幽灵卡量到真实尺寸，据此把卡片推离邻居
-      const ghost = document.querySelector(".matrix-drag-ghost .matrix-tag");
-      const gr = ghost ? ghost.getBoundingClientRect() : null;
-      const ownW = gr ? gr.width : 90;
-      const ownH = gr ? gr.height : 34;
-      const { cx, cy } = separate(rect, ownW, ownH, x * rect.width, y * rect.height, d.id);
-      const nx = clamp(cx / rect.width, PLANE_X_MIN, PLANE_X_MAX);
-      const ny = clamp(cy / rect.height, PLANE_Y_MIN, PLANE_Y_MAX);
-      onPlace(d.id, { x: nx, y: ny });
+      // 落点交给组件：象限死区吸附 + 统一防重叠松弛在那边收尾
+      onPlace(d.id, { x, y });
     } else if (zone === "tray") {
       onTray(d.id);
     }

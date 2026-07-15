@@ -4,6 +4,7 @@ import { useScenarios } from "@/context/ScenarioContext";
 import { useDatabases } from "@/context/DatabaseContext";
 import { DEFAULT_SCENARIO_SETTINGS } from "@/utils/scenario/scenarioConstants";
 import ScenarioOptionEditor from "@/pages/Scenario/ScenarioOptionEditor";
+import ScenarioConfigAssistant from "@/pages/Scenario/ScenarioConfigAssistant";
 
 export default function ScenarioSettings({ scenario }) {
   const { updateScenarioSettings, scenarioOptions } = useScenarios();
@@ -32,6 +33,8 @@ export default function ScenarioSettings({ scenario }) {
 
   return (
     <div className="scenario-settings-panel">
+      <ScenarioConfigAssistant scenario={scenario} />
+
       <ScenarioOptionEditor
         title="可用设备"
         kind="devices"

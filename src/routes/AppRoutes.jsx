@@ -12,6 +12,7 @@ const ROUTES = [
   { path: "/",               importer: () => import("@/pages/Home"),         core: true },
   { path: "/settings",       importer: () => import("@/pages/Settings"),     core: true },
   { path: "/functiontree",   importer: () => import("@/pages/FunctionTree"), core: true },
+  { path: "/tutorial",       importer: () => import("@/pages/Tutorial"),     core: true },
   { path: "/skilltree",      importer: () => import("@/pages/SkillTree") },
   { path: "/focus",          importer: () => import("@/pages/Focus") },
   { path: "/history",        importer: () => import("@/pages/History") },

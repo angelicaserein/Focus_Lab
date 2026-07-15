@@ -7,7 +7,7 @@
 
 // 核心功能：始终开启、不可关闭。只保留最小兜底集——主页、设置、功能树本身，
 // 否则用户会失去「回到功能树把东西重新打开」的入口。其余功能（含技能树）都可关。
-export const CORE_PATHS = ["/", "/settings", "/functiontree"];
+export const CORE_PATHS = ["/", "/settings", "/functiontree", "/tutorial"];
 
 export const FUNCTION_BRANCHES = [
   {
