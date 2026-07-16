@@ -96,22 +96,13 @@ export default function AnalyticsPage() {
         />
 
         {/* 24 小时条形图 */}
-        <div className="ana-hourly-wrap">
-          {hourly.map((h) => (
-            <div key={h.hour} className="ana-hour-col">
-              <div className="ana-hour-bar-wrap">
-                {h.totalSecs > 0 && (
-                  <div
-                    className="ana-hour-bar"
-                    style={{ height: `${(h.totalSecs / hourlyMax) * 100}%` }}
-                    title={`${h.hour}:00 — ${fmt(h.totalSecs)}`}
-                  />
-                )}
-              </div>
-              <span className="ana-hour-label">{HOUR_TICK[h.hour] ?? ""}</span>
-            </div>
-          ))}
-        </div>
+        <HourlyBars
+          data={hourly}
+          getValue={(h) => h.totalSecs}
+          max={hourlyMax}
+          barClassName="ana-hour-bar"
+          formatTitle={(h) => `${h.hour}:00 — ${fmt(h.totalSecs)}`}
+        />
 
         {/* 时间段卡片（最多 4 个，按时长排序） */}
         {blocks.length > 0 && (
@@ -210,22 +201,13 @@ export default function AnalyticsPage() {
           <div className="ana-empty-tip">还没有分心记录</div>
         ) : (
           <>
-            <div className="ana-hourly-wrap">
-              {distData.hourly.map((h) => (
-                <div key={h.hour} className="ana-hour-col">
-                  <div className="ana-hour-bar-wrap">
-                    {h.count > 0 && (
-                      <div
-                        className="ana-hour-bar distraction"
-                        style={{ height: `${(h.count / distMax) * 100}%` }}
-                        title={`${h.hour}:00 — ${h.count} 次分心`}
-                      />
-                    )}
-                  </div>
-                  <span className="ana-hour-label">{HOUR_TICK[h.hour] ?? ""}</span>
-                </div>
-              ))}
-            </div>
+            <HourlyBars
+              data={distData.hourly}
+              getValue={(h) => h.count}
+              max={distMax}
+              barClassName="ana-hour-bar distraction"
+              formatTitle={(h) => `${h.hour}:00 — ${h.count} 次分心`}
+            />
 
             {distData.topTag && (
               <div className="ana-insight-row">

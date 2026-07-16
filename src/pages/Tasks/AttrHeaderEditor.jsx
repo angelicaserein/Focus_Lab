@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useTaskAttrs } from "@/context/DatabaseContext";
 import Popover from "@/components/ui/Popover";
-import { ATTR_TYPE_OPTIONS, ATTR_COLOR_SWATCHES } from "@/utils/task/editorConstants";
+import { ATTR_TYPE_OPTIONS } from "@/utils/task/editorConstants";
+import AttrOptionsEditor from "@/pages/Tasks/AttrOptionsEditor";
 
 export default function AttrHeaderEditor({ attrDef, anchorEl, onClose }) {
   const { taskAttrs, addTaskAttr, updateTaskAttr, deleteTaskAttr, reorderTaskAttrs } = useTaskAttrs();
@@ -13,7 +14,6 @@ export default function AttrHeaderEditor({ attrDef, anchorEl, onClose }) {
   const [options, setOptions] = useState(() =>
     (attrDef?.options ?? []).map(o => ({ ...o }))
   );
-  const [openColorFor, setOpenColorFor] = useState(null);
 
   // 按 order 排序的完整 id 列表，用于左右移动重排序
   const orderedIds = [...taskAttrs].sort((a, b) => a.order - b.order).map(a => a.id);
@@ -37,26 +37,6 @@ export default function AttrHeaderEditor({ attrDef, anchorEl, onClose }) {
   };
 
   const hasOptions = type === "select" || type === "multiselect";
-
-  const addOption = () => {
-    setOptions(prev => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        label: "选项",
-        color: ATTR_COLOR_SWATCHES[prev.length % ATTR_COLOR_SWATCHES.length],
-        ...(type === "select" ? { sortWeight: prev.length + 1 } : {}),
-      },
-    ]);
-  };
-
-  const removeOption = (id) => {
-    setOptions(prev => prev.filter(o => o.id !== id));
-    if (openColorFor === id) setOpenColorFor(null);
-  };
-
-  const patchOption = (id, patch) =>
-    setOptions(prev => prev.map(o => o.id === id ? { ...o, ...patch } : o));
 
   const handleSave = () => {
     const trimmed = name.trim() || (attrDef?.name ?? "属性");
@@ -130,43 +110,7 @@ export default function AttrHeaderEditor({ attrDef, anchorEl, onClose }) {
 
       {/* Options (select / multiselect) */}
       {hasOptions && (
-        <div className="attr-editor-field">
-          <label className="attr-editor-label">选项</label>
-          <div className="options-list">
-            {options.map(opt => (
-              <div key={opt.id} className="option-row">
-                <button
-                  className="option-color-swatch"
-                  style={{ background: opt.color ?? "#9ca3af" }}
-                  title="更改颜色"
-                  onClick={() => setOpenColorFor(openColorFor === opt.id ? null : opt.id)}
-                />
-                <input
-                  className="option-label-input"
-                  value={opt.label}
-                  onChange={e => patchOption(opt.id, { label: e.target.value })}
-                  placeholder="选项名称"
-                />
-                <button className="option-remove" onClick={() => removeOption(opt.id)}>×</button>
-
-                {/* Inline color swatches */}
-                {openColorFor === opt.id && (
-                  <div className="color-swatches" onClick={e => e.stopPropagation()}>
-                    {ATTR_COLOR_SWATCHES.map(c => (
-                      <button
-                        key={c}
-                        className={`color-dot${opt.color === c ? " selected" : ""}`}
-                        style={{ background: c }}
-                        onClick={() => { patchOption(opt.id, { color: c }); setOpenColorFor(null); }}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-            <button className="add-option-btn" onClick={addOption}>+ 添加选项</button>
-          </div>
-        </div>
+        <AttrOptionsEditor options={options} type={type} onChange={setOptions} />
       )}
 
       {/* Column actions (existing attrs only): reorder + hide */}
