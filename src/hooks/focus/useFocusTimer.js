@@ -61,7 +61,17 @@ export default function useFocusTimer() {
     });
   }, [readSeconds]);
 
-  // 重置计时（停留在同一次会话内，仅把秒数归零并暂停）
+  // 重置计时（停留在同一次会话内，仅把秒数归零并暂停）。
+  //
+  // 刻意保留 sessionId：「重置」与「结束专注」是两个按钮，后者才负责结束会话
+  // （走 clearSession 清掉 sessionId）。故重置的语义是「这次没完，只是计时重来」，
+  // 重置前后结算的任务在 History 里仍归为同一张「一次专注」卡。
+  //
+  // 但 sessionStartRef 要清：秒数已从 0 重跑，旧起点不再代表这段的开始。
+  // 清成 null 后 buildFocusRecord 会走 `startedAt ?? Date.now() - durationSecs*1000`
+  // 回退，正好把起点算到重置那一刻。
+  // 注意别和 FocusPage 的 sessionStartTs（筛本次随记/分心用）混为一谈：那个由
+  // handleStart/handleStop 管，重置不该动它——重置不结束会话，随记自然要留着。
   const resetTimer = useCallback(() => {
     accSecsRef.current = 0;
     runStartRef.current = null;
