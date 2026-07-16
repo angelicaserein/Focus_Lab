@@ -159,46 +159,48 @@
 
 /* ══════════════════════════════════════════════════════════
    暗夜皮肤（奖励商城可购，购后 <html data-theme="night">）
-   —— 深靛底 + 提亮的丁香紫主色。关键：暗底上必须把主色系整体
-      调亮（accent / mid / deep），否则标签文字、次级按钮文字会
-      糊进背景里。
+   —— 纯黑 OLED 冷淡风：近纯黑底，低饱和银灰/冷白文字，
+      主色克制成一支冷藏衣草，只在按钮/选中态点一下，不喧宾夺主。
+      关键：暗底上主色系（accent / mid / deep）必须整体提亮，
+      否则标签文字、次级按钮文字会糊进背景。
    ══════════════════════════════════════════════════════════ */
 :root[data-theme="night"] {
-  /* 底色偏暖靛，跟丁香紫主色更协调（原 #0f0f1a 偏死蓝黑） */
-  --bg:           #14121f;
-  --card:         #1e1b30;
+  /* 近纯黑分层：底几乎全黑，卡片抬一档，OLED 上省电又干净 */
+  --bg:           #0a0a0c;
+  --card:         #141418;
 
-  /* 主色整体提亮：暗底上要发光，不能用默认那支发闷的灰紫 */
-  --accent:      #c8a0d4;
-  --accent-rgb:  200, 160, 212;
+  /* 主色克制：低饱和冷藏衣草，暗底上够亮但不刺眼 */
+  --accent:      #a9a0d0;
+  --accent-rgb:  169, 160, 208;
   /* mid / deep 在亮色主题里是"更深"，暗底上必须反过来取"更亮"，
      否则用它们的标签/次级文字几乎看不见 */
-  --accent-mid:  #d9bce3;
-  --accent-deep: #bb8fca;
+  --accent-mid:  #c3bce0;
+  --accent-deep: #9a90c6;
 
-  --text-heading: #ece4f4;
-  --text-body:    #cdc4dd;
-  --text-muted:   #948aac;
-  --text-faint:   #625877;
-  --text-placeholder: #4c4266;
+  /* 冷白 / 银灰文字，不带紫，保持冷淡 */
+  --text-heading: #e6e6ea;
+  --text-body:    #c4c4cc;
+  --text-muted:   #8a8a94;
+  --text-faint:   #55555f;
+  --text-placeholder: #46464f;
 
-  /* 主色背景上的淡字，配新的更亮主色 */
-  --on-accent-light: #efe4f5;
+  /* 主色背景上的淡字 */
+  --on-accent-light: #e8e6f2;
 
   /* 暗底需要更明显的边框，故这几条在派生值上再加一档不透明度 */
-  --border-card:     rgba(var(--accent-rgb), 0.20);
-  --border-pill:     rgba(var(--accent-rgb), 0.20);
-  --border-accent:   rgba(var(--accent-rgb), 0.26);
+  --border-card:     rgba(var(--accent-rgb), 0.16);
+  --border-pill:     rgba(var(--accent-rgb), 0.16);
+  --border-accent:   rgba(var(--accent-rgb), 0.22);
 
   /* 中性边框改成浅色描边 */
-  --border-dark:     rgba(255, 255, 255, 0.08);
-  --border-input:    rgba(255, 255, 255, 0.06);
-  --border-checkbox: rgba(255, 255, 255, 0.08);
+  --border-dark:     rgba(255, 255, 255, 0.07);
+  --border-input:    rgba(255, 255, 255, 0.05);
+  --border-checkbox: rgba(255, 255, 255, 0.07);
 
-  --shadow-xs: rgba(0, 0, 0, 0.25);
-  --shadow-sm: rgba(0, 0, 0, 0.35);
+  --shadow-xs: rgba(0, 0, 0, 0.4);
+  --shadow-sm: rgba(0, 0, 0, 0.5);
 
-  --immersive-bg-edge: #0f0d1c;
+  --immersive-bg-edge: #050506;
 }
 
 /* ══════════════════════════════════════════════════════════

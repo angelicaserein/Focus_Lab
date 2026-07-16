@@ -1,0 +1,388 @@
+/* ══════════════════════════════════════════════════════════
+   心流任务 —— 任务库的 ADHD 友好版
+   与任务库同一份数据、同一套配色 token，只是把密集表格换成
+   宽松、圆润、一次一件的卡片流。所有颜色走 var(--*)，随主题联动。
+   ══════════════════════════════════════════════════════════ */
+
+.flow-page {
+  width: min(760px, 100%);
+  margin: 0 auto;
+  padding: 8px 0 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ── Header ── */
+.fc-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.fc-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-weight: 800;
+  color: var(--text-heading);
+  line-height: 1.2;
+}
+.fc-title svg { color: var(--accent); }
+.fc-subtitle {
+  margin: 6px 0 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.fc-solo-toggle {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+  color: var(--text-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.fc-solo-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.fc-solo-toggle.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ── 情景筛选 chip ── */
+.fc-scenario-pill {
+  align-self: flex-start;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  background: transparent;
+  color: var(--accent-mid);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.fc-scenario-pill.active { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+
+/* ── 进度条 ── */
+.fc-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.fc-progress-track {
+  flex: 1;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  overflow: hidden;
+}
+.fc-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+.fc-progress-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ── 现在就做 hero ── */
+.fc-hero {
+  position: relative;
+  border-radius: 22px;
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+  box-shadow: 0 6px 24px var(--shadow-sm);
+  padding: 22px 24px 20px;
+  overflow: hidden;
+}
+.fc-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 6px;
+  background: var(--fc-stripe, var(--accent));
+}
+.fc-hero-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-mid);
+  margin-bottom: 8px;
+}
+.fc-hero-title {
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
+  font-weight: 800;
+  color: var(--text-heading);
+  line-height: 1.3;
+}
+.fc-hero.empty { text-align: center; padding: 40px 24px; }
+.fc-hero.empty::before { display: none; }
+.fc-hero-empty-hint { margin: 10px 0 0; color: var(--text-muted); font-size: 0.9rem; }
+
+.fc-hero-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.fc-hero-chip {
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--badge-color, var(--accent)) 14%, transparent);
+  color: var(--badge-color, var(--accent-mid));
+  border: 1px solid color-mix(in srgb, var(--badge-color, var(--accent)) 30%, transparent);
+}
+.fc-hero-chip.due { background: var(--accent-bg); color: var(--text-muted); border-color: var(--border-card); }
+.fc-hero-chip.due.overdue {
+  background: var(--danger-subtle);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+
+.fc-hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.fc-hero-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+  color: var(--text-body);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.fc-hero-btn:hover { border-color: var(--accent); color: var(--accent); }
+.fc-hero-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 14px var(--accent-glow);
+}
+.fc-hero-btn.primary:hover { opacity: 0.9; color: #fff; }
+.fc-hero-btn:disabled { opacity: 0.45; cursor: default; border-color: var(--border-card); color: var(--text-faint); }
+
+/* ── 快速捕获 ── */
+.fc-capture {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px 4px 14px;
+  border-radius: 16px;
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+  box-shadow: 0 2px 8px var(--shadow-xs);
+  transition: border-color 0.15s;
+}
+.fc-capture:focus-within { border-color: var(--accent); }
+.fc-capture-icon { color: var(--text-faint); flex-shrink: 0; }
+.fc-capture-input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  padding: 12px 0;
+  font-size: 0.95rem;
+  color: var(--text-body);
+}
+.fc-capture-input::placeholder { color: var(--text-placeholder); }
+.fc-capture-btn {
+  flex-shrink: 0;
+  padding: 8px 18px;
+  border-radius: 12px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.fc-capture-btn:hover { opacity: 0.88; }
+
+/* ── 分堆 ── */
+.fc-buckets { display: flex; flex-direction: column; gap: 22px; }
+.fc-bucket { display: flex; flex-direction: column; gap: 10px; }
+.fc-bucket-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 0 4px;
+}
+.fc-bucket-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+.fc-bucket-emoji { font-size: 1.05rem; }
+.fc-bucket-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent-mid);
+  background: var(--accent-bg);
+  border-radius: 999px;
+  padding: 1px 9px;
+}
+.fc-bucket-hint { font-size: 0.8rem; color: var(--text-faint); }
+
+.fc-bucket-list { display: flex; flex-direction: column; gap: 10px; }
+
+/* ── 任务卡 ── */
+.fc-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px 14px 18px;
+  border-radius: 16px;
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+  box-shadow: 0 2px 8px var(--shadow-xs);
+  transition: box-shadow 0.15s, border-color 0.15s, transform 0.1s;
+}
+.fc-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 4px;
+  border-radius: 999px;
+  background: var(--fc-stripe, transparent);
+}
+.fc-card:hover { box-shadow: 0 4px 16px var(--shadow-sm); border-color: var(--border-accent); }
+.fc-card.done { opacity: 0.6; }
+.fc-card.done .fc-title { text-decoration: line-through; color: var(--text-muted); }
+
+/* 大圆勾选 —— 触控友好 */
+.fc-check {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  margin-top: 1px;
+  border-radius: 50%;
+  border: 2px solid var(--border-dark);
+  background: transparent;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.fc-check:hover { border-color: var(--accent); }
+.fc-card.done .fc-check {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.fc-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.fc-title-row { display: flex; align-items: center; gap: 6px; }
+.fc-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--text-body);
+  line-height: 1.4;
+  cursor: pointer;
+  word-break: break-word;
+}
+.fc-recur { font-size: 0.72rem; color: var(--text-faint); margin-left: 5px; }
+.fc-title-input {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1.5px solid var(--accent);
+  background: var(--bg);
+  color: var(--text-body);
+  font-size: 0.98rem;
+  outline: none;
+}
+
+.fc-expand, .fc-del {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+.fc-expand:hover { color: var(--accent); background: var(--accent-hover); }
+.fc-del { opacity: 0; }
+.fc-card:hover .fc-del { opacity: 1; }
+.fc-del:hover { color: var(--danger); background: var(--danger-subtle); }
+
+/* 折叠态徽标行：直接复用任务库的 .attr-* 展示样式 */
+.fc-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.fc-chips .attr-cell-display { min-height: 0; }
+
+/* 展开态：带标签的逐行属性编辑 */
+.fc-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--accent-bg-dim);
+}
+.fc-editor-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+}
+.fc-editor-label {
+  flex-shrink: 0;
+  width: 72px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.fc-editor-cell { flex: 1; min-width: 0; }
+
+/* ── 已完成折叠 ── */
+.fc-done-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 4px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.fc-done-caret { font-size: 0.78rem; font-weight: 600; color: var(--text-faint); margin-left: 4px; }
+
+/* ── 空状态 ── */
+.fc-empty {
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 0.9rem;
+}

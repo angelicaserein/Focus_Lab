@@ -14,7 +14,8 @@ const SOON_DAYS = 3;
 
 // 遍历所有任务，收集今天值得提醒的待办，按分组返回。
 // 返回 { overdue, dueToday, soon, recurring, highPriority, others, total }，
-// 每组是 [{ todo, daysLeft }]（daysLeft 仅截止相关组有值，其余为 null）。
+// 每组是 [{ todo, daysLeft }]：凡带活动截止日的任务 daysLeft 都有值
+//（含落到 others 的远期截止日），recurring / highPriority 恒为 null。
 export function collectTodayTasks(todos) {
   const todayDow = new Date().getDay();
   const overdue = [];

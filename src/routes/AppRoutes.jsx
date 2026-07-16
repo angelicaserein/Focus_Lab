@@ -22,6 +22,7 @@ const ROUTES = [
   { path: "/scenario-stats", importer: () => import("@/pages/ScenarioStats") },
   { path: "/analytics",      importer: () => import("@/pages/Analytics") },
   { path: "/tasks",          importer: () => import("@/pages/Tasks") },
+  { path: "/flow-tasks",     importer: () => import("@/pages/FlowTasks") },
   { path: "/ddl",            importer: () => import("@/pages/DDLReminders") },
   { path: "/memo",           importer: () => import("@/pages/Memo") },
   { path: "/calendar",       importer: () => import("@/pages/Calendar") },

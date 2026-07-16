@@ -6,7 +6,7 @@ import { buildFlask } from "@/pages/Focus/flaskShapes";
 // 形状默认取用户在设置页保存的参数；传入 params 可覆盖（用于设置页预览）。
 export default function FocusFlask({ progress, params }) {
   const { flaskShape } = usePrefs();
-  const { path, highlight, cap, rim } = buildFlask(params ?? flaskShape.params);
+  const { path, highlight, cap } = buildFlask(params ?? flaskShape.params);
   // 每个实例独立的裁剪 id：设置页会同时渲染多个烧瓶，共用 id 会互相错切
   const clipId = useId();
 
@@ -35,13 +35,6 @@ export default function FocusFlask({ progress, params }) {
           <path
             d={cap}
             fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.5)" strokeWidth="1.2"
-          />
-        )}
-        {rim && (
-          // 敞口：深色椭圆开口，像俯视看进空瓶
-          <ellipse
-            cx={rim.cx} cy={rim.cy} rx={rim.rx} ry={rim.ry}
-            fill="rgba(0,0,0,0.28)" stroke="rgba(255,255,255,0.45)" strokeWidth="1.2"
           />
         )}
       </svg>
