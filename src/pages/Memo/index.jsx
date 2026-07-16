@@ -94,26 +94,6 @@ export default function MemoPage() {
         </button>
       </div>
 
-      {/* AI 倒脑子 → 任务 */}
-      <div className="memo-ai-dump">
-        <div className="memo-ai-dump-label">🧠 倒脑子 → AI 帮你拆成任务</div>
-        <textarea
-          className="memo-ai-dump-input"
-          rows={3}
-          value={organize.dump}
-          onChange={(e) => organize.setDump(e.target.value)}
-          placeholder="把脑子里乱糟糟的事情一股脑写下来，AI 会拆成可执行的任务…"
-        />
-        <button
-          type="button"
-          className="memo-ai-dump-btn"
-          onClick={organize.requestFromDump}
-          disabled={!organize.dump.trim() || ai.status === "loading"}
-        >
-          {ai.status === "loading" ? "整理中…" : "AI 整理成任务"}
-        </button>
-      </div>
-
       {/* 筛选 */}
       <div className="memo-filters">
         {FILTERS.map(({ key, label }) => (

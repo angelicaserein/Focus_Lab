@@ -7,7 +7,9 @@ import TasksToolbar from "@/pages/Tasks/TasksToolbar";
 import TodoRow from "@/pages/Tasks/TodoRow";
 import TodoApp from "@/components/todo/TodoApp";
 import DueDateAssistant from "@/pages/Tasks/DueDateAssistant";
+import BrainDumpAssistant from "@/pages/Tasks/BrainDumpAssistant";
 import useVisibleTasks from "@/pages/Tasks/useVisibleTasks";
+import useToast from "@/hooks/common/useToast";
 import "./Tasks.css";
 
 const TYPE_COL_WIDTHS = {
@@ -21,6 +23,7 @@ const TYPE_COL_WIDTHS = {
 export default function Tasks() {
   const { addTodo, toggleTodo, editTodo, setTodoAttr, deleteTodo } = useTodos();
   const { taskAttrs } = useTaskAttrs();
+  const { toast: savedMsg, showToast } = useToast(3200);
 
   const {
     filtered, visibleAttrs, fields, query, undatedTodos, scenario, isDbEmpty, activeDatabaseId,
@@ -29,6 +32,7 @@ export default function Tasks() {
   const [showNewRow,   setShowNewRow]   = useState(false);
   const [newTaskText,  setNewTaskText]  = useState("");
   const [showDueAssist, setShowDueAssist] = useState(false);
+  const [showBrainDump, setShowBrainDump] = useState(false);
   const newInputRef = useRef(null);
 
   // null = closed, "new" = adding new attr, attrId string = editing existing
@@ -66,6 +70,9 @@ export default function Tasks() {
           <span className="tasks-count">{filtered.length} 个任务</span>
         </div>
         <div className="tasks-header-actions">
+          <button className="tasks-assist-btn" onClick={() => setShowBrainDump(true)}>
+            🧠 倒脑子
+          </button>
           {undatedTodos.length > 0 && (
             <button className="tasks-assist-btn" onClick={() => setShowDueAssist(true)}>
               🗓 排截止日 · {undatedTodos.length}
@@ -165,6 +172,15 @@ export default function Tasks() {
           </button>
         )}
       </div>
+
+      {showBrainDump && (
+        <BrainDumpAssistant
+          onClose={() => setShowBrainDump(false)}
+          onAdded={(n) => showToast(`已加入 ${n} 条任务`)}
+        />
+      )}
+
+      {savedMsg && <div className="tasks-saved" role="status">{savedMsg}</div>}
 
       {showDueAssist && (
         <DueDateAssistant

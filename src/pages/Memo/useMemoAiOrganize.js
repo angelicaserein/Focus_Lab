@@ -9,10 +9,9 @@ export function collectSelectedText(timeline, selected) {
     .join("\n");
 }
 
-// 「AI 整理成任务」的交互状态：倒脑子输入框 + 勾选已有条目 + 成功提示。
+// 「AI 整理成任务」的交互状态：勾选已有条目 + 成功提示。
 // 依赖注入 timeline（用于取勾选条目文本）、ai（useTaskExtraction 实例）、activeDatabase。
 export default function useMemoAiOrganize({ timeline, ai, activeDatabase }) {
-  const [dump, setDump] = useState("");
   const [selected, setSelected] = useState(() => new Set());
   const { toast: savedMsg, showToast } = useToast(3200);
 
@@ -26,10 +25,6 @@ export default function useMemoAiOrganize({ timeline, ai, activeDatabase }) {
 
   const clearSelection = () => setSelected(new Set());
 
-  const requestFromDump = () => {
-    if (dump.trim()) ai.request(dump);
-  };
-
   const requestFromSelected = () => {
     const text = collectSelectedText(timeline, selected);
     if (text.trim()) ai.request(text);
@@ -38,20 +33,16 @@ export default function useMemoAiOrganize({ timeline, ai, activeDatabase }) {
   const commit = (tasks) => {
     const n = ai.commit(tasks);
     clearSelection();
-    setDump("");
     if (n > 0) {
       showToast(`已加入 ${n} 条任务到「${activeDatabase?.name ?? "任务"}」`);
     }
   };
 
   return {
-    dump,
-    setDump,
     selected,
     toggleSelect,
     clearSelection,
     savedMsg,
-    requestFromDump,
     requestFromSelected,
     commit,
   };

@@ -78,6 +78,48 @@
 }
 .tasks-assist-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+/* 倒脑子助手：一大块随便写的输入区 */
+.bd-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border-input);
+  background: var(--card);
+  color: var(--text-body);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+}
+.bd-input:focus {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+/* 「已加入 N 条任务」自动消失提示 */
+.tasks-saved {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 60;
+  padding: 10px 20px;
+  border-radius: 99px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 8px 24px var(--accent-glow);
+  animation: tasks-saved-in 220ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes tasks-saved-in {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
 /* 排截止日助手：每行任务标题 + 快捷排期控件 */
 .dda-task {
   display: block;
