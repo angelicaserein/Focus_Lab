@@ -7,6 +7,8 @@ import {
   lookForOutfit,
   DEFAULT_LOOK,
   companionLine,
+  talentOutfitId,
+  TALENT_OUTFIT_IDS,
 } from "./companionData";
 
 describe("drawWish（无损祈愿）", () => {
@@ -56,5 +58,27 @@ describe("lookForOutfit / companionLine", () => {
     const t = (k) => k;
     expect(companionLine(t, "cheer", () => 0)).toBe("companion.line.cheer.0");
     expect(companionLine(t, "bogus", () => 0)).toBe("companion.line.idle.0"); // 非法心情回退 idle
+  });
+});
+
+describe("天赋专属光环", () => {
+  it("talentOutfitId 生成 `talent_<nodeId>` 约定 id", () => {
+    expect(talentOutfitId("foc_root")).toBe("talent_foc_root");
+  });
+
+  it("每枚光环都能被 lookForOutfit 解析（非默认暖金），且带 hue 与 badge", () => {
+    for (const id of TALENT_OUTFIT_IDS) {
+      const look = lookForOutfit(id);
+      expect(look).not.toEqual(DEFAULT_LOOK);
+      expect(typeof look.hue).toBe("number");
+      expect(look.badge).toBeTruthy();
+    }
+  });
+
+  it("与祈愿池完全隔离：抽不到、也不在图鉴里（买不到抽不到）", () => {
+    const poolIds = new Set(WISH_POOL.map((it) => it.id));
+    for (const id of TALENT_OUTFIT_IDS) {
+      expect(poolIds.has(id)).toBe(false);
+    }
   });
 });

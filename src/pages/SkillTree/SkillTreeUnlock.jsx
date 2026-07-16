@@ -2,6 +2,8 @@ import React, { useMemo } from "react";
 import { RotateCcw, Sparkles } from "lucide-react";
 import useLocalStorage from "@/hooks/common/useLocalStorage";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
+import Companion from "@/components/companion/Companion";
+import { talentOutfitId } from "@/data/companion/companionData";
 import {
   SKILL_BRANCHES,
   SKILL_NODES,
@@ -22,6 +24,8 @@ const Y = (gy) => 16 + gy * 34;
 
 export default function SkillTreeUnlock({ char, t, lang }) {
   const [unlocked, setUnlocked] = useLocalStorage(STORAGE_KEYS.SKILLTREE_UNLOCKED, []);
+  // 佩戴的灯灵立绘（与祈愿页共用同一份持久化状态；这里只写入天赋专属光环 id）。
+  const [outfit, setOutfit] = useLocalStorage(STORAGE_KEYS.COMPANION_OUTFIT, null);
 
   const earned = earnedTalentPoints(char);
   const spent = spentTalentPoints(unlocked);
@@ -34,9 +38,21 @@ export default function SkillTreeUnlock({ char, t, lang }) {
     setUnlocked((prev) => (prev.includes(node.id) ? prev : [...prev, node.id]));
   };
 
-  const reset = () => setUnlocked([]);
+  // 重置退还天赋点时，若正佩戴某个即将失去的光环，一并卸下，避免佩戴一个不再拥有的皮肤。
+  const reset = () => {
+    if (outfit && outfit.startsWith("talent_")) setOutfit(null);
+    setUnlocked([]);
+  };
+
+  // 佩戴 / 卸下某节点的专属光环（再次点击已佩戴项＝卸下，回到默认暖金）。
+  const equipAura = (nodeId) => {
+    const id = talentOutfitId(nodeId);
+    setOutfit((prev) => (prev === id ? null : id));
+  };
 
   const unlockedSet = new Set(unlocked);
+  // 已解锁节点＝已到手的光环，按技能树顺序展示，保证排列稳定。
+  const auraNodes = SKILL_NODES.filter((n) => unlockedSet.has(n.id));
 
   return (
     <div className="st-tree">
@@ -110,6 +126,46 @@ export default function SkillTreeUnlock({ char, t, lang }) {
           );
         })}
       </div>
+      </div>
+
+      {/* 光环收藏：每解锁一个节点即到手一枚灯灵专属光环（只此一条获取路径，买不到也抽不到）。
+          点一枚即佩戴，灯灵随即在全 app 换上对应色调与头顶饰物。 */}
+      <div className="st-auras">
+        <div className="st-auras-head">
+          <Companion outfit={outfit} mood="cheer" size={76} floating={false} />
+          <div className="st-auras-caption">
+            <div className="st-auras-title">{t("skilltree.auras.title")}</div>
+            <p className="st-auras-hint">{t("skilltree.auras.hint")}</p>
+          </div>
+        </div>
+
+        {auraNodes.length === 0 ? (
+          <p className="st-auras-empty">{t("skilltree.auras.empty")}</p>
+        ) : (
+          <div className="st-auras-grid">
+            {auraNodes.map((node) => {
+              const id = talentOutfitId(node.id);
+              const worn = outfit === id;
+              return (
+                <button
+                  key={node.id}
+                  type="button"
+                  className={`st-aura${worn ? " worn" : ""}`}
+                  style={{ "--branch": branchColor(node.branch) }}
+                  onClick={() => equipAura(node.id)}
+                  aria-pressed={worn}
+                  title={t(worn ? "skilltree.auras.unequip" : "skilltree.auras.equip")}
+                >
+                  <span className="st-aura-icon" aria-hidden="true">{node.icon}</span>
+                  <span className="st-aura-name">{t(`skilltree.node.${node.id}.title`)}</span>
+                  <span className="st-aura-state">
+                    {t(worn ? "skilltree.auras.wearing" : "skilltree.auras.tap")}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* 分支图例 */}

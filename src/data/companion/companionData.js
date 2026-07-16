@@ -36,9 +36,38 @@ const OUTFITS = [
   { id: "outfit_bloom", rarity: "epic",   hue: 330, badge: "🌸" },
 ];
 
-const OUTFIT_LOOK = Object.fromEntries(
-  OUTFITS.map(({ id, hue, badge }) => [id, { hue, badge }]),
-);
+// ── 天赋专属光环（只能靠技能树点天赋点解锁）──────────────
+// 与祈愿池 / 金币商店完全隔离：这些 outfit 不进 WISH_POOL、买不到也抽不到，
+// 唯一来源是解锁对应技能树节点。id 约定 `talent_<nodeId>`，供技能树页按节点取用。
+// 纯外观奖励——只改灯灵的色调与头顶饰物，不影响任何功能（契合 ADHD 友好原则）。
+export function talentOutfitId(nodeId) {
+  return `talent_${nodeId}`;
+}
+
+const TALENT_OUTFITS = [
+  // 专注之道（蓝系）
+  { node: "foc_root", hue: 210, badge: "🎯" },
+  { node: "foc_l",    hue: 198, badge: "🧘" },
+  { node: "foc_r",    hue: 224, badge: "🌊" },
+  { node: "foc_cap",  hue: 236, badge: "🌀" },
+  // 执行之力（暖橙系）
+  { node: "exe_root", hue: 22,  badge: "🚀" },
+  { node: "exe_l",    hue: 40,  badge: "📋" },
+  { node: "exe_r",    hue: 12,  badge: "🔥" },
+  { node: "exe_cap",  hue: 48,  badge: "🏁" },
+  // 探索之心（绿系）
+  { node: "exp_root", hue: 150, badge: "🧭" },
+  { node: "exp_l",    hue: 138, badge: "📚" },
+  { node: "exp_r",    hue: 164, badge: "🔗" },
+  { node: "exp_cap",  hue: 128, badge: "🦉" },
+];
+
+export const TALENT_OUTFIT_IDS = TALENT_OUTFITS.map((o) => talentOutfitId(o.node));
+
+const OUTFIT_LOOK = Object.fromEntries([
+  ...OUTFITS.map(({ id, hue, badge }) => [id, { hue, badge }]),
+  ...TALENT_OUTFITS.map(({ node, hue, badge }) => [talentOutfitId(node), { hue, badge }]),
+]);
 
 // 佩戴的 outfit id → 立绘视觉参数（未佩戴 / 未知则回退默认暖金）。
 export function lookForOutfit(outfitId) {

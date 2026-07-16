@@ -1,15 +1,13 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useTodos } from "@/context/TodoContext";
-import { useTaskAttrs, useDatabases } from "@/context/DatabaseContext";
-import { useScenarios } from "@/context/ScenarioContext";
+import { useTaskAttrs } from "@/context/DatabaseContext";
 import AttrHeaderEditor from "@/pages/Tasks/AttrHeaderEditor";
 import DatabaseTabs from "@/pages/Tasks/DatabaseTabs";
 import TasksToolbar from "@/pages/Tasks/TasksToolbar";
 import TodoRow from "@/pages/Tasks/TodoRow";
 import TodoApp from "@/components/todo/TodoApp";
 import DueDateAssistant from "@/pages/Tasks/DueDateAssistant";
-import useTaskQuery from "@/pages/Tasks/useTaskQuery";
-import { applyQuery, buildQueryFields } from "@/pages/Tasks/taskQuery";
+import useVisibleTasks from "@/pages/Tasks/useVisibleTasks";
 import "./Tasks.css";
 
 const TYPE_COL_WIDTHS = {
@@ -21,42 +19,17 @@ const TYPE_COL_WIDTHS = {
 };
 
 export default function Tasks() {
-  const { todos, addTodo, toggleTodo, editTodo, setTodoAttr, deleteTodo } = useTodos();
+  const { addTodo, toggleTodo, editTodo, setTodoAttr, deleteTodo } = useTodos();
   const { taskAttrs } = useTaskAttrs();
-  const { activeDatabaseId } = useDatabases();
-  const { activeScenario } = useScenarios();
 
-  // 当前情景筛选：进入时默认开（贯穿全局），可一键关掉看全部；切换情景时恢复默认开。
-  const scenarioTypes = activeScenario?.settings?.taskTypes ?? [];
-  const hasScenarioFilter = scenarioTypes.length > 0;
-  const [scenarioFilterOn, setScenarioFilterOn] = useState(true);
-  useEffect(() => { setScenarioFilterOn(true); }, [activeScenario?.id]);
-  const scenarioFilter = hasScenarioFilter && scenarioFilterOn ? scenarioTypes : null;
-
-  const dbTodos = useMemo(
-    () => todos.filter(t => (t.databaseId ?? "default") === activeDatabaseId),
-    [todos, activeDatabaseId],
-  );
-
-  const visibleAttrs = useMemo(
-    () => [...taskAttrs].filter(a => a.visible).sort((a, b) => a.order - b.order),
-    [taskAttrs],
-  );
-
-  // 查询字段（内置字段 + 当前库全部列，含隐藏列，便于按任意属性筛选/排序）。
-  const fields = useMemo(() => buildQueryFields(taskAttrs), [taskAttrs]);
-  const query = useTaskQuery(fields);
+  const {
+    filtered, visibleAttrs, fields, query, undatedTodos, scenario, isDbEmpty, activeDatabaseId,
+  } = useVisibleTasks();
 
   const [showNewRow,   setShowNewRow]   = useState(false);
   const [newTaskText,  setNewTaskText]  = useState("");
   const [showDueAssist, setShowDueAssist] = useState(false);
   const newInputRef = useRef(null);
-
-  // 「排截止日」助手的候选：当前库里未完成、还没设截止日的任务
-  const undatedTodos = useMemo(
-    () => dbTodos.filter(t => !t.completed && !t.attrs?.dueDate),
-    [dbTodos],
-  );
 
   // null = closed, "new" = adding new attr, attrId string = editing existing
   const [editingAttrId, setEditingAttrId] = useState(null);
@@ -68,20 +41,6 @@ export default function Tasks() {
   useEffect(() => {
     if (showNewRow) newInputRef.current?.focus();
   }, [showNewRow]);
-
-  // 情景筛选独立于用户查询之外：先按当前情景筛掉明确标了别的类型的任务
-  // （保留无标签任务，避免「任务消失」），再套用户的筛选/排序/搜索。
-  const scenarioScoped = useMemo(() => {
-    if (!scenarioFilter?.length) return dbTodos;
-    return dbTodos.filter(t =>
-      !(t.attrs?.tags?.length) || t.attrs.tags.some(tag => scenarioFilter.includes(tag)),
-    );
-  }, [dbTodos, scenarioFilter]);
-
-  const filtered = useMemo(
-    () => applyQuery(scenarioScoped, query.query, fields),
-    [scenarioScoped, query.query, fields],
-  );
 
   function commitNewTask() {
     if (newTaskText.trim()) addTodo(newTaskText.trim(), { databaseId: activeDatabaseId });
@@ -118,15 +77,7 @@ export default function Tasks() {
 
       <DatabaseTabs />
 
-      <TasksToolbar
-        query={query}
-        fields={fields}
-        scenario={
-          hasScenarioFilter
-            ? { name: activeScenario.title, on: scenarioFilterOn, toggle: () => setScenarioFilterOn(v => !v) }
-            : null
-        }
-      />
+      <TasksToolbar query={query} fields={fields} scenario={scenario} />
 
       <div className="tasks-table-wrap">
         <div className="tasks-table-scroll">
@@ -202,7 +153,7 @@ export default function Tasks() {
 
         {filtered.length === 0 && !showNewRow && (
           <div className="tasks-empty">
-            {dbTodos.length === 0
+            {isDbEmpty
               ? "还没有任务，点击下方「+ 新建任务」开始吧"
               : "没有符合条件的任务"}
           </div>

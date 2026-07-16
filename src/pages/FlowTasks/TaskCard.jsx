@@ -12,7 +12,7 @@ function hasValue(todo, attr) {
 
 // 一张任务卡：大圆勾选 + 可点改的标题 + 已填属性的小徽标；点「展开」才露出全部属性编辑区，
 // 渐进披露、默认不铺满信息，是这套界面对「一眼看太多会瘫掉」的主要照顾。
-function TaskCard({ todo, visibleAttrs, priorityColor, onToggle, onEditText, onSaveAttr, onDelete }) {
+function TaskCard({ todo, visibleAttrs, onToggle, onEditText, onSaveAttr, onDelete }) {
   const [editingText, setEditingText] = useState(false);
   const [draft, setDraft] = useState("");
   const [expanded, setExpanded] = useState(false);
@@ -28,10 +28,7 @@ function TaskCard({ todo, visibleAttrs, priorityColor, onToggle, onEditText, onS
   const filled = visibleAttrs.filter((a) => hasValue(todo, a));
 
   return (
-    <div
-      className={`fc-card${todo.completed ? " done" : ""}`}
-      style={priorityColor ? { "--fc-stripe": priorityColor } : undefined}
-    >
+    <div className={`fc-card${todo.completed ? " done" : ""}`}>
       <button
         type="button"
         className="fc-check"

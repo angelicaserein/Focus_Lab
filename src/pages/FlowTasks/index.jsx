@@ -22,13 +22,6 @@ const BUCKET_META = {
   anytime:  { emoji: "🌿", label: "有空再做",  hint: "没排时间，别有压力" },
 };
 
-// 优先级色条：拿这条任务的优先级选项颜色，给卡片左缘一道柔和的色带。
-function priorityColorOf(todo, priorityAttr) {
-  if (!priorityAttr) return null;
-  const opt = priorityAttr.options?.find((o) => o.id === todo.attrs?.priority);
-  return opt?.color ?? null;
-}
-
 // 「现在就做」卡片里那排只读小徽标：优先级 / 截止 / 预计时长，一眼看清份量。
 function HeroChips({ todo, priorityAttr }) {
   const chips = [];
@@ -176,7 +169,7 @@ export default function FlowTasks() {
 
       {/* 现在就做这一件 —— 反过载的核心：屏蔽其它，只托举一件 */}
       {rightNow ? (
-        <section className="fc-hero" style={{ "--fc-stripe": priorityColorOf(rightNow, priorityAttr) ?? "var(--accent)" }}>
+        <section className="fc-hero">
           <div className="fc-hero-eyebrow">现在就做这一件</div>
           <div className="fc-hero-title">{rightNow.text}</div>
           <HeroChips todo={rightNow} priorityAttr={priorityAttr} />
@@ -242,9 +235,7 @@ export default function FlowTasks() {
                   {list.map((todo) => (
                     <TaskCard
                       key={todo.id}
-                      todo={todo}
-                      priorityColor={priorityColorOf(todo, priorityAttr)}
-                      {...cardProps}
+                      todo={todo}                      {...cardProps}
                     />
                   ))}
                 </div>
@@ -263,9 +254,7 @@ export default function FlowTasks() {
                   {buckets.done.map((todo) => (
                     <TaskCard
                       key={todo.id}
-                      todo={todo}
-                      priorityColor={priorityColorOf(todo, priorityAttr)}
-                      {...cardProps}
+                      todo={todo}                      {...cardProps}
                     />
                   ))}
                 </div>

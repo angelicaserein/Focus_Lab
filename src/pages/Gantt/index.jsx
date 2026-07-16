@@ -3,6 +3,7 @@ import { Pencil, Plus, Check, Settings2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import useGanttProjects from "./useGanttProjects";
 import { buildColumns, buildLayout } from "./ganttDate";
+import GanttGrid from "./GanttGrid";
 import GanttTaskModal from "./GanttTaskModal";
 import GanttProjectModal from "./GanttProjectModal";
 import "./Gantt.css";
@@ -143,82 +144,13 @@ export default function GanttPage() {
           </button>
         </div>
 
-        {columns.length === 0 ? (
-          <div className="gantt-empty inner">
-            <p>{t("gantt.empty.badRange")}</p>
-          </div>
-        ) : (
-          <div className="gantt-scroll">
-            <div
-              className={`gantt-grid${editing ? " is-editing" : ""}`}
-              style={{
-                "--cols": columns.length,
-                gridTemplateRows: `auto repeat(${totalRows - 1}, minmax(46px, auto))`,
-              }}
-            >
-              {/* 泳道底色带 */}
-              {lanes.map((lane, i) => (
-                <div
-                  key={`band-${lane.id}`}
-                  className={`gantt-band lane-${i % 4}`}
-                  style={{ gridRow: `${lane.startRow} / span ${lane.rows}` }}
-                />
-              ))}
-
-              {/* 竖向列分隔线 */}
-              {columns.map((col) => (
-                <div
-                  key={`guide-${col.index}`}
-                  className="gantt-guide"
-                  style={{ gridColumn: col.index + 2, gridRow: `2 / span ${totalRows - 1}` }}
-                />
-              ))}
-
-              {/* 左上角表头 */}
-              <div className="gantt-corner">{t("gantt.timeline")}</div>
-
-              {/* 列表头 */}
-              {columns.map((col) => (
-                <div key={`head-${col.index}`} className="gantt-weekhead" style={{ gridColumn: col.index + 2 }}>
-                  <span className="gantt-week-label">{col.primary}</span>
-                  <span className="gantt-week-range">{col.secondary}</span>
-                </div>
-              ))}
-
-              {/* 泳道左侧标签 */}
-              {lanes.map((lane, i) => (
-                <div
-                  key={`label-${lane.id}`}
-                  className={`gantt-lane-label lane-${i % 4}`}
-                  style={{ gridRow: `${lane.startRow} / span ${lane.rows}` }}
-                >
-                  <span>{lane.label}</span>
-                </div>
-              ))}
-
-              {/* 任务条 */}
-              {lanes.map((lane, i) =>
-                lane.tasks.map((task) => (
-                  <button
-                    key={task.id}
-                    type="button"
-                    className={`gantt-bar lane-${i % 4}`}
-                    disabled={!editing}
-                    style={{
-                      gridColumn: `${task.startCol + 2} / ${task.endCol + 3}`,
-                      gridRow: lane.startRow + task.row,
-                    }}
-                    onClick={() => onBarClick(task)}
-                    title={`${task.title} · ${task.start}–${task.end}`}
-                  >
-                    <span className="gantt-bar-title">{task.title}</span>
-                    {task.tag && <span className="gantt-bar-tag">{task.tag}</span>}
-                  </button>
-                )),
-              )}
-            </div>
-          </div>
-        )}
+        <GanttGrid
+          columns={columns}
+          lanes={lanes}
+          totalRows={totalRows}
+          editing={editing}
+          onBarClick={onBarClick}
+        />
 
         {editing && <p className="gantt-edithint">{t("gantt.edit.hint")}</p>}
       </section>

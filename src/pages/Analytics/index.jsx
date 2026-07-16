@@ -15,6 +15,31 @@ function SectionHead({ title, badge }) {
   );
 }
 
+// 24 小时条形图：专注高峰与分心高峰两处共用，仅取值/标题/条形样式不同。
+function HourlyBars({ data, getValue, max, barClassName, formatTitle }) {
+  return (
+    <div className="ana-hourly-wrap">
+      {data.map((d) => {
+        const value = getValue(d);
+        return (
+          <div key={d.hour} className="ana-hour-col">
+            <div className="ana-hour-bar-wrap">
+              {value > 0 && (
+                <div
+                  className={barClassName}
+                  style={{ height: `${(value / max) * 100}%` }}
+                  title={formatTitle(d)}
+                />
+              )}
+            </div>
+            <span className="ana-hour-label">{HOUR_TICK[d.hour] ?? ""}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function AnalyticsPage() {
   const {
     focusRecords,

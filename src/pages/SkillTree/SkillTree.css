@@ -198,6 +198,47 @@
 .st-legend-item { display: inline-flex; align-items: center; gap: 6px; }
 .st-legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 
+/* 光环收藏：技能树的唯一实感产出——解锁一个节点＝到手一枚可佩戴的灯灵专属皮肤 */
+.st-auras {
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--card);
+  border: 1px solid var(--border-card, rgba(0, 0, 0, 0.08));
+}
+.st-auras-head { display: flex; align-items: center; gap: 12px; }
+.st-auras-title { font-size: 14px; font-weight: 700; color: var(--text-body, var(--text)); }
+.st-auras-hint { margin: 3px 0 0; font-size: 12px; line-height: 1.5; color: var(--text-muted); }
+.st-auras-empty { margin: 12px 2px 2px; font-size: 12.5px; color: var(--text-muted); }
+
+.st-auras-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+}
+.st-aura {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 9px 6px;
+  border-radius: 12px;
+  background: var(--bg, transparent);
+  border: 2px solid var(--border-card, rgba(0, 0, 0, 0.1));
+  cursor: pointer;
+  transition: transform 0.15s var(--ease, ease), box-shadow 0.15s var(--ease, ease), border-color 0.15s var(--ease, ease);
+}
+.st-aura:hover { transform: translateY(-2px); box-shadow: 0 6px 16px color-mix(in srgb, var(--branch) 24%, transparent); }
+.st-aura-icon { font-size: 22px; line-height: 1; }
+.st-aura-name { font-size: 11px; font-weight: 600; color: var(--text-body, var(--text)); text-align: center; line-height: 1.2; }
+.st-aura-state { font-size: 10px; color: var(--text-muted); }
+.st-aura.worn {
+  border-color: var(--branch);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--branch) 18%, transparent);
+}
+.st-aura.worn .st-aura-state { color: var(--branch); font-weight: 700; }
+
 @media (max-width: 600px) {
   .st-headline h1 { font-size: 22px; }
   .st-node { width: 78px; }
