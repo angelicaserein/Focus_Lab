@@ -34,13 +34,14 @@ export default defineConfig({
       // 想测某个 hook 的逻辑时，照既有范式把纯函数抽出去（见 docs/TDD.md）。
       include: ['src/utils/**'],
       exclude: ['**/*.{test,spec}.*', '**/index.{js,jsx}'],
-      // 只涨不跌的地板线（当前 utils≈49%，analytics/character 已 100%）。
-      // 补了测试、覆盖率上去后，把这几个数字往上调，锁住成果、防止回退。
+      // 只涨不跌的地板线（当前 utils≈65%；time/ddl/matrixGeometry/focusRecords
+      // 已补测，analytics/character 100%）。补了测试、覆盖率上去后，把这几个数字
+      // 往上调，锁住成果、防止回退。留几个点余量，避免无关改动误伤红灯。
       thresholds: {
-        statements: 45,
-        branches: 38,
-        functions: 48,
-        lines: 45,
+        statements: 63,
+        branches: 55,
+        functions: 59,
+        lines: 63,
       },
     },
   },
