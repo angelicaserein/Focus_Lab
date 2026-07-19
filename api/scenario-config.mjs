@@ -15,7 +15,7 @@ function buildSystemPrompt() {
     "- 任务类型只能从给定清单里挑，挑不到就不填，别硬凑。",
     "- 交流规则只给一个最贴切的。",
     "- 只输出一个 JSON 对象，不要任何额外文字或代码围栏。",
-    '- 形如 { "devices": ["电脑","耳机"], "communication": "保持安静", "taskTypes": ["深度工作"], "note": "一句话说明这套配置" }。',
+    '- 形如 { "devices": ["电脑","耳机"], "communication": "保持安静", "taskTypes": ["项目"], "note": "一句话说明这套配置" }。',
     "- note 不超过 25 字，温柔、具体。",
   ].join("\n");
 }

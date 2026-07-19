@@ -15,6 +15,11 @@ body,
 #root {
   height: 100%;
 }
+html {
+  /* 防止手机横竖屏切换/输入聚焦时系统自动放大字号，破坏布局 */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
 body {
   margin: 0;
   font-family:
@@ -29,6 +34,11 @@ body {
   background: var(--bg);
   color: var(--text-body);
   -webkit-font-smoothing: antialiased;
+  /* 原生 App 手感：去掉双击 300ms 缩放延迟；禁止下拉刷新与边缘回弹；
+     点击不再有灰色高亮方块。滚动仍正常，缩放交给上面的 viewport 控制。 */
+  touch-action: manipulation;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .app-root {

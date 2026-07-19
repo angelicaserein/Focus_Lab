@@ -153,7 +153,7 @@ function sampleTasks(database) {
   const t1 = { text: "示例：给下周的报告列个大纲", attrs: {} };
   const t2 = { text: "示例：回复导师的邮件", attrs: {} };
   if (has("priority")) t2.attrs.priority = "urgent_important";
-  if (has("tags")) t1.attrs.tags = ["deep_work"];
+  if (has("tags")) t1.attrs.tags = ["project"];
   if (has("estimatedMins")) t1.attrs.estimatedMins = 25;
   return [t1, t2];
 }

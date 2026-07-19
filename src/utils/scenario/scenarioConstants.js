@@ -22,11 +22,10 @@ export const DEFAULT_SCENARIO_OPTIONS = {
 };
 
 export const TASK_TYPE_OPTIONS = [
-  { id: "deep_work",     label: "深度工作", icon: "🧠" },
-  { id: "admin",         label: "事务处理", icon: "📋" },
-  { id: "creative",      label: "创意思考", icon: "💡" },
-  { id: "communication", label: "沟通协作", icon: "💬" },
-  { id: "reading",       label: "阅读学习", icon: "📖" },
+  { id: "project", label: "项目", icon: "📁" }, // 做项目、开发、写论文
+  { id: "job",     label: "求职", icon: "💼" }, // 找工作、面试、投简历
+  { id: "chore",   label: "琐事", icon: "🧺" }, // 买菜、洗衣服、日常杂事
+  { id: "fun",     label: "玩耍", icon: "🎮" }, // 看电影、聚餐、看动漫
 ];
 
 // 情景设置的单一默认值与判定逻辑，避免各处内联默认对象与形状判断。
