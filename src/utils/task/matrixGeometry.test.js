@@ -1,13 +1,23 @@
 import { describe, it, expect } from "vitest";
 import {
   clamp,
-  scaleFor,
+  scaleForPriority,
   isPlaced,
   GUTTER,
-  snapOutOfGutter,
   relaxOverlaps,
+  layoutQuadrantGrid,
+  quadrantOfPos,
+  quadrantBounds,
+  confineToQuadrant,
+  priorityByFlags,
+  priorityCenter,
+  PRIORITY_QUADRANTS,
+  DIVIDER_X,
+  DIVIDER_Y,
   PLANE_X_MIN,
   PLANE_X_MAX,
+  PLANE_Y_MIN,
+  PLANE_Y_MAX,
 } from "@/utils/task/matrixGeometry";
 
 describe("clamp", () => {
@@ -26,26 +36,27 @@ describe("clamp", () => {
   });
 });
 
-describe("scaleFor", () => {
-  it("左上角（重要且紧急）最大", () => {
-    expect(scaleFor(0, 0)).toBeCloseTo(1.5, 5);
+describe("scaleForPriority", () => {
+  it("重要且紧急最大", () => {
+    expect(scaleForPriority("urgent_important")).toBeCloseTo(1.22, 5);
   });
 
-  it("右下角（不重要不紧急）最小", () => {
-    expect(scaleFor(1, 1)).toBeCloseTo(0.72, 5);
+  it("不重要不紧急最小", () => {
+    expect(scaleForPriority("trivial")).toBeCloseTo(1.0, 5);
   });
 
-  it("正中心取中间值", () => {
-    expect(scaleFor(0.5, 0.5)).toBeCloseTo(1.11, 5);
+  it("两个中间象限同档（均为中间值）", () => {
+    expect(scaleForPriority("important")).toBeCloseTo(1.11, 5);
+    expect(scaleForPriority("urgent")).toBeCloseTo(1.11, 5);
   });
 
-  it("x、y 权重对称：对调不改变结果", () => {
-    expect(scaleFor(0.2, 0.8)).toBeCloseTo(scaleFor(0.8, 0.2), 5);
+  it("严格分档：重要且紧急 > 中间象限 > 不重要不紧急", () => {
+    expect(scaleForPriority("urgent_important")).toBeGreaterThan(scaleForPriority("important"));
+    expect(scaleForPriority("important")).toBeGreaterThan(scaleForPriority("trivial"));
   });
 
-  it("越靠左上越大（单调）", () => {
-    expect(scaleFor(0.1, 0.1)).toBeGreaterThan(scaleFor(0.4, 0.4));
-    expect(scaleFor(0.4, 0.4)).toBeGreaterThan(scaleFor(0.9, 0.9));
+  it("未知标签退回最小档（trivial）", () => {
+    expect(scaleForPriority("nope")).toBeCloseTo(scaleForPriority("trivial"), 5);
   });
 });
 
@@ -69,37 +80,10 @@ describe("isPlaced", () => {
   });
 });
 
-describe("snapOutOfGutter", () => {
-  it("死区外的落点原样保留", () => {
-    expect(snapOutOfGutter({ x: 0.2, y: 0.9 })).toEqual({ x: 0.2, y: 0.9 });
-  });
-
-  it("死区内向较近的一侧推出", () => {
-    // 0.48 在中线左侧带内 → 推到 0.5-GUTTER；0.52 在右侧带内 → 推到 0.5+GUTTER
-    expect(snapOutOfGutter({ x: 0.48, y: 0.52 })).toEqual({
-      x: 0.5 - GUTTER,
-      y: 0.5 + GUTTER,
-    });
-  });
-
-  it("正好落在中线上归到左/上侧，不悬在线上", () => {
-    expect(snapOutOfGutter({ x: 0.5, y: 0.5 })).toEqual({
-      x: 0.5 - GUTTER,
-      y: 0.5 - GUTTER,
-    });
-  });
-
-  it("死区边界本身不被推动", () => {
-    const edge = snapOutOfGutter({ x: 0.5 - GUTTER, y: 0.5 + GUTTER });
-    expect(edge.x).toBeCloseTo(0.5 - GUTTER, 5);
-    expect(edge.y).toBeCloseTo(0.5 + GUTTER, 5);
-  });
-
-  it("推出后的落点必然在死区之外", () => {
-    for (const v of [0.46, 0.48, 0.5, 0.52, 0.54]) {
-      const { x } = snapOutOfGutter({ x: v, y: v });
-      expect(Math.abs(x - 0.5)).toBeGreaterThanOrEqual(GUTTER - 1e-9);
-    }
+describe("分界线偏置", () => {
+  it("竖线右移、横线下移（左上象限最大）", () => {
+    expect(DIVIDER_X).toBeGreaterThan(0.5);
+    expect(DIVIDER_Y).toBeGreaterThan(0.5);
   });
 });
 
@@ -159,6 +143,148 @@ describe("relaxOverlaps", () => {
     relaxOverlaps(near, 400, 400, 0);
     relaxOverlaps(far, 400, 400, 40);
     expect(Math.abs(far[0].cy - far[1].cy)).toBeGreaterThan(Math.abs(near[0].cy - near[1].cy));
+  });
+});
+
+describe("优先级标签 ↔ 象限", () => {
+  it("四方位映射到四个标签（左＝紧急、上＝重要）", () => {
+    expect(priorityByFlags(true, true)).toBe("urgent_important"); // 左上
+    expect(priorityByFlags(false, true)).toBe("important"); // 右上
+    expect(priorityByFlags(true, false)).toBe("urgent"); // 左下
+    expect(priorityByFlags(false, false)).toBe("trivial"); // 右下
+  });
+
+  it("落点按中线归象限", () => {
+    expect(quadrantOfPos({ x: 0.2, y: 0.2 })).toBe("urgent_important");
+    expect(quadrantOfPos({ x: 0.8, y: 0.2 })).toBe("important");
+    expect(quadrantOfPos({ x: 0.2, y: 0.8 })).toBe("urgent");
+    expect(quadrantOfPos({ x: 0.8, y: 0.8 })).toBe("trivial");
+  });
+
+  it("正落在分界线归右/下侧，刚过线归左/上侧", () => {
+    // x = DIVIDER_X 时 x < DIVIDER_X 为假 → 右/下
+    expect(quadrantOfPos({ x: DIVIDER_X, y: DIVIDER_Y })).toBe("trivial");
+    expect(quadrantOfPos({ x: DIVIDER_X - 0.01, y: DIVIDER_Y - 0.01 })).toBe("urgent_important");
+  });
+
+  it("每个标签的中心点落在自己象限里", () => {
+    for (const id of Object.keys(PRIORITY_QUADRANTS)) {
+      expect(quadrantOfPos(priorityCenter(id))).toBe(id);
+    }
+  });
+
+  it("象限范围贴分界线留 GUTTER、外沿留平面安全边距", () => {
+    const tl = quadrantBounds("urgent_important");
+    expect(tl.xMin).toBe(PLANE_X_MIN);
+    expect(tl.xMax).toBe(DIVIDER_X - GUTTER);
+    expect(tl.yMin).toBe(PLANE_Y_MIN);
+    expect(tl.yMax).toBe(DIVIDER_Y - GUTTER);
+    const br = quadrantBounds("trivial");
+    expect(br.xMin).toBe(DIVIDER_X + GUTTER);
+    expect(br.xMax).toBe(PLANE_X_MAX);
+    expect(br.yMin).toBe(DIVIDER_Y + GUTTER);
+    expect(br.yMax).toBe(PLANE_Y_MAX);
+  });
+
+  it("左上象限比右下象限大（分界线偏置的效果）", () => {
+    const tl = quadrantBounds("urgent_important");
+    const br = quadrantBounds("trivial");
+    const area = (b) => (b.xMax - b.xMin) * (b.yMax - b.yMin);
+    expect(area(tl)).toBeGreaterThan(area(br));
+  });
+});
+
+describe("confineToQuadrant", () => {
+  it("象限内的落点原样保留", () => {
+    expect(confineToQuadrant({ x: 0.2, y: 0.3 }, "urgent_important")).toEqual({ x: 0.2, y: 0.3 });
+  });
+
+  it("越到别的象限会被夹回本象限（不跨分界线）", () => {
+    // 标签是左上，但落点在右下 → 夹回左上象限的右下角
+    const p = confineToQuadrant({ x: 0.9, y: 0.9 }, "urgent_important");
+    expect(p.x).toBe(DIVIDER_X - GUTTER);
+    expect(p.y).toBe(DIVIDER_Y - GUTTER);
+    expect(quadrantOfPos(p)).toBe("urgent_important");
+  });
+
+  it("夹回后仍在死区之外", () => {
+    const p = confineToQuadrant({ x: 0.5, y: 0.5 }, "important"); // 右上
+    expect(p.x).toBeGreaterThanOrEqual(DIVIDER_X + GUTTER - 1e-9);
+    expect(p.y).toBeLessThanOrEqual(DIVIDER_Y - GUTTER + 1e-9);
+    expect(quadrantOfPos(p)).toBe("important");
+  });
+});
+
+describe("relaxOverlaps 象限边界", () => {
+  const box = (cx, cy, bounds) => ({ cx, cy, halfW: 10, halfH: 5, bounds });
+
+  it("带 bounds 的卡片被夹在自己象限内，不越界", () => {
+    // 两张卡都困在同一个窄象限里、彼此重叠 → 推开后仍不出这个矩形
+    const bounds = { minX: 0, maxX: 60, minY: 0, maxY: 40 };
+    const items = [box(30, 20, bounds), box(35, 20, bounds)];
+    relaxOverlaps(items, 400, 400);
+    for (const it of items) {
+      expect(it.cx).toBeGreaterThanOrEqual(bounds.minX + it.halfW - 1e-6);
+      expect(it.cx).toBeLessThanOrEqual(bounds.maxX - it.halfW + 1e-6);
+      expect(it.cy).toBeGreaterThanOrEqual(bounds.minY + it.halfH - 1e-6);
+      expect(it.cy).toBeLessThanOrEqual(bounds.maxY - it.halfH + 1e-6);
+    }
+  });
+
+  it("不同象限的卡片各夹各的，互不越入对方区域", () => {
+    // 左象限卡与右象限卡即便初始靠得很近，推开后各自留在自己那半边
+    const left = { minX: 0, maxX: 100, minY: 0, maxY: 200 };
+    const right = { minX: 120, maxX: 220, minY: 0, maxY: 200 };
+    const items = [box(90, 100, left), box(130, 100, right)];
+    relaxOverlaps(items, 400, 400);
+    expect(items[0].cx).toBeLessThanOrEqual(left.maxX - items[0].halfW + 1e-6);
+    expect(items[1].cx).toBeGreaterThanOrEqual(right.minX + items[1].halfW - 1e-6);
+  });
+});
+
+describe("layoutQuadrantGrid", () => {
+  const bounds = { minX: 0, maxX: 300, minY: 0, maxY: 300 };
+  const card = (id, w = 80, h = 30) => ({ id, w, h });
+  // 两张卡的槽位矩形（渲染 ≤ 槽位，故槽位不重叠即卡片不重叠）
+  const overlaps = (a, b, aw, ah, bw, bh) =>
+    Math.abs(a.cx - b.cx) < (aw + bw) / 2 && Math.abs(a.cy - b.cy) < (ah + bh) / 2;
+
+  it("同一行的卡片不重叠、依次靠右排", () => {
+    const { positions, shrink } = layoutQuadrantGrid(
+      [card("a"), card("b"), card("c")],
+      bounds
+    );
+    expect(shrink).toBe(1);
+    expect(positions[0].cx).toBeLessThan(positions[1].cx);
+    expect(positions[1].cx).toBeLessThan(positions[2].cx);
+    expect(positions[0].cy).toBeCloseTo(positions[1].cy, 5); // 同一行等高
+    expect(overlaps(positions[0], positions[1], 80, 30, 80, 30)).toBe(false);
+  });
+
+  it("放不下就换行：下一行更靠下", () => {
+    // 每张 80 宽 + 12 间距，300 宽约放 3 张 → 第 4 张换行
+    const cards = ["a", "b", "c", "d"].map((id) => card(id));
+    const { positions } = layoutQuadrantGrid(cards, bounds);
+    expect(positions[3].cy).toBeGreaterThan(positions[0].cy);
+    expect(positions[3].cx).toBeCloseTo(positions[0].cx, 5); // 回到行首
+  });
+
+  it("象限装不下时整体等比缩小 (shrink<1) 且仍在边界内", () => {
+    // 塞进远超容量的卡片，强制缩小
+    const cards = Array.from({ length: 40 }, (_, i) => card(`n${i}`, 120, 40));
+    const { positions, shrink } = layoutQuadrantGrid(cards, bounds);
+    expect(shrink).toBeGreaterThan(0);
+    expect(shrink).toBeLessThan(1);
+    for (const p of positions) {
+      expect(p.cx).toBeGreaterThanOrEqual(bounds.minX - 1e-6);
+      expect(p.cx).toBeLessThanOrEqual(bounds.maxX + 1e-6);
+      expect(p.cy).toBeGreaterThanOrEqual(bounds.minY - 1e-6);
+      expect(p.cy).toBeLessThanOrEqual(bounds.maxY + 1e-6);
+    }
+  });
+
+  it("空数组返回空布局", () => {
+    expect(layoutQuadrantGrid([], bounds)).toEqual({ positions: [], shrink: 1 });
   });
 });
 

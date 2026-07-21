@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import {
   clamp,
-  scaleFor,
+  scaleForPriority,
+  quadrantOfPos,
   DRAG_THRESHOLD,
   PLANE_X_MIN,
   PLANE_X_MAX,
@@ -59,8 +60,8 @@ export function useMatrixDrag({ onPlace, onTray, onActivate }) {
     const cardX = e.clientX - d.offsetX;
     const cardY = e.clientY - d.offsetY;
     const { zone, x, y } = resolveZone(cardX, cardY);
-    // 平面内按落点实时缩放；托盘/别处给个统一的小尺寸
-    const scale = zone === "plane" ? scaleFor(x, y) : 0.9;
+    // 平面内按「悬停到哪个象限」取该象限档位大小；托盘/别处给个统一的小尺寸
+    const scale = zone === "plane" ? scaleForPriority(quadrantOfPos({ x, y })) : 0.9;
     d.zone = zone;
     setDrag({ id: d.id, text: d.text, x: cardX, y: cardY, scale, zone, fx: x, fy: y });
   }

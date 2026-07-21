@@ -302,6 +302,7 @@ export default function FocusPage() {
         onDrawerSelect={handleDrawerSelect}
         availableTodos={availableTodos}
         onAddFocus={addToFocus}
+        onStartImmersive={handleDrawerSelect}
       />
     </FocusSessionContext.Provider>
   );

@@ -32,6 +32,7 @@ function FocusConsole({
   onDrawerSelect,
   availableTodos = [],
   onAddFocus,
+  onStartImmersive,
 }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ function FocusConsole({
         <div className="focus-main">
           {/* 上：紧急/重要四象限 —— 任务以小标签呈现，可拖拽归类 */}
           <div className="focus-col-right">
-            <EisenhowerMatrix />
+            <EisenhowerMatrix onStartImmersive={onStartImmersive} />
           </div>
 
           {/* 下：已选任务 + 计时控制台，横向铺满整行；情景推荐紧随其后 */}

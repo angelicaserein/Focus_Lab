@@ -156,10 +156,10 @@
   position: relative;
   flex: 1;
   min-width: 0;
-  /* 接近正方形，但用视口高度封顶，避免栏宽时撑破一屏 */
+  /* 占满整栏宽（不改宽度）；高度上限抬高，让它没那么扁、更接近方形 */
   aspect-ratio: 1 / 1;
   min-height: 320px;
-  max-height: 52vh;
+  max-height: 62vh;
   border-radius: 18px;
   border: 1.5px solid var(--border-input);
   overflow: hidden;
@@ -187,20 +187,21 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  /* 竖线在 --divider-x（偏右）、横线在 --divider-y（偏下），与几何分界线一致 */
   background:
     linear-gradient(
       to right,
-      transparent calc(50% - 0.5px),
-      color-mix(in srgb, var(--text-muted) 26%, transparent) calc(50% - 0.5px),
-      color-mix(in srgb, var(--text-muted) 26%, transparent) calc(50% + 0.5px),
-      transparent calc(50% + 0.5px)
+      transparent calc(var(--divider-x, 58%) - 0.5px),
+      color-mix(in srgb, var(--text-muted) 26%, transparent) calc(var(--divider-x, 58%) - 0.5px),
+      color-mix(in srgb, var(--text-muted) 26%, transparent) calc(var(--divider-x, 58%) + 0.5px),
+      transparent calc(var(--divider-x, 58%) + 0.5px)
     ),
     linear-gradient(
       to bottom,
-      transparent calc(50% - 0.5px),
-      color-mix(in srgb, var(--text-muted) 26%, transparent) calc(50% - 0.5px),
-      color-mix(in srgb, var(--text-muted) 26%, transparent) calc(50% + 0.5px),
-      transparent calc(50% + 0.5px)
+      transparent calc(var(--divider-y, 58%) - 0.5px),
+      color-mix(in srgb, var(--text-muted) 26%, transparent) calc(var(--divider-y, 58%) - 0.5px),
+      color-mix(in srgb, var(--text-muted) 26%, transparent) calc(var(--divider-y, 58%) + 0.5px),
+      transparent calc(var(--divider-y, 58%) + 0.5px)
     );
 }
 
@@ -486,21 +487,70 @@
   color: #fff;
 }
 
-.matrix-tag-del {
+/* 单击卡片后展开的一排操作：完成 / 编辑 / 删除 */
+.matrix-tag-actions {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border: none;
-  border-radius: 50%;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.matrix-tag-act {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border: 1px solid var(--border-input);
+  border-radius: 9px;
   background: transparent;
-  color: currentColor;
-  opacity: 0.5;
-  font-size: 0.95rem;
-  line-height: 1;
+  color: var(--text-body);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: opacity 120ms ease, background 120ms ease;
+  white-space: nowrap;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.matrix-tag-act.complete:hover {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.matrix-tag-act.edit:hover {
+  border-color: var(--text-muted);
+  color: var(--text-heading);
+}
+
+.matrix-tag-act.del {
+  color: var(--danger, #e5484d);
+  border-color: color-mix(in srgb, var(--danger, #e5484d) 45%, transparent);
+}
+
+.matrix-tag-act.del:hover {
+  background: var(--danger, #e5484d);
+  border-color: var(--danger, #e5484d);
+  color: #fff;
+}
+
+.matrix-tag.focused .matrix-tag-act {
+  border-color: rgba(255, 255, 255, 0.55);
+  color: #fff;
+}
+
+/* 就地改名输入框：撑满卡片、去边框，贴着卡底 */
+.matrix-tag-edit {
+  min-width: 0;
+  width: 128px;
+  max-width: 40vw;
+  padding: 1px 2px;
+  border: none;
+  border-bottom: 1.5px solid var(--accent);
+  background: transparent;
+  color: var(--text-heading);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  outline: none;
 }
 
 /* ── 「分一下」两步问答浮层 ── */
@@ -629,9 +679,16 @@
   .matrix-sort-answer:hover { transform: none; }
 }
 
-.matrix-tag-del:hover {
-  opacity: 1;
-  background: rgba(0, 0, 0, 0.12);
+/* 展开操作条时给卡片更高层级，避免被相邻卡片压住 */
+.matrix-tag.expanded {
+  z-index: 5;
+}
+
+/* 平面上的卡片展开操作条 / 改名时，放宽宽度上限并抬到最上层，别被邻卡挤住或压住 */
+.matrix-node:has(.matrix-tag.expanded),
+.matrix-node:has(.matrix-tag-edit) {
+  max-width: 92%;
+  z-index: 200 !important;
 }
 
 /* 窄屏：标签文字进一步收窄 */
