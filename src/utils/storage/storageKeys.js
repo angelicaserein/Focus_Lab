@@ -34,6 +34,8 @@ export const STORAGE_KEYS = {
   // 伙伴 / 祈愿（二游式无损收集）：已遇见的图鉴 id 列表、当前佩戴的立绘皮肤 id
   COMPANION_COLLECTION: "companion_collection_v1",
   COMPANION_OUTFIT:     "companion_outfit_v1",
+  // 生态缸（金币换鱼的无损收集）：已入住的物种 id 列表
+  AQUARIUM_COLLECTION:  "aquarium_collection_v1",
   // 任务属性定义（v6 及以前的全局 schema，v7 起折叠进 DATABASES，仅保留兼容）
   TASK_ATTRS: "task_attrs_v1",
   // 多 database（v7 起）：每个 database 含独立的列 schema

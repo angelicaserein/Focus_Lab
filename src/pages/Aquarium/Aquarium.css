@@ -1,0 +1,305 @@
+/* 生态缸页。配色全部派生自主题的 --accent-rgb / --accent-mid，故任何皮肤/暗夜都自动跟随。
+   canvas 缸（AquariumTank）会从页面根读取下面这几个水色 token（自定义属性可继承）。 */
+
+.page-aquarium {
+  /* —— 供 canvas 读取的派生水色 token —— */
+  --wtop: rgba(var(--accent-rgb), 0.13);   /* 水面（浅） */
+  --wbot: rgba(var(--accent-rgb), 0.40);   /* 缸底（深） */
+  --fish: var(--accent-mid);               /* 生物主色：暗底皮肤里 accent-mid 会自动变亮 */
+  --card2: color-mix(in srgb, var(--accent) 5%, var(--card));
+  --line-tank: var(--border-card);
+
+  max-width: min(680px, 100%);
+  margin: 0 auto;
+  padding: clamp(12px, 3vw, 24px) clamp(14px, 4vw, 32px) 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* —— 缸台：尽量铺满屏幕，缸是主角 —— */
+.aq-stage {
+  width: fit-content;
+  max-width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border-card);
+  border-radius: 24px;
+  box-shadow: 0 1px 2px var(--shadow-sm), 0 14px 40px var(--shadow-sm);
+  padding: 18px 24px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.aq-canvas {
+  /* 以高度撑满视口，宽度按缸的比例推出；窄屏再由 max-width 收回 */
+  height: min(74vh, 760px);
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: 520 / 680;
+  display: block;
+  touch-action: manipulation;
+}
+.aq-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+.aq-coins {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--accent);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.aq-coins-val { font-size: 17px; }
+
+.aq-buy {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: none;
+  cursor: pointer;
+  color: var(--card);
+  background: var(--accent);
+  font: 600 15px/1 inherit;
+  padding: 13px 24px;
+  border-radius: 13px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 6px 18px rgba(var(--accent-rgb), 0.34);
+  transition: transform 0.12s, filter 0.2s;
+}
+.aq-buy:hover { filter: brightness(1.06); }
+.aq-buy:active { transform: translateY(1px) scale(0.99); }
+.aq-buy:focus-visible { outline: 2px solid var(--text-heading); outline-offset: 3px; }
+.aq-buy:disabled { filter: grayscale(0.4) opacity(0.55); cursor: default; transform: none; }
+.aq-cost {
+  font-size: 12.5px;
+  opacity: 0.85;
+  padding-left: 8px;
+  border-left: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.aq-hint { font-size: 13px; margin: 0; }
+.aq-poor { color: var(--text-muted); }
+.aq-allmet { color: var(--accent); font-weight: 600; }
+
+/* —— 图鉴 —— */
+.aq-dex {
+  width: min(480px, 100%);
+  margin-top: 28px;
+}
+.aq-dex-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+}
+.aq-dex-head h2 {
+  font-size: 14px;
+  color: var(--text-heading);
+  margin: 0;
+}
+.aq-dex-count {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.aq-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.aq-slot {
+  aspect-ratio: 1;
+  border-radius: 15px;
+  background: var(--card2);
+  border: 1px solid var(--border-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  position: relative;
+  overflow: hidden;
+}
+.aq-slot::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 34%;
+  background: linear-gradient(rgba(var(--accent-rgb), 0.12), rgba(var(--accent-rgb), 0.22));
+}
+.aq-slot.locked {
+  border-style: dashed;
+  opacity: 0.6;
+}
+.aq-slot.locked::before { opacity: 0; }
+.aq-slot-icon {
+  position: relative;
+  z-index: 1;
+  color: var(--accent-mid);
+  font-size: 26px;
+  line-height: 1;
+  display: flex;
+}
+.aq-slot.locked .aq-slot-icon { color: var(--text-faint); }
+.aq-slot-name {
+  position: relative;
+  z-index: 1;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.aq-slot.locked .aq-slot-name { color: var(--text-faint); }
+
+/* 稀有度：常见=中性，稀有=主色，史诗=暖金（语义色，不夺主色） */
+.rarity-1 { --r: var(--text-faint); }
+.rarity-2 { --r: var(--accent); }
+.rarity-3 { --r: #d9a441; }
+.aq-slot.owned.rarity-2 { border-color: rgba(var(--accent-rgb), 0.4); }
+.aq-slot.owned.rarity-3 { border-color: rgba(217, 164, 65, 0.55); }
+
+/* 收集满后：图鉴格变成「再请一只」的按钮 */
+button.aq-slot.buyable {
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.2s, border-color 0.2s;
+}
+button.aq-slot.buyable:hover {
+  transform: translateY(-2px);
+  border-color: rgba(var(--accent-rgb), 0.6);
+  box-shadow: 0 8px 20px rgba(var(--accent-rgb), 0.22);
+}
+button.aq-slot.buyable:active { transform: translateY(0); }
+button.aq-slot.buyable:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+button.aq-slot.buyable:disabled { cursor: default; opacity: 0.55; transform: none; box-shadow: none; }
+
+/* —— 收集卡弹层 —— */
+/* 卡片相对「水缸所在的内容区」居中，而非整个视口：故左缘让开侧边栏的宽度，
+   与 .app-main 的 padding-left 保持同一套断点。侧栏折叠时内容区铺满，卡随之居中。 */
+.aq-card-veil {
+  position: fixed;
+  inset: 0;
+  left: 268px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(31, 27, 75, 0.34);
+  backdrop-filter: blur(4px);
+  animation: aq-veil-in 0.25s ease;
+  transition: left 220ms var(--ease);
+}
+body.sidebar-collapsed .aq-card-veil { left: 40px; }
+@media (max-width: 768px) { .aq-card-veil { left: 228px; } }
+@media (max-width: 600px) {
+  .aq-card-veil,
+  body.sidebar-collapsed .aq-card-veil { left: 0; }
+}
+@keyframes aq-veil-in { from { opacity: 0; } to { opacity: 1; } }
+
+.aq-card {
+  width: min(300px, 86vw);
+  background: var(--card);
+  border: 1px solid var(--border-card);
+  border-radius: 22px;
+  box-shadow: 0 20px 60px var(--shadow-sm);
+  padding: 26px 24px 22px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  animation: aq-card-in 0.34s cubic-bezier(0.2, 1.3, 0.4, 1);
+}
+@keyframes aq-card-in {
+  from { transform: scale(0.8) translateY(14px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+.aq-card-glow {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 130px;
+  background: radial-gradient(120% 90% at 50% 0%, rgba(var(--accent-rgb), 0.22), transparent 70%);
+}
+.aq-card.rarity-3 .aq-card-glow {
+  background: radial-gradient(120% 90% at 50% 0%, rgba(217, 164, 65, 0.28), transparent 70%);
+}
+.aq-card-eye {
+  position: relative;
+  font: 600 11px/1 ui-monospace, monospace;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--r, var(--accent));
+}
+.aq-card-medal {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  margin: 16px auto 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 38%, rgba(var(--accent-rgb), 0.2), rgba(var(--accent-rgb), 0.06));
+  border: 1px solid var(--border-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-mid);
+}
+.aq-card-name {
+  position: relative;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin: 0;
+}
+.aq-card-rarity {
+  position: relative;
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  align-items: center;
+  margin: 8px 0 10px;
+}
+.aq-card-rarity i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(var(--accent-rgb), 0.25);
+}
+.aq-card-rarity i.on { background: var(--r, var(--accent)); }
+.aq-card-rarity-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+.aq-card-cap {
+  position: relative;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 0 4px 18px;
+}
+.aq-card-btn {
+  position: relative;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  color: var(--card);
+  background: var(--accent);
+  font: 600 15px/1 inherit;
+  padding: 13px;
+  border-radius: 12px;
+  transition: filter 0.2s, transform 0.1s;
+}
+.aq-card-btn:hover { filter: brightness(1.06); }
+.aq-card-btn:active { transform: translateY(1px); }
+.aq-card-btn:focus-visible { outline: 2px solid var(--text-heading); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .aq-card-veil, .aq-card { animation: none; }
+}

@@ -4,6 +4,7 @@
 import nav from "./nav";
 import character from "./character";
 import wish from "./wish";
+import aquarium from "./aquarium";
 import world from "./world";
 import skilltree from "./skilltree";
 import functiontree from "./functiontree";
@@ -29,6 +30,7 @@ const MODULES = [
   nav,
   character,
   wish,
+  aquarium,
   world,
   skilltree,
   functiontree,

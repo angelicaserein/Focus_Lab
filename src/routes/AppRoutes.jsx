@@ -30,6 +30,7 @@ const ROUTES = [
   { path: "/industry",       importer: () => import("@/pages/Industry") },
   { path: "/gantt",          importer: () => import("@/pages/Gantt") },
   { path: "/wish",           importer: () => import("@/pages/Wish") },
+  { path: "/aquarium",       importer: () => import("@/pages/Aquarium") },
   { path: "/world",          importer: () => import("@/pages/World") },
 ];
 

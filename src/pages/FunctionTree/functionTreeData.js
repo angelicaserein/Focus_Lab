@@ -17,6 +17,7 @@ export const FUNCTION_BRANCHES = [
       { path: "/character", labelKey: "nav.character", icon: "⚔️" },
       { path: "/skilltree", labelKey: "nav.skilltree", icon: "🌳" },
       { path: "/wish",      labelKey: "nav.wish",      icon: "✨" },
+      { path: "/aquarium",  labelKey: "nav.aquarium",  icon: "🐟" },
       { path: "/world",     labelKey: "nav.world",     icon: "🗺️" },
       { path: "/industry",  labelKey: "nav.industry",  icon: "🏭" },
       { path: "/focus",     labelKey: "nav.focus",     icon: "⏱️" },

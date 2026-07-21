@@ -9,6 +9,7 @@ export default {
   "nav.skilltree": { en: "Skill tree", zh: "技能树" },
   "nav.functiontree": { en: "Function tree", zh: "功能树" },
   "nav.wish": { en: "Wishing", zh: "祈愿" },
+  "nav.aquarium": { en: "Aquarium", zh: "生态缸" },
   "nav.world": { en: "World map", zh: "世界地图" },
   "nav.industry": { en: "Industry", zh: "工业点数" },
   "nav.focus": { en: "Focus", zh: "专注" },

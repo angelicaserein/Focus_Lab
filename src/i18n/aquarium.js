@@ -1,0 +1,38 @@
+// 生态缸页文案。每条 key -> { en, zh }。
+export default {
+  "aquarium.title": { en: "Aquarium", zh: "生态缸" },
+  "aquarium.buy": { en: "Bring home a fish", zh: "换一条鱼" },
+  "aquarium.cost": { en: "{n} coins", zh: "{n} 金币" },
+  "aquarium.needMore": { en: "{n} more coins to go", zh: "还差 {n} 金币" },
+  "aquarium.addMore": {
+    en: "Every kind is in — tap any below to bring another home ({n} coins).",
+    zh: "都集齐啦——点下面任意一只，再请一位进缸（{n} 金币）。",
+  },
+  "aquarium.addOne": { en: "Add another ({n} coins)", zh: "再请一只（{n} 金币）" },
+  "aquarium.dexTitle": { en: "Residents", zh: "已入住" },
+  "aquarium.dexCount": { en: "{n} / {total} kinds", zh: "{n} / {total} 种" },
+  "aquarium.unmet": { en: "Not yet met", zh: "尚未相遇" },
+  "aquarium.new": { en: "New find", zh: "新发现" },
+  "aquarium.collect": { en: "Take it in ✓", zh: "收下它 ✓" },
+
+  "aquarium.rarity.1": { en: "Common", zh: "常见" },
+  "aquarium.rarity.2": { en: "Rare", zh: "稀有" },
+  "aquarium.rarity.3": { en: "Epic", zh: "史诗" },
+
+  "aquarium.species.fish.name": { en: "Little Fish", zh: "小鱼" },
+  "aquarium.species.fish.desc": { en: "The first flicker of light you meet in the shallows.", zh: "浅滩边最先遇见的一抹微光。" },
+  "aquarium.species.shell.name": { en: "Shell", zh: "贝" },
+  "aquarium.species.shell.desc": { en: "A whisper the tide left behind on the sand.", zh: "潮退后留在沙上的一句低语。" },
+  "aquarium.species.crab.name": { en: "Hermit Crab", zh: "寄居蟹" },
+  "aquarium.species.crab.desc": { en: "Wanders about, carrying a borrowed home.", zh: "背着借来的家，四处走走。" },
+  "aquarium.species.jelly.name": { en: "Jellyfish", zh: "水母" },
+  "aquarium.species.jelly.desc": { en: "A clear umbrella unfolding slowly in still water.", zh: "在静水里慢慢舒张的透明伞。" },
+  "aquarium.species.star.name": { en: "Sea Star", zh: "海星" },
+  "aquarium.species.star.desc": { en: "Five arms spread wide, inching along the glass.", zh: "五臂张开，贴着缸壁慢慢挪。" },
+  "aquarium.species.coral.name": { en: "Coral", zh: "珊瑚" },
+  "aquarium.species.coral.desc": { en: "Quietly grows into a whole forest.", zh: "不动声色地长成一片森林。" },
+  "aquarium.species.turtle.name": { en: "Sea Turtle", zh: "海龟" },
+  "aquarium.species.turtle.desc": { en: "Slow, but never lost.", zh: "慢，但从不迷路。" },
+  "aquarium.species.seahorse.name": { en: "Seahorse", zh: "海马" },
+  "aquarium.species.seahorse.desc": { en: "Naps with its tail hooked around a weed.", zh: "用尾巴勾住水草打个盹。" },
+};
