@@ -45,6 +45,7 @@ export default {
   "focus.matrix.dropHere": { en: "Drag tasks in — drop them into the quadrant that fits", zh: "把任务拖进来，放到你觉得合适的象限" },
   "focus.matrix.trayEmpty": { en: "New tasks land here — tap “Sort it” or drag them in", zh: "新任务先落在这里，点「分一下」或拖进平面" },
   "focus.matrix.deleteAria": { en: "Delete {text}", zh: "删除 {text}" },
+  "focus.matrix.actionsAria": { en: "Actions for {text}", zh: "{text} 的操作" },
   "focus.matrix.complete": { en: "Done", zh: "完成" },
   "focus.matrix.completeAria": { en: "Mark {text} done", zh: "完成 {text}" },
   "focus.matrix.edit": { en: "Edit", zh: "编辑" },

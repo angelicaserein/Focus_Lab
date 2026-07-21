@@ -496,7 +496,7 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
   }, [placed, drag]);
 
   return (
-    <div className="matrix-container" aria-label={t("focus.matrix.title")}>
+    <div ref={containerRef} className="matrix-container" aria-label={t("focus.matrix.title")}>
       <div className="matrix-header">
         <span className="matrix-title">
           {t("focus.matrix.title")}
@@ -623,6 +623,16 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
           </span>
         </div>
       )}
+
+      {/* 单击卡片浮出的扁平操作菜单：贴卡片右上角，固定定位不撑宽卡片 */}
+      <MatrixCardMenu
+        pos={menuPos}
+        todo={expandedTodo}
+        onComplete={completeTask}
+        onEdit={startEdit}
+        onDelete={removeTask}
+        t={t}
+      />
 
       {/* 两步是非题：把「感觉放哪」拆成两个封闭问题，自动落到象限 */}
       {sortTodo && (
