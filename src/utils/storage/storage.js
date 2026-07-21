@@ -20,8 +20,12 @@
 
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 import { TASK_ATTR_DEFAULTS } from "@/utils/task/taskAttrDefaults";
+import { TASK_TYPE_OPTIONS } from "@/utils/scenario/scenarioConstants";
 
-export const SCHEMA_VERSION = 7;
+export const SCHEMA_VERSION = 8;
+
+// v7 时期的出厂默认标签 id。v8 迁移把它们换成新的 TASK_TYPE_OPTIONS。
+const LEGACY_TAG_IDS = ["deep_work", "admin", "creative", "communication", "reading"];
 const SCHEMA_META_KEY = "__focuslab_schema";
 
 const MIGRATIONS = [
@@ -74,6 +78,33 @@ const MIGRATIONS = [
       ...data,
       databases: [defaultDb],
       todos: (data.todos ?? []).map(t => ({ databaseId: "default", ...t })),
+    };
+  },
+  // v7→v8: 重置默认任务标签。旧的 5 个出厂标签（深度工作/事务处理/…）换成
+  // 新的 4 个（项目/求职/琐事/玩耍）。自定义标签保留；任务上残留的旧标签值清掉。
+  (data) => {
+    const stripLegacy = (attrs) => (attrs ?? []).map(a => {
+      if (a.id !== "tags") return a;
+      const kept = (a.options ?? []).filter(o => !LEGACY_TAG_IDS.includes(o.id));
+      const keptIds = new Set(kept.map(o => o.id));
+      const seeded = TASK_TYPE_OPTIONS
+        .filter(o => !keptIds.has(o.id))
+        .map(({ id, label, icon }) => ({ id, label, icon }));
+      return { ...a, options: [...kept, ...seeded] };
+    });
+    return {
+      ...data,
+      databases: (data.databases ?? []).map(d => ({ ...d, attrs: stripLegacy(d.attrs) })),
+      // 兼容仍读 taskAttrs 的旧导入路径
+      taskAttrs: data.taskAttrs ? stripLegacy(data.taskAttrs) : data.taskAttrs,
+      todos: (data.todos ?? []).map(t => {
+        const tags = t.attrs?.tags;
+        if (!Array.isArray(tags) || !tags.some(id => LEGACY_TAG_IDS.includes(id))) return t;
+        const next = tags.filter(id => !LEGACY_TAG_IDS.includes(id));
+        const attrs = { ...t.attrs };
+        if (next.length) attrs.tags = next; else delete attrs.tags;
+        return { ...t, attrs };
+      }),
     };
   },
 ];

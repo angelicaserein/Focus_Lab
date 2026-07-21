@@ -47,12 +47,12 @@ describe("parseTasksJson", () => {
 describe("sanitizeTaskAttrs", () => {
   it("保留合法的 select / multiselect / date / number 值", () => {
     const { attrs, dropped } = sanitizeTaskAttrs(
-      { priority: "urgent_important", tags: ["deep_work", "reading"], dueDate: "2026-07-01", estimatedMins: "30", notes: "记得带U盘" },
+      { priority: "urgent_important", tags: ["project", "fun"], dueDate: "2026-07-01", estimatedMins: "30", notes: "记得带U盘" },
       fullDb,
     );
     expect(attrs).toEqual({
       priority: "urgent_important",
-      tags: ["deep_work", "reading"],
+      tags: ["project", "fun"],
       dueDate: "2026-07-01",
       estimatedMins: 30,
       notes: "记得带U盘",
@@ -62,16 +62,16 @@ describe("sanitizeTaskAttrs", () => {
 
   it("剔除非法 option id 与坏日期，但列存在不算 dropped", () => {
     const { attrs, dropped } = sanitizeTaskAttrs(
-      { priority: "bogus", tags: ["deep_work", "nope"], dueDate: "下周一" },
+      { priority: "bogus", tags: ["project", "nope"], dueDate: "下周一" },
       fullDb,
     );
-    expect(attrs).toEqual({ tags: ["deep_work"] });
+    expect(attrs).toEqual({ tags: ["project"] });
     expect(dropped).toEqual([]);
   });
 
   it("目标库缺列时把字段计入 dropped", () => {
     const { attrs, dropped } = sanitizeTaskAttrs(
-      { priority: "high", tags: ["deep_work"], notes: "x" },
+      { priority: "high", tags: ["project"], notes: "x" },
       emptyDb,
     );
     expect(attrs).toEqual({});
