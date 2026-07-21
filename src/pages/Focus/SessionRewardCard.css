@@ -36,13 +36,6 @@
 .srewards-title { font-size: 19px; font-weight: 700; color: var(--text-heading, var(--text)); }
 
 /* 鼓励性语录 */
-.srewards-quote {
-  margin: 10px 0 22px;
-  font-size: 15px;
-  line-height: 1.5;
-  color: var(--text-body, var(--text));
-}
-
 /* 三项统计：专注时间 / 分心次数 / 金币 */
 .srewards-stats {
   display: grid;
