@@ -64,6 +64,8 @@ function buildSystemPrompt(schemaHint) {
     "- 只输出一个 JSON 数组，不要任何额外文字或代码围栏。",
     "- 数组每个元素形如 { \"text\": \"任务标题\", ... 可选字段 }。",
     "- text 要精炼可执行（动词开头更好），不要照抄整段原文。",
+    "- 语言跟随用户输入：输入是中文就用中文，输入是英文就用英文，混合时以主要语言为准。",
+    "- 若某件事明显体量较大或含多个步骤，可拆成 2–4 个更小、能立刻上手的子任务；简单的一句话不要硬拆，避免碎片化。",
     "- 没有明确可执行事项时，返回空数组 []。",
     "- 不确定的字段一律省略，不要瞎填。",
     "",
@@ -148,10 +150,13 @@ function cleanValue(attr, val) {
 
 // ── 离线示例候选（无 key 时用，便于跑通 UI）──────────────────
 
-function sampleTasks(database) {
+// 无 key 的离线示例：也跟随输入语言（中文输入给中文样例，英文给英文），
+// 好让「输入什么语言就出什么语言」的行为在没配 key 时也能演示。
+function sampleTasks(database, input = "") {
   const has = (id) => (database?.attrs ?? []).some((a) => a.id === id);
-  const t1 = { text: "示例：给下周的报告列个大纲", attrs: {} };
-  const t2 = { text: "示例：回复导师的邮件", attrs: {} };
+  const zh = /[一-鿿]/.test(input);
+  const t1 = { text: zh ? "示例：给下周的报告列个大纲" : "Sample: Outline next week's report", attrs: {} };
+  const t2 = { text: zh ? "示例：回复导师的邮件" : "Sample: Reply to advisor's email", attrs: {} };
   if (has("priority")) t2.attrs.priority = "urgent_important";
   if (has("tags")) t1.attrs.tags = ["project"];
   if (has("estimatedMins")) t1.attrs.estimatedMins = 25;
@@ -171,7 +176,7 @@ export async function extractTasksFromText(text, { database } = {}) {
   // 本地开发且无 key → 示例候选
   if (!hasApiKey()) {
     await delay(500 + Math.random() * 400);
-    return sampleTasks(database);
+    return sampleTasks(database, input);
   }
 
   // 生产环境 → 服务器代理
