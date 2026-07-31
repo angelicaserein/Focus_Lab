@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useMemo, useState, useRef, useCallback } from "react";
+import React, { Suspense, lazy, useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { useTodos } from "@/context/TodoContext";
 import { useFocus } from "@/context/FocusContext";
 import { useReward } from "@/context/RewardContext";
@@ -19,13 +19,27 @@ import { filterSinceSession } from "@/utils/records/focusRecords";
 import { FocusSessionContext } from "@/pages/Focus/FocusSessionContext";
 // 沉浸层里挂着 three.js + 16MB 模型（约 1MB JS chunk）。懒加载后：进专注页只加载控制台，
 // three 的 chunk 不再被打进 Focus 页 chunk、也不随路由空闲预取拉取，真正开专注才下载。
-const ImmersiveView = lazy(() => import("@/pages/Focus/Immersive"));
+// importImmersive 抽成具名函数：lazy 与「选中任务后预取」共用同一次动态 import，
+// 模块只会真正加载一次（后续调用命中模块缓存），预取只是把这次加载提前到用户点开始之前。
+const importImmersive = () => import("@/pages/Focus/Immersive");
+const ImmersiveView = lazy(importImmersive);
 import FocusConsole from "@/pages/Focus/FocusConsole";
+import RitualLaunch from "@/pages/Focus/RitualLaunch";
 import DistractionModal from "@/pages/Focus/DistractionModal";
 import DistractionUndoToast from "@/pages/Focus/DistractionUndoToast";
 import SessionRewardCard from "@/pages/Focus/SessionRewardCard";
 import { computeCharacter, computeSessionReward } from "@/utils/character/characterUtils";
 import "./Focus.css";
+
+// 沉浸层 chunk 若在交棒时仍未就绪的兜底：一层与沉浸/仪式同调的暖色背景 + 呼吸光点，
+// 顶替原来的 fallback={null}（空屏）。正常情况下选中任务已预取到、几乎不会看到它。
+function ImmersiveLoading() {
+  return (
+    <div className="immersive-loading" role="status" aria-live="polite">
+      <span className="immersive-loading-dot" />
+    </div>
+  );
+}
 
 export default function FocusPage() {
   const { todos, toggleTodo, addTodo } = useTodos();
@@ -40,6 +54,13 @@ export default function FocusPage() {
     [todos, focusedTodoIds],
   );
   const hasSelection = selectedTodos.length > 0;
+
+  // 一旦有选中任务（＝用户有开专注的意图），就提前把沉浸层 chunk 拉下来。
+  // 这样点「开始吧」交棒时 three chunk 通常已就绪，避免出现「仪式淡出后空窗 2~3 秒才见沉浸画面」。
+  // 仍不在「进专注页」时无脑预取，保留「没选任务就不下载 three」的原优化。
+  useEffect(() => {
+    if (hasSelection) importImmersive();
+  }, [hasSelection]);
 
   // 沉浸页候选任务：未在本次专注且未完成
   const availableTodos = useMemo(
@@ -124,7 +145,7 @@ export default function FocusPage() {
     countupFullMins, setCountupFullMins, countdownMins, setCountdownMins,
     countupPresets, countdownPresets,
     timerMode, setTimerMode,
-    animEnabled, setAnimEnabled, cardVisible, setCardVisible, notifyEnabled,
+    animEnabled, setAnimEnabled, ritualEnabled, cardVisible, setCardVisible, notifyEnabled,
   } = usePrefs();
 
   // 当前模式下的目标时长（分钟）：正计时=烧瓶注满时长；倒计时=起始时长
@@ -171,6 +192,21 @@ export default function FocusPage() {
     // 「结束专注」路径：结算所有剩余任务后弹卡。
     onSessionReward: showSessionReward,
   });
+
+  // 启动仪式：点「开始专注」按钮时先播揭晓过渡，用户点「开始吧」才真正 handleStart。
+  // 只拦截显式按钮这条路；双击任务直达专注的 onAutoStart 保持顺手启动、不走仪式。
+  // 关闭仪式偏好时 beginRitual 直连 handleStart，连挂载都省。
+  const [ritualPending, setRitualPending] = useState(false);
+  const beginRitual = useCallback(() => {
+    if (!selectedTodos.length) return;
+    if (ritualEnabled) setRitualPending(true);
+    else handleStart();
+  }, [selectedTodos.length, ritualEnabled, handleStart]);
+
+  const finishRitual = useCallback(() => {
+    setRitualPending(false);
+    handleStart();
+  }, [handleStart]);
 
   // 「逐一勾完」路径：当「完成」某任务恰好清空选中集合（真正做完本次全部任务）才弹卡。
   // 清空按钮 / 逐个移除 chip 等非完成收尾不触发（它们不是 completed）。
@@ -272,13 +308,23 @@ export default function FocusPage() {
         onDismiss={clearDistractionUndo}
       />
       {isImmersive && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<ImmersiveLoading />}>
           <ImmersiveView />
         </Suspense>
       )}
 
       {sessionReward && (
         <SessionRewardCard reward={sessionReward} onClose={() => setSessionReward(null)} />
+      )}
+
+      {ritualPending && (
+        <RitualLaunch
+          selectedTodos={selectedTodos}
+          scenarioTitle={scenarioTitle}
+          animEnabled={animEnabled}
+          onComplete={finishRitual}
+          onSkip={finishRitual}
+        />
       )}
 
       <FocusConsole
@@ -295,7 +341,7 @@ export default function FocusPage() {
         onDurationChange={setTargetMins}
         presets={targetPresets}
         canEditDuration={!isImmersive && seconds === 0}
-        onStart={handleStart}
+        onStart={beginRitual}
         onReset={resetTimer}
         onClear={clearFocusTodos}
         onRemoveFocus={removeFocusTodo}

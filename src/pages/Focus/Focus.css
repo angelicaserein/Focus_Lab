@@ -508,3 +508,35 @@
   transform: none;
   box-shadow: none;
 }
+
+/* ── 沉浸层懒加载兜底：交棒时 chunk 未就绪则显示此暖色背景 + 呼吸光点 ── */
+.immersive-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(
+    120% 120% at 50% 42%,
+    color-mix(in srgb, var(--accent) 16%, var(--bg, #fff)) 0%,
+    var(--bg, #fff) 100%
+  );
+}
+
+.immersive-loading-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: immersive-loading-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes immersive-loading-pulse {
+  0%, 100% { transform: scale(0.7); opacity: 0.45; }
+  50%      { transform: scale(1);   opacity: 1;    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .immersive-loading-dot { animation: none; }
+}

@@ -54,6 +54,8 @@ export const STORAGE_KEYS = {
   // 专注页烧瓶形状（设置页可自定义）：round | triangle | beaker
   PREF_FLASK_SHAPE:   "pref_flask_shape_v1",
   PREF_ANIM_ENABLED:  "pref_anim_enabled_v1",
+  // 启动仪式：点「开始专注」时先播一段揭晓过渡，再交棒给沉浸层。默认开启，可在外观设置关闭。
+  PREF_RITUAL_ENABLED: "pref_ritual_enabled_v1",
   PREF_CARD_VISIBLE:  "pref_card_visible_v1",
   PREF_NOTIFY_ENABLED: "pref_notify_enabled_v1",
   PREF_LANG:          "pref_lang_v1",

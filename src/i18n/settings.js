@@ -37,6 +37,8 @@ export default {
   "settings.prefs.flaskCapped": { en: "Stoppered", zh: "带瓶塞" },
   "settings.prefs.flaskRestore": { en: "Restore default shape", zh: "恢复默认形状" },
   "settings.prefs.anim": { en: "3D animation", zh: "3D 动画" },
+  "settings.prefs.ritual": { en: "Launch ritual", zh: "启动仪式" },
+  "settings.prefs.ritualHint": { en: "Play a short reveal before entering focus.", zh: "开始专注前先播一段揭晓过渡。" },
   "settings.prefs.notify": { en: "Desktop notifications", zh: "桌面通知" },
   "settings.prefs.on": { en: "On", zh: "开启" },
   "settings.prefs.off": { en: "Off", zh: "关闭" },

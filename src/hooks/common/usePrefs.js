@@ -15,6 +15,8 @@ export default function usePrefs() {
   const [flaskShapeRaw, setFlaskShape] = useLocalStorage(STORAGE_KEYS.PREF_FLASK_SHAPE, DEFAULT_FLASK_SHAPE);
   const flaskShape = normalizeFlaskShape(flaskShapeRaw);
   const [animEnabled, setAnimEnabled] = useLocalStorage(STORAGE_KEYS.PREF_ANIM_ENABLED, true);
+  // 启动仪式开关：开始专注前是否插入揭晓过渡层
+  const [ritualEnabled, setRitualEnabled] = useLocalStorage(STORAGE_KEYS.PREF_RITUAL_ENABLED, true);
   const [cardVisible, setCardVisible] = useLocalStorage(STORAGE_KEYS.PREF_CARD_VISIBLE, true);
   // 桌面通知默认关闭：通知属打扰型能力，opt-in 才符合预期，也避免无意义的授权弹窗。
   const [notifyEnabled, setNotifyEnabled] = useLocalStorage(STORAGE_KEYS.PREF_NOTIFY_ENABLED, false);
@@ -26,6 +28,7 @@ export default function usePrefs() {
     timerMode, setTimerMode,
     flaskShape, setFlaskShape,
     animEnabled, setAnimEnabled,
+    ritualEnabled, setRitualEnabled,
     cardVisible, setCardVisible,
     notifyEnabled, setNotifyEnabled,
   };

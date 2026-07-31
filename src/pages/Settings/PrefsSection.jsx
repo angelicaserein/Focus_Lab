@@ -14,6 +14,7 @@ export default function PrefsSection({ group = "timing" }) {
     countdownPresets, setCountdownPresets,
     flaskShape, setFlaskShape,
     animEnabled, setAnimEnabled,
+    ritualEnabled, setRitualEnabled,
     notifyEnabled, setNotifyEnabled,
   } = usePrefs();
   const { t } = useLanguage();
@@ -44,6 +45,21 @@ export default function PrefsSection({ group = "timing" }) {
             {animEnabled ? t("settings.prefs.on") : t("settings.prefs.off")}
           </button>
         </div>
+
+        <div className="settings-pref-row">
+          <span className="settings-pref-label">{t("settings.prefs.ritual")}</span>
+          <button
+            className={`settings-toggle-btn${ritualEnabled ? " active" : ""}`}
+            onClick={() => setRitualEnabled((v) => !v)}
+            aria-pressed={ritualEnabled}
+          >
+            <span className="settings-toggle-track">
+              <span className="settings-toggle-thumb" />
+            </span>
+            {ritualEnabled ? t("settings.prefs.on") : t("settings.prefs.off")}
+          </button>
+        </div>
+        <p className="settings-section-hint">{t("settings.prefs.ritualHint")}</p>
       </div>
     );
   }
