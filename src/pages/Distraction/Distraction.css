@@ -14,9 +14,10 @@
   white-space: pre-line;
 }
 
-/* 四张总览卡（历史页那套是三列） */
+/* 四张总览卡（历史页那套是三列）。桌面版多一张「切去软件」，
+   所以按最小宽度自适应，4 张 5 张都不会挤成一团。 */
 .dst-stats {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 
 .dst-stats .hist-stat-card {
@@ -27,9 +28,14 @@
   font-size: 1.7rem;
 }
 
-/* 分心统一用琥珀色，和专注时长的主色区分开 */
+/* 进度条跟随主题色：主色打底 + 深色收尾，换皮肤时自动同步 */
 .dst-bar {
-  background: #f59e0b;
+  background: linear-gradient(90deg, var(--accent), var(--accent-deep));
+}
+
+/* 竖向的趋势柱同样从下往上渐变 */
+.hist-bar-fill.dst-bar {
+  background: linear-gradient(180deg, var(--accent), var(--accent-deep));
 }
 
 .dst-trend-chart {
@@ -49,8 +55,18 @@
 }
 
 .dst-count {
-  color: #b45309;
+  color: var(--accent-mid);
   width: 48px;
+}
+
+/* 切去别的软件那种记录：时间列是「起–止」，止的那半压暗一点，
+   让一竖排扫下来时对齐的仍然是起始时刻。 */
+.dst-time-end {
+  color: var(--text-faint);
+}
+
+.dst-app-name {
+  color: var(--accent-mid);
 }
 
 /* 会话明细卡放在 section 里，标题由 SectionHead 提供，卡内不再重复表头 */

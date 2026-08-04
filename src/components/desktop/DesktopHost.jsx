@@ -50,7 +50,7 @@ export default function DesktopHost() {
     if (!isDesktop) return undefined;
     return desktop.onCommand((cmd) => {
       if (cmd?.type === "add-note" && cmd.text) handlers.current.addMemo(cmd.text);
-      if (cmd?.type === "select-task" && cmd.id) handlers.current.toggleFocusTodo(cmd.id);
+      if (cmd?.type === "select-task" && cmd.taskId) handlers.current.toggleFocusTodo(cmd.taskId);
     });
   }, []);
 

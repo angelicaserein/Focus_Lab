@@ -188,6 +188,108 @@
   max-width: 100%;
 }
 .aq-slot.locked .aq-slot-name { color: var(--text-faint); }
+/* 还没长大的那格：底下多一行「卵 · 还有 12 分钟」，格子仍是同一个正方形，故字要小 */
+.aq-slot-grow {
+  position: relative;
+  z-index: 1;
+  font-size: 10px;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--accent);
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* 幼体/卵的名字让一让，把注意力留给「它还在长」 */
+.aq-slot.young .aq-slot-name { opacity: 0.75; }
+
+/* —— 生长情况：图鉴之下的一整条，一行一只住客 —— */
+.aq-growth {
+  min-width: 0;
+  background: var(--card);
+  border: 1px solid var(--border-card);
+  border-radius: 24px;
+  box-shadow: 0 1px 2px var(--shadow-sm);
+  padding: 16px clamp(16px, 2vw, 20px) clamp(16px, 2vw, 20px);
+}
+.aq-grow-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /* 宽屏排成几列，二十来只也不至于拉成一面墙；窄屏自然回落成一列 */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+  gap: 10px 22px;
+}
+.aq-grow-row {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px 8px;
+  min-width: 0;
+}
+.aq-grow-icon {
+  grid-row: span 2;      /* 图标跨「名字行 + 进度条行」，与整行居中对齐 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-mid);
+}
+/* 长成的那行没有进度条，图标就别再跨两行——否则会撑出一格空行 */
+.aq-grow-row.done .aq-grow-icon { grid-row: auto; opacity: 0.55; }
+.aq-grow-name {
+  font-size: 13px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* 同名多只时的序号：小到只在需要分辨时才被注意到 */
+.aq-grow-nth {
+  display: inline-block;
+  margin-left: 5px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.12);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  vertical-align: 1px;
+}
+.aq-grow-meta {
+  font-size: 11.5px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.aq-grow-row.done .aq-grow-name { color: var(--text-muted); }
+.aq-grow-row.done .aq-grow-meta { color: var(--text-faint); }
+.aq-grow-bar {
+  grid-column: 2 / -1;
+  position: relative;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.14);
+  overflow: hidden;
+}
+/* 破膜那一刻在整条线上的位置（--hatch 由 JS 从 growth 里算好传下来） */
+.aq-grow-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--hatch, 12.5%);
+  width: 1px;
+  background: var(--card);
+  opacity: 0.75;
+}
+.aq-grow-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 0.6s var(--ease, ease);
+}
 
 /* —— 生物图形（FishGlyph）：部件按角色从 currentColor 派生，
       与缸里 canvas 的那套配色一一对应（body/deep/fin/mark/eye）。 —— */
@@ -339,6 +441,24 @@ body.sidebar-collapsed .aq-card-veil { left: 40px; }
   font-style: italic;
   margin: 0 4px 18px;
 }
+/* 卡上那句「进缸的是一颗卵」：说明性质，不该比物种名和描述更响 */
+.aq-card-egg {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--text-muted);
+  background: rgba(var(--accent-rgb), 0.08);
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin: 0 0 14px;
+  text-align: left;
+}
+.aq-card-egg svg { flex: none; color: var(--accent); }
+
 .aq-card-btn {
   position: relative;
   width: 100%;

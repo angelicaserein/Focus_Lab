@@ -6,9 +6,11 @@ import ImmersiveTaskPicker from "@/pages/Focus/Immersive/ImmersiveTaskPicker";
 import useDraggable from "@/hooks/common/useDraggable";
 import { formatClock } from "@/utils/time";
 import { useFocusSession } from "@/pages/Focus/FocusSessionContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 // 可拖拽的液态玻璃悬浮卡：包含计时状态、任务列表、操作按钮和任务选择器面板。
 export default function ImmersiveCard({ flaskProgress }) {
+  const { t } = useLanguage();
   const {
     isRunning, seconds, selectedTodos, availableTodos,
     scenarioTitle, scenarioDescription, cardVisible, setCardVisible,
@@ -62,11 +64,11 @@ export default function ImmersiveCard({ flaskProgress }) {
         type="button"
         className="immersive-card-reopen"
         onClick={() => setCardVisible(true)}
-        title="展开专注卡片"
-        aria-label="展开专注卡片"
+        title={t("focus.imm.reopenCardAria")}
+        aria-label={t("focus.imm.reopenCardAria")}
       >
         <span className="immersive-card-reopen-dot" />
-        展开卡片
+        {t("focus.imm.reopenCard")}
       </button>
     )}
     <div className={`immersive-card-wrap ${cardVisible ? "visible" : ""}`}>
@@ -77,14 +79,14 @@ export default function ImmersiveCard({ flaskProgress }) {
               type="button"
               className="immersive-card-close"
               onClick={() => setCardVisible(false)}
-              title="关闭卡片"
-              aria-label="关闭卡片"
+              title={t("focus.imm.closeCard")}
+              aria-label={t("focus.imm.closeCard")}
             >
               ×
             </button>
             <div className="immersive-eyebrow" {...handlers}>
               <span className={`immersive-status-dot ${isRunning ? "running" : ""}`} />
-              {isRunning ? "专注中" : "已暂停"}
+              {isRunning ? t("focus.imm.running") : t("focus.imm.paused")}
               <span className="immersive-time">{clockText}</span>
             </div>
 
@@ -105,8 +107,8 @@ export default function ImmersiveCard({ flaskProgress }) {
                       type="button"
                       className="immersive-task-check"
                       onClick={() => onSettle(todo, "completed")}
-                      aria-label={`完成 ${todo.text}`}
-                      title="标记完成"
+                      aria-label={t("focus.imm.completeAria", { text: todo.text })}
+                      title={t("focus.imm.completeTitle")}
                     >
                       ✓
                     </button>
@@ -115,8 +117,8 @@ export default function ImmersiveCard({ flaskProgress }) {
                       type="button"
                       className="immersive-task-replace"
                       onClick={() => togglePicker(todo.id)}
-                      aria-label={`替换 ${todo.text}`}
-                      title="替换为其他任务"
+                      aria-label={t("focus.imm.replaceAria", { text: todo.text })}
+                      title={t("focus.imm.replaceTitle")}
                     >
                       ⇄
                     </button>
@@ -124,8 +126,8 @@ export default function ImmersiveCard({ flaskProgress }) {
                       type="button"
                       className="immersive-task-remove"
                       onClick={() => onSettle(todo, "removed")}
-                      aria-label={`从本次专注移除 ${todo.text}`}
-                      title="移出本次专注"
+                      aria-label={t("focus.imm.removeAria", { text: todo.text })}
+                      title={t("focus.imm.removeTitle")}
                     >
                       ×
                     </button>
@@ -133,7 +135,7 @@ export default function ImmersiveCard({ flaskProgress }) {
                 ))}
               </ul>
             ) : (
-              <div className="immersive-task">请选择一个任务</div>
+              <div className="immersive-task">{t("focus.imm.noTask")}</div>
             )}
 
             <div className="immersive-task-add">
@@ -142,19 +144,19 @@ export default function ImmersiveCard({ flaskProgress }) {
                 className={`immersive-task-add-btn ${picker === "add" ? "open" : ""}`}
                 onClick={() => togglePicker("add")}
               >
-                + 添加任务
+                {t("focus.imm.addTask")}
               </button>
             </div>
 
             <div className="immersive-actions">
               <button className="immersive-btn primary" type="button" onClick={onTogglePause}>
-                {isRunning ? "暂停" : "继续"}
+                {isRunning ? t("focus.imm.pause") : t("focus.imm.resume")}
               </button>
               <button className="immersive-btn ghost" type="button" onClick={onReset}>
-                重置
+                {t("focus.imm.reset")}
               </button>
               <button className="immersive-btn ghost" type="button" onClick={onStop}>
-                结束专注
+                {t("focus.imm.stop")}
               </button>
             </div>
           </div>

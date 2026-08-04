@@ -7,7 +7,7 @@
 // 名字/描述走 i18n（aquarium.species.<id>.name / .desc），稀有度文案走 aquarium.rarity.<r>。
 
 // 一条鱼的价格（金币）。调这里即可整体调节节奏。
-export const FISH_COST = 25;
+export const FISH_COST = 3600;
 
 // 物种目录。id 同时用作 glyph 形状键。
 //   rarity: 1 常见 / 2 稀有 / 3 史诗

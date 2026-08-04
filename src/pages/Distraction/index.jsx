@@ -85,6 +85,18 @@ export default function DistractionPage() {
             {overview.proactiveSecs > 0 && ` · ${formatDuration(overview.proactiveSecs)}`}
           </div>
         </div>
+        {/* 桌面端才会有的一张：没装桌面版的话这栏永远是 0，不如不占地方 */}
+        {overview.appCount > 0 && (
+          <div className="hist-stat-card">
+            <div className="hist-stat-value">
+              {t("distraction.stat.times", { n: overview.appCount })}
+            </div>
+            <div className="hist-stat-label">
+              {t("distraction.stat.away")}
+              {overview.appSecs > 0 && ` · ${formatDuration(overview.appSecs)}`}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── 2. 近 7 天趋势 ────────────────────────────────────────────────── */}
@@ -208,16 +220,30 @@ export default function DistractionPage() {
                 <ul className="session-summary-list">
                   {session.items.map((item) => (
                     <li key={item.id} className="session-summary-row distraction">
-                      <span className="session-summary-time">{formatTimestamp(item.ts)}</span>
-                      <span className="session-summary-text muted">
-                        {t("history.nthDistraction", { n: item.nth })}
-                        {item.type === "proactive" && (
-                          <span className="distraction-tag-inline">
-                            {" "}· {t("history.proactivePause")}
-                          </span>
+                      {/* 切去别的软件那种是一段时间，不是一个瞬间：时间列直接写成起止 */}
+                      <span className="session-summary-time">
+                        {formatTimestamp(item.ts)}
+                        {item.type === "app" && item.endTs && (
+                          <span className="dst-time-end">–{formatTimestamp(item.endTs)}</span>
                         )}
-                        {item.tag && (
-                          <span className="distraction-tag-inline"> · {item.tag}</span>
+                      </span>
+                      <span className="session-summary-text muted">
+                        {item.type === "app" ? (
+                          <span className="dst-app-name">
+                            {t("distraction.away.row", { app: item.appLabel || item.tag })}
+                          </span>
+                        ) : (
+                          <>
+                            {t("history.nthDistraction", { n: item.nth })}
+                            {item.type === "proactive" && (
+                              <span className="distraction-tag-inline">
+                                {" "}· {t("history.proactivePause")}
+                              </span>
+                            )}
+                            {item.tag && (
+                              <span className="distraction-tag-inline"> · {item.tag}</span>
+                            )}
+                          </>
                         )}
                         {item.durationSecs != null && item.durationSecs > 0 && (
                           <span className="distraction-note-inline">

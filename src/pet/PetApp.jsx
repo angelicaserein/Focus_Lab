@@ -24,24 +24,9 @@ const T = {
   },
 };
 
-// 烧瓶外圈的进度环。半径贴着烧瓶画布外沿，从正上方顺时针走。
-function ProgressRing({ progress, running }) {
-  const R = 62;
-  const C = 2 * Math.PI * R;
-  return (
-    <svg className={`pet-ring${running ? " is-running" : ""}`} viewBox="0 0 140 140" aria-hidden="true">
-      <circle className="pet-ring-track" cx="70" cy="70" r={R} />
-      <circle
-        className="pet-ring-fill" cx="70" cy="70" r={R}
-        strokeDasharray={C} strokeDashoffset={C * (1 - progress)}
-      />
-    </svg>
-  );
-}
-
 export default function PetApp() {
   const [state, setState] = useState(null);
-  const { expanded, showPanel, setExpanded, petHandlers } = usePetWindow();
+  const { expanded, setExpanded, petHandlers } = usePetWindow();
   const [draft, setDraft] = useState("");
   const inputRef = useRef(null);
   const wantFocusRef = useRef(false);
@@ -55,17 +40,17 @@ export default function PetApp() {
 
   // 全局快捷键：展开并把光标放进输入框，直接开记。
   useEffect(() => desktop.onQuickCapture(() => {
-    // 面板要等窗口先腾出地方（见 usePetWindow），这里只记个「待聚焦」，
-    // 真正的 focus 交给下面那个 effect —— 输入框挂载的那一刻。
+    // 输入框这一刻还没挂载，这里只记个「待聚焦」，
+    // 真正的 focus 交给下面那个 effect —— 面板画出来的那一帧。
     wantFocusRef.current = true;
     setExpanded(true);
   }), [setExpanded]);
 
   useEffect(() => {
-    if (!showPanel || !wantFocusRef.current) return;
+    if (!expanded || !wantFocusRef.current) return;
     wantFocusRef.current = false;
     inputRef.current?.focus();
-  }, [showPanel]);
+  }, [expanded]);
 
   const app = state?.app ?? {};
   const focus = state?.focus ?? null;
@@ -92,8 +77,8 @@ export default function PetApp() {
     : formatClock(seconds);
 
   // 分心水位：主进程判定的（见 main.cjs 的「分心水位」一节）。
-  // 瓶里少掉的正好是屏幕上多出来的——两边是同一摊水。
-  // 但这只改「画出来的液面」：progress / seconds 一秒都没少，进度环照旧走真值，
+  // 瓶里少掉的就是屏幕上多出来的——同一摊水，同一个 level。
+  // 但这只改「画出来的液面」：progress / seconds 一秒都没少，
   // 所以回到白名单以后水会一滴不差地涨回来。
   const watch = state?.watch ?? null;
   const spilling = !!watch?.spilling;
@@ -105,6 +90,8 @@ export default function PetApp() {
   const titles = app.selectedTitles ?? [];
   const hasSelection = titles.length > 0;
   // 没在专注的时候，面板直接摆任务列表：点一下就选中，不用先回主窗口挑。
+  // 勾选走的字段是 taskId 而不是 id——主进程会给每条指令盖一个自己的 id
+  // （见 main.cjs 的 desktop:command），叫 id 的话会被它整个覆盖掉。
   const candidates = app.candidates ?? [];
   const selectedIds = app.selectedIds ?? [];
 
@@ -117,7 +104,7 @@ export default function PetApp() {
 
   return (
     <div className={`pet-shell${expanded ? " is-expanded" : ""}`}>
-      {showPanel && (
+      {expanded && (
         // data-pet-hit：光标落在这上面时窗口才接管鼠标，其余区域一律穿透给桌面
         <div className="pet-panel" data-pet-hit>
           <div className="pet-panel-head">
@@ -138,7 +125,7 @@ export default function PetApp() {
                     className={`pet-task pet-task-pick${on ? " is-on" : ""}`}
                     key={task.id}
                     aria-pressed={on}
-                    onClick={() => desktop.sendCommand({ type: "select-task", id: task.id })}
+                    onClick={() => desktop.sendCommand({ type: "select-task", taskId: task.id })}
                   >
                     <span className="pet-task-dot" aria-hidden="true" />
                     <span className="pet-task-text">{task.text}</span>
@@ -199,9 +186,6 @@ export default function PetApp() {
       {/* data-pet-hit 标在这里，但整个方块并不接管鼠标：真正可命中的只有 svg 里
           那份 .flask-hit 轮廓（见 PetApp.css），方块的四角照旧穿透给桌面。 */}
       <div className={`pet-flask${spilling ? " is-spilling" : ""}`} data-pet-hit {...petHandlers}>
-        {/* 环走的是真实进度，不跟着倒水掉——「你的专注没有被扣掉」这句话，
-            让它在画面上有个说得出口的证据。 */}
-        <ProgressRing progress={progress} running={isRunning} />
         <FlaskGraphic
           progress={shownProgress} params={app.flaskParams}
           hitLayer drainToNeck={spilling}

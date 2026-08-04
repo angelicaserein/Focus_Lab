@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./ImmersiveChat.css";
 import { hasApiKey } from "@/utils/ai/aiChat";
+import { useLanguage } from "@/context/LanguageContext";
 
 // 沉浸式专注页左下角的极简 AI 陪伴对话：无框 / 无气泡 / 无背景，
 // 只有文字和一个输入框。默认隐藏，鼠标靠近左下角（hover）或正在
@@ -8,6 +9,7 @@ import { hasApiKey } from "@/utils/ai/aiChat";
 const RECENT_COUNT = 4;
 
 export default function ImmersiveChat({ messages, sending, onSend }) {
+  const { t } = useLanguage();
   const [draft, setDraft] = useState("");
   const [showPulse, setShowPulse] = useState(true);
   const isDemo = !hasApiKey();
@@ -36,7 +38,7 @@ export default function ImmersiveChat({ messages, sending, onSend }) {
   return (
     <div className={`immersive-chat${showPulse ? " pulsing" : ""}`}>
       <div className="immersive-chat-log">
-        {isDemo && <span className="immersive-chat-demo-badge">演示模式</span>}
+        {isDemo && <span className="immersive-chat-demo-badge">{t("focus.imm.chat.demoBadge")}</span>}
         {recent.map((m) => (
           <p key={m.id} className={`immersive-chat-line ${m.role}`}>
             {m.text}
@@ -50,8 +52,8 @@ export default function ImmersiveChat({ messages, sending, onSend }) {
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder={isDemo ? "和我说点什么…（示例回复）" : "和我说点什么…"}
-        aria-label="AI 对话输入"
+        placeholder={t(isDemo ? "focus.imm.chat.placeholderDemo" : "focus.imm.chat.placeholder")}
+        aria-label={t("focus.imm.chat.inputAria")}
       />
     </div>
   );

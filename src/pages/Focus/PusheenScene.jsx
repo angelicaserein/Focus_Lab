@@ -31,21 +31,26 @@ function measureSkinnedBox(root) {
 }
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import pusheenGlb from "../../../assets/model/pusheen_-_im_busy.glb?url";
+import { useLanguage } from "@/context/LanguageContext";
 
-const webglFallback = (
-  <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      height: "100%",
-      color: "rgba(255,255,255,0.5)",
-      fontSize: "13px",
-    }}
-  >
-    3D 模型加载失败（WebGL 不可用）
-  </div>
-);
+// 组件而非常量：文案要跟随语言，得在 LanguageProvider 内部读 t()。
+function WebglFallback() {
+  const { t } = useLanguage();
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100%",
+        color: "rgba(255,255,255,0.5)",
+        fontSize: "13px",
+      }}
+    >
+      {t("focus.imm.webglFallback")}
+    </div>
+  );
+}
 
 function PusheenModel({ animEnabled }) {
   // 第二个参数启用 Draco 解码：模型用 Draco 压过（16.6MB→1.2MB）。
@@ -155,7 +160,7 @@ function CameraRig({ verticalShift = 0.16, horizontalShift = 0 }) {
 //  - React.memo（见文件末）：计时每 500ms 变一次，避免连带 diff 整棵 3D 场景树。
 function PusheenScene({ animEnabled }) {
   return (
-    <ErrorBoundary fallback={webglFallback}>
+    <ErrorBoundary fallback={<WebglFallback />}>
       <Canvas
         camera={{ position: [1, 1, 6], fov: 45 }} //-2.5, 0, 5.5分别表示相机在x、y、z轴上的位置，fov表示相机的视野角度
         gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}

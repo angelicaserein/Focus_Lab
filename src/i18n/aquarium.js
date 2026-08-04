@@ -15,6 +15,23 @@ export default {
   "aquarium.new": { en: "New find", zh: "新发现" },
   "aquarium.collect": { en: "Take it in ✓", zh: "收下它 ✓" },
 
+  // —— 成长（卵 → 幼体 → 成体，见 data/aquarium/growth）——
+  "aquarium.stage.0": { en: "Egg", zh: "卵" },
+  "aquarium.stage.1": { en: "Young", zh: "幼体" },
+  "aquarium.stage.2": { en: "Grown", zh: "成体" },
+  "aquarium.growMin": { en: "{n} min to go", zh: "还有 {n} 分钟" },
+  "aquarium.growHour": { en: "{n} h to go", zh: "还有 {n} 小时" },
+  "aquarium.growTitle": { en: "Growing up", zh: "生长情况" },
+  "aquarium.growCount": {
+    en: "{n} of {total} still growing",
+    zh: "{total} 只里还有 {n} 只在长",
+  },
+  "aquarium.growAllDone": { en: "All grown", zh: "全都长成了" },
+  "aquarium.eggNote": {
+    en: "It goes in as an egg — give it a while to grow into this.",
+    zh: "放进缸里的是一颗卵，过一阵子才会长成这个样子。",
+  },
+
   "aquarium.rarity.1": { en: "Common", zh: "常见" },
   "aquarium.rarity.2": { en: "Rare", zh: "稀有" },
   "aquarium.rarity.3": { en: "Epic", zh: "史诗" },

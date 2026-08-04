@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import "./ImmersiveFullscreen.css";
+import { useLanguage } from "@/context/LanguageContext";
 
 // 是否正在输入：避免在聊天/随记框打字时误触快捷键
 function isTyping() {
@@ -17,6 +18,7 @@ const isMobile =
   window.matchMedia?.("(max-width: 600px)").matches;
 
 export default function ImmersiveFullscreen() {
+  const { t } = useLanguage();
   const [isFullscreen, setIsFullscreen] = useState(() => !!document.fullscreenElement);
 
   const toggle = useCallback(() => {
@@ -55,8 +57,8 @@ export default function ImmersiveFullscreen() {
       type="button"
       className="immersive-fullscreen-btn"
       onClick={toggle}
-      title={isFullscreen ? "退出全屏" : "进入全屏"}
-      aria-label={isFullscreen ? "退出全屏" : "进入全屏"}
+      title={t(isFullscreen ? "focus.imm.fullscreenExit" : "focus.imm.fullscreenEnter")}
+      aria-label={t(isFullscreen ? "focus.imm.fullscreenExit" : "focus.imm.fullscreenEnter")}
       aria-pressed={isFullscreen}
     >
       {isFullscreen ? (

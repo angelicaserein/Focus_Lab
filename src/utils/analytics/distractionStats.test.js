@@ -47,6 +47,21 @@ describe("distractionOverview", () => {
     expect(distractionOverview(dists, {}).ratePerHour).toBeNull();
   });
 
+  it("切去别的软件（type: app）单独成一组，不混进主动暂停", () => {
+    const out = distractionOverview(
+      [
+        ...dists,
+        { ts: 4, sessionId: "s2", type: "app", durationSecs: 240 },
+        { ts: 5, sessionId: "s2", type: "app", durationSecs: 60 },
+      ],
+      { s1: 1800, s2: 1800 },
+    );
+    expect(out.appCount).toBe(2);
+    expect(out.appSecs).toBe(300);
+    expect(out.proactiveCount).toBe(1);
+    expect(out.total).toBe(5);
+  });
+
   it("空记录时各项归零", () => {
     const out = distractionOverview([], {});
     expect(out).toMatchObject({ total: 0, sessionCount: 0, avgPerSession: 0, ratePerHour: null });

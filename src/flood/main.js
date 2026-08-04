@@ -23,6 +23,13 @@ const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
 const EASE = 0.12;
 const FPS_CAP = 30;
 
+// 水一旦开始积就至少这么深。
+// 没有这个下限的话，刚分心的头半分钟水位只有百分之几——在 1080p 上是屏幕最底下
+// 二三十像素的一条，跟没有一样。而「有水了」本身才是那条信息，深浅只是量级；
+// 一条看不见的水等于这个功能在最该说话的时刻是哑的。
+// 缓动会把 0 → MIN 这一跳抹成半秒的涌入，看起来是水漫进来而不是凭空出现。
+const MIN_DEPTH_PX = 56;
+
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 let target = 0;   // 主进程给的水位
@@ -70,7 +77,8 @@ function draw(now) {
   const t = reduceMotion ? 0 : now / 1000;
   // 涨的时候水面躁一点，退潮时平静下来——不看数字也能感觉到方向
   const amp = reduceMotion ? 0 : (rising ? 5 : 2.4);
-  const surfaceY = height * (1 - level);
+  const floor = Math.min(MIN_DEPTH_PX, height);
+  const surfaceY = height - (floor + level * (height - floor));
 
   ctx.beginPath();
   ctx.moveTo(0, height);

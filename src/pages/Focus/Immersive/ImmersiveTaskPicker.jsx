@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./ImmersiveTaskPicker.css";
+import { useLanguage } from "@/context/LanguageContext";
 
 // 沉浸式卡片的任务选择器：用于「添加任务」或「替换某行任务」。
 //   - 顶部输入框：回车新建一个任务并加入本次专注（onCreate）。
@@ -12,6 +13,7 @@ export default function ImmersiveTaskPicker({
   onCreate,
   onClose,
 }) {
+  const { t } = useLanguage();
   const [draft, setDraft] = useState("");
 
   const submit = () => {
@@ -39,13 +41,13 @@ export default function ImmersiveTaskPicker({
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder={mode === "replace" ? "输入新任务替换…" : "输入新任务，回车添加…"}
-        aria-label="新建任务"
+        placeholder={t(mode === "replace" ? "focus.imm.picker.replacePlaceholder" : "focus.imm.picker.addPlaceholder")}
+        aria-label={t("focus.imm.picker.inputAria")}
         autoFocus
       />
 
       {/* 直接从任务列表（todolist）里挑 —— 与 Focus 页右侧清单同源 */}
-      <div className="immersive-picker-label">从任务列表选择</div>
+      <div className="immersive-picker-label">{t("focus.imm.picker.fromList")}</div>
       {availableTodos.length > 0 ? (
         <ul className="immersive-picker-list">
           {availableTodos.map((todo) => (
@@ -65,7 +67,7 @@ export default function ImmersiveTaskPicker({
           ))}
         </ul>
       ) : (
-        <p className="immersive-picker-empty">任务列表里没有更多可选任务</p>
+        <p className="immersive-picker-empty">{t("focus.imm.picker.empty")}</p>
       )}
     </div>
   );

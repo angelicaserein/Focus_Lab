@@ -23,11 +23,15 @@ const DEV_SERVER = process.env.VITE_DEV_SERVER_URL || "";
 const IS_DEV = !!DEV_SERVER;
 const DIST = path.join(__dirname, "..", "dist");
 
-// 桌宠窗尺寸：收起时只够放下烧瓶，展开时多出上方的迷你面板。
-// 窗口比烧瓶本身大一圈：窗口的空白部分不会挡桌面（渲染层按烧瓶轮廓做穿透，
-// 见 PetApp.css 的 .flask-hit），所以宁可留够余量，也别把瓶身挤扁。
-const PET_COLLAPSED = { width: 176, height: 176 };
-const PET_EXPANDED = { width: 320, height: 460 };
+// 桌宠窗尺寸：固定，一直按「展开后」的大小开着，收起时上半截只是空的。
+// 曾经是收起 176 / 展开 460 两档，点一下改窗口大小——但透明无边框窗在 Windows 上
+// 每次 setBounds 都会把新露出来的那块先刷一帧再合成，看起来就是「闪一下才出现」。
+// 窗口的空白部分本来就不挡桌面（渲染层按烧瓶轮廓做穿透，见 PetApp.css 的 .flask-hit），
+// 所以干脆不再改尺寸：面板挂上去就是画出来，没有中间那一帧。
+const PET_SIZE = { width: 320, height: 460 };
+// 窗口右下角那一块才是烧瓶（上半截是收起时空着的面板位）。位置校正只看这一块，
+// 不然「整扇窗都得在屏幕里」会把贴着屏幕上沿摆的桌宠往下推小半个屏。
+const PET_ANCHOR_BOX = 176;
 
 // 自定义协议：生产环境不用 file://。
 // file:// 下 localStorage 的 origin 是不透明的，两个窗口不一定共享，
@@ -83,18 +87,29 @@ function savePetAnchor(anchor) {
 }
 
 // 把右下角锚点夹取到某块显示器内，避免拔掉外接屏后桌宠留在不存在的坐标上。
-function clampAnchor(anchor, size) {
+// 只保证烧瓶那一块在屏幕里，窗口空白的上半截露出屏幕外无所谓。
+function clampAnchor(anchor) {
   const display = screen.getDisplayNearestPoint({ x: anchor.x, y: anchor.y });
   const wa = display.workArea;
   return {
-    x: Math.min(Math.max(anchor.x, wa.x + size.width), wa.x + wa.width),
-    y: Math.min(Math.max(anchor.y, wa.y + size.height), wa.y + wa.height),
+    x: Math.min(Math.max(anchor.x, wa.x + PET_ANCHOR_BOX), wa.x + wa.width),
+    y: Math.min(Math.max(anchor.y, wa.y + PET_ANCHOR_BOX), wa.y + wa.height),
   };
 }
 
 function defaultPetAnchor() {
   const wa = screen.getPrimaryDisplay().workArea;
   return { x: wa.x + wa.width - 40, y: wa.y + wa.height - 40 };
+}
+
+// 渲染层传来的坐标先过这一道。setPosition / setBounds 的原生签名是 int32：
+// 给它小数（缩放不是 100% 时 screenX 就会带小数）或 NaN，会直接抛
+// 「Error processing argument at index 0」——那是主进程的未捕获异常，整个 app 弹框死掉。
+// 而且拖动的偏移量是在 drag-start 那一发算好、存到 drag-end 的：坏值放进去一次，
+// 之后每一次 drag-move 都必崩，中间没有能自愈的地方。所以在进程边界就拦掉。
+function intPoint(pt) {
+  if (!Number.isFinite(pt?.x) || !Number.isFinite(pt?.y)) return null;
+  return { x: Math.round(pt.x), y: Math.round(pt.y) };
 }
 
 // 当前锚点：优先读窗口实际位置（用户可能刚拖过），没有窗口时读磁盘。
@@ -164,13 +179,13 @@ function createMainWindow() {
 }
 
 function createPetWindow() {
-  const size = PET_COLLAPSED;
-  const anchor = clampAnchor(loadPetAnchor() ?? defaultPetAnchor(), size);
+  const size = PET_SIZE;
+  const anchor = clampAnchor(loadPetAnchor() ?? defaultPetAnchor());
 
   petWindow = new BrowserWindow({
     ...size,
-    x: anchor.x - size.width,
-    y: anchor.y - size.height,
+    x: Math.round(anchor.x - size.width),
+    y: Math.round(anchor.y - size.height),
     frame: false,
     transparent: true,
     resizable: false,
@@ -207,19 +222,6 @@ function createPetWindow() {
   petWindow.on("closed", () => { petWindow = null; });
 }
 
-// 展开 / 收起迷你面板：改窗口大小但钉住右下角。
-function setPetExpanded(expanded) {
-  if (!petWindow || petWindow.isDestroyed()) return;
-  const size = expanded ? PET_EXPANDED : PET_COLLAPSED;
-  const anchor = clampAnchor(currentPetAnchor(), size);
-  petWindow.setBounds({
-    x: Math.round(anchor.x - size.width),
-    y: Math.round(anchor.y - size.height),
-    width: size.width,
-    height: size.height,
-  });
-}
-
 // 往主窗口发消息。窗口可能是刚刚才 createMainWindow() 出来的，
 // 这时页面还没加载完，直接 send 会掉进虚空——等 did-finish-load 再发。
 function sendToMain(channel, payload) {
@@ -254,21 +256,31 @@ function togglePetWindow() {
 // 专注进行中，如果前台程序不在用户勾的白名单里，桌宠的烧瓶就翻过来往外倒水，
 // 倒出去的水积在屏幕底部。回到白名单立刻退潮，水回到瓶子里。
 //
+// 翻瓶子不只是画面：它和用户自己按「我分心了」是同一件事。切走的那一刻主进程会
+// 通知主窗口把计时器按下暂停（在别的软件里的时间不该算进专注），回来时再把这一段
+// 「几点到几点、用的哪个程序」发回去写成一条分心记录。见下面的 applyVerdict。
+//
 // 三条刻意的设计约束（都是用户拍板的）：
-//   1. 不扣真实专注进度。水位只是一面镜子，seconds 一秒都不会少。
-//      所以这里算出来的 level 只喂给「显示」，不参与任何结算。
+//   1. 不扣真实专注进度。水位只是一面镜子，已经跑过的 seconds 一秒都不会少
+//      （暂停只是不再往前走，不回退）。所以这里算出来的 level 只喂给「显示」。
 //   2. 回到白名单立刻退潮，而且退得比涨得快得多——回头的动作要马上被奖励。
 //   3. 不设宽限期。切走就开始倒。之所以敢这么严，正是因为 1 和 2：
 //      代价可逆、又不真的扣分，严格才不至于变成惩罚。
 //
-// 只在「功能开着 + 勾了至少一个白名单 + 正在跑的专注会话」三者同时成立时工作，
-// 其余时间连探测子进程都不起。
+// 只在「功能开着 + 正在跑的专注会话」同时成立时工作，其余时间连探测子进程都不起。
+// 白名单还空着的时候照样采集（设置页那张表就是这么攒出来的），但一律不判分心。
 
 const FLOOD_TICK_MS = 200;
-const FLOOD_RISE_SECS = 480; // 持续分心多久积满一屏（到设定的最大水位）
+const FLOOD_RISE_SECS = 240; // 持续分心多久积满一屏（到设定的最大水位）
 const FLOOD_DRAIN_SECS = 45; // 回到白名单后从满退到空要多久
 const FLOOD_MAX_RATIO = 0.5; // 积水窗只占屏幕下半：全屏透明窗常驻画波浪太费 GPU
+// 水退到 0 之后再等一会儿才藏窗口：渲染层自己还有一道缓动在收尾，
+// 主进程一到 0 就 hide() 的话，最后那点水是「啪」地消失而不是退干净的。
+const FLOOD_HIDE_DELAY_MS = 900;
 const RECENT_APP_LIMIT = 24;
+// 短于这个的「路过」不写进分心记录（计时器照旧暂停，只是不留一条几秒钟的账）。
+// 切窗口时经过别的程序、点一下通知就回来，这种噪音记下来只会让明细页没法看。
+const AWAY_MIN_SECS = 5;
 
 // Focus Lab 自己永远不算分心：点桌宠、回主窗口看任务都不该触发倒水。
 // dev 下前台进程是 electron，打包后是 Focus Lab.exe。
@@ -290,21 +302,36 @@ let floodTimer = null;
 let lastFloodTick = 0;
 let lastPushedFlood = -1;
 let lastPushedSpill = "";
+let emptySince = 0; // 水位归零的时刻，用来延后 hide（见 floodTick）
 const recentApps = new Map(); // name → { name, label, seenAt }
 let recentKey = "";
 
+// 「切走」这一段：away 表示此刻人在白名单外的程序里，awayApp/awaySince 是
+// 当前这一段用的哪个程序、从几点开始。切换到另一个程序时把上一段结账、开新的一段，
+// 这样明细页看到的就是「10:03–10:07 Chrome、10:07–10:12 微信」而不是糊成一坨。
+let away = false;
+let awayApp = null;
+let awaySince = 0;
+
+// 探测器只要「功能开着 + 有一次没结束的专注」就工作，不看白名单勾没勾。
+// 不能把 allow.length > 0 也算进闸门：设置页那张表是探测器自己攒出来的，
+// 空名单时不起探测器，名单就永远攒不出来，功能从第一次起就是死的。
+// 所以空名单只影响判定（见 judgeApp），不影响采集。
 function watchGateOpen() {
-  return !!(
-    WATCH_SUPPORTED
-    && watchCfg.enabled
-    && watchCfg.allow.length > 0
-    && lastState?.focus?.isRunning
-  );
+  if (!WATCH_SUPPORTED || !watchCfg.enabled) return false;
+  const f = lastState?.focus;
+  if (!f) return false;
+  // 正在跑当然要探测；已经因为切走而被我们自动暂停的会话也必须继续探测——
+  // 否则「暂停 → 闸门关 → 再也收不到回来的那一下」，计时器就永远醒不过来了。
+  return !!f.isRunning || away;
 }
 
 // 返回 true=分心 / false=专心 / null=维持原判（系统外壳之类）
 function judgeApp(a) {
   if (!a?.name) return null;
+  // 一个都没勾的时候只采集不判定：此时「什么都算分心」会让水一直涨，
+  // 而用户还没机会告诉我们什么才算专注。
+  if (watchCfg.allow.length === 0) return false;
   if (a.name === SELF_PROC) return false;
   if (NEUTRAL_PROCS.has(a.name)) return null;
   // 标题为空的 explorer 是桌面本身或任务栏，点一下任务栏切窗口会短暂经过这里
@@ -313,13 +340,16 @@ function judgeApp(a) {
 }
 
 function createFloodWindow() {
-  const { bounds } = screen.getPrimaryDisplay();
-  const height = Math.round(bounds.height * FLOOD_MAX_RATIO);
+  // 用 workArea 而不是 bounds：bounds 含任务栏那一条，水从屏幕最底下开始积，
+  // 前几十像素全被任务栏挡着——而任务栏是系统级 topmost，抢不过它。
+  // 贴着工作区底边积，第一滴水就在任务栏上方，立刻看得见。
+  const { workArea } = screen.getPrimaryDisplay();
+  const height = Math.round(workArea.height * FLOOD_MAX_RATIO);
 
   floodWindow = new BrowserWindow({
-    x: bounds.x,
-    y: bounds.y + bounds.height - height,
-    width: bounds.width,
+    x: workArea.x,
+    y: workArea.y + workArea.height - height,
+    width: workArea.width,
     height,
     frame: false,
     transparent: true,
@@ -349,6 +379,11 @@ function createFloodWindow() {
   // 它唯一的职责是画一层看得见、碰不到的水。
   floodWindow.setIgnoreMouseEvents(true);
   floodWindow.loadURL(IS_DEV ? `${DEV_SERVER}flood.html` : `${APP_ORIGIN}/flood.html`);
+  // 这个窗口没有任何肉眼可见的「加载中」状态：加载失败的表现就是屏幕上什么都不发生，
+  // 跟「功能没触发」长得一模一样。留一句日志，免得下次又要从头猜。
+  floodWindow.webContents.on("did-fail-load", (_e, code, desc, url) => {
+    console.error(`[flood] 加载失败 ${code} ${desc} ${url}`);
+  });
   floodWindow.on("closed", () => { floodWindow = null; });
 }
 
@@ -388,10 +423,14 @@ function floodTick() {
   }
   if (floodLevel > 0 || before > 0) pushFlood();
 
-  // 退干净了就把窗口藏起来、停掉计时：桌面上不该留一个空转的透明窗
+  // 退干净了就把窗口藏起来、停掉计时：桌面上不该留一个空转的透明窗。
+  // 但要多等一会儿——渲染层还有一道缓动在把最后那点水收干净。
   if (floodLevel === 0 && !distracted) {
-    if (floodWindow && !floodWindow.isDestroyed()) floodWindow.hide();
-    stopFloodTimer();
+    if (before > 0) emptySince = now; // 刚归零，开始计时
+    if (now - emptySince >= FLOOD_HIDE_DELAY_MS) {
+      if (floodWindow && !floodWindow.isDestroyed()) floodWindow.hide();
+      stopFloodTimer();
+    }
   }
 }
 
@@ -412,6 +451,46 @@ function setDistracted(next) {
   startFloodTimer();
 }
 
+// 给当前这一段结账，够长就发一条记录给主窗口。
+function flushAwaySegment(endTs) {
+  const seg = awayApp;
+  const startTs = awaySince;
+  awayApp = null;
+  awaySince = 0;
+  if (!seg || !startTs) return;
+  const durationSecs = Math.round((endTs - startTs) / 1000);
+  if (durationSecs < AWAY_MIN_SECS) return;
+  sendToMain("desktop:distraction", {
+    type: "segment",
+    name: seg.name,
+    label: seg.label,
+    startTs,
+    endTs,
+    durationSecs,
+  });
+}
+
+// 判定结果落到「水位 + 计时器 + 记账」三件事上。
+// enter / leave 只发状态翻转的那一下（渲染层据此暂停 / 恢复计时），
+// segment 则是一段用完的账；切走期间换程序只结账、不重复发 enter。
+function applyVerdict(a, isAway) {
+  const now = Date.now();
+  if (isAway) {
+    if (!away) {
+      away = true;
+      sendToMain("desktop:distraction", { type: "enter", ts: now });
+    } else if (awayApp && a?.name !== awayApp.name) {
+      flushAwaySegment(now);
+    }
+    if (!awayApp && a?.name) { awayApp = { name: a.name, label: a.label }; awaySince = now; }
+  } else if (away) {
+    flushAwaySegment(now);
+    away = false;
+    sendToMain("desktop:distraction", { type: "leave", ts: now });
+  }
+  setDistracted(isAway);
+}
+
 // 白名单 / 专注状态 / 前台程序，任何一个变了都重新过一遍这里。
 function reevaluateWatch() {
   const open = watchGateOpen();
@@ -422,7 +501,7 @@ function reevaluateWatch() {
       currentApp = a;
       rememberApp(a);
       const verdict = judgeApp(a);
-      if (verdict !== null) setDistracted(verdict);
+      if (verdict !== null) applyVerdict(a, verdict);
     });
     watcher.on("unavailable", () => { watchCfg = { ...watchCfg, enabled: false }; reevaluateWatch(); });
   }
@@ -431,11 +510,12 @@ function reevaluateWatch() {
     watcher.start();
     // 白名单刚改过的话，当前这个前台程序的判定可能已经不一样了
     const verdict = judgeApp(currentApp);
-    if (verdict !== null) setDistracted(verdict);
+    if (verdict !== null) applyVerdict(currentApp, verdict);
   } else if (watcher) {
     watcher.stop();
     currentApp = null;
-    setDistracted(false);
+    // 会话在切走期间结束了：这一段照样要结账、也要告诉主窗口别再等着恢复计时。
+    applyVerdict(null, false);
     startFloodTimer(); // 让已经积起来的水正常退潮，退完计时器自己会停
   }
 }
@@ -510,14 +590,16 @@ function registerIpc() {
   // 语言、烧瓶形状），只在 /focus 挂载的 useDesktopFocusSync 发 focus 段（计时）。
   // 各发各的、互不覆盖，Focus 页卸载时发一个 { focus: null } 就干净地退回待机态。
   ipcMain.on("desktop:publish-state", (_e, patch) => {
-    const wasRunning = !!lastState?.focus?.isRunning;
+    const wasOpen = watchGateOpen();
     lastState = { ...(lastState || {}), ...(patch || {}) };
     // 桌宠还在加载就不必发了：它挂载后会用 desktop:hello 主动取一份最新快照。
     if (petWindow && !petWindow.isDestroyed() && !petWindow.webContents.isLoading()) {
       petWindow.webContents.send("desktop:state", lastState);
     }
-    // 分心探测只在专注跑起来的时候工作，所以「开始/暂停/结束」都要重新过一遍闸门
-    if (wasRunning !== !!lastState?.focus?.isRunning) reevaluateWatch();
+    // 分心探测只在专注跑起来的时候工作，所以「开始/暂停/结束/离开专注页」
+    // 都要重新过一遍闸门。比的是闸门本身而不是 isRunning：被我们自动暂停的
+    // 会话 isRunning 是 false，但闸门要继续开着（见 watchGateOpen）。
+    if (wasOpen !== watchGateOpen()) reevaluateWatch();
   });
 
   // 设置页改了白名单 / 开关。真值存在主窗口的 localStorage 里（跟其他偏好一致），
@@ -550,8 +632,6 @@ function registerIpc() {
     return p.cmd;
   });
 
-  ipcMain.on("desktop:pet-expanded", (_e, expanded) => setPetExpanded(!!expanded));
-
   // 鼠标穿透：桌宠窗是个矩形，但烧瓶只占其中一小块。
   // 渲染层持续判断光标是否落在烧瓶 / 面板上，落在外面就让整个窗口对鼠标透明，
   // 这样点桌面图标不会被这块看不见的矩形挡住。
@@ -568,12 +648,16 @@ function registerIpc() {
   let dragGrab = null;
   ipcMain.on("desktop:pet-drag-start", (_e, pt) => {
     if (!petWindow || petWindow.isDestroyed()) return;
+    const p = intPoint(pt);
+    if (!p) return;
     const b = petWindow.getBounds();
-    dragGrab = { dx: pt.x - b.x, dy: pt.y - b.y };
+    dragGrab = { dx: p.x - b.x, dy: p.y - b.y };
   });
   ipcMain.on("desktop:pet-drag-move", (_e, pt) => {
     if (!dragGrab || !petWindow || petWindow.isDestroyed()) return;
-    petWindow.setPosition(Math.round(pt.x - dragGrab.dx), Math.round(pt.y - dragGrab.dy));
+    const p = intPoint(pt);
+    if (!p) return;
+    petWindow.setPosition(p.x - dragGrab.dx, p.y - dragGrab.dy);
   });
   ipcMain.on("desktop:pet-drag-end", () => {
     dragGrab = null;

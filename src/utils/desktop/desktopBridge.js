@@ -33,12 +33,16 @@ export const desktop = {
   onAppsSeen: bridge ? (cb) => bridge.onAppsSeen(cb) : noopSub,
   // 积水窗专用
   onFloodLevel: bridge ? (cb) => bridge.onFloodLevel(cb) : noopSub,
+  // 切走别的软件的三类事件：
+  //   { type: "enter" }   —— 刚离开白名单（计时器该暂停）
+  //   { type: "leave" }   —— 回来了（计时器该恢复）
+  //   { type: "segment", name, label, startTs, endTs, durationSecs } —— 一段用完的账
+  onDistraction: bridge ? (cb) => bridge.onDistraction(cb) : noopSub,
 
   // ── 桌宠侧 ──
   onState: bridge ? (cb) => bridge.onState(cb) : noopSub,
   sendCommand: bridge ? (cmd) => bridge.sendCommand(cmd) : noop,
   onQuickCapture: bridge ? (cb) => bridge.onQuickCapture(cb) : noopSub,
-  setExpanded: bridge ? (v) => bridge.setExpanded(v) : noop,
   dragStart: bridge ? (pt) => bridge.dragStart(pt) : noop,
   dragMove: bridge ? (pt) => bridge.dragMove(pt) : noop,
   dragEnd: bridge ? () => bridge.dragEnd() : noop,

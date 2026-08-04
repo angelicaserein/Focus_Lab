@@ -1,8 +1,9 @@
-import { useCallback, useReducer } from "react";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 import useLocalStorage from "@/hooks/common/useLocalStorage";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 import { getElapsedSecs } from "@/utils/time";
 import { makeSessionEntry } from "@/utils/records/focusRecords";
+import desktop, { isDesktop } from "@/utils/desktop/desktopBridge";
 
 // 状态机定义：
 //   idle              — 无进行中的分心
@@ -93,6 +94,71 @@ export default function useDistractionTracking({ getSession, focusedTodoIds, isR
     (id) => setDistractions((prev) => prev.filter((d) => d.id !== id)),
     [setDistractions],
   );
+
+  // ── 桌面端：切去别的软件 ────────────────────────────────────────────
+  // 主进程判定前台程序不在白名单时，桌宠的瓶子会翻过来往外倒水（见 main.cjs）。
+  // 那一下和用户自己按「我分心了」是同一件事，所以这里做两件事：
+  //   1. 把计时器按下暂停——人在别的软件里的时间不该算进专注。
+  //      只恢复我们自己按下的那一次（autoPausedRef），用户手动按的暂停不去动它。
+  //   2. 把用完的每一段写成一条分心记录：几点到几点、用的哪个程序。
+  // 不弹打标签的弹窗：用户此刻人在别的软件里，弹窗只会在他回来时糊一脸，
+  // 而「用的哪个程序」本身已经是比手打的标签更准的那个答案了。
+  //
+  // 订阅只建一次（IPC 事件不该因为回调换了引用就反复解绑重绑），
+  // 需要的最新值统一从这份 ref 里取。
+  const autoPausedRef = useRef(false);
+  // 切走那一刻是哪次会话。结账发生在回来的时候，而这中间会话可能已经结束
+  // （切走期间从桌宠点了「结束」，或者主进程在闸门关闭时补的那次结账），
+  // 那时再读 getSession() 只会拿到 null，这条记录就无家可归了。
+  const awaySessionRef = useRef(null);
+  const liveRef = useRef({});
+  liveRef.current = { isRunning, getSession, focusedTodoIds, togglePause };
+
+  useEffect(() => {
+    if (!isDesktop) return undefined;
+    return desktop.onDistraction((evt) => {
+      const live = liveRef.current;
+      if (evt?.type === "enter") {
+        awaySessionRef.current = live.getSession().sessionId;
+        if (live.isRunning) {
+          autoPausedRef.current = true;
+          live.togglePause();
+        }
+        return;
+      }
+      if (evt?.type === "leave") {
+        // leave 一定排在这一段的 segment 之后（见 main.cjs 的 applyVerdict），
+        // 到这里那条记录已经落好了，会话归属可以扔了
+        awaySessionRef.current = null;
+        if (!autoPausedRef.current) return;
+        autoPausedRef.current = false;
+        // 会话可能在切走期间就被结束了，那就没有可恢复的计时器——
+        // 此时 togglePause 会凭空把一次已结束的会话又跑起来。
+        if (!live.isRunning && live.getSession().sessionId) live.togglePause();
+        return;
+      }
+      if (evt?.type !== "segment") return;
+      const entry = makeSessionEntry(
+        {
+          // 记录的时间戳是「切走的那一刻」，不是回来的那一刻
+          ts: evt.startTs,
+          endTs: evt.endTs,
+          type: "app",
+          // 用程序名当标签：分心原因排行就直接排出「是哪个软件把人拽走的」
+          tag: evt.label || evt.name,
+          note: null,
+          durationSecs: evt.durationSecs,
+          appName: evt.name,
+          appLabel: evt.label || evt.name,
+        },
+        {
+          sessionId: awaySessionRef.current ?? live.getSession().sessionId,
+          focusedTodoIds: live.focusedTodoIds,
+        },
+      );
+      setDistractions((prev) => [...prev, entry]);
+    });
+  }, [setDistractions]);
 
   // 会话结束时如果还在主动分心中，结束它并返回额外秒数
   const flushProactiveDistraction = useCallback(() => {

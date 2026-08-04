@@ -7,6 +7,7 @@ import React, {
 import { speciesById } from "@/data/aquarium/aquariumData";
 import { shapeOf } from "@/data/aquarium/creatureShapes";
 import { creaturePalette } from "@/data/aquarium/creaturePalette";
+import { STAGE, growthOf, normalizeCollection } from "@/data/aquarium/growth";
 
 // 生态缸：一只用 canvas 画的活水缸。已入住的物种一直在里面慢游；新鱼由父页调用命令式接口
 // 「从上面扔进来」。
@@ -25,16 +26,20 @@ import { creaturePalette } from "@/data/aquarium/creaturePalette";
 // 造型不在这里画：形状是 creatureShapes 里那份 24×24 的部件数据（与图鉴共用一份），
 // 这里只负责把它编译成 Path2D、按物种配色填上、再让它按自己的方式动。
 //
+// 落进缸的是一颗卵，不是一只成体（见 data/aquarium/growth）：卵沉到缸底轻轻晃，到点破膜
+// 冒一串气泡、变成幼体开始游，再一天天长到图鉴里的大小。阶段只由 born 与当下时间算出来，
+// 不存额外状态——故关掉页面它照样在长，回来看到的就是该长到的样子。
+//
 // 为什么用命令式 ref 而非纯 props：下落是基于时间的逐帧动画，塞进 React state 每帧 setState
 // 既浪费又难同步；canvas 世界（residents/fallers/drops）放在 useRef 里自管，父页只在「收下」
 // 「再请一只」这两个时刻发一条指令。
 //
 // props:
-//   initialKeys: string[]  挂载时已入住的物种 id（仅播种一次，后续增减走 drop）
+//   initial: {id,born}[]   挂载时已入住的住客（仅播种一次，后续增减走 drop；兼容老的纯 id 数组）
 //   label: string          canvas 的无障碍名（由父页给，跟随语言）
 //   paused: boolean        真时停止逐帧绘制（收集卡盖在缸上时用，见下）
 // ref API:
-//   drop(id, onLand)       从上方落入缸中，下潜稳住后成为常驻住客并回调 onLand()
+//   drop(id, born, onLand) 一颗卵从上方落入缸中，下潜稳住后成为常驻住客并回调 onLand()
 
 // —— 画布几何全部由「当前显示尺寸」实时推导（单位＝CSS px）。
 //    以前是写死的 820×580 再靠 CSS 缩放，手机上缸被压得又扁又小、生物细如芝麻；
@@ -79,7 +84,7 @@ const BOTTOM = new Set(["crawl", "anchor"]);
 const sizeFactor = (sp) => (sp.rarity === 3 ? 1.15 : sp.rarity === 2 ? 1 : 0.9);
 
 const AquariumTank = forwardRef(function AquariumTank(
-  { initialKeys = [], label = "Aquarium", paused = false },
+  { initial = [], label = "Aquarium", paused = false },
   ref,
 ) {
   const canvasRef = useRef(null);
@@ -99,16 +104,21 @@ const AquariumTank = forwardRef(function AquariumTank(
     t: 0,
   });
   const g = useRef(geometry(780, 460)); // 首帧前的占位，挂载后立刻被实测值覆盖
-  const seedRef = useRef(initialKeys);
+  const seedRef = useRef(normalizeCollection(initial));
 
-  function spawnResident(id, x, y) {
+  // born：入缸时刻，决定它现在是卵/幼体/成体（见 growth）。缺省当成早已入住的成体。
+  function spawnResident(id, x, y, born = 0) {
     const sp = speciesById(id);
     if (!sp) return;
     const q = g.current;
-    const bottom = BOTTOM.has(sp.motion);
+    const stage = growthOf(born).stage; // 记住上一帧的阶段，跨过门槛那一下才好做破膜的动静
+    // 卵不会游，一律待在缸底（重开页面时也该在底上，而不是悬在水中央）
+    const bottom = BOTTOM.has(sp.motion) || stage === STAGE.EGG;
     const swimSpeed = sp.motion === "crawl" ? 0.09 : 0.2;
     w.current.residents.push({
       id,
+      born,
+      stage,
       glyph: sp.glyph,
       motion: sp.motion,
       size: sizeFactor(sp),
@@ -158,20 +168,39 @@ const AquariumTank = forwardRef(function AquariumTank(
     }
   }
 
+  // 破膜：卵壳裂开时挤出一小团气泡，里面那只弹一下（r.pop 在绘制时衰减）。
+  // 这一下是「它长出来了」的唯一提示——没有它，卵会毫无交代地变成一条小鱼。
+  function hatch(r) {
+    const s = w.current, q = g.current;
+    r.pop = 1;
+    for (let i = 0; i < 8; i++) {
+      s.bubbles.push({
+        x: r.x + (Math.random() - 0.5) * 16 * q.S,
+        y: r.y - Math.random() * 6 * q.S,
+        vy: -(0.4 + Math.random() * 0.8) * q.S,
+        r: (0.7 + Math.random() * 1.6) * q.S,
+        life: 30 + Math.random() * 26,
+      });
+    }
+  }
+
   useImperativeHandle(ref, () => ({
-    drop(id, onLand) {
+    drop(id, born = Date.now(), onLand) {
       const sp = speciesById(id);
       if (!sp) return onLand?.();
       const q = g.current;
       // 落点在缸中段随机，别每次都砸正中间
       const x = q.JX + q.JW * (0.3 + Math.random() * 0.4);
       if (reduceRef.current) {
-        spawnResident(id, x);
+        spawnResident(id, x, undefined, born);
         return onLand?.();
       }
+      const gr = growthOf(born);
       w.current.fallers.push({
         id,
-        glyph: sp.glyph,
+        born,
+        // 落下来的是一颗卵——沿途、入水、下潜画的都得是卵，不能空中先长成成体
+        glyph: gr.stage === STAGE.EGG ? "egg" : sp.glyph,
         motion: sp.motion,
         phase: "fall",
         p: 0,
@@ -180,8 +209,9 @@ const AquariumTank = forwardRef(function AquariumTank(
         y0: -26 * q.S,               // 从画布上沿之外落下来，像是被放进缸里
         r0: (Math.random() < 0.5 ? -1 : 1) * (0.6 + Math.random() * 0.5),
         rot: 0,
-        size: 34 * q.S,
-        rest: 26 * sizeFactor(sp) * q.S,  // 入水后要收敛到的住客尺寸
+        // 起手比落定后略大（像从更高处掉下来），但跟着阶段缩——一颗卵不该在空中有成体那么大
+        size: 34 * gr.scale * q.S,
+        rest: 26 * sizeFactor(sp) * gr.scale * q.S,  // 入水后要收敛到的住客尺寸（卵就是小小一颗）
         onLand,
       });
     },
@@ -247,8 +277,9 @@ const AquariumTank = forwardRef(function AquariumTank(
     }
     resize();
 
-    // 播种已入住物种（仅一次，且在量好尺寸之后，位置才落在缸里）。
-    seedRef.current.forEach((id) => spawnResident(id));
+    // 播种已入住的住客（仅一次，且在量好尺寸之后，位置才落在缸里）。
+    // 各自的 born 一并带上：上次关页面时还是卵的，这次进来该长多大就多大。
+    seedRef.current.forEach((e) => spawnResident(e.id, undefined, undefined, e.born));
 
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
@@ -318,6 +349,12 @@ const AquariumTank = forwardRef(function AquariumTank(
     // 一只住客一帧的位移。不同 motion 是不同的活法：游的来回巡、爬的贴着底挪、
     // 水母上下悬浮、珊瑚海草扎在原地摇——一缸东西全都横着游会很假。
     function step(r, q, s) {
+      // 卵不会游：沉到缸底待着，只随水轻轻晃——动的是水，不是它。
+      if (r.stage === STAGE.EGG) {
+        r.y += (q.SW_B - r.y) * 0.03;
+        r.x += Math.sin(s.t * 0.6 + r.ph) * 0.06;
+        return;
+      }
       const bottom = BOTTOM.has(r.motion);
       if (bottom) {
         // 落进缸后慢慢沉到底，再贴着底走
@@ -367,16 +404,33 @@ const AquariumTank = forwardRef(function AquariumTank(
         const by = q.JY + q.JH - ((s.t * 22 * (0.4 + i * 0.15)) % Math.max(40, q.JH - 40));
         ctx.fillStyle = "rgba(255,255,255,.22)"; ctx.beginPath(); ctx.arc(bx, by, (2 + (i % 3)) * q.S, 0, 7); ctx.fill();
       }
-      // 住客
+      // 住客。阶段每帧从 born 现算（纯函数，无状态），故页面关着的时候它也在长。
+      const now = Date.now();
       s.residents.forEach((r) => {
+        const gr = growthOf(r.born, now);
+        if (gr.stage !== r.stage) {
+          if (r.stage === STAGE.EGG) hatch(r); // 破膜那一下：冒一串气泡 + 弹一下
+          r.stage = gr.stage;
+        }
         if (!reduceRef.current) step(r, q, s);
-        // 扎根的随水摇（绕根部转一点），会动的只是身体轻晃
-        const rot =
-          r.motion === "anchor"
+        const egg = gr.stage === STAGE.EGG;
+        // 扎根的随水摇（绕根部转一点），会动的只是身体轻晃；卵只是被水推着晃
+        const rot = egg
+          ? Math.sin(s.t * 0.8 + r.ph) * 0.16
+          : r.motion === "anchor"
             ? Math.sin(s.t * 0.7 + r.ph) * 0.12
             : Math.sin(s.t * 1.6 + r.ph) * 0.05;
-        const size = 26 * r.size * q.S;
-        drawCreature(r.id, r.glyph, r.x, r.y, rot, size, r.motion !== "anchor" && r.vx < 0);
+        if (r.pop > 0) r.pop = Math.max(0, r.pop - 0.05);
+        const size = 26 * r.size * gr.scale * (1 + (r.pop || 0) * 0.3) * q.S;
+        drawCreature(
+          r.id,
+          egg ? "egg" : r.glyph,
+          r.x,
+          r.y,
+          rot,
+          size,
+          !egg && r.motion !== "anchor" && r.vx < 0,
+        );
       });
 
       // 入水后的下潜段：还没变成住客，但已经在水里了，故画在水的裁剪之内（会被水面挡住）。
@@ -404,7 +458,7 @@ const AquariumTank = forwardRef(function AquariumTank(
         // 速度掉干净、姿态也回正了，才把它交给住客系统（位置完全承接，不跳）
         if ((F.vy < 0.12 * q.S && Math.abs(F.rot) < 0.05) || F.age > 150) {
           F.done = true;
-          spawnResident(F.id, F.x, F.y);
+          spawnResident(F.id, F.x, F.y, F.born);
           F.onLand?.();
         }
       });
@@ -461,7 +515,9 @@ const AquariumTank = forwardRef(function AquariumTank(
             F.y = sy;
             F.vy = vy;
             F.vx = (Math.random() - 0.5) * 0.6 * q.S;
-            splashAt(F.x, sy, Math.min(1.3, vy / (5 * q.S)));
+            // 水花大小也看它多大一只：一颗卵砸不出一条鲸的动静
+            const heft = Math.min(1, Math.max(0.55, F.rest / (26 * q.S)));
+            splashAt(F.x, sy, Math.min(1.3, vy / (5 * q.S)) * heft);
           }
         });
         s.fallers = s.fallers.filter((F) => !F.done);

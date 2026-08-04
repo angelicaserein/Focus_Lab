@@ -40,6 +40,9 @@ export default function useDistractionAnalytics() {
           note: d.note ?? null,
           type: d.type ?? "reactive",
           durationSecs: d.durationSecs ?? null,
+          // 桌面端自动记的那种：明细行要显示「几点到几点 · 哪个程序」
+          endTs: d.endTs ?? null,
+          appLabel: d.appLabel ?? null,
         })),
         durationBySession,
       ),

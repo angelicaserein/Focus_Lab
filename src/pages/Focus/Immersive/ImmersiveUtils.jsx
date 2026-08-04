@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./ImmersiveUtils.css";
 import { formatTimestamp, formatClock } from "@/utils/time";
+import { useLanguage } from "@/context/LanguageContext";
 
 const DISTRACTION_FEEDBACK_MS = 1200;
 
@@ -16,6 +17,7 @@ export default function ImmersiveUtils({
   sessionNotes = [],
   sessionDistractionCount = 0,
 }) {
+  const { t } = useLanguage();
   const [noteOpen, setNoteOpen] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [distractionFeedback, setDistractionFeedback] = useState(false);
@@ -78,14 +80,14 @@ export default function ImmersiveUtils({
     return (
       <div className="immersive-utils">
         <div className="immersive-distraction-mode">
-          <div className="immersive-distraction-label">分心中</div>
+          <div className="immersive-distraction-label">{t("focus.imm.distracting")}</div>
           <div className="immersive-distraction-elapsed">{formatClock(distractionElapsed)}</div>
           <button
             type="button"
             className="immersive-return-btn"
             onClick={onReturnFromDistraction}
           >
-            我回来了
+            {t("focus.imm.imBack")}
           </button>
         </div>
       </div>
@@ -111,7 +113,7 @@ export default function ImmersiveUtils({
           <textarea
             ref={textareaRef}
             className="immersive-note-textarea"
-            placeholder={sessionNotes.length ? "再记一条… (Enter 保存)" : "记录此刻的想法… (Enter 保存，Shift+Enter 换行)"}
+            placeholder={t(sessionNotes.length ? "focus.imm.notePlaceholderMore" : "focus.imm.notePlaceholder")}
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -124,10 +126,10 @@ export default function ImmersiveUtils({
               onClick={saveNote}
               disabled={!noteText.trim()}
             >
-              保存
+              {t("focus.imm.noteSave")}
             </button>
             <button type="button" className="immersive-note-cancel" onClick={cancelNote}>
-              关闭
+              {t("focus.imm.noteClose")}
             </button>
           </div>
         </div>
@@ -138,9 +140,9 @@ export default function ImmersiveUtils({
           type="button"
           className={`immersive-util-btn${noteOpen ? " active" : ""}`}
           onClick={() => setNoteOpen((o) => !o)}
-          title="快速记录想法"
+          title={t("focus.imm.noteTitle")}
         >
-          ✏ 随记
+          {t("focus.imm.note")}
           {sessionNotes.length > 0 && (
             <span className="immersive-util-badge">{sessionNotes.length}</span>
           )}
@@ -149,9 +151,9 @@ export default function ImmersiveUtils({
           type="button"
           className={`immersive-util-btn distraction${distractionFeedback ? " feedback" : ""}`}
           onClick={handleDistraction}
-          title="记录一次刚刚发生的分心"
+          title={t("focus.imm.distractedTitle")}
         >
-          {distractionFeedback ? "已记录 ✓" : "⚡ 刚刚分心了"}
+          {t(distractionFeedback ? "focus.imm.distractedLogged" : "focus.imm.distracted")}
           {sessionDistractionCount > 0 && (
             <span className="immersive-util-badge">{sessionDistractionCount}</span>
           )}
@@ -161,9 +163,9 @@ export default function ImmersiveUtils({
           className="immersive-util-btn proactive"
           onClick={onProactiveDistraction}
           disabled={!isRunning}
-          title="暂停专注，去处理别的事"
+          title={t("focus.imm.goDistractTitle")}
         >
-          🚶 去分心一下
+          {t("focus.imm.goDistract")}
         </button>
       </div>
     </div>

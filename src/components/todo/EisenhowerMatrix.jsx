@@ -694,39 +694,41 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
             );
           })}
         </div>
-      </div>
 
-      {/* 未分类托盘：新建任务先落这里，拖入平面完成摆放 */}
-      <div
-        ref={trayRef}
-        className={`matrix-tray${overTray ? " drag-over" : ""}`}
-      >
-        <div className="matrix-tray-head">
-          <span className="matrix-tray-label">{t("focus.matrix.unclassified")}</span>
-          {unplaced.length > 0 && (
-            <button
-              type="button"
-              className="matrix-ai-assign"
-              onClick={autoAssign}
-              disabled={aiBusy}
-              aria-label={t("focus.matrix.aiAssignAria")}
-            >
-              <span className="matrix-ai-assign-icon" aria-hidden="true">✨</span>
-              {aiBusy ? t("focus.matrix.aiAssigning") : t("focus.matrix.aiAssign")}
-            </button>
+        {/* 未分类托盘：新建任务先落这里，拖入平面完成摆放。
+            宽屏（电脑）平面被屏高封顶后本栏会剩出横向余量，托盘就贴在平面右边把它吃掉，
+            免得彩色平面两侧各留一条白；余量不够时自动折到平面下方（见 CSS 的 flex-wrap）。 */}
+        <div
+          ref={trayRef}
+          className={`matrix-tray${overTray ? " drag-over" : ""}`}
+        >
+          <div className="matrix-tray-head">
+            <span className="matrix-tray-label">{t("focus.matrix.unclassified")}</span>
+            {unplaced.length > 0 && (
+              <button
+                type="button"
+                className="matrix-ai-assign"
+                onClick={autoAssign}
+                disabled={aiBusy}
+                aria-label={t("focus.matrix.aiAssignAria")}
+              >
+                <span className="matrix-ai-assign-icon" aria-hidden="true">✨</span>
+                {aiBusy ? t("focus.matrix.aiAssigning") : t("focus.matrix.aiAssign")}
+              </button>
+            )}
+          </div>
+          {aiError && (
+            <span className="matrix-ai-error" role="status">
+              {t("focus.matrix.aiAssignError")}
+            </span>
           )}
-        </div>
-        {aiError && (
-          <span className="matrix-ai-error" role="status">
-            {t("focus.matrix.aiAssignError")}
-          </span>
-        )}
-        <div className="matrix-tray-tags">
-          {unplaced.length > 0 ? (
-            unplaced.map((todo) => renderTag(todo, true))
-          ) : (
-            <span className="matrix-cell-empty">{t("focus.matrix.trayEmpty")}</span>
-          )}
+          <div className="matrix-tray-tags">
+            {unplaced.length > 0 ? (
+              unplaced.map((todo) => renderTag(todo, true))
+            ) : (
+              <span className="matrix-cell-empty">{t("focus.matrix.trayEmpty")}</span>
+            )}
+          </div>
         </div>
       </div>
 

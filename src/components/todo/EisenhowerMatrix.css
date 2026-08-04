@@ -168,11 +168,15 @@
   opacity: 0.92;
 }
 
+/* 平面 + 未分类托盘并排。宽屏（电脑）平面被屏高封顶后本栏会剩出横向余量，
+   托盘 flex-grow 把余量吃掉贴在平面右边，彩色平面两侧就不再各留一条白；
+   余量不足托盘的 flex-basis 时自动换行，回到「托盘在平面下方」的窄屏排法。 */
 .matrix-board {
   display: flex;
+  flex-wrap: wrap;
   align-items: stretch;
   justify-content: center;
-  gap: 6px;
+  gap: 10px;
   /* 天平的观察透视：让平面的 3D 倾倒有纵深感 */
   perspective: 1100px;
 }
@@ -342,6 +346,9 @@
 
 /* 未分类托盘 */
 .matrix-tray {
+  /* 余量 ≥ 200px 就跟平面并排（吃掉右侧留白），不够则整行折到平面下方 */
+  flex: 1 1 200px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -411,8 +418,12 @@
 .matrix-tray-tags {
   display: flex;
   flex-wrap: wrap;
+  align-content: flex-start;
   gap: 6px;
   min-height: 24px;
+  /* 并排时托盘被拉到平面同高：标签从顶部排起，多了就在托盘内滚动，不撑高整张卡 */
+  flex: 1 1 auto;
+  overflow-y: auto;
 }
 
 /* 任务小标签 —— 立体实心卡片（与任务页卡片同一套质感）：

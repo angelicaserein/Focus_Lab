@@ -25,9 +25,11 @@ export default function useSessionStop({
     const finalSession = getSession();
     const finalDistractionCount = sessionDistractions.length;
     const finalNoteCount = sessionNotes.length;
+    // 「分心时长」＝所有离开专注的时间：主动暂停 + 切去别的软件（type: "app"）。
+    // 两者对计时器的作用是一样的（都把它按停了），统计口径也该一样。
     const finalDistractionSecs =
       sessionDistractions
-        .filter((d) => d.type === "proactive" && d.durationSecs != null)
+        .filter((d) => (d.type === "proactive" || d.type === "app") && d.durationSecs != null)
         .reduce((sum, d) => sum + d.durationSecs, 0) + extraDistSecs;
 
     if (finalSecs > 0) addCoins(finalSecs);

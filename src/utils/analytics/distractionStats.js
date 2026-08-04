@@ -23,12 +23,19 @@ export function distractionOverview(distractions, durationBySession) {
   const sessionIds = new Set();
   let proactiveCount = 0;
   let proactiveSecs = 0;
+  // 桌面端自动记的「切去别的软件」（type: "app"）单独算一组：
+  // 它跟主动暂停一样会停表，但不是用户自己按下的，混在一起会看不出区别。
+  let appCount = 0;
+  let appSecs = 0;
 
   for (const d of distractions) {
     if (d.sessionId) sessionIds.add(d.sessionId);
     if (d.type === "proactive") {
       proactiveCount++;
       proactiveSecs += d.durationSecs ?? 0;
+    } else if (d.type === "app") {
+      appCount++;
+      appSecs += d.durationSecs ?? 0;
     }
   }
 
@@ -41,6 +48,8 @@ export function distractionOverview(distractions, durationBySession) {
     sessionCount: sessionIds.size,
     proactiveCount,
     proactiveSecs,
+    appCount,
+    appSecs,
     avgPerSession: sessionIds.size > 0 ? total / sessionIds.size : 0,
     ratePerHour: focusSecs > 0 ? total / (focusSecs / 3600) : null,
     focusSecs,
