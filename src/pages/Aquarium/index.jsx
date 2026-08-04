@@ -28,7 +28,7 @@ export default function AquariumPage() {
   );
 
   const tankRef = useRef(null);
-  // 挂载那一刻的已入住物种，交给 canvas 播种（只读一次，之后靠 dive 增量加入）。
+  // 挂载那一刻的已入住物种，交给 canvas 播种（只读一次，之后靠 drop 增量加入）。
   const initialKeys = useRef(collection).current;
 
   const [busy, setBusy] = useState(false);
@@ -39,26 +39,23 @@ export default function AquariumPage() {
   const canBuy = coins >= FISH_COST && !busy && !allMet;
   const canBuyExtra = coins >= FISH_COST && !busy;
 
+  // 先揭晓、后安置：抽到就立刻弹解锁卡（这一刻是「你遇到了谁」），
+  // 收下之后才把鱼扔进缸里溅起水花（这一刻是「它住进来了」）。
   const buy = () => {
     if (!canBuy) return;
     if (!spendCoins(FISH_COST)) return;
     const id = drawFish(collection);
     if (!id) return; // 理论上 allMet 已拦住
     setBusy(true);
-    // 浪花 + 跃出；到顶点弹收集卡
-    tankRef.current?.reveal(id, () => setCard({ id }));
+    setCard({ id });
   };
 
-  // 收集满之后：花金币把喜欢的鱼「再请一只」进缸——已在册，故不弹收集卡，
-  // 跃出到顶点后直接潜回，成为又一位常驻住客。
+  // 收集满之后：花金币把喜欢的鱼「再请一只」进缸——已在册，故不弹收集卡，直接扔进去。
   const buyExtra = (id) => {
     if (!canBuyExtra) return;
     if (!spendCoins(FISH_COST)) return;
     setBusy(true);
-    tankRef.current?.reveal(id, () => {
-      tankRef.current?.dive(id);
-      setBusy(false);
-    });
+    tankRef.current?.drop(id, () => setBusy(false));
   };
 
   const collect = () => {
@@ -66,22 +63,31 @@ export default function AquariumPage() {
     const { id } = card;
     setCard(null);
     setCollection((prev) => (prev.includes(id) ? prev : [...prev, id]));
-    // 潜回缸里，成为常驻住客
-    tankRef.current?.dive(id);
-    setBusy(false);
+    // 落进缸里，溅起水花，从此是常驻住客
+    tankRef.current?.drop(id, () => setBusy(false));
   };
 
   return (
     <div className="page-aquarium">
-      {/* 缸 + 金币 + 买鱼按钮 */}
+      <header className="aq-headline">
+        <h1>{t("aquarium.title")}</h1>
+        <div className="aq-coins">
+          <Coins size={16} aria-hidden="true" />
+          <span className="aq-coins-val">{coins}</span>
+        </div>
+      </header>
+
+      {/* 缸 + 买鱼按钮 */}
       <div className="aq-stage">
-        <AquariumTank ref={tankRef} initialKeys={initialKeys} />
+        {/* 收集卡打开时让缸停画：卡片带满屏模糊遮罩，底下再逐帧重绘会让合成器每帧重算模糊 */}
+        <AquariumTank
+          ref={tankRef}
+          initialKeys={initialKeys}
+          label={t("aquarium.title")}
+          paused={!!card}
+        />
 
         <div className="aq-actions">
-          <div className="aq-coins">
-            <Coins size={18} aria-hidden="true" />
-            <span className="aq-coins-val">{coins}</span>
-          </div>
           {!allMet ? (
             <>
               <button type="button" className="aq-buy" onClick={buy} disabled={!canBuy}>
@@ -122,7 +128,7 @@ export default function AquariumPage() {
             const inner = (
               <>
                 <div className="aq-slot-icon">
-                  {owned ? <FishGlyph glyph={sp.glyph} size={30} /> : "❔"}
+                  {owned ? <FishGlyph glyph={sp.glyph} size={34} /> : "❔"}
                 </div>
                 <div className="aq-slot-name">
                   {owned ? t(`aquarium.species.${sp.id}.name`) : t("aquarium.unmet")}
@@ -166,7 +172,7 @@ function CollectCard({ id, t, onCollect }) {
         <div className="aq-card-glow" aria-hidden="true" />
         <div className="aq-card-eye">{t("aquarium.new")}</div>
         <div className="aq-card-medal">
-          <FishGlyph glyph={sp.glyph} size={56} />
+          <FishGlyph glyph={sp.glyph} size={66} />
         </div>
         <h3 className="aq-card-name">{t(`aquarium.species.${id}.name`)}</h3>
         <div className="aq-card-rarity">

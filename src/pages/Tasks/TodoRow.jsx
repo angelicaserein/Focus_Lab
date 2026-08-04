@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import AttrCell from "@/pages/Tasks/cells/AttrCell";
+import { useLanguage } from "@/context/LanguageContext";
 
 // 回调接收 (id, ...) 形式的稳定 context 函数（toggleTodo/editTodo/setTodoAttr/
 // deleteTodo），由本组件绑定 todo.id 后调用。配合 React.memo，可在父级因
 // 搜索/筛选/排序重渲染时跳过未变化的行。
 function TodoRow({ todo, visibleAttrs, onSaveAttr, onEditText, onToggle, onDelete }) {
+  const { t } = useLanguage();
   const [editingText, setEditingText] = useState(false);
   const [textDraft,   setTextDraft]   = useState("");
 
@@ -40,7 +42,7 @@ function TodoRow({ todo, visibleAttrs, onSaveAttr, onEditText, onToggle, onDelet
         ) : (
           <span className="task-text">{todo.text}</span>
         )}
-        {todo.recurringDays?.length > 0 && <span className="row-recur" title="重复任务">↺</span>}
+        {todo.recurringDays?.length > 0 && <span className="row-recur" title={t("tasks.recurring")}>↺</span>}
       </td>
 
       {visibleAttrs.map(attr => (
@@ -50,7 +52,15 @@ function TodoRow({ todo, visibleAttrs, onSaveAttr, onEditText, onToggle, onDelet
       ))}
 
       <td className="td-del">
-        <button className="del-btn" onClick={() => onDelete(todo.id)} title="删除">×</button>
+        <button
+          type="button"
+          className="del-btn"
+          onClick={() => onDelete(todo.id)}
+          title={t("tasks.delete")}
+          aria-label={t("todo.deleteAria", { text: todo.text })}
+        >
+          ×
+        </button>
       </td>
     </tr>
   );

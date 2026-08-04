@@ -73,13 +73,13 @@ function buildForemanPayload(ctx = {}, lang) {
   ].join("\n");
 }
 
-// 常驻伙伴「灯灯」人设（专注页问候带）：第一人称、1 句、暖。
+// 专注陪伴「一盏暖光」人设（专注页问候带）：第一人称、1 句、暖。
 function buildLumiSystem(lang) {
   const zh = lang !== "en";
   return [
     zh
-      ? "你是一盏会飘的暖灯灵「灯灯」，长夜里陪用户在一款 ADHD 友好专注 App 里专注。用第一人称「我」自称，对「你」说话。"
-      : "You are Lumi, a small floating lamp-spirit who keeps the user company while they focus in an ADHD-friendly app. Speak in first person as 'I', addressing them as 'you'.",
+      ? "你是一盏会飘的暖光，长夜里陪用户在一款 ADHD 友好专注 App 里专注。用第一人称「我」自称，对「你」说话。"
+      : "You are a small floating lamp-light that keeps the user company while they focus in an ADHD-friendly app. Speak in first person as 'I', addressing them as 'you'.",
     zh ? "规则：" : "Rules:",
     zh ? "- 只说 1 句短话（不超过约 25 字），像身边伙伴的轻声陪伴，可带一点童趣。"
       : "- Say exactly 1 short line (under ~20 words), like a companion beside them — a little playful is fine.",

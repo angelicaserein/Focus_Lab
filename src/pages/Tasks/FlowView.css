@@ -1,49 +1,26 @@
 /* ══════════════════════════════════════════════════════════
-   心流任务 —— 任务库的 ADHD 友好版
-   与任务库同一份数据、同一套配色 token，只是把密集表格换成
+   心流视图 —— 任务库的 ADHD 友好版排布
+   与表格视图同一份数据、同一套配色 token，只是把密集表格换成
    宽松、圆润、一次一件的卡片流。所有颜色走 var(--*)，随主题联动。
    ══════════════════════════════════════════════════════════ */
 
-.flow-page {
-  width: min(760px, 100%);
-  margin: 0 auto;
-  padding: 8px 0 96px;
+.flow-view {
+  width: 100%;
+  padding: 4px 0 16px;
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-/* ── Header ── */
-.fc-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-.fc-title {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: clamp(1.5rem, 2.4vw, 2rem);
-  font-weight: 800;
-  color: var(--text-heading);
-  line-height: 1.2;
-}
-.fc-title svg { color: var(--accent); }
-.fc-subtitle {
-  margin: 6px 0 0;
-  font-size: 0.9rem;
-  color: var(--text-muted);
-}
+/* 「一次只看一件」开关，挂在进度条右端 */
 .fc-solo-toggle {
   flex-shrink: 0;
-  padding: 8px 16px;
+  padding: 6px 14px;
   border-radius: 999px;
   border: 1.5px solid var(--border-card);
   background: var(--card);
   color: var(--text-body);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -56,20 +33,22 @@
   color: #fff;
 }
 
-/* ── 情景筛选 chip ── */
-.fc-scenario-pill {
-  align-self: flex-start;
-  padding: 6px 14px;
+/* 「整理一下」：把留在原位的已完成卡片收回已完成堆 */
+.fc-tidy {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
   border-radius: 999px;
-  border: 1.5px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  border: 1px dashed var(--border-card);
   background: transparent;
-  color: var(--accent-mid);
-  font-size: 0.8rem;
-  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 0.78rem;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: color 0.15s, border-color 0.15s;
 }
-.fc-scenario-pill.active { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+.fc-tidy:hover { color: var(--accent); border-color: var(--accent); }
 
 /* ── 进度条 ── */
 .fc-progress {
@@ -359,9 +338,3 @@
 .fc-done-caret { font-size: 0.78rem; font-weight: 600; color: var(--text-faint); margin-left: 4px; }
 
 /* ── 空状态 ── */
-.fc-empty {
-  padding: 40px 24px;
-  text-align: center;
-  color: var(--text-faint);
-  font-size: 0.9rem;
-}

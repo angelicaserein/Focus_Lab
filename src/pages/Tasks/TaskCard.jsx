@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Check, ChevronDown, ChevronRight, X } from "lucide-react";
 import AttrCell from "@/pages/Tasks/cells/AttrCell";
+import { useLanguage } from "@/context/LanguageContext";
 
 // 判断某属性在这条任务上是否已有值——空的属性折叠时不显示，避免一排「—」造成视觉噪音。
 function hasValue(todo, attr) {
@@ -13,6 +14,7 @@ function hasValue(todo, attr) {
 // 一张任务卡：大圆勾选 + 可点改的标题 + 已填属性的小徽标；点「展开」才露出全部属性编辑区，
 // 渐进披露、默认不铺满信息，是这套界面对「一眼看太多会瘫掉」的主要照顾。
 function TaskCard({ todo, visibleAttrs, onToggle, onEditText, onSaveAttr, onDelete }) {
+  const { t } = useLanguage();
   const [editingText, setEditingText] = useState(false);
   const [draft, setDraft] = useState("");
   const [expanded, setExpanded] = useState(false);
@@ -33,7 +35,7 @@ function TaskCard({ todo, visibleAttrs, onToggle, onEditText, onSaveAttr, onDele
         type="button"
         className="fc-check"
         onClick={() => onToggle(todo.id)}
-        aria-label={todo.completed ? "标记为未完成" : "标记为已完成"}
+        aria-label={todo.completed ? t("tasks.markIncomplete") : t("tasks.markComplete")}
       >
         {todo.completed && <Check size={16} strokeWidth={3} aria-hidden="true" />}
       </button>
@@ -50,9 +52,9 @@ function TaskCard({ todo, visibleAttrs, onToggle, onEditText, onSaveAttr, onDele
               onKeyDown={onKey}
             />
           ) : (
-            <span className="fc-title" onClick={startEdit} title="点击修改">
+            <span className="fc-title" onClick={startEdit} title={t("tasks.clickToEdit")}>
               {todo.text}
-              {todo.recurringDays?.length > 0 && <span className="fc-recur" title="重复任务">↺</span>}
+              {todo.recurringDays?.length > 0 && <span className="fc-recur" title={t("tasks.recurring")}>↺</span>}
             </span>
           )}
 
@@ -61,13 +63,13 @@ function TaskCard({ todo, visibleAttrs, onToggle, onEditText, onSaveAttr, onDele
               type="button"
               className="fc-expand"
               onClick={() => setExpanded((v) => !v)}
-              aria-label={expanded ? "收起属性" : "展开属性"}
+              aria-label={expanded ? t("tasks.collapseAttrs") : t("tasks.expandAttrs")}
               aria-expanded={expanded}
             >
               {expanded ? <ChevronDown size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
             </button>
           )}
-          <button type="button" className="fc-del" onClick={() => onDelete(todo.id)} title="删除任务">
+          <button type="button" className="fc-del" onClick={() => onDelete(todo.id)} title={t("todo.deleteTitle")}>
             <X size={15} aria-hidden="true" />
           </button>
         </div>

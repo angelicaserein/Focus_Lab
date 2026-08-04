@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   clamp,
   scaleForPriority,
+  dimForPriority,
   isPlaced,
   GUTTER,
   relaxOverlaps,
@@ -37,26 +38,34 @@ describe("clamp", () => {
 });
 
 describe("scaleForPriority", () => {
-  it("重要且紧急最大", () => {
-    expect(scaleForPriority("urgent_important")).toBeCloseTo(1.22, 5);
-  });
-
-  it("不重要不紧急最小", () => {
-    expect(scaleForPriority("trivial")).toBeCloseTo(1.0, 5);
-  });
-
-  it("两个中间象限同档（均为中间值）", () => {
-    expect(scaleForPriority("important")).toBeCloseTo(1.11, 5);
-    expect(scaleForPriority("urgent")).toBeCloseTo(1.11, 5);
-  });
-
-  it("严格分档：重要且紧急 > 中间象限 > 不重要不紧急", () => {
+  it("四档严格递减：重要且紧急 > 重要不紧急 > 紧急不重要 > 都不是", () => {
     expect(scaleForPriority("urgent_important")).toBeGreaterThan(scaleForPriority("important"));
-    expect(scaleForPriority("important")).toBeGreaterThan(scaleForPriority("trivial"));
+    expect(scaleForPriority("important")).toBeGreaterThan(scaleForPriority("urgent"));
+    expect(scaleForPriority("urgent")).toBeGreaterThan(scaleForPriority("trivial"));
+  });
+
+  it("最大档比最小档大出至少五成，肉眼能一眼分辨", () => {
+    expect(scaleForPriority("urgent_important") / scaleForPriority("trivial")).toBeGreaterThan(1.5);
   });
 
   it("未知标签退回最小档（trivial）", () => {
     expect(scaleForPriority("nope")).toBeCloseTo(scaleForPriority("trivial"), 5);
+  });
+});
+
+describe("dimForPriority", () => {
+  it("越不重要越暗，重要且紧急满亮度", () => {
+    expect(dimForPriority("urgent_important")).toBe(1);
+    expect(dimForPriority("important")).toBeGreaterThan(dimForPriority("urgent"));
+    expect(dimForPriority("urgent")).toBeGreaterThan(dimForPriority("trivial"));
+  });
+
+  it("最暗的一档仍然读得清（不低于 0.5）", () => {
+    expect(dimForPriority("trivial")).toBeGreaterThanOrEqual(0.5);
+  });
+
+  it("未知标签退回最暗档（trivial）", () => {
+    expect(dimForPriority("nope")).toBe(dimForPriority("trivial"));
   });
 });
 

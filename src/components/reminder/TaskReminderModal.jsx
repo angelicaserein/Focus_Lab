@@ -44,11 +44,25 @@ export default function TaskReminderModal() {
     navigate("/focus");
   };
 
+  // Esc 关闭：同 DDLReminderModal——进站就自己弹出来的东西，得留一条键盘退路
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
   if (!open) return null;
 
   return (
     <div className="ddl-modal-overlay" onClick={dismiss}>
-      <div className="ddl-modal" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="ddl-modal"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("reminder.modal.title")}
+      >
         <div className="ddl-modal-header">
           <span className="ddl-modal-icon">📝</span>
           <div>

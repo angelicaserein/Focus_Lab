@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 
 // 通用撤销 toast。调用方传入 pendingDelete、undoDelete 和 getText(item)→string。
 export default function Toast({ pendingDelete, undoDelete, getText }) {
+  const { t } = useLanguage();
   const [visible, setVisible] = useState(false);
   // 保留内容直到离场动画结束，避免文字在淡出时突然消失
   const [content, setContent] = useState(null);
@@ -28,9 +30,9 @@ export default function Toast({ pendingDelete, undoDelete, getText }) {
       aria-live="polite"
       onTransitionEnd={handleTransitionEnd}
     >
-      <span className="toast-text">已删除「{getText(content.item)}」</span>
+      <span className="toast-text">{t("toast.deleted", { text: getText(content.item) })}</span>
       <button type="button" className="toast-undo" onClick={undoDelete}>
-        撤销
+        {t("toast.undo")}
       </button>
     </div>
   );

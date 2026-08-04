@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Sparkles, Coins } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useReward } from "@/context/RewardContext";
@@ -172,6 +172,13 @@ function ResultCard({ result, t, onClose, onEquip, equipped }) {
   const isItem = result.type === "item";
   const item = isItem ? result.item : null;
   const isOutfit = isItem && item.kind === "outfit";
+
+  // Esc 收起揭晓卡：它满屏盖着，之前只能点遮罩或按钮关
+  useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
   return (
     <div className="wish-result-backdrop" onClick={onClose} role="dialog" aria-modal="true">

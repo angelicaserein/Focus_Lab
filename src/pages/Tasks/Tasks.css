@@ -11,9 +11,8 @@
 /* 顶部的 TO DO LIST 与专注页共用组件，其 .todo-container 自带 max-width:680px
    （为专注页窄列设计）。在任务库这里要撑满页宽，才能和下方任务库表格左右对齐，
    否则卡片只有 680px、左对齐，右侧留一大块空。 */
-.tasks-page > .todo-container {
-  max-width: 100%;
-}
+/* 心流视图窄一档：整页跟着卡片流收窄，工具栏/库标签才不会比内容宽出一大截 */
+.tasks-page.flow { width: min(760px, 100%); }
 
 /* ── Header ── */
 .tasks-header {
@@ -77,6 +76,36 @@
   transition: border-color 0.15s, color 0.15s;
 }
 .tasks-assist-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* 视图切换：心流 / 表格，同一份数据的两种排布 */
+.tasks-view-switch {
+  display: flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+}
+.tasks-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.tasks-view-btn:hover { color: var(--accent); }
+.tasks-view-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
 
 /* 倒脑子助手：一大块随便写的输入区 */
 .bd-input {

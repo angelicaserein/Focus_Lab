@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useDatabases, DEFAULT_DB_ID } from "@/context/DatabaseContext";
 import { useTodos } from "@/context/TodoContext";
+import { useLanguage } from "@/context/LanguageContext";
 import Popover from "@/components/ui/Popover";
 import DatabaseCreateDialog from "@/pages/Tasks/DatabaseCreateDialog";
 import "./DatabaseTabs.css";
@@ -14,6 +15,7 @@ export default function DatabaseTabs() {
     deleteDatabase,
   } = useDatabases();
   const { deleteTodosByDatabase } = useTodos();
+  const { t } = useLanguage();
 
   const sorted = [...databases].sort((a, b) => a.order - b.order);
 
@@ -43,7 +45,7 @@ export default function DatabaseTabs() {
   const handleDelete = (db) => {
     closeMenu();
     if (db.id === DEFAULT_DB_ID) return;
-    if (window.confirm(`删除 database「${db.name}」？其下所有任务也会被删除。`)) {
+    if (window.confirm(t("tasks.db.confirmDelete", { name: db.name }))) {
       deleteTodosByDatabase(db.id);
       deleteDatabase(db.id);
     }
@@ -82,7 +84,8 @@ export default function DatabaseTabs() {
             {isActive && (
               <button
                 className="db-tab-menu-btn"
-                title="库选项"
+                type="button"
+                title={t("tasks.db.options")}
                 onClick={e => openMenu(db, e.currentTarget)}
               >⋯</button>
             )}
@@ -92,9 +95,10 @@ export default function DatabaseTabs() {
 
       <button
         className="db-tab-add"
-        title="新建 database"
+        type="button"
+        title={t("tasks.db.create")}
         onClick={e => setCreateAnchor(e.currentTarget)}
-      >+ 新建</button>
+      >{t("tasks.db.createShort")}</button>
 
       {menuFor && (
         <Popover anchorEl={menuAnchor} onClose={closeMenu} className="db-tab-menu">
@@ -103,13 +107,15 @@ export default function DatabaseTabs() {
             if (!db) return null;
             return (
               <>
-                <button className="db-menu-item" onClick={() => startRename(db)}>重命名</button>
+                <button type="button" className="db-menu-item" onClick={() => startRename(db)}>
+                  {t("tasks.db.rename")}
+                </button>
                 <button
                   className="db-menu-item danger"
                   onClick={() => handleDelete(db)}
                   disabled={db.id === DEFAULT_DB_ID}
-                  title={db.id === DEFAULT_DB_ID ? "默认库不可删除" : "删除此库"}
-                >删除</button>
+                  title={db.id === DEFAULT_DB_ID ? t("tasks.db.deleteDefault") : t("tasks.db.delete")}
+                >{t("tasks.delete")}</button>
               </>
             );
           })()}

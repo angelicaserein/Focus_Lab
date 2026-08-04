@@ -3,22 +3,43 @@
 // 收集观沿用祈愿（见 pages/Wish）——花金币必出一件「还没入住」的新物种，纯进度、无重复挫败，
 // 契合 ADHD 友好原则。全部入住后停止售卖（缸已圆满），不做「花币只回一点」的净亏。
 //
-// 每个物种的 glyph 决定它在缸里（canvas 手绘）与图鉴（SVG）中的形状；名字/描述走 i18n
-// （aquarium.species.<id>.name / .desc），稀有度文案走 aquarium.rarity.<r>。
+// 每个物种的 glyph 决定它在缸里与图鉴里的形状（同一份造型，见 data/aquarium/creatureShapes）；
+// 名字/描述走 i18n（aquarium.species.<id>.name / .desc），稀有度文案走 aquarium.rarity.<r>。
 
 // 一条鱼的价格（金币）。调这里即可整体调节节奏。
 export const FISH_COST = 25;
 
-// 物种目录。id 同时用作 glyph 形状键。rarity: 1 常见 / 2 稀有 / 3 史诗。
+// 物种目录。id 同时用作 glyph 形状键。
+//   rarity: 1 常见 / 2 稀有 / 3 史诗
+//   hue:    相对主题主色的色相偏移（度）。缸里与图鉴都按它给这只生物上色——
+//           这样一缸鱼颜色各异却仍是同一家族，换皮肤/暗夜也整体跟着走。
+//   motion: 在缸里的行为。swim 游动 / drift 悬浮飘（水母）/ crawl 贴底爬 / anchor 扎根摇曳
 export const FISH_SPECIES = [
-  { id: "fish",     glyph: "fish",     rarity: 1 },
-  { id: "shell",    glyph: "shell",    rarity: 1 },
-  { id: "crab",     glyph: "crab",     rarity: 1 },
-  { id: "jelly",    glyph: "jelly",    rarity: 2 },
-  { id: "star",     glyph: "star",     rarity: 2 },
-  { id: "coral",    glyph: "coral",    rarity: 2 },
-  { id: "turtle",   glyph: "turtle",   rarity: 3 },
-  { id: "seahorse", glyph: "seahorse", rarity: 3 },
+  // —— 常见 ——
+  { id: "fish",     glyph: "fish",     rarity: 1, hue: 0,    motion: "swim" },
+  { id: "guppy",    glyph: "guppy",    rarity: 1, hue: 28,   motion: "swim" },
+  { id: "shell",    glyph: "shell",    rarity: 1, hue: -22,  motion: "crawl" },
+  { id: "crab",     glyph: "crab",     rarity: 1, hue: -45,  motion: "crawl" },
+  { id: "shrimp",   glyph: "shrimp",   rarity: 1, hue: -34,  motion: "swim" },
+  { id: "snail",    glyph: "snail",    rarity: 1, hue: 18,   motion: "crawl" },
+  { id: "seaweed",  glyph: "seaweed",  rarity: 1, hue: 96,   motion: "anchor" },
+  { id: "star",     glyph: "star",     rarity: 1, hue: -60,  motion: "crawl" },
+  // —— 稀有 ——
+  { id: "clown",    glyph: "clown",    rarity: 2, hue: -40,  motion: "swim" },
+  { id: "tang",     glyph: "tang",     rarity: 2, hue: 150,  motion: "swim" },
+  { id: "jelly",    glyph: "jelly",    rarity: 2, hue: 62,   motion: "drift" },
+  { id: "coral",    glyph: "coral",    rarity: 2, hue: -18,  motion: "anchor" },
+  { id: "anemone",  glyph: "anemone",  rarity: 2, hue: -70,  motion: "anchor" },
+  { id: "puffer",   glyph: "puffer",   rarity: 2, hue: 40,   motion: "swim" },
+  { id: "angel",    glyph: "angel",    rarity: 2, hue: 130,  motion: "swim" },
+  { id: "seahorse", glyph: "seahorse", rarity: 2, hue: 78,   motion: "drift" },
+  // —— 史诗 ——
+  { id: "koi",      glyph: "koi",      rarity: 3, hue: -30,  motion: "swim" },
+  { id: "turtle",   glyph: "turtle",   rarity: 3, hue: 110,  motion: "swim" },
+  { id: "octopus",  glyph: "octopus",  rarity: 3, hue: -85,  motion: "crawl" },
+  { id: "ray",      glyph: "ray",      rarity: 3, hue: 170,  motion: "swim" },
+  { id: "axolotl",  glyph: "axolotl",  rarity: 3, hue: -55,  motion: "swim" },
+  { id: "whale",    glyph: "whale",    rarity: 3, hue: 190,  motion: "swim" },
 ];
 
 export const TOTAL_SPECIES = FISH_SPECIES.length;

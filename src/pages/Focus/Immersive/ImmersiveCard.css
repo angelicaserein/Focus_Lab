@@ -242,6 +242,15 @@
   margin: -8px 0;
 }
 
+/* 液面上涨要有过渡，否则计时每跳一次液柱就闪一下 */
+.flask-liquid {
+  transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flask-liquid { transition: none; }
+}
+
 /* 沉浸页任务清单（可勾选完成 / 移除） */
 .immersive-task-list {
   list-style: none;

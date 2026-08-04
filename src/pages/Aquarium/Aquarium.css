@@ -9,34 +9,55 @@
   --card2: color-mix(in srgb, var(--accent) 5%, var(--card));
   --line-tank: var(--border-card);
 
-  max-width: min(680px, 100%);
+  /* 页宽与其他页一致（功能树/技能树同为 1040）。宽屏时缸与图鉴并排，
+     窄屏自动落成一列——避免以前那种「680px 窄柱 + 四个大空方格」的空旷感。 */
+  width: min(1040px, 100%);
   margin: 0 auto;
-  padding: clamp(12px, 3vw, 24px) clamp(14px, 4vw, 32px) 80px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  padding: 24px 4px 64px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 16px;
+}
+@media (min-width: 900px) {
+  .page-aquarium {
+    grid-template-columns: minmax(0, 1fr) 296px;
+    align-items: start;
+    column-gap: 20px;
+  }
+  .aq-headline { grid-column: 1 / -1; }
 }
 
-/* —— 缸台：尽量铺满屏幕，缸是主角 —— */
+.aq-headline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.aq-headline h1 {
+  margin: 0;
+  font-size: 26px;
+  color: var(--text-heading, var(--text));
+}
+
+/* —— 缸台：缸是主角，占满可用宽度 —— */
 .aq-stage {
-  width: fit-content;
-  max-width: 100%;
+  min-width: 0;
   background: var(--card);
   border: 1px solid var(--border-card);
   border-radius: 24px;
   box-shadow: 0 1px 2px var(--shadow-sm), 0 14px 40px var(--shadow-sm);
-  padding: 18px 24px 22px;
+  padding: clamp(10px, 2vw, 18px) clamp(10px, 2vw, 20px) clamp(14px, 2vw, 20px);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 10px;
+  gap: 14px;
 }
 .aq-canvas {
-  /* 以高度撑满视口，宽度按缸的比例推出；窄屏再由 max-width 收回 */
-  height: min(74vh, 760px);
-  width: auto;
-  max-width: 100%;
-  aspect-ratio: 520 / 680;
+  /* 尺寸由 CSS 说了算，canvas 内部几何按实测宽高推导（见 AquariumTank）。
+     不再用固定宽高比：手机上给足高度，桌面上不至于顶到屏幕外。 */
+  width: 100%;
+  height: clamp(300px, 46vh, 440px);
   display: block;
   touch-action: manipulation;
 }
@@ -44,29 +65,33 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  width: 100%;
+  gap: 8px;
 }
 .aq-coins {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.1);
   color: var(--accent);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
-.aq-coins-val { font-size: 17px; }
+.aq-coins-val { font-size: 15px; }
 
 .aq-buy {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 9px;
+  width: min(100%, 320px);
   border: none;
   cursor: pointer;
   color: var(--card);
   background: var(--accent);
   font: 600 15px/1 inherit;
-  padding: 13px 24px;
+  padding: 13px 20px;
   border-radius: 13px;
   letter-spacing: 0.02em;
   box-shadow: 0 6px 18px rgba(var(--accent-rgb), 0.34);
@@ -78,24 +103,40 @@
 .aq-buy:disabled { filter: grayscale(0.4) opacity(0.55); cursor: default; transform: none; }
 .aq-cost {
   font-size: 12.5px;
-  opacity: 0.85;
-  padding-left: 8px;
-  border-left: 1px solid rgba(255, 255, 255, 0.35);
+  opacity: 0.8;
+  padding-left: 9px;
+  /* 跟随按钮文字色（而非写死白色），浅色主色的皮肤下也看得见 */
+  border-left: 1px solid currentColor;
+  white-space: nowrap;
 }
 
-.aq-hint { font-size: 13px; margin: 0; }
+.aq-hint { font-size: 13px; margin: 0; text-align: center; }
 .aq-poor { color: var(--text-muted); }
 .aq-allmet { color: var(--accent); font-weight: 600; }
 
-/* —— 图鉴 —— */
+/* —— 图鉴：宽屏时是缸右侧的一栏，窄屏时落到缸下面 —— */
 .aq-dex {
-  width: min(480px, 100%);
-  margin-top: 28px;
+  min-width: 0;
+  background: var(--card);
+  border: 1px solid var(--border-card);
+  border-radius: 24px;
+  box-shadow: 0 1px 2px var(--shadow-sm);
+  padding: 16px;
+}
+@media (min-width: 900px) {
+  .aq-dex {
+    position: sticky;
+    top: 24px;
+    /* 22 个物种在 3 列窄栏里能排到八九行，比屏幕还高——粘住的那一栏自己滚 */
+    max-height: calc(100vh - 48px);
+    overflow: auto;
+  }
 }
 .aq-dex-head {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  gap: 8px;
   margin-bottom: 12px;
 }
 .aq-dex-head h2 {
@@ -107,14 +148,18 @@
   font-size: 12.5px;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .aq-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* 按可用宽度自动定列数：手机 3 列、右栏 3 列、宽屏单列时自动铺更多，
+     不再是写死 4 列（桌面上撑成大空方格、手机上挤成一团）。 */
+  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
   gap: 10px;
 }
 .aq-slot {
   aspect-ratio: 1;
+  padding: 4px;
   border-radius: 15px;
   background: var(--card2);
   border: 1px solid var(--border-card);
@@ -151,9 +196,35 @@
   position: relative;
   z-index: 1;
   font-size: 11px;
+  line-height: 1.25;
+  text-align: center;
   color: var(--text-muted);
+  /* 英文名（Hermit Crab / Sea Turtle）比中文长得多，得能换行、不撑破格子 */
+  overflow-wrap: anywhere;
+  max-width: 100%;
 }
 .aq-slot.locked .aq-slot-name { color: var(--text-faint); }
+
+/* —— 生物图形（FishGlyph）：部件按角色从 currentColor 派生，
+      与缸里 canvas 的那套配色一一对应（body/deep/fin/mark/eye）。 —— */
+.cg-body { fill: currentColor; stroke: currentColor; }
+.cg-deep {
+  fill: color-mix(in srgb, currentColor 78%, #000);
+  stroke: color-mix(in srgb, currentColor 78%, #000);
+}
+.cg-fin {
+  fill: color-mix(in srgb, currentColor 72%, #fff);
+  stroke: color-mix(in srgb, currentColor 72%, #fff);
+}
+.cg-mark {
+  fill: color-mix(in srgb, currentColor 34%, #fff);
+  stroke: color-mix(in srgb, currentColor 34%, #fff);
+}
+.cg-eye {
+  fill: color-mix(in srgb, currentColor 30%, #17121b);
+  stroke: none;
+}
+/* 未入住的格子里不画生物（显示问号），故这套色只在 owned 时用得上 */
 
 /* 稀有度：常见=中性，稀有=主色，史诗=暖金（语义色，不夺主色） */
 .rarity-1 { --r: var(--text-faint); }

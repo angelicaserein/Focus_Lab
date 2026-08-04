@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import FilterPopover from "@/pages/Tasks/FilterPopover";
 import SortPopover from "@/pages/Tasks/SortPopover";
+import { useLanguage } from "@/context/LanguageContext";
 
 // 任务库工具栏（对标 Notion）：搜索 + 「筛选 / 排序」两个紧凑按钮，点开各自弹层。
 // 查询状态与操作来自 useTaskQuery（经 query 传入），本组件负责编排 UI。
@@ -12,6 +13,7 @@ export default function TasksToolbar({ query, fields, scenario = null }) {
     addSort, updateSort, removeSort, clearSort,
   } = query;
 
+  const { t } = useLanguage();
   const [open, setOpen] = useState(null); // null | "filter" | "sort"
   const filterBtnRef = useRef(null);
   const sortBtnRef   = useRef(null);
@@ -25,11 +27,21 @@ export default function TasksToolbar({ query, fields, scenario = null }) {
       <div className="tasks-search-wrap">
         <input
           className="tasks-search"
-          placeholder="搜索任务或备注…"
+          placeholder={t("tasks.searchPlaceholder")}
+          aria-label={t("tasks.searchPlaceholder")}
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
-        {search && <button className="search-clear" onClick={() => setSearch("")}>×</button>}
+        {search && (
+          <button
+            type="button"
+            className="search-clear"
+            onClick={() => setSearch("")}
+            aria-label={t("tasks.searchClear")}
+          >
+            ×
+          </button>
+        )}
       </div>
 
       <div className="toolbar-row">
@@ -38,8 +50,8 @@ export default function TasksToolbar({ query, fields, scenario = null }) {
             className={`flt-btn scenario-pill${scenario.on ? " active" : ""}`}
             onClick={scenario.toggle}
             title={scenario.on
-              ? `仅显示「${scenario.name}」相关任务，点击查看全部`
-              : `点击只看「${scenario.name}」相关任务`}
+              ? t("tasks.scenarioOn", { name: scenario.name })
+              : t("tasks.scenarioOff", { name: scenario.name })}
           >
             🎯 {scenario.name}{scenario.on ? " ✕" : ""}
           </button>
@@ -50,7 +62,7 @@ export default function TasksToolbar({ query, fields, scenario = null }) {
           className={`query-btn${filterCount ? " active" : ""}`}
           onClick={() => toggle("filter")}
         >
-          筛选{filterCount ? ` · ${filterCount}` : ""}
+          {t("tasks.filter")}{filterCount ? ` · ${filterCount}` : ""}
         </button>
 
         <button
@@ -58,7 +70,7 @@ export default function TasksToolbar({ query, fields, scenario = null }) {
           className={`query-btn${sortCount ? " active" : ""}`}
           onClick={() => toggle("sort")}
         >
-          排序{sortCount ? ` · ${sortCount}` : ""}
+          {t("tasks.sort")}{sortCount ? ` · ${sortCount}` : ""}
         </button>
       </div>
 

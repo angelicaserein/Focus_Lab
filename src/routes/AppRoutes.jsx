@@ -12,7 +12,7 @@ const ROUTES = [
   { path: "/",               importer: () => import("@/pages/Home"),         core: true },
   { path: "/settings",       importer: () => import("@/pages/Settings"),     core: true },
   { path: "/functiontree",   importer: () => import("@/pages/FunctionTree"), core: true },
-  { path: "/tutorial",       importer: () => import("@/pages/Tutorial"),     core: true },
+  { path: "/tutorial",       importer: () => import("@/pages/Tutorial") },
   { path: "/skilltree",      importer: () => import("@/pages/SkillTree") },
   { path: "/focus",          importer: () => import("@/pages/Focus") },
   { path: "/history",        importer: () => import("@/pages/History") },
@@ -22,7 +22,6 @@ const ROUTES = [
   { path: "/scenario-stats", importer: () => import("@/pages/ScenarioStats") },
   { path: "/analytics",      importer: () => import("@/pages/Analytics") },
   { path: "/tasks",          importer: () => import("@/pages/Tasks") },
-  { path: "/flow-tasks",     importer: () => import("@/pages/FlowTasks") },
   { path: "/ddl",            importer: () => import("@/pages/DDLReminders") },
   { path: "/memo",           importer: () => import("@/pages/Memo") },
   { path: "/calendar",       importer: () => import("@/pages/Calendar") },
@@ -81,6 +80,8 @@ export default function AppRoutes() {
                   }
                 />
               ))}
+              {/* 心流任务已并入任务库（成为其中一个视图），老链接直接接过去 */}
+              <Route path="/flow-tasks" element={<Navigate to="/tasks" replace />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

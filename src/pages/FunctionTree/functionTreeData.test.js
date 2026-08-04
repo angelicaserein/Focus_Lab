@@ -26,6 +26,12 @@ describe("功能树数据不变量", () => {
     expect(isCorePath("/focus")).toBe(false);
   });
 
+  it("除了核心兜底三页，其余每个页面都可开关", () => {
+    // 教程不是兜底页，应当可关
+    expect(isCorePath("/tutorial")).toBe(false);
+    expect(TOGGLEABLE_PATHS).toContain("/tutorial");
+  });
+
   it("每个叶子都带 path / labelKey / icon", () => {
     for (const b of FUNCTION_BRANCHES) {
       for (const f of b.features) {

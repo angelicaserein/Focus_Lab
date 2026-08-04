@@ -4,6 +4,9 @@ node_modules/
 # Build output
 dist/
 
+# Electron 打包产物（安装包 / 解包目录）
+release/
+
 # Test coverage report
 coverage/
 

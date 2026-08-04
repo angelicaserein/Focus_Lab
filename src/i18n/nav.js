@@ -14,7 +14,6 @@ export default {
   "nav.industry": { en: "Industry", zh: "工业点数" },
   "nav.focus": { en: "Focus", zh: "专注" },
   "nav.tasks": { en: "Tasks", zh: "任务库" },
-  "nav.flowtasks": { en: "Flow Tasks", zh: "心流任务" },
   "nav.memo": { en: "Memo", zh: "备忘录" },
   "nav.ddl": { en: "Deadlines", zh: "DDL 提醒" },
   "nav.calendar": { en: "Timeline", zh: "时间轴" },

@@ -1,7 +1,7 @@
 /* ── 截止临近感 ──────────────────────────────────────────────────────────────
-   一条退向地平线的路，DDL 是路上的路牌：越近越大越鲜明，越远越小越淡。
-   视觉语言沿用专注页「优先级平面」（EisenhowerMatrix）：卡片容器 + 大标题 +
-   带边框的热力渐变面板 + 芯片式标签。热端对准脚边（近/紧急），冷端退向地平线。 */
+   一条横向的时间轴，DDL 是轴上的卡片：越近越靠左、越大越鲜明，越远越靠右越淡。
+   容器沿用专注页「优先级平面」（EisenhowerMatrix）：卡片容器 + 大标题 + 带边框的
+   热力渐变面板；但卡片本身是扁平实心卡，不做玻璃反光那一套。 */
 .ddl-horizon-wrap {
   display: flex;
   flex-direction: column;
@@ -32,7 +32,7 @@
   color: var(--text-faint);
 }
 
-/* ── 路面（沿用 matrix-plane：带边框的热力渐变面板） ── */
+/* ── 画面（沿用 matrix-plane：带边框的热力渐变面板） ── */
 .ddl-horizon-road {
   position: relative;
   width: 100%;
@@ -40,69 +40,15 @@
   border-radius: 18px;
   overflow: hidden;
   border: 1.5px solid var(--border-input);
-  /* 热力渐变：左上最热的红 → 右下最冷的蓝，沿对角过渡橙/青，
-     与优先级平面（135deg）同一套热力方向 */
+  /* 热力渐变跟着时间轴走：左端（马上到期）最热的红 → 右端（还早）最冷的蓝，
+     中间过渡橙/青。卡片横向排布，位置越靠左底色越烫 */
   background: linear-gradient(
-    135deg,
+    90deg,
     rgba(229, 72, 77, 0.22) 0%,
     rgba(232, 140, 62, 0.15) 34%,
     rgba(58, 168, 160, 0.13) 64%,
     rgba(62, 99, 221, 0.17) 100%
   );
-}
-
-/* 透视地面：顶边宽（脚边/近）、向右下方的灭点收拢（地平线/远），
-   叠在热力渐变之上保留「路」的空间感 */
-.ddl-road-floor {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    0deg,
-    transparent 38%,
-    color-mix(in srgb, var(--accent) 6%, transparent) 100%
-  );
-  clip-path: polygon(0% 0%, 100% 0%, 92% 62%, 88% 62%);
-  opacity: 0.8;
-  pointer-events: none;
-}
-
-/* 「现在 / 你」锚点：近端在左上 */
-.ddl-road-you {
-  position: absolute;
-  left: 12px;
-  top: 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  z-index: 200;
-}
-
-.ddl-you-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 4px var(--accent-glow);
-}
-
-/* 角落方位提示：沿用 matrix-corner 的弱化描述文字 */
-.ddl-you-label {
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  color: var(--text-heading);
-  opacity: 0.4;
-}
-
-.ddl-road-far-label {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  color: var(--text-heading);
-  opacity: 0.32;
 }
 
 .ddl-horizon-empty {
@@ -118,11 +64,13 @@
   text-align: center;
 }
 
-/* ── 路牌（沿用 matrix-tag：芯片式标签） ── */
+/* ── 卡片：扁平实心卡（与首页其余部分一致，不做玻璃/反光/落影） ──
+   坐标由 JS 按真实像素排好（见 DeadlineHorizon.jsx 的 layoutCards），
+   横轴＝时间轴，left/top 即卡片中心，所以这里以中心为锚点缩放。 */
 .ddl-pin {
   position: absolute;
-  transform: translate(-50%, -100%) scale(var(--pin-scale, 1));
-  transform-origin: bottom center;
+  transform: translate(-50%, -50%) scale(var(--pin-scale, 1));
+  transform-origin: center;
   opacity: var(--pin-opacity, 1);
   display: flex;
   flex-direction: column;
@@ -132,11 +80,10 @@
   background: none;
   font: inherit;
   cursor: pointer;
-  transition: transform 120ms ease, filter 140ms ease, opacity 140ms ease;
+  transition: opacity 140ms ease;
 }
 
 .ddl-pin:hover {
-  filter: brightness(1.04);
   opacity: 1;
 }
 
@@ -146,26 +93,28 @@
   align-items: center;
   gap: 1px;
   padding: 5px 10px;
-  border-radius: 12px;
+  border-radius: 10px;
   max-width: 132px;
+  /* 实心卡底压住底下的热力渐变，保证文字对比度；无模糊、无反光、无落影 */
   background: var(--card);
-  border: 1.5px solid var(--border-accent, var(--border-input));
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-input);
+  color: var(--text-heading);
+  transition: border-color 140ms ease, background 140ms ease;
 }
 
 .ddl-pin:hover .ddl-pin-flag {
-  transform: translateY(-1px);
+  border-color: var(--accent);
 }
 
 .ddl-pin-days {
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.1;
   color: var(--text-heading);
 }
 
 .ddl-pin-text {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   line-height: 1.15;
   color: var(--text-muted);
   max-width: 112px;
@@ -174,20 +123,9 @@
   text-overflow: ellipsis;
 }
 
-/* 路牌的杆子，立在路面上 */
-.ddl-pin-post {
-  width: 2px;
-  height: 16px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--accent) 55%, transparent),
-    transparent
-  );
-}
-
-/* ── 紧迫度配色 ── */
+/* ── 紧迫度：只用描边色 + 一层极淡的同色填充来分档，不靠阴影/发光 ── */
 .ddl-pin.soon .ddl-pin-flag {
-  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border-input));
 }
 .ddl-pin.soon .ddl-pin-days {
   color: var(--accent);
@@ -197,20 +135,17 @@
   color: #f97316;
 }
 .ddl-pin.urgent .ddl-pin-flag {
-  border-color: color-mix(in srgb, #f97316 55%, transparent);
-  box-shadow: 0 4px 16px color-mix(in srgb, #f97316 22%, transparent);
+  border-color: color-mix(in srgb, #f97316 55%, var(--border-input));
+  background: color-mix(in srgb, #f97316 8%, var(--card));
 }
 
 .ddl-pin.overdue .ddl-pin-days {
   color: #ef4444;
 }
 .ddl-pin.overdue .ddl-pin-flag {
-  border-color: color-mix(in srgb, #ef4444 60%, transparent);
-  box-shadow: 0 4px 18px color-mix(in srgb, #ef4444 30%, transparent);
+  border-color: color-mix(in srgb, #ef4444 62%, var(--border-input));
+  background: color-mix(in srgb, #ef4444 10%, var(--card));
   animation: ddl-pin-pulse 1.8s ease-in-out infinite;
-}
-.ddl-pin.overdue .ddl-pin-post {
-  background: linear-gradient(180deg, #ef4444, transparent);
 }
 
 @keyframes ddl-pin-pulse {

@@ -1,0 +1,285 @@
+/* 桌宠窗样式。这个窗口是无边框 + 透明的，所以底色必须全程保持 transparent：
+   任何一处漏了背景色，桌面上就会出现一块灰矩形。 */
+
+:root {
+  /* FocusFlask 用 var(--accent) 填液面。桌宠窗不加载主 app 的主题 CSS，
+     在这里给一个与应用主色一致的定值。 */
+  --accent: #a07898;
+  --pet-glass: rgba(32, 26, 38, 0.82);
+  --pet-line: rgba(255, 255, 255, 0.14);
+  --pet-text: rgba(255, 255, 255, 0.92);
+  --pet-dim: rgba(255, 255, 255, 0.55);
+}
+
+html,
+body,
+#pet-root {
+  height: 100%;
+  margin: 0;
+  background: transparent;
+  overflow: hidden;
+  /* 窗口整体不可选中 / 不弹右键菜单，避免拖动时误选出蓝色高亮 */
+  user-select: none;
+  -webkit-user-select: none;
+  font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+  color: var(--pet-text);
+}
+
+/* 收起时只有烧瓶，靠右下角；展开时面板从烧瓶上方长出来。
+   窗口尺寸变化由主进程钉住右下角，所以这里也一律右下对齐，烧瓶才不会跳。 */
+.pet-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 8px;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+/* ── 烧瓶 ── */
+/* 命中判定：窗口是个方的，画面里只有烧瓶那一块是实体。
+   这里让方块本身以及所有装饰图形都不接管鼠标，只留 .flask-hit —— 一份不上色的
+   轮廓副本（FlaskGraphic 的 hitLayer）。于是 elementFromPoint 只在指针真的落在
+   瓶身上时才返回它，四角和环外的空白照旧穿透给桌面。
+   拖动/点击的 handler 挂在 .pet-flask 上，子元素的事件照常冒泡上来，不受影响。 */
+.pet-flask {
+  position: relative;
+  width: 168px;
+  height: 168px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  cursor: grab;
+  pointer-events: none;
+  /* 拖动时不要触发浏览器自身的拖拽/滚动手势 */
+  touch-action: none;
+}
+
+.pet-flask svg {
+  pointer-events: none;
+}
+
+.pet-flask .flask-hit {
+  /* all：填充区和描边都算命中，哪怕它俩都没上色。
+     描边加宽是给指针留的余量，瓶壁再细也抓得住。 */
+  pointer-events: all;
+  fill: none;
+  stroke: transparent;
+  cursor: grab;
+}
+
+.pet-flask:active .flask-hit {
+  cursor: grabbing;
+}
+
+/* 烧瓶自身的 svg 固定输出 100x163，这里按环的内径重新定尺寸（保持 80:130 比例）。
+   注意不能用 transform: scale——那样布局尺寸不变，svg 会撑出格子去。 */
+.pet-flask .immersive-flask {
+  display: grid;
+  place-items: center;
+}
+
+.pet-flask .immersive-flask > svg {
+  width: 76px;
+  height: 123.5px;
+  /* 应用内的烧瓶是浅色玻璃——那是因为它待在深色卡片上。桌宠飘在别人的壁纸上，
+     浅色玻璃遇到白底壁纸就整只消失，所以这里换成深色烟熏玻璃：
+     深底配白描边，深浅壁纸上都是一只轮廓完整的瓶子。 */
+  --flask-glass-top: rgba(46, 36, 58, 0.44);
+  --flask-glass-mid: rgba(46, 36, 58, 0.33);
+  --flask-glass-bot: rgba(46, 36, 58, 0.42);
+  --flask-stroke: rgba(255, 255, 255, 0.62);
+  /* 再贴一圈极窄的暗描边，白色描边压在浅色壁纸上时才不至于糊掉 */
+  filter:
+    drop-shadow(0 0 1px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 3px 9px rgba(0, 0, 0, 0.38));
+}
+
+/* 液面上涨要有过渡，否则每次推送状态都是一跳一跳的 */
+.flask-liquid {
+  transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.pet-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* 从正上方开始顺时针 */
+  transform: rotate(-90deg);
+  pointer-events: none;
+  /* 同理：细环在浅色背景上要有一点点暗边才看得出来 */
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
+}
+
+.pet-ring circle {
+  fill: none;
+  stroke-linecap: round;
+}
+
+/* 轨道用中性灰而不是半透明白：白色在浅色壁纸上等于没画 */
+.pet-ring-track {
+  stroke: rgba(126, 116, 138, 0.5);
+  stroke-width: 3;
+}
+
+.pet-ring-fill {
+  stroke: var(--accent);
+  stroke-width: 3.5;
+  transition: stroke-dashoffset 0.6s linear;
+}
+
+/* 计时进行中环上有一层缓慢的呼吸，暂停时静止——用来一眼分辨「还在跑吗」 */
+.pet-ring.is-running .pet-ring-fill {
+  animation: pet-breathe 3.2s ease-in-out infinite;
+}
+
+@keyframes pet-breathe {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+/* ── 迷你面板 ── */
+.pet-panel {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--pet-glass);
+  border: 1px solid var(--pet-line);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.pet-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pet-clock {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.pet-icon-btn {
+  border: 0;
+  background: transparent;
+  color: var(--pet-dim);
+  font-size: 18px;
+  line-height: 1;
+  padding: 2px 6px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.pet-icon-btn:hover {
+  color: var(--pet-text);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.pet-tasks {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pet-task {
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.pet-task-empty {
+  color: var(--pet-dim);
+  background: transparent;
+  padding-left: 0;
+}
+
+.pet-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pet-btn {
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--pet-text);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--pet-line);
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.pet-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.pet-btn-primary {
+  background: var(--accent);
+  border-color: transparent;
+}
+
+.pet-btn-primary:hover {
+  filter: brightness(1.12);
+  background: var(--accent);
+}
+
+.pet-note input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--pet-text);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--pet-line);
+  border-radius: 9px;
+  outline: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.pet-note input:focus {
+  border-color: var(--accent);
+}
+
+.pet-note input::placeholder {
+  color: var(--pet-dim);
+}
+
+.pet-link {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--pet-dim);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.pet-link:hover {
+  color: var(--pet-text);
+}
+
+/* 系统开了「减少动态效果」就别在桌面上一直呼吸 */
+@media (prefers-reduced-motion: reduce) {
+  .pet-ring.is-running .pet-ring-fill { animation: none; }
+  .pet-ring-fill { transition: none; }
+  .flask-liquid { transition: none; }
+}

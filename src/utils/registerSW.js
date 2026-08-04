@@ -8,6 +8,10 @@
 export default function registerSW() {
   if (!("serviceWorker" in navigator)) return;
 
+  // Electron 桌面版：整个应用本来就装在本地，离线缓存没有意义；
+  // 而 SW 一旦介入 app:// 的请求，升级后还容易吃到上一版的旧 chunk。直接不注册。
+  if (window.focusDesktop) return;
+
   // 开发模式：主动清除残留的 SW 与其缓存。
   // 若之前跑过 build/preview，SW 会常驻浏览器并对 JS 走缓存优先，导致 dev 时
   // 拿到旧的坏 bundle（表现为 "Cannot read properties of null (reading 'useState')"）。

@@ -76,13 +76,32 @@ export function priorityCenter(priorityId) {
   return { x: (b.xMin + b.xMax) / 2, y: (b.yMin + b.yMax) / 2 };
 }
 
-// 优先级标签 → 卡片缩放：按象限「档位」离散取值，同象限一个大小，不随象限内落点变化。
-//   重要且紧急最大、不重要不紧急最小，两个中间象限（重要不紧急 / 紧急不重要）同档居中。
-//   档距收窄、只拉开一点点：以中间象限 1.11 为基准，重要且紧急略大（1.22）、不重要不紧急略小（1.00）。
+// 优先级标签 → 卡片缩放：按象限离散取值，同象限一个大小，不随象限内落点变化。
+//   四档拉开，让「一眼看出谁重要」不必读文字：重要的两档明显更大，
+//   且「重要」比「紧急」更抬尺寸（重要不紧急 > 紧急不重要），符合矩阵本意。
+export const PRIORITY_SCALES = {
+  urgent_important: 1.34,
+  important: 1.16,
+  urgent: 0.98,
+  trivial: 0.84,
+};
+
+// 优先级标签 → 卡片明度（0..1，乘在整张卡的 opacity 上）：越不重要越暗、越往后退。
+//   与尺寸一起构成「大而亮 ↔ 小而暗」的双通道对比；悬停时 CSS 会恢复满亮度，
+//   所以暗下去只是视觉排序，不影响读取。
+export const PRIORITY_DIMS = {
+  urgent_important: 1,
+  important: 0.9,
+  urgent: 0.72,
+  trivial: 0.55,
+};
+
 export function scaleForPriority(priorityId) {
-  const q = PRIORITY_QUADRANTS[priorityId] ?? PRIORITY_QUADRANTS.trivial;
-  const tier = (q.left ? 1 : 0) + (q.top ? 1 : 0);
-  return [1.0, 1.11, 1.22][tier];
+  return PRIORITY_SCALES[priorityId] ?? PRIORITY_SCALES.trivial;
+}
+
+export function dimForPriority(priorityId) {
+  return PRIORITY_DIMS[priorityId] ?? PRIORITY_DIMS.trivial;
 }
 
 // 象限内「整齐网格」布局：把一个象限里的卡片按行流式排布（满行换行），必要时整体等比缩小刚好放下。

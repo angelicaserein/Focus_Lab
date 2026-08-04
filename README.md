@@ -40,6 +40,8 @@ AI 调用有三种模式，自动切换（详见 [`src/utils/ai/aiChat.js`](src/
 | `npm run test:watch` | 常驻监听测试 |
 | `npm run test:cov` | 覆盖率报告（`coverage/index.html`） |
 | `npm run journal` | 把 git commit 同步到 Notion（见 `scripts/git-notion-logger/`） |
+| `npm run desktop:dev` | 桌面版开发（Electron 主窗口 + 桌宠悬浮窗） |
+| `npm run desktop:pack` / `desktop:build` | 打免安装目录 / 打安装包，产物在 `release/` |
 
 ## 技术栈一览
 
@@ -52,6 +54,8 @@ AI 调用有三种模式，自动切换（详见 [`src/utils/ai/aiChat.js`](src/
 - **测试**：Vitest（单测）+ Playwright（E2E / 截图验证）
 - **部署**：Vercel（`api/` 为 Serverless Functions）
 
+- **桌面版**：Electron 33 + electron-builder，主窗口 + 桌宠悬浮窗（见 [`docs/desktop.md`](docs/desktop.md)）
+
 完整技术细节见 [`docs/tech-stack.md`](docs/tech-stack.md)，测试规范见 [`docs/TDD.md`](docs/TDD.md)。
 
 ## 目录结构
@@ -59,6 +63,7 @@ AI 调用有三种模式，自动切换（详见 [`src/utils/ai/aiChat.js`](src/
 ```
 Focus_Lab/
 ├── api/               # Vercel Serverless Functions（AI 代理端点）
+├── electron/          # 桌面版主进程与 preload（见 docs/desktop.md）
 ├── assets/            # 打包进 bundle 的资源（3D 模型等）
 ├── public/            # 原样拷贝的静态资源（PWA、Draco 解码器、图标）
 ├── docs/              # 项目文档（技术栈、TDD 约定）
@@ -70,6 +75,7 @@ Focus_Lab/
 │   ├── hooks/         # 自定义 hooks（focus / task / session / common …）
 │   ├── utils/         # 纯逻辑（ai / task / scenario / storage / analytics …）
 │   ├── i18n/          # 中英文案
+│   ├── pet/           # 桌宠悬浮窗（Electron 的第二个渲染入口，pet.html）
 │   ├── routes/        # 路由表与懒加载装配
 │   ├── styles/        # 全局样式与设计 token
 │   ├── AppProviders.jsx  # Context 装配（数组顺序即嵌套层级）

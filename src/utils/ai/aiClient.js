@@ -49,10 +49,15 @@ export async function chatComplete({ messages, system, user, maxTokens }) {
   return resp.choices[0]?.message?.content ?? "";
 }
 
+// 代理的根地址。网页版留空即可——/api/* 和页面同源。
+// Electron 桌面版页面跑在 app:// 下，没有同源的服务端，必须指向已部署的站点：
+// 打包前设 VITE_API_BASE=https://<你的 vercel 域名>（见 package.json 的 desktop:build）。
+const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/$/, "");
+
 // 模式 1：POST 到服务器代理，返回已解析的响应 JSON。
 //  失败抛错，由调用方决定兜底（有的回退示例、有的直接向上抛）。
 export async function postProxy(endpoint, body) {
-  const resp = await fetch(endpoint, {
+  const resp = await fetch(`${API_BASE}${endpoint}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

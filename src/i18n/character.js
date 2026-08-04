@@ -91,5 +91,5 @@ export default {
   "companion.line.sleepy.0": { en: "Resting is part of it too.", zh: "歇一歇，也是专注的一部分。" },
   "companion.line.sleepy.1": { en: "Let's recharge a little.", zh: "我们充一小会儿电。" },
   "companion.line.sleepy.2": { en: "The lamp dims, but never goes out.", zh: "灯会变暗，但不会熄。" },
-  "companion.refresh": { en: "Another word from Lumi", zh: "让灯灯再说一句" },
+  "companion.refresh": { en: "Another word", zh: "再说一句" },
 };

@@ -23,7 +23,7 @@ export default function RitualLaunch({
   const { t } = useLanguage();
   const [outfit] = useLocalStorage(STORAGE_KEYS.COMPANION_OUTFIT, null);
 
-  // 灯灯的一句：挂载时定一次，整段仪式不变（避免重渲染换台词）。
+  // 暖光的一句：挂载时定一次，整段仪式不变（避免重渲染换台词）。
   const lineRef = useRef(null);
   if (lineRef.current === null) lineRef.current = companionLine(t, "focus");
 

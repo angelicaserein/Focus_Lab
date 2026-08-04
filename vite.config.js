@@ -3,6 +3,18 @@ import { fileURLToPath } from 'node:url'
 
 export default defineConfig({
   base: './',
+  build: {
+    rollupOptions: {
+      // 两个入口：index.html 是完整应用（网页版 / Electron 主窗口），
+      // pet.html 是 Electron 的桌宠悬浮窗。桌宠刻意不复用 index.html——
+      // 它只需要一只 SVG 烧瓶，不该把路由 / Context / three.js 再跑一遍。
+      // 网页版部署时多出来的 pet.html 无人访问，也不进 SW 预缓存清单。
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        pet: fileURLToPath(new URL('./pet.html', import.meta.url)),
+      },
+    },
+  },
   // localStorage 按 origin（含端口）隔离：端口一变，浏览器就当成另一个站点，
   // 之前的任务/设置全读不到、像丢了数据。固定 5173，并用 strictPort 让「端口被
   // 占用」时直接报错（提示去关掉旧的 dev server），而不是静默跳到 5174/5177。

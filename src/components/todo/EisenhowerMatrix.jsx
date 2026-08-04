@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Check, Pencil, Trash2, Star } from "lucide-react";
 import { useTodos } from "@/context/TodoContext";
 import { useFocus } from "@/context/FocusContext";
 import { useLanguage } from "@/context/LanguageContext";
@@ -7,6 +8,7 @@ import { useMatrixDrag } from "@/hooks/task/useMatrixDrag";
 import {
   clamp,
   scaleForPriority,
+  dimForPriority,
   isPlaced,
   layoutQuadrantGrid,
   quadrantOfPos,
@@ -23,6 +25,8 @@ import {
   PLANE_Y_MAX,
 } from "@/utils/task/matrixGeometry";
 import MatrixSortDialog from "./MatrixSortDialog";
+import BrainDumpAssistant from "@/pages/Tasks/BrainDumpAssistant";
+import Toast from "@/components/ui/Toast";
 import "./EisenhowerMatrix.css";
 
 // 紧急/重要优先级平面（艾森豪威尔矩阵的连续版）：
@@ -97,56 +101,121 @@ function TaskTag({
   );
 }
 
-// 卡片右上方浮出的扁平操作菜单：固定定位（脱离平面的 overflow:hidden 与 3D 倾倒裁剪），
-// 锚点由父组件按卡片的 getBoundingClientRect 实时算好（右上角）。
-function MatrixCardMenu({ pos, todo, onComplete, onEdit, onDelete, t }) {
-  if (!pos || !todo) return null;
+// 菜单与卡片之间的缝隙、以及菜单离视口边缘至少留的余量（px）
+const MENU_GAP = 7;
+const MENU_MARGIN = 8;
+
+// 卡片上方浮出的扁平操作菜单：固定定位（脱离平面的 overflow:hidden 与 3D 倾倒裁剪），
+// 锚点是父组件实时算好的卡片矩形（上沿中点 + 下沿）。
+// 摆位在这里收尾：菜单先量出自己的尺寸，再决定浮在卡片上方还是（上方放不下时）翻到下方，
+// 左右也夹进视口——顶行 / 贴边的卡片不会把菜单顶出屏幕外。
+function MatrixCardMenu({
+  anchor, todo, focused, autoFocus,
+  onToggleFocus, onComplete, onEdit, onDelete, t,
+}) {
+  const menuRef = useRef(null);
+  // 量完才知道往哪摆；未定位前先藏起来，避免闪现在错位置
+  const [placement, setPlacement] = useState(null);
+
+  useLayoutEffect(() => {
+    const el = menuRef.current;
+    if (!anchor || !el) { setPlacement(null); return; }
+    const { width, height } = el.getBoundingClientRect();
+    const above = anchor.top - height - MENU_GAP;
+    const flip = above < MENU_MARGIN; // 上方塞不下 → 翻到卡片下方
+    setPlacement({
+      left: clamp(
+        anchor.cx - width / 2,
+        MENU_MARGIN,
+        Math.max(MENU_MARGIN, window.innerWidth - width - MENU_MARGIN)
+      ),
+      top: flip ? anchor.bottom + MENU_GAP : above,
+      flip,
+    });
+  }, [anchor]);
+
+  // 键盘展开（Enter/Space）时把焦点送进菜单第一颗按钮——否则 Tab 会跳到下一张卡片，
+  // 菜单在 DOM 末尾，键盘根本够不着。每次展开只送一次：滚动时锚点会不断重算，
+  // 若不设闸，焦点会被反复拽回第一颗按钮。
+  const focusSentRef = useRef(false);
+  useEffect(() => {
+    if (!anchor) { focusSentRef.current = false; return; }
+    if (!autoFocus || !placement || focusSentRef.current) return;
+    focusSentRef.current = true;
+    menuRef.current?.querySelector("button")?.focus();
+  }, [anchor, autoFocus, placement]);
+
+  if (!anchor || !todo) return null;
   return (
     <div
-      className="matrix-tag-menu"
+      ref={menuRef}
+      className={`matrix-tag-menu${placement?.flip ? " flip" : ""}`}
       role="group"
       aria-label={t("focus.matrix.actionsAria", { text: todo.text })}
-      style={{ left: `${pos.left}px`, top: `${pos.top}px` }}
+      style={{
+        left: `${placement?.left ?? 0}px`,
+        top: `${placement?.top ?? 0}px`,
+        visibility: placement ? undefined : "hidden",
+      }}
     >
+      <button
+        type="button"
+        className={`matrix-tag-act focus${focused ? " active" : ""}`}
+        onClick={(e) => { e.stopPropagation(); onToggleFocus(todo.id); }}
+        aria-label={t("focus.matrix.focusToggleAria", { text: todo.text })}
+        title={focused ? t("focus.matrix.focusRemove") : t("focus.matrix.focusAdd")}
+      >
+        <Star size={14} strokeWidth={2.4} fill={focused ? "currentColor" : "none"} aria-hidden="true" />
+      </button>
       <button
         type="button"
         className="matrix-tag-act complete"
         onClick={(e) => { e.stopPropagation(); onComplete(todo.id); }}
         aria-label={t("focus.matrix.completeAria", { text: todo.text })}
+        title={t("focus.matrix.complete")}
       >
-        {t("focus.matrix.complete")}
+        <Check size={15} strokeWidth={2.6} aria-hidden="true" />
       </button>
       <button
         type="button"
         className="matrix-tag-act edit"
         onClick={(e) => { e.stopPropagation(); onEdit(todo.id); }}
         aria-label={t("focus.matrix.editAria", { text: todo.text })}
+        title={t("focus.matrix.edit")}
       >
-        {t("focus.matrix.edit")}
+        <Pencil size={14} strokeWidth={2.4} aria-hidden="true" />
       </button>
       <button
         type="button"
         className="matrix-tag-act del"
         onClick={(e) => { e.stopPropagation(); onDelete(todo.id); }}
         aria-label={t("focus.matrix.deleteAria", { text: todo.text })}
+        title={t("focus.matrix.delete")}
       >
-        {t("focus.matrix.delete")}
+        <Trash2 size={14} strokeWidth={2.4} aria-hidden="true" />
       </button>
     </div>
   );
 }
 
 export default function EisenhowerMatrix({ onStartImmersive }) {
-  const { todos, addTodo, toggleTodo, editTodo, updateTodoProps, setTodoAttr, deleteTodo } = useTodos();
-  const { isFocused } = useFocus();
+  const {
+    todos, addTodo, toggleTodo, editTodo, updateTodoProps, setTodoAttr, deleteTodo,
+    pendingDelete, undoDelete,
+  } = useTodos();
+  const { isFocused, toggleFocusTodo } = useFocus();
   const { t } = useLanguage();
 
   const [draft, setDraft] = useState("");
+  // 「倒脑子」助手：把脑子里乱糟糟的事一股脑写下来，AI 拆成候选任务落到任务库
+  const [showBrainDump, setShowBrainDump] = useState(false);
   const [settlingId, setSettlingId] = useState(null);
-  // 卡片交互：expandedId=正浮出操作菜单的卡片；menuPos=菜单锚点（视口坐标，右上角）；
+  // 卡片交互：expandedId=正浮出操作菜单的卡片；menuAnchor=卡片矩形（视口坐标，菜单据此摆位）；
   //   editingId/editDraft=正在改名的卡片与草稿
   const [expandedId, setExpandedId] = useState(null);
-  const [menuPos, setMenuPos] = useState(null);
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  // 这次展开是不是键盘触发的：是则把焦点送进菜单，收起时再还给卡片
+  const [menuByKeyboard, setMenuByKeyboard] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editDraft, setEditDraft] = useState("");
   // 平面容器 ref（供菜单锚点在有滚动/倾倒时也能定位）
@@ -179,6 +248,7 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
     const timer = setTimeout(() => {
       tapRef.current = null;
       setEditingId(null);
+      setMenuByKeyboard(false); // 指针展开：焦点不必搬进菜单
       setExpandedId((cur) => (cur === id ? null : id));
     }, DOUBLE_TAP_MS);
     tapRef.current = { id, timer };
@@ -193,21 +263,29 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
       if (!e.target.closest(".matrix-tag, .matrix-tag-menu")) {
         setExpandedId(null);
         setEditingId(null);
+        setMenuByKeyboard(false);
       }
     };
     document.addEventListener("pointerdown", onDown);
     return () => document.removeEventListener("pointerdown", onDown);
   }, [expandedId, editingId]);
 
-  // 菜单锚点：贴着展开卡片的右上角浮出。用卡片的视口矩形实时算，滚动/改窗时跟随；
-  //   卡片消失（被删/改名收起）则清空。改名态不显示菜单。
+  // 菜单锚点：展开卡片的视口矩形（上沿中点 + 下沿），滚动/改窗时实时跟随；
+  //   卡片消失（被删/改名收起）则清空。改名态不显示菜单。具体摆哪边由菜单自己收尾。
   useEffect(() => {
-    if (expandedId == null || editingId != null) { setMenuPos(null); return; }
+    if (expandedId == null || editingId != null) { setMenuAnchor(null); return; }
     const place = () => {
       const el = containerRef.current?.querySelector(`.matrix-tag[data-todo-id="${expandedId}"]`);
-      if (!el) { setMenuPos(null); return; }
+      if (!el) { setMenuAnchor(null); return; }
       const r = el.getBoundingClientRect();
-      setMenuPos({ left: r.right, top: r.top });
+      setMenuAnchor((prev) => {
+        const next = { cx: r.left + r.width / 2, top: r.top, bottom: r.bottom };
+        // 位置没变就保持同一个对象引用，免得滚动时空转重排菜单
+        if (prev && prev.cx === next.cx && prev.top === next.top && prev.bottom === next.bottom) {
+          return prev;
+        }
+        return next;
+      });
     };
     place();
     window.addEventListener("scroll", place, true);
@@ -217,6 +295,33 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
       window.removeEventListener("resize", place);
     };
   }, [expandedId, editingId, quadShrink]);
+
+  // 收起菜单。键盘展开的那次要把焦点还给卡片，否则焦点落在被卸载的按钮上、直接回到页面开头。
+  const closeMenu = useCallback(() => {
+    setExpandedId((cur) => {
+      if (cur != null && menuByKeyboard) {
+        containerRef.current
+          ?.querySelector(`.matrix-tag[data-todo-id="${cur}"]`)
+          ?.focus();
+      }
+      return null;
+    });
+    setMenuByKeyboard(false);
+  }, [menuByKeyboard]);
+
+  // Esc 收起菜单 / 退出改名——和点空白处同义，是所有浮层的通用退路
+  useEffect(() => {
+    if (expandedId == null && editingId == null) return;
+    const onKey = (e) => {
+      if (e.key !== "Escape") return;
+      // 改名输入框自己会处理 Esc（撤销这次改名），别越过它把菜单一起关了
+      if (editingId != null) return;
+      e.stopPropagation();
+      closeMenu();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [expandedId, editingId, closeMenu]);
 
   // 操作条三个动作：完成打勾、改名、删除。动作后收起操作条。
   const completeTask = (id) => { toggleTodo(id); setExpandedId(null); };
@@ -232,9 +337,14 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
   };
   const cancelEdit = () => setEditingId(null);
   const removeTask = (id) => { deleteTodo(id); setExpandedId(null); };
+  // 键盘（Enter/Space）展开：标记这次是键盘触发，好让焦点进得去、也回得来
   const toggleExpand = (id) => {
     setEditingId(null);
-    setExpandedId((cur) => (cur === id ? null : id));
+    setExpandedId((cur) => {
+      const next = cur === id ? null : id;
+      setMenuByKeyboard(next != null);
+      return next;
+    });
   };
 
   // 拖拽：落在平面写落点并触发落座动画，拖回托盘清定位，轻点则展开/进专注（handleCardTap）
@@ -525,10 +635,22 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
           onChange={(e) => setDraft(e.target.value)}
           aria-label={t("focus.matrix.addPlaceholder")}
         />
+        <button
+          type="button"
+          className="matrix-braindump"
+          onClick={() => setShowBrainDump(true)}
+          title={t("focus.matrix.brainDump")}
+        >
+          🧠 {t("focus.matrix.brainDump")}
+        </button>
         <button type="submit" className="matrix-add">
           {t("focus.matrix.add")}
         </button>
       </form>
+
+      {showBrainDump && (
+        <BrainDumpAssistant onClose={() => setShowBrainDump(false)} onAdded={() => {}} />
+      )}
 
       <div className="matrix-board">
         <div
@@ -546,7 +668,7 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
           )}
 
           {placed.map((todo) => {
-            // 卡片大小只看象限档位：重要且紧急最大、不重要不紧急最小，同象限一个大小
+            // 卡片大小/明度只看象限档位：越重要越大越亮，同象限一个大小
             const priority = todo.attrs?.priority ?? quadrantOfPos(todo.matrixPos);
             const weight = (1 - todo.matrixPos.x) * 0.5 + (1 - todo.matrixPos.y) * 0.5;
             // 网格布局给该象限的整体缩小系数（象限装不下时 <1），乘到档位缩放上——渲染仍 ≤ 槽位，不重叠
@@ -560,6 +682,7 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
                   left: `${todo.matrixPos.x * 100}%`,
                   top: `${todo.matrixPos.y * 100}%`,
                   "--matrix-scale": scale.toFixed(3),
+                  "--matrix-dim": dimForPriority(priority),
                   zIndex: Math.round(weight * 100) + 1,
                 }}
                 onAnimationEnd={() =>
@@ -624,14 +747,25 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
         </div>
       )}
 
-      {/* 单击卡片浮出的扁平操作菜单：贴卡片右上角，固定定位不撑宽卡片 */}
+      {/* 单击卡片浮出的扁平操作菜单：浮在卡片上方居中，固定定位不撑宽卡片 */}
       <MatrixCardMenu
-        pos={menuPos}
+        anchor={menuAnchor}
         todo={expandedTodo}
+        autoFocus={menuByKeyboard}
+        focused={expandedTodo ? isFocused(expandedTodo.id) : false}
+        onToggleFocus={toggleFocusTodo}
         onComplete={completeTask}
         onEdit={startEdit}
         onDelete={removeTask}
         t={t}
+      />
+
+      {/* 删除的撤销条：deleteTodo 本来就留了 5 秒撤销窗（useUndoDelete），
+          但这条一直只在任务库页渲染——专注页上删卡片等于直接没了。补上。 */}
+      <Toast
+        pendingDelete={pendingDelete}
+        undoDelete={undoDelete}
+        getText={(item) => item.text}
       />
 
       {/* 两步是非题：把「感觉放哪」拆成两个封闭问题，自动落到象限 */}

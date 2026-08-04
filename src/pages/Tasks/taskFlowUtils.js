@@ -71,6 +71,36 @@ export function bucketTasks(todos, weightOf) {
 }
 
 /**
+ * 冻结卡片落位：已经露过面的任务沿用上一次的堆与次序，只有新任务按当前数据落位。
+ * 这样改属性、勾完成都不会让卡片当场换堆乱跳（勾完的那张原地划掉），
+ * 想收干净时把 placement 清空重新调用即可。
+ *
+ * @param fresh     bucketTasks() 的结果
+ * @param placement Map<id, {bucket, index}>，上一次的落位；空 Map = 从头排
+ * @returns { buckets, placement } 新的分堆与落位表
+ */
+export function stickyBuckets(fresh, placement) {
+  const next = new Map();
+  const out = { today: [], upcoming: [], anytime: [], done: [] };
+  for (const key of Object.keys(out)) {
+    (fresh[key] ?? []).forEach((t, i) => {
+      const old = placement?.get(t.id);
+      const slot = old && out[old.bucket] ? old : { bucket: key, index: i };
+      next.set(t.id, slot);
+      out[slot.bucket].push(t);
+    });
+  }
+  for (const key of Object.keys(out)) {
+    out[key].sort(
+      (a, b) =>
+        next.get(a.id).index - next.get(b.id).index ||
+        (a.createdAt ?? 0) - (b.createdAt ?? 0),
+    );
+  }
+  return { buckets: out, placement: next };
+}
+
+/**
  * 「现在就做这一件」的自动挑选：逾期/今天的优先，其次重要，再次紧急，最后最早创建。
  * 返回单个 todo 或 undefined。
  */

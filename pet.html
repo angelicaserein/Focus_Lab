@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>Focus Lab 桌宠</title>
+    <!--
+      桌宠窗是独立的第二个 Vite 入口，不走 index.html。
+      它刻意不加载主 app 的路由 / Context / three.js —— 一个常驻桌面的悬浮窗
+      只应该是几 KB 的 SVG，不该把整个应用再跑一遍。
+    -->
+  </head>
+  <body class="pet-body">
+    <div id="pet-root"></div>
+    <script type="module" src="/src/pet/main.jsx"></script>
+  </body>
+</html>

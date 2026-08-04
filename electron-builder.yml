@@ -1,0 +1,47 @@
+# electron-builder 打包配置。
+# 产物进 release/，已在 .gitignore 里排除。
+appId: com.focuslab.desktop
+productName: Focus Lab
+copyright: Focus Lab
+
+directories:
+  output: release
+  buildResources: build
+
+# 只打三样东西：前端产物、主进程/preload、package.json。
+# node_modules 不需要显式列——主进程除 electron 内置模块外没有运行时依赖，
+# 前端依赖已经在 vite build 时打进 dist/ 了。
+files:
+  - dist/**
+  - electron/**
+  - package.json
+
+asar: true
+
+win:
+  # 没有 .ico，用 512 的 png，builder 会自己转
+  icon: public/icon-512.png
+  target:
+    - target: nsis
+      arch: [x64]
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Focus Lab
+
+mac:
+  icon: public/icon-512.png
+  category: public.app-category.productivity
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+
+linux:
+  icon: public/icon-512.png
+  category: Utility
+  target:
+    - AppImage

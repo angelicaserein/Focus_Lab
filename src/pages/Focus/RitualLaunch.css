@@ -63,7 +63,7 @@
   text-align: center;
 }
 
-/* 蓄势：灯灯做一次呼吸脉冲（借 SkillTree 呼吸节奏） */
+/* 蓄势：暖光做一次呼吸脉冲（借 SkillTree 呼吸节奏） */
 .ritual-companion {
   animation: ritual-lumi-breathe 2.4s ease-in-out infinite;
 }

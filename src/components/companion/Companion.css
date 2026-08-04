@@ -1,7 +1,5 @@
-/* 常驻伙伴「灯灯 / Lumi」立绘样式（极简 block）。
-   一个实心圆角方块 + 两只深色眼睛，表情全靠 JSX 切眼睛形状。
-   纯色平涂、无渐变、无描边；色调由 --cmp-hue 驱动（随佩戴 outfit 变），
-   眼睛是同色系的深色（亮身体 + 暗眼睛），身后一层柔光暗示「它是一盏灯」。 */
+/* 专注陪伴「一盏暖光」样式：一枚无脸的抽象光球（不再是有五官的角色）。
+   外层柔光 + 光核 + 内层高光三层同心圆，色调由 --cmp-hue 驱动（随佩戴 outfit 变）。 */
 
 .cmp {
   position: relative;
@@ -22,19 +20,15 @@
   opacity: 0.26;
 }
 
-/* 身体：实心圆角方块 block，纯色平涂、无描边 */
-.cmp-body {
+/* 光核：一枚圆形暖光，纯色平涂 */
+.cmp-core {
   fill: hsl(var(--cmp-hue) 78% 60%);
 }
 
-/* 眼睛：同色系深色（实心：idle / focus） */
-.cmp-eyes-solid ellipse {
-  fill: hsl(var(--cmp-hue) 85% 22%);
-}
-/* 眼睛（描边弧线：cheer / sleepy） */
-.cmp-eyes path {
-  stroke: hsl(var(--cmp-hue) 85% 22%);
-  stroke-width: 4;
+/* 内层高光：更亮更浅的小圆，给光一点中心通透感 */
+.cmp-glow {
+  fill: hsl(var(--cmp-hue) 92% 82%);
+  opacity: 0.85;
 }
 
 /* 头顶饰物 */

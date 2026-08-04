@@ -78,7 +78,7 @@ describe("localForeman（厂长播报·本地兜底）", () => {
   });
 });
 
-describe("localLumi（灯灯陪伴·本地兜底）", () => {
+describe("localLumi（暖光陪伴·本地兜底）", () => {
   it("专注心情带入情景名", () => {
     const text = localLumi({ mood: "focus", scenarioName: "论文写作" }, "zh", 0);
     expect(text).toContain("论文写作");
@@ -122,11 +122,11 @@ describe("prompt / payload 构建（发给模型的文本）", () => {
     expect(buildSystemPrompt("en")).toContain("Narrator");
     expect(buildForemanSystem("zh")).toContain("厂长");
     expect(buildForemanSystem("en")).toContain("Foreman");
-    expect(buildLumiSystem("zh")).toContain("灯灯");
-    expect(buildLumiSystem("en")).toContain("Lumi");
+    expect(buildLumiSystem("zh")).toContain("暖光");
+    expect(buildLumiSystem("en")).toContain("lamp-light");
   });
 
-  it("灯灯 payload 带入情境；可选字段缺省时省略", () => {
+  it("暖光 payload 带入情境；可选字段缺省时省略", () => {
     const full = buildLumiPayload({ mood: "focus", taskCount: 2, scenarioName: "写作" }, "zh");
     expect(full).toContain("写作");
     expect(full).toContain("2");

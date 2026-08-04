@@ -16,7 +16,7 @@ import {
 } from "./worldData";
 import "./World.css";
 
-// 世界地图：把每个情景当作一片「区域」，专注=在其中探索。灯灯作为向导站在据点（研究所）。
+// 世界地图：把每个情景当作一片「区域」，专注=在其中探索。暖光作为向导站在据点（研究所）。
 // 纯衍生——节点大小/光晕/连线由真实探索进度决定，无新增存储、无门禁、无分母。
 // 沿用星图「全部从行为推导」的原则，只是换成一张可探索的世界地图叙事。
 export default function WorldPage() {
@@ -127,7 +127,7 @@ export default function WorldPage() {
                   </g>
                 ))}
 
-                {/* 据点：研究所 + 向导灯灯 */}
+                {/* 据点：研究所 + 向导暖光 */}
                 <g className="world-home">
                   <circle className="world-home-halo" cx={homeX} cy={homeY} r={46} />
                   <circle className="world-home-core" cx={homeX} cy={homeY} r={30} />
@@ -138,7 +138,7 @@ export default function WorldPage() {
                 </g>
               </svg>
 
-              {/* 向导灯灯：绝对定位在据点上方 */}
+              {/* 向导暖光：绝对定位在据点上方 */}
               <div
                 className="world-guide"
                 style={{ left: homeX, top: homeY - 78 }}

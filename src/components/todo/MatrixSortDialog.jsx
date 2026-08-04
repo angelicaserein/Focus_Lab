@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 // 「分一下」两步是非题：把「这任务放哪」拆成「急不急 / 重不重要」两个封闭问题，
 // 答完自动落到对应象限。本组件只管呈现与转发点击，象限换算留在矩阵组件里。
@@ -11,11 +11,54 @@ import React from "react";
 //   onCancel         第一步时「取消」/ 点遮罩关闭
 //   t                翻译函数
 export default function MatrixSortDialog({ todo, urgent, onAnswer, onBack, onCancel, t }) {
+  const cardRef = useRef(null);
+  // 打开时把焦点从卡片上的「分一下」搬进弹窗，关掉再还回去——
+  // 否则 aria-modal 是空头支票：焦点还留在弹窗背后，Tab 走的是被遮住的页面。
+  const returnToRef = useRef(null);
+
+  useEffect(() => {
+    returnToRef.current = document.activeElement;
+    cardRef.current?.querySelector("button")?.focus();
+    return () => {
+      const el = returnToRef.current;
+      if (el && document.contains(el)) el.focus();
+    };
+  }, []);
+
+  // Esc = 取消。第二步时按 Esc 一样整个关掉（「上一步」留给显式按钮）。
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key !== "Escape") return;
+      e.stopPropagation();
+      onCancel();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onCancel]);
+
+  // 焦点困在弹窗里：Tab 走到尽头绕回开头，别溜到背后的页面上
+  const trapTab = (e) => {
+    if (e.key !== "Tab") return;
+    const items = cardRef.current?.querySelectorAll("button");
+    if (!items?.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+
   return (
     <div className="matrix-sort-overlay" onClick={onCancel} role="presentation">
       <div
+        ref={cardRef}
         className="matrix-sort-card"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={trapTab}
         role="dialog"
         aria-modal="true"
         aria-label={t("focus.matrix.sortHeading", { text: todo.text })}

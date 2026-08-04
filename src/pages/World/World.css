@@ -127,7 +127,7 @@
   fill: var(--accent);
 }
 
-/* 向导灯灯 */
+/* 向导暖光 */
 .world-guide {
   position: absolute;
   transform: translateX(-50%);

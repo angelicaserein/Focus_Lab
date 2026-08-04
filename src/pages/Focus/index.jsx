@@ -15,6 +15,7 @@ import useScenarioFromRoute from "@/hooks/scenario/useScenarioFromRoute";
 import usePruneDeletedFocus from "@/hooks/focus/usePruneDeletedFocus";
 import useAutoStopOnEmpty from "@/hooks/focus/useAutoStopOnEmpty";
 import useFlaskFullNotify from "@/hooks/focus/useFlaskFullNotify";
+import useDesktopFocusSync from "@/hooks/desktop/useDesktopFocusSync";
 import { filterSinceSession } from "@/utils/records/focusRecords";
 import { FocusSessionContext } from "@/pages/Focus/FocusSessionContext";
 // 沉浸层里挂着 three.js + 16MB 模型（约 1MB JS chunk）。懒加载后：进专注页只加载控制台，
@@ -244,6 +245,16 @@ export default function FocusPage() {
     logEvent(isRunning ? "session_paused" : "session_resumed");
     togglePause();
   };
+
+  // 桌面版：把计时状态推给桌宠悬浮窗，并接住它发回的开始 / 暂停 / 结束。
+  // 「开始」走 beginRitual 而不是 handleStart，和页面上那颗按钮保持同一条路径
+  // （包括启动仪式）。浏览器里这个 hook 整个是空转。
+  useDesktopFocusSync({
+    seconds, isRunning, isImmersive, targetMins, timerMode, hasSelection,
+    onStart: beginRitual,
+    onTogglePause: handleTogglePause,
+    onStop: handleStop,
+  });
 
   const sessionCtxValue = useMemo(
     () => ({

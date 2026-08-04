@@ -65,11 +65,28 @@ export default function DDLReminderModal() {
     navigate("/focus");
   };
 
+  // Esc 关闭：这个弹窗是打开应用就自己弹出来的，挡在所有内容前面，
+  // 却只能靠点遮罩或按钮关掉——键盘用户没有退路。
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onKey = (e) => e.key === "Escape" && dismiss();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  // dismiss 每次渲染重建，但内容不变；只需跟着开合装卸
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
     <div className="ddl-modal-overlay" onClick={dismiss}>
-      <div className="ddl-modal" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="ddl-modal"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("ddl.modal.title")}
+      >
         <div className="ddl-modal-header">
           <span className="ddl-modal-icon">📅</span>
           <div>

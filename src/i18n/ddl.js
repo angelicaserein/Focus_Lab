@@ -1,12 +1,10 @@
 // DDL 提醒 + 截止地平线
 // 每条一行：key -> { en, zh }。新增可见文案时在此补齐两份。
 export default {
-  "ddl.horizon.title": { en: "Deadline horizon", zh: "截止临近感" },
+  "ddl.horizon.title": { en: "Deadline", zh: "截止临近感" },
   "ddl.horizon.nearest": { en: "Nearest · {countdown}", zh: "最近一个 · {countdown}" },
   "ddl.horizon.clear": { en: "The road ahead is clear", zh: "前方一片开阔" },
   "ddl.horizon.aria": { en: "Sense of distance to your deadlines", zh: "截止日期距离感" },
-  "ddl.horizon.now": { en: "Now", zh: "现在" },
-  "ddl.horizon.far": { en: "Far off", zh: "远期" },
   "ddl.horizon.empty": { en: "No deadlines ahead — the road is wide open 🌿", zh: "没有临近的截止日，路上很空旷 🌿" },
   "ddl.horizon.pinTitle": { en: "{text} · {due} ({countdown})", zh: "{text} · {due}（{countdown}）" },
   "ddl.horizon.pin.overdue": { en: "{days}d over", zh: "逾期{days}天" },
