@@ -9,7 +9,15 @@ import { shapeOf } from "@/data/aquarium/creatureShapes";
 import { creaturePalette } from "@/data/aquarium/creaturePalette";
 
 // 生态缸：一只用 canvas 画的活水缸。已入住的物种一直在里面慢游；新鱼由父页调用命令式接口
-// 「从上面扔进来」——鱼从缸口上方直直落下，入水那一刻炸开水花、荡起水面，随即成为常驻住客。
+// 「从上面扔进来」。
+//
+// 入水是一条连续的因果链，不是三段拼接（fall → dive → resident 之间不许有突变）：
+//   坠落   头朝下越掉越快，触水判定用当下起伏的水面，不是静水位
+//   入水   带着这一刻的实际速度砸下去——砸得越重，水花越大、扎得越深
+//   下潜   在水里被阻力减速、翻回横姿、尺寸收敛到住客大小，一路拖着气泡
+//   交接   速度掉干净、姿态回正，才原地变成住客（位置完全承接）
+// 水面的扰动也是局部的：落点被砸出一个凹坑，向两侧荡开涟漪并衰减；整片水面一起抬起
+// 会像整缸在晃，而不像被一只鱼砸中。
 //
 // 顺序上是「先弹解锁卡、收下之后再扔进缸里」：卡片是揭晓，入水是安置，两件事不该抢同一拍。
 // （早先做过「跃出水面→顶点弹卡→再潜回」，跃出那一段既解释不通又拖节奏，已去掉。）
@@ -26,7 +34,7 @@ import { creaturePalette } from "@/data/aquarium/creaturePalette";
 //   label: string          canvas 的无障碍名（由父页给，跟随语言）
 //   paused: boolean        真时停止逐帧绘制（收集卡盖在缸上时用，见下）
 // ref API:
-//   drop(id, onLand)       从上方落入缸中，入水溅起水花，落定后成为常驻住客并回调 onLand()
+//   drop(id, onLand)       从上方落入缸中，下潜稳住后成为常驻住客并回调 onLand()
 
 // —— 画布几何全部由「当前显示尺寸」实时推导（单位＝CSS px）。
 //    以前是写死的 820×580 再靠 CSS 缩放，手机上缸被压得又扁又小、生物细如芝麻；
@@ -67,6 +75,9 @@ function compiled(glyph) {
 // 贴底/扎根的物种落到缸底，其余在水中层游。
 const BOTTOM = new Set(["crawl", "anchor"]);
 
+// 大小按物种微调：鲸/魟比小虾大一圈，一缸里才有层次。入水动画要收敛到同一个尺寸，故抽出来共用。
+const sizeFactor = (sp) => (sp.rarity === 3 ? 1.15 : sp.rarity === 2 ? 1 : 0.9);
+
 const AquariumTank = forwardRef(function AquariumTank(
   { initialKeys = [], label = "Aquarium", paused = false },
   ref,
@@ -76,7 +87,17 @@ const AquariumTank = forwardRef(function AquariumTank(
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
   // 全部 canvas 世界状态放这里，避免触发 React 重渲染。
-  const w = useRef({ residents: [], fallers: [], drops: [], splash: 0, t: 0 });
+  // splashX/splashT：入水是「一个点」被砸中，不是整缸一起晃——水面扰动以落点为中心衰减。
+  const w = useRef({
+    residents: [],
+    fallers: [],
+    drops: [],
+    bubbles: [],
+    splash: 0,
+    splashX: 0,
+    splashT: 0,
+    t: 0,
+  });
   const g = useRef(geometry(780, 460)); // 首帧前的占位，挂载后立刻被实测值覆盖
   const seedRef = useRef(initialKeys);
 
@@ -90,8 +111,7 @@ const AquariumTank = forwardRef(function AquariumTank(
       id,
       glyph: sp.glyph,
       motion: sp.motion,
-      // 大小按物种微调：鲸/魟比小虾大一圈，一缸里才有层次
-      size: sp.rarity === 3 ? 1.15 : sp.rarity === 2 ? 1 : 0.9,
+      size: sizeFactor(sp),
       x: x ?? q.SW_L + Math.random() * (q.SW_R - q.SW_L),
       y:
         y ??
@@ -108,18 +128,32 @@ const AquariumTank = forwardRef(function AquariumTank(
   }
 
   // 入水的水花：从落点向两侧上方溅开，故水滴的横速以落点为中心对称展开。
-  function splashAt(x) {
-    const q = g.current;
-    w.current.splash = 1;
-    for (let i = 0; i < 18; i++) {
+  // 同时记下落点与时刻——水面的凹坑和涟漪都从这里长出来（见 surfaceY）。
+  function splashAt(x, y, power = 1) {
+    const s = w.current, q = g.current;
+    s.splash = power;
+    s.splashX = x;
+    s.splashT = s.t;
+    const n = Math.round(14 * power) + 4;
+    for (let i = 0; i < n; i++) {
       const side = i % 2 ? 1 : -1;
-      w.current.drops.push({
+      s.drops.push({
         x: x + side * Math.random() * 10 * q.S,
-        y: q.RIM - 2,
-        vx: side * (1.2 + Math.random() * 4.4) * q.S,
-        vy: (-3.4 - Math.random() * 5.6) * q.S,
+        y: y - 2,
+        vx: side * (1.2 + Math.random() * 4.4) * q.S * power,
+        vy: (-3.4 - Math.random() * 5.6) * q.S * power,
         r: (1.6 + Math.random() * 2.8) * q.S,
         life: 26 + Math.random() * 16,
+      });
+    }
+    // 被拍进水里的空气：一团气泡随即往上冒
+    for (let i = 0; i < 10; i++) {
+      s.bubbles.push({
+        x: x + (Math.random() - 0.5) * 26 * q.S,
+        y: y + (6 + Math.random() * 26) * q.S,
+        vy: -(0.5 + Math.random() * 0.9) * q.S,
+        r: (1 + Math.random() * 2.4) * q.S,
+        life: 34 + Math.random() * 30,
       });
     }
   }
@@ -138,10 +172,16 @@ const AquariumTank = forwardRef(function AquariumTank(
       w.current.fallers.push({
         id,
         glyph: sp.glyph,
+        motion: sp.motion,
+        phase: "fall",
         p: 0,
         x,
+        y: -26 * q.S,
         y0: -26 * q.S,               // 从画布上沿之外落下来，像是被放进缸里
         r0: (Math.random() < 0.5 ? -1 : 1) * (0.6 + Math.random() * 0.5),
+        rot: 0,
+        size: 34 * q.S,
+        rest: 26 * sizeFactor(sp) * q.S,  // 入水后要收敛到的住客尺寸
         onLand,
       });
     },
@@ -170,7 +210,7 @@ const AquariumTank = forwardRef(function AquariumTank(
       return c;
     }
     function readPalette() {
-      pal.fish = readVar("--fish") || readVar("--accent-mid") || "#7d5876";
+      pal.fish = readVar("--fish") || readVar("--accent-mid") || "#874579";
       pal.glass = readVar("--card2") || readVar("--card");
       pal.water = readVar("--wbot") || readVar("--wtop");
       pal.accent = readVar("--accent");
@@ -225,16 +265,27 @@ const AquariumTank = forwardRef(function AquariumTank(
       ctx.closePath();
     }
 
+    // 水面 = 常态的三层正弦「呼吸」，叠上入水那一下的局部扰动。
+    // 扰动不是把整个水面一起抬起来（那看着像整缸在晃），而是：落点被砸出一个凹坑，
+    // 凹坑随时间向两侧荡成一圈圈涟漪，且离落点越远越弱。
     function surfaceY(x) {
       const s = w.current, q = g.current;
       const nx = (x - q.JX) / q.JW;
-      const a = (4 + s.splash * 40) * q.S;
-      return (
+      const a = 4 * q.S;
+      let y =
         q.RIM +
         Math.sin(nx * 7 + s.t * 1.5) * a * 0.5 +
         Math.sin(nx * 3.3 - s.t * 1) * a * 0.8 +
-        Math.sin(nx * 13 + s.t * 2.4) * a * 0.22 * (0.4 + s.splash)
-      );
+        Math.sin(nx * 13 + s.t * 2.4) * a * 0.22;
+      if (s.splash > 0.001) {
+        const dist = Math.abs(x - s.splashX);
+        const fall = dist / (q.JW * 0.3);
+        const env = s.splash * Math.exp(-fall * fall);
+        const age = s.t - s.splashT;
+        // cos 在落点、入水那一刻取 +1（向下＝凹坑），之后相位随距离外移＝波纹扩散
+        y += env * 15 * q.S * Math.cos(dist * 0.085 - age * 20);
+      }
+      return y;
     }
 
     // 把 24×24 的部件画到缸里：scale 里的 /24 把造型坐标换算成「这只生物在缸中的像素大小」。
@@ -298,7 +349,7 @@ const AquariumTank = forwardRef(function AquariumTank(
 
       const s = w.current, q = g.current;
       s.t += reduceRef.current ? 0 : 0.016;
-      s.splash = Math.max(0, s.splash - 0.011);
+      s.splash = Math.max(0, s.splash - 0.013);
       ctx.clearRect(0, 0, q.W, q.H);
 
       // 玻璃底（扁平单色）
@@ -327,6 +378,53 @@ const AquariumTank = forwardRef(function AquariumTank(
         const size = 26 * r.size * q.S;
         drawCreature(r.id, r.glyph, r.x, r.y, rot, size, r.motion !== "anchor" && r.vx < 0);
       });
+
+      // 入水后的下潜段：还没变成住客，但已经在水里了，故画在水的裁剪之内（会被水面挡住）。
+      // 一头扎进去 → 被水阻住 → 翻平 → 交接成住客，中间没有任何一帧是突变。
+      s.fallers.forEach((F) => {
+        if (F.phase !== "dive") return;
+        F.vy *= 0.9;                       // 水的阻力
+        F.y += F.vy;
+        F.x += F.vx;
+        F.vx *= 0.94;
+        F.rot += (0 - F.rot) * 0.09;       // 从头朝下慢慢翻回横着
+        F.size += (F.rest - F.size) * 0.09;
+        F.age = (F.age || 0) + 1;
+        // 下潜快时拖一串气泡
+        if (F.vy > 0.7 * q.S && F.age % 3 === 0) {
+          s.bubbles.push({
+            x: F.x + (Math.random() - 0.5) * 12 * q.S,
+            y: F.y - F.size * 0.2,
+            vy: -(0.4 + Math.random() * 0.6) * q.S,
+            r: (0.8 + Math.random() * 1.4) * q.S,
+            life: 26 + Math.random() * 24,
+          });
+        }
+        drawCreature(F.id, F.glyph, F.x, F.y, F.rot, F.size);
+        // 速度掉干净、姿态也回正了，才把它交给住客系统（位置完全承接，不跳）
+        if ((F.vy < 0.12 * q.S && Math.abs(F.rot) < 0.05) || F.age > 150) {
+          F.done = true;
+          spawnResident(F.id, F.x, F.y);
+          F.onLand?.();
+        }
+      });
+
+      // 气泡：入水拍进去的空气 + 下潜尾迹，边升边微微左右晃
+      if (s.bubbles.length) {
+        s.bubbles.forEach((b) => {
+          b.y += b.vy;
+          b.vy *= 0.995;
+          b.x += Math.sin(b.y * 0.08) * 0.35;
+          b.life--;
+          // 升到水面就破了，不该继续飘到水面以上的空气里
+          if (b.y - b.r <= surfaceY(b.x)) b.life = 0;
+          ctx.globalAlpha = Math.min(0.5, b.life / 30) * 0.55;
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 7); ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+        s.bubbles = s.bubbles.filter((b) => b.life > 0);
+      }
       ctx.restore();
 
       // 浪花
@@ -334,6 +432,8 @@ const AquariumTank = forwardRef(function AquariumTank(
         ctx.fillStyle = pal.accent;
         s.drops.forEach((d) => {
           d.vy += 0.45 * q.S; d.x += d.vx; d.y += d.vy; d.life--;
+          // 落回水面就算融进去了——以前是穿过水面继续往下飞到寿命结束
+          if (d.vy > 0 && d.y >= surfaceY(d.x)) d.life = 0;
           ctx.globalAlpha = Math.max(0, d.life / 40);
           ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, 7); ctx.fill();
         });
@@ -343,17 +443,25 @@ const AquariumTank = forwardRef(function AquariumTank(
 
       // 下落入水：p² 让它越掉越快（重力感），姿态从随手一扔的倾斜转到入水前的头朝下。
       // 造型头朝右，故 +90° 才是头冲下。画在水的裁剪之外，因为这一段还在缸口上面。
+      // 触水的判定用当下起伏的水面（不是静水位），入水时的速度直接带进下潜段——
+      // 「砸得越重、扎得越深、水花越大」，这一串因果连上了，入水才不像贴上去的。
       if (s.fallers.length) {
         s.fallers.forEach((F) => {
+          if (F.phase !== "fall") return;
+          const sy = surfaceY(F.x);
           F.p = Math.min(1, F.p + 0.036);
           const e = F.p;
-          const y = F.y0 + (q.RIM - F.y0) * e * e;
-          drawCreature(F.id, F.glyph, F.x, y, F.r0 + (Math.PI / 2 - F.r0) * e, 34 * q.S);
-          if (e >= 1 && !F.done) {
-            F.done = true;
-            splashAt(F.x);
-            spawnResident(F.id, F.x, q.RIM + 40);
-            F.onLand?.();
+          const prevY = F.y;
+          F.y = F.y0 + (sy - F.y0) * e * e;
+          F.rot = F.r0 + (Math.PI / 2 - F.r0) * e;
+          drawCreature(F.id, F.glyph, F.x, F.y, F.rot, F.size);
+          if (F.y >= sy) {
+            const vy = Math.max(2.5 * q.S, F.y - prevY);
+            F.phase = "dive";
+            F.y = sy;
+            F.vy = vy;
+            F.vx = (Math.random() - 0.5) * 0.6 * q.S;
+            splashAt(F.x, sy, Math.min(1.3, vy / (5 * q.S)));
           }
         });
         s.fallers = s.fallers.filter((F) => !F.done);

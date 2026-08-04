@@ -21,6 +21,7 @@ export default {
   "nav.history": { en: "History", zh: "历史记录" },
   "nav.analytics": { en: "Analytics", zh: "数据分析" },
   "nav.scenarioStats": { en: "Scenario Stats", zh: "情景统计" },
+  "nav.distraction": { en: "Distractions", zh: "分心统计" },
   "nav.scenario": { en: "Scenarios", zh: "情境配置" },
   "nav.reward": { en: "Rewards", zh: "奖励" },
   "nav.settings": { en: "Settings", zh: "设置" },

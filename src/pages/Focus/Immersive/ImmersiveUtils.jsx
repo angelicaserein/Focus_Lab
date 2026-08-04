@@ -145,28 +145,26 @@ export default function ImmersiveUtils({
             <span className="immersive-util-badge">{sessionNotes.length}</span>
           )}
         </button>
-        <div className="immersive-distraction-btns">
-          <button
-            type="button"
-            className={`immersive-util-btn distraction${distractionFeedback ? " feedback" : ""}`}
-            onClick={handleDistraction}
-            title="记录一次刚刚发生的分心"
-          >
-            {distractionFeedback ? "已记录 ✓" : "⚡ 刚刚分心了"}
-            {sessionDistractionCount > 0 && (
-              <span className="immersive-util-badge">{sessionDistractionCount}</span>
-            )}
-          </button>
-          <button
-            type="button"
-            className="immersive-util-btn proactive"
-            onClick={onProactiveDistraction}
-            disabled={!isRunning}
-            title="暂停专注，去处理别的事"
-          >
-            🚶 去分心一下
-          </button>
-        </div>
+        <button
+          type="button"
+          className={`immersive-util-btn distraction${distractionFeedback ? " feedback" : ""}`}
+          onClick={handleDistraction}
+          title="记录一次刚刚发生的分心"
+        >
+          {distractionFeedback ? "已记录 ✓" : "⚡ 刚刚分心了"}
+          {sessionDistractionCount > 0 && (
+            <span className="immersive-util-badge">{sessionDistractionCount}</span>
+          )}
+        </button>
+        <button
+          type="button"
+          className="immersive-util-btn proactive"
+          onClick={onProactiveDistraction}
+          disabled={!isRunning}
+          title="暂停专注，去处理别的事"
+        >
+          🚶 去分心一下
+        </button>
       </div>
     </div>
   );

@@ -10,9 +10,12 @@
   gap: 10px;
 }
 
+/* 三个工具按钮竖排：随记在最上，两个分心按钮在下 */
 .immersive-util-btns {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
 }
 
 .immersive-util-btn {
@@ -52,13 +55,6 @@
   background: var(--accent-bg);
   border-color: var(--border-accent);
   color: var(--accent-mid);
-}
-
-/* 两个分心按钮竖排容器 */
-.immersive-distraction-btns {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
 }
 
 /* "去分心一下"次级按钮 */

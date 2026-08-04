@@ -45,6 +45,31 @@
   line-height: 1.65;
 }
 
+/* 页头里指向姊妹页（如分心统计）的小链接 */
+.hist-headline-row {
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hist-cross-link {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent-mid);
+  text-decoration: none;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  border: 1px solid var(--border-accent);
+  white-space: nowrap;
+}
+
+.hist-cross-link:hover {
+  filter: brightness(1.04);
+}
+
 /* ── Stats cards ── */
 .hist-stats {
   display: grid;

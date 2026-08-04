@@ -1,18 +1,24 @@
 import React, { useMemo, useState } from "react";
 import {
-  ChevronLeft, ChevronRight, CalendarDays, Coins, Zap,
-  Clock3, Flame, CalendarCheck,
+  ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CalendarDays, Coins, Zap,
+  Clock3, Flame, CalendarCheck, Plus, Check, Trash2, RotateCcw,
 } from "lucide-react";
 import { useFocus } from "@/context/FocusContext";
+import { useActivityLog } from "@/context/ActivityContext";
 import { totalFocusSecs, OUTCOME_META } from "@/utils/records/focusRecords";
+import { ACTIVITY_META } from "@/utils/records/activityLog";
 import { formatDuration } from "@/utils/time";
 import {
   HOUR_PX,
   dayKey,
   groupRecordsByDay,
+  groupActivitiesByDay,
   buildMonthGrid,
+  buildWeekRow,
   buildDayView,
   formatTime,
+  formatCellDuration,
+  startOfWeek,
 } from "./calendarLayout";
 import "./Calendar.css";
 
@@ -22,8 +28,18 @@ const MONTH_NAMES = [
   "7 月", "8 月", "9 月", "10 月", "11 月", "12 月",
 ];
 
+// 使用记录的图标，与 ACTIVITY_META 的四种动作一一对应
+const ACTIVITY_ICONS = {
+  add: Plus,
+  complete: Check,
+  uncomplete: RotateCcw,
+  delete: Trash2,
+};
+const ACTIVITY_ORDER = ["complete", "add", "delete", "uncomplete"];
+
 export default function CalendarPage() {
   const { focusRecords } = useFocus();
+  const { activities } = useActivityLog();
 
   // 不缓存 today：页面可能整天开着，跨午夜需自然刷新到真实今天。
   const today = new Date();
@@ -34,12 +50,21 @@ export default function CalendarPage() {
     month: today.getMonth(),
   }));
   const [selectedKey, setSelectedKey] = useState(todayKey);
+  // 平时只留一行本周，点「展开」才铺开整月
+  const [expanded, setExpanded] = useState(false);
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(today));
 
   const dayMap = useMemo(() => groupRecordsByDay(focusRecords), [focusRecords]);
+  const actMap = useMemo(() => groupActivitiesByDay(activities), [activities]);
 
   const cells = useMemo(
-    () => buildMonthGrid(cursor.year, cursor.month, dayMap, todayKey),
-    [cursor, dayMap, todayKey],
+    () => buildMonthGrid(cursor.year, cursor.month, dayMap, todayKey, actMap),
+    [cursor, dayMap, todayKey, actMap],
+  );
+
+  const weekCells = useMemo(
+    () => buildWeekRow(weekStart, dayMap, todayKey, actMap),
+    [weekStart, dayMap, todayKey, actMap],
   );
 
   const monthSummary = useMemo(() => {
@@ -53,13 +78,14 @@ export default function CalendarPage() {
 
   const selectedDay = useMemo(() => {
     const recs = dayMap.get(selectedKey) ?? [];
+    const acts = actMap.get(selectedKey) ?? [];
     const [sy, sm, sd] = selectedKey.split("-").map(Number);
     return {
       date: new Date(sy, sm - 1, sd),
       totalSecs: totalFocusSecs(recs),
-      view: buildDayView(recs, selectedKey === todayKey),
+      view: buildDayView(recs, selectedKey === todayKey, acts),
     };
-  }, [dayMap, selectedKey, todayKey]);
+  }, [dayMap, actMap, selectedKey, todayKey]);
 
   const stepMonth = (delta) =>
     setCursor((c) => {
@@ -67,15 +93,39 @@ export default function CalendarPage() {
       return { year: d.getFullYear(), month: d.getMonth() };
     });
 
+  // 收起态翻的是"周"；月度汇总跟着这周所属的月份走（以周四归属，跨月周不来回跳）
+  const stepWeek = (delta) => {
+    const d = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + delta * 7);
+    setWeekStart(d);
+    const owner = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 3);
+    setCursor({ year: owner.getFullYear(), month: owner.getMonth() });
+  };
+
+  const step = (delta) => (expanded ? stepMonth(delta) : stepWeek(delta));
+
   const goToday = () => {
     setCursor({ year: today.getFullYear(), month: today.getMonth() });
+    setWeekStart(startOfWeek(today));
     setSelectedKey(todayKey);
+  };
+
+  // 展开/收起：收起时把这一行落在当前选中的那天上，别跳回别处
+  const toggleExpanded = () => {
+    if (expanded) {
+      const [sy, sm, sd] = selectedKey.split("-").map(Number);
+      setWeekStart(startOfWeek(new Date(sy, sm - 1, sd)));
+    }
+    setExpanded((v) => !v);
   };
 
   const selectedLabel = selectedDay.date.toLocaleDateString("zh-CN", {
     month: "long", day: "numeric", weekday: "long",
   });
   const isTodaySelected = selectedKey === todayKey;
+  const weekLabel = (() => {
+    const end = weekCells[6].date;
+    return `${weekStart.getMonth() + 1}/${weekStart.getDate()} – ${end.getMonth() + 1}/${end.getDate()}`;
+  })();
   const { view } = selectedDay;
 
   return (
@@ -83,7 +133,7 @@ export default function CalendarPage() {
       {/* ── 页头 ── */}
       <div className="cal-headline">
         <h1>时间轴</h1>
-        <p>回看每一天的专注足迹，点开某天看当日的时刻轨道</p>
+        <p>平时只看本周，点「展开整月」铺开月历；每格是当天的专注时长</p>
       </div>
 
       {/* ── 月度汇总 ── */}
@@ -107,21 +157,41 @@ export default function CalendarPage() {
 
       <div className="cal-layout">
         {/* ── 月历卡片 ── */}
-        <section className="cal-card">
+        <section className={`cal-card${expanded ? " expanded" : ""}`}>
           <div className="cal-nav">
-            <button type="button" className="cal-nav-btn" onClick={() => stepMonth(-1)} aria-label="上个月">
+            <button
+              type="button"
+              className="cal-nav-btn"
+              onClick={() => step(-1)}
+              aria-label={expanded ? "上个月" : "上一周"}
+            >
               <ChevronLeft size={18} aria-hidden="true" />
             </button>
             <div className="cal-nav-title">
               <span className="cal-nav-year">{cursor.year}</span>
               <span className="cal-nav-month">{MONTH_NAMES[cursor.month]}</span>
+              {!expanded && <span className="cal-nav-week">{weekLabel}</span>}
             </div>
-            <button type="button" className="cal-nav-btn" onClick={() => stepMonth(1)} aria-label="下个月">
+            <button
+              type="button"
+              className="cal-nav-btn"
+              onClick={() => step(1)}
+              aria-label={expanded ? "下个月" : "下一周"}
+            >
               <ChevronRight size={18} aria-hidden="true" />
             </button>
             <button type="button" className="cal-today-btn" onClick={goToday}>
               <CalendarDays size={14} aria-hidden="true" />
               今天
+            </button>
+            <button
+              type="button"
+              className="cal-expand-btn"
+              onClick={toggleExpanded}
+              aria-expanded={expanded}
+            >
+              {expanded ? <ChevronUp size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
+              {expanded ? "收起" : "整月"}
             </button>
           </div>
 
@@ -131,8 +201,8 @@ export default function CalendarPage() {
             ))}
           </div>
 
-          <div className="cal-grid">
-            {cells.map((cell) => {
+          <div className={`cal-grid${expanded ? "" : " week"}`}>
+            {(expanded ? cells : weekCells).map((cell) => {
               const cls = [
                 "cal-cell",
                 cell.inMonth ? "" : "out",
@@ -147,24 +217,33 @@ export default function CalendarPage() {
                   className={cls}
                   data-level={cell.level}
                   onClick={() => setSelectedKey(cell.key)}
-                  title={cell.secs > 0 ? formatDuration(cell.secs) : ""}
+                  title={[
+                    cell.secs > 0 ? formatDuration(cell.secs) : "",
+                    cell.actCount > 0 ? `${cell.actCount} 条使用记录` : "",
+                  ].filter(Boolean).join(" · ")}
                 >
                   <span className="cal-cell-day">{cell.date.getDate()}</span>
-                  {cell.secs > 0 && (
-                    <span className="cal-cell-bar" style={{ opacity: 0.35 + cell.level * 0.16 }} />
-                  )}
+                  {cell.actCount > 0 && <span className="cal-cell-act" />}
+                  <span className="cal-cell-secs">{formatCellDuration(cell.secs)}</span>
                 </button>
               );
             })}
           </div>
 
-          <div className="cal-legend">
-            <span className="cal-legend-label">少</span>
-            {[0, 1, 2, 3, 4].map((l) => (
-              <span key={l} className="cal-legend-cell" data-level={l} />
-            ))}
-            <span className="cal-legend-label">多</span>
-          </div>
+          {expanded ? (
+            <div className="cal-legend">
+              <span className="cal-legend-label">少</span>
+              {[0, 1, 2, 3, 4].map((l) => (
+                <span key={l} className="cal-legend-cell" data-level={l} />
+              ))}
+              <span className="cal-legend-label">多</span>
+            </div>
+          ) : (
+            <button type="button" className="cal-expand-bar" onClick={toggleExpanded}>
+              <ChevronDown size={14} aria-hidden="true" />
+              展开整月
+            </button>
+          )}
         </section>
 
         {/* ── 当日时刻轨道 ── */}
@@ -177,13 +256,31 @@ export default function CalendarPage() {
             )}
           </div>
 
-          {view.sessions.length === 0 ? (
+          {/* 当日动作小结：完成 / 添加 / 删除各几条 */}
+          {view.marks.length > 0 && (
+            <div className="cal-day-counts">
+              {ACTIVITY_ORDER.filter((type) => view.counts[type] > 0).map((type) => {
+                const Icon = ACTIVITY_ICONS[type];
+                return (
+                  <span key={type} className={`cal-count-chip ${ACTIVITY_META[type].cls}`}>
+                    <Icon size={12} aria-hidden="true" />
+                    {ACTIVITY_META[type].label} {view.counts[type]}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+
+          {view.sessions.length === 0 && view.marks.length === 0 ? (
             <div className="cal-day-empty">
               <Clock3 size={26} aria-hidden="true" />
-              <span>这一天还没有专注记录</span>
+              <span>这一天还没有任何记录</span>
             </div>
           ) : (
-            <div className="cal-track" style={{ height: view.height }}>
+            <div
+              className={`cal-track${view.marks.length > 0 ? " has-marks" : ""}`}
+              style={{ height: view.height }}
+            >
               {/* 小时刻度 */}
               {view.hours.map((h, i) => (
                 <div
@@ -258,6 +355,28 @@ export default function CalendarPage() {
                         )}
                       </div>
                     )}
+                  </div>
+                );
+              })}
+
+              {/* 使用记录：没开计时器也发生过的事，点在轨道右侧 */}
+              {view.marks.map((m) => {
+                const meta = ACTIVITY_META[m.type] ?? { label: m.type, cls: "add" };
+                const Icon = ACTIVITY_ICONS[m.type] ?? Check;
+                return (
+                  <div
+                    key={m.id}
+                    className={`cal-mark ${meta.cls}`}
+                    style={{ top: m.top }}
+                    title={m.texts.join("\n")}
+                  >
+                    <span className="cal-mark-dot" />
+                    <span className="cal-mark-time">{formatTime(m.ts)}</span>
+                    <Icon className="cal-mark-icon" size={12} aria-hidden="true" />
+                    <span className="cal-mark-text">
+                      {m.text || meta.label}
+                      {m.count > 1 && <span className="cal-mark-count"> 等 {m.count} 项</span>}
+                    </span>
                   </div>
                 );
               })}

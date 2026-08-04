@@ -11,8 +11,9 @@ export const FISH_COST = 25;
 
 // 物种目录。id 同时用作 glyph 形状键。
 //   rarity: 1 常见 / 2 稀有 / 3 史诗
-//   hue:    相对主题主色的色相偏移（度）。缸里与图鉴都按它给这只生物上色——
-//           这样一缸鱼颜色各异却仍是同一家族，换皮肤/暗夜也整体跟着走。
+//   hue:    物种之间的相对色差刻度。不是最终色相偏移——creaturePalette.speciesShift 会把它
+//           压进主色附近的邻近色带，余量转成明度差（否则 ±190 那几只会转到主色补色去、
+//           整缸脱离主题）。这里只需保证各物种数值互不相同、拉开距离即可。
 //   motion: 在缸里的行为。swim 游动 / drift 悬浮飘（水母）/ crawl 贴底爬 / anchor 扎根摇曳
 export const FISH_SPECIES = [
   // —— 常见 ——

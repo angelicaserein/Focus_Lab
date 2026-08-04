@@ -10,6 +10,8 @@ export const STORAGE_KEYS = {
   CHAT:             "focus_chat_v1",
   NOTES:            "focus_notes_v1",
   DISTRACTIONS:     "focus_distractions_v1",
+  // 使用记录：不经专注也会发生的动作（加任务 / 直接点完成 / 删任务），补全时间轴
+  ACTIVITY_LOG:     "activity_log_v1",
   // 备忘录（手动随时添加，与专注随记合并展示）
   MEMOS:            "memos_v1",
   // 研究日志
@@ -58,6 +60,10 @@ export const STORAGE_KEYS = {
   PREF_RITUAL_ENABLED: "pref_ritual_enabled_v1",
   PREF_CARD_VISIBLE:  "pref_card_visible_v1",
   PREF_NOTIFY_ENABLED: "pref_notify_enabled_v1",
+  // 分心水位（仅桌面版）：{ enabled, allow: [进程名] }。
+  // 专注时前台程序不在 allow 里，桌宠就翻瓶倒水、屏幕底部积水。默认关闭——
+  // 它会读取「你正开着什么程序」，这种能力只能是用户主动打开的。
+  PREF_APP_WATCH:     "pref_app_watch_v1",
   PREF_LANG:          "pref_lang_v1",
   // DDL 提醒节点
   DDL_CHECKPOINTS:    "ddl_checkpoints_v1",

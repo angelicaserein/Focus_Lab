@@ -1,5 +1,8 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useFocus } from "@/context/FocusContext";
+import { useFeatures } from "@/context/FeatureContext";
+import { useLanguage } from "@/context/LanguageContext";
 import useLocalStorage from "@/hooks/common/useLocalStorage";
 import useFocusChat from "@/hooks/focus/useFocusChat";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
@@ -12,10 +15,11 @@ import "./History.css";
 
 export default function HistoryPage() {
   const { focusRecords, clearFocusRecords } = useFocus();
-  // 随记 / 分心 / 聊天：与专注页共用同一份持久化数据，历史页只读展示。
+  // 随记 / 聊天：与专注页共用同一份持久化数据，历史页只读展示。
   const [notes] = useLocalStorage(STORAGE_KEYS.NOTES, []);
-  const [distractions] = useLocalStorage(STORAGE_KEYS.DISTRACTIONS, []);
   const { messages: chatMessages, clearChat } = useFocusChat();
+  const { isEnabled } = useFeatures();
+  const { t } = useLanguage();
   const [confirmClear, setConfirmClear] = useState(false);
   const confirmTimerRef = useRef(null);
 
@@ -39,8 +43,14 @@ export default function HistoryPage() {
 
   return (
     <div className="page-history">
-      <div className="history-headline">
+      <div className="history-headline hist-headline-row">
         <h1>历史</h1>
+        {/* 分心统计已独立成页，这里只留一个入口 */}
+        {isEnabled("/distraction") && (
+          <Link to="/distraction" className="hist-cross-link">
+            {t("distraction.fromHistory")}
+          </Link>
+        )}
       </div>
 
       <StatsOverview stats={stats} />
@@ -51,8 +61,8 @@ export default function HistoryPage() {
         onClear={handleClear}
       />
 
-      {/* 历史随记 + 分心记录 */}
-      <SessionSummary notes={notes} distractions={distractions} />
+      {/* 历史随记（分心记录见 /distraction） */}
+      <SessionSummary notes={notes} />
 
       {/* AI 陪伴聊天记录 */}
       <ChatHistory messages={chatMessages} onClear={clearChat} />

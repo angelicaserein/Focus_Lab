@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { layoutCards, GAP } from "./DeadlineHorizon.jsx";
+import { layoutCards, GAP, projectDeadline } from "./DeadlineHorizon.jsx";
 
 // 造一批横轴位置故意撞在一起的卡片（同一天数 → 同一列）
 function makeItems(n, { w = 120, h = 40, fx = 0.3, scale = 1 } = {}) {
@@ -32,6 +32,36 @@ function overlaps(items) {
   }
   return pairs;
 }
+
+describe("projectDeadline", () => {
+  it("逾期整列都在「今天到期」的左边", () => {
+    const today = projectDeadline(0).fx;
+    for (const d of [-1, -3, -30]) {
+      expect(projectDeadline(d).fx).toBeLessThan(today);
+    }
+  });
+
+  it("逾期越久越靠左，且不出画面", () => {
+    expect(projectDeadline(-30).fx).toBeLessThan(projectDeadline(-3).fx);
+    expect(projectDeadline(-3).fx).toBeLessThan(projectDeadline(-1).fx);
+    expect(projectDeadline(-99).fx).toBeGreaterThan(0);
+  });
+
+  it("逾期不做透视衰减：最大最鲜明", () => {
+    expect(projectDeadline(-5).scale).toBe(1);
+    expect(projectDeadline(-5).opacity).toBe(1);
+  });
+
+  it("未来仍然近左远右，且都在今天右边", () => {
+    let prev = projectDeadline(0).fx;
+    for (const d of [1, 3, 7, 30, 90]) {
+      const fx = projectDeadline(d).fx;
+      expect(fx).toBeGreaterThanOrEqual(prev);
+      prev = fx;
+    }
+    expect(prev).toBeLessThanOrEqual(0.9);
+  });
+});
 
 describe("layoutCards", () => {
   it("同一列的卡片沿纵向摊开，互不重叠", () => {

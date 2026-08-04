@@ -7,8 +7,19 @@ import desktop from "@/utils/desktop/desktopBridge";
 
 const CLICK_SLOP = 4; // 按下到抬起的位移小于这个像素数，算一次点击而非拖动
 
+// 面板要等窗口真的长大了才画。窗口尺寸走 IPC，比 React 渲染慢一两帧，
+// 抢先画出来的那一帧面板是被挤在 176px 高的窗口里的，看起来就是「中间闪一下」。
+// 收起 176 / 展开 460，取中间值判定「窗口已经变大了」。
+const PANEL_MIN_H = 300;
+// 兜底：浏览器里跑（没有 Electron，窗口永远不会因此变大）或 resize 没来时，
+// 到点就直接画，宁可闪一下也不能永远打不开面板。
+const PANEL_FALLBACK_MS = 350;
+
 export default function usePetWindow() {
   const [expanded, setExpanded] = useState(false);
+  // 逻辑上的展开态（expanded）与「面板可以画了」分开：中间这段差值就是窗口变大的耗时
+  const [panelReady, setPanelReady] = useState(false);
+  const panelTimerRef = useRef(0);
   const draggingRef = useRef(false);
 
   // ── 点击穿透 ──
@@ -42,13 +53,40 @@ export default function usePetWindow() {
     setIgnore(!hitTest(pt.x, pt.y));
   }, [hitTest, setIgnore]);
 
+  const expandedRef = useRef(false);
+
+  const revealPanel = useCallback(() => {
+    clearTimeout(panelTimerRef.current);
+    panelTimerRef.current = 0;
+    setPanelReady(true);
+  }, []);
+
   // 展开 / 收起要同时改窗口尺寸（主进程钉住右下角），所以统一走这个函数
   const applyExpanded = useCallback((next) => {
+    expandedRef.current = next;
     setExpanded(next);
     desktop.setExpanded(next);
+    if (!next) {
+      // 收起相反：先撤面板再缩窗口。多出来的那一帧是透明的，看不见。
+      clearTimeout(panelTimerRef.current);
+      panelTimerRef.current = 0;
+      setPanelReady(false);
+    } else if (window.innerHeight >= PANEL_MIN_H) {
+      revealPanel(); // 窗口本来就够大（浏览器里没有 Electron，永远走这条）
+    } else if (!panelTimerRef.current) {
+      panelTimerRef.current = setTimeout(revealPanel, PANEL_FALLBACK_MS);
+    }
     // 窗口尺寸和面板都要等下一帧才生效，之后再判定光标落在哪
     requestAnimationFrame(() => requestAnimationFrame(recheck));
-  }, [recheck]);
+  }, [recheck, revealPanel]);
+
+  useEffect(() => () => clearTimeout(panelTimerRef.current), []);
+
+  // 面板出现会改变命中区域，画完再复算一次光标落在哪
+  useEffect(() => {
+    const id = requestAnimationFrame(recheck);
+    return () => cancelAnimationFrame(id);
+  }, [panelReady, recheck]);
 
   useEffect(() => {
     setIgnore(true); // 初始默认穿透，等光标真的移到烧瓶上再关掉
@@ -66,17 +104,23 @@ export default function usePetWindow() {
     };
     const onOut = (e) => { if (!e.relatedTarget) onLeave(); };
 
+    // 窗口被主进程放大到位了，这才是画面板的时机
+    const onResize = () => {
+      if (expandedRef.current && window.innerHeight >= PANEL_MIN_H) revealPanel();
+      recheck();
+    };
+
     window.addEventListener("mousemove", onMove);
-    window.addEventListener("resize", recheck);
+    window.addEventListener("resize", onResize);
     document.addEventListener("mouseleave", onLeave);
     document.addEventListener("mouseout", onOut);
     return () => {
       window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("resize", recheck);
+      window.removeEventListener("resize", onResize);
       document.removeEventListener("mouseleave", onLeave);
       document.removeEventListener("mouseout", onOut);
     };
-  }, [hitTest, recheck, setIgnore]);
+  }, [hitTest, recheck, setIgnore, revealPanel]);
 
   // ── 拖动 + 点击 ──
   // 不用 CSS 的 -webkit-app-region: drag：那样系统会吞掉鼠标事件，
@@ -138,6 +182,8 @@ export default function usePetWindow() {
 
   return {
     expanded,
+    // 面板的渲染开关：展开态成立、且窗口已经腾出地方了
+    showPanel: expanded && panelReady,
     setExpanded: applyExpanded,
     petHandlers: {
       onPointerDown: onPetPointerDown,

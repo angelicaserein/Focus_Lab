@@ -304,6 +304,17 @@
   border-radius: 14px;
 }
 
+/* 同一行样式作为跳转链接用（如「看分心统计 →」） */
+.ana-crosslink {
+  display: block;
+  text-decoration: none;
+  transition: filter 150ms ease;
+}
+
+.ana-crosslink:hover {
+  filter: brightness(1.04);
+}
+
 .ana-insight-row strong {
   color: var(--accent-mid);
   font-weight: 700;

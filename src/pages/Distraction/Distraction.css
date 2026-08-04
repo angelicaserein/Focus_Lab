@@ -1,0 +1,75 @@
+/* ── 分心统计页 ──
+   骨架复用历史页（hist-*）与数据分析页（ana-* / session-summary-*）的卡片与图表，
+   这里只补页面自己的布局与「分心橙」配色。 */
+.page-distraction {
+  width: min(860px, 100%);
+  margin: 0 auto;
+  padding: 8px 0 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.dst-empty {
+  white-space: pre-line;
+}
+
+/* 四张总览卡（历史页那套是三列） */
+.dst-stats {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.dst-stats .hist-stat-card {
+  padding: 22px 18px;
+}
+
+.dst-stats .hist-stat-value {
+  font-size: 1.7rem;
+}
+
+/* 分心统一用琥珀色，和专注时长的主色区分开 */
+.dst-bar {
+  background: #f59e0b;
+}
+
+.dst-trend-chart {
+  height: 150px;
+}
+
+.dst-tag-label {
+  width: 96px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dst-tag-label.untagged {
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+.dst-count {
+  color: #b45309;
+  width: 48px;
+}
+
+/* 会话明细卡放在 section 里，标题由 SectionHead 提供，卡内不再重复表头 */
+.dst-sessions {
+  padding: 8px 20px 14px;
+}
+
+.dst-sessions .session-summary-scroll {
+  max-height: 420px;
+}
+
+@media (max-width: 720px) {
+  .dst-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 400px) {
+  .dst-stats {
+    grid-template-columns: 1fr;
+  }
+}

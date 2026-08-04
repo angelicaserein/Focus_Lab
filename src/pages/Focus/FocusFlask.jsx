@@ -11,7 +11,7 @@ import { buildFlask } from "@/pages/Focus/flaskShapes";
 
 const BASE_Y = 128; // 瓶底，与 flaskShapes 的坐标系一致
 
-export function FlaskGraphic({ progress = 0, params, hitLayer = false }) {
+export function FlaskGraphic({ progress = 0, params, hitLayer = false, drainToNeck = false }) {
   const { path, highlight, cap, rim } = buildFlask(params);
   // 每个实例独立的 id：设置页会同时渲染多个烧瓶，共用 id 会互相错切
   const uid = useId();
@@ -22,7 +22,16 @@ export function FlaskGraphic({ progress = 0, params, hitLayer = false }) {
   const p = Math.min(Math.max(progress, 0), 1);
   // 液柱整体做成一块固定的矩形，靠 translateY 推上来。
   // 直接改 rect 的 y 属性也行，但那样没法用 CSS transition 平滑过渡。
-  const drop = BASE_Y * (1 - p);
+  //
+  // drainToNeck：水往瓶口那头退，而不是往瓶底退。
+  // 给桌宠倒瓶子用的——瓶身整个转了 180°，屏幕上的「下」就是瓶子的「上」，
+  // 不翻这个方向的话水会顺着瓶底往上升出去，跟倒水正好相反。
+  // 两边同时翻（瓶子转、液柱反向）在屏幕坐标里恰好互相抵消：
+  // 看起来就是玻璃绕着一摊不动的水转过去，然后水才从瓶口漏下去。
+  const dir = drainToNeck ? -1 : 1;
+  const drop = BASE_Y * (1 - p) * dir;
+  // 液面永远在液柱「靠空气」的那一头：正着是顶边，倒过来是底边
+  const meniscusY = drainToNeck ? BASE_Y - 2.2 : 0;
 
   return (
     <div className="immersive-flask">
@@ -58,8 +67,12 @@ export function FlaskGraphic({ progress = 0, params, hitLayer = false }) {
             {/* 液面：一道亮线当弯液面，让「涨到哪儿了」有个明确的边 */}
             {p > 0.004 && (
               <>
-                <rect x="0" y="0" width="80" height="2.2" fill="#fff" fillOpacity="0.5" />
-                <rect x="0" y="2.2" width="80" height="5" fill="#fff" fillOpacity="0.12" />
+                <rect x="0" y={meniscusY} width="80" height="2.2" fill="#fff" fillOpacity="0.5" />
+                {/* 亮线往液体那一侧晕开的一层，所以倒过来时它要挪到线的另一边 */}
+                <rect
+                  x="0" y={drainToNeck ? meniscusY - 5 : 2.2}
+                  width="80" height="5" fill="#fff" fillOpacity="0.12"
+                />
               </>
             )}
           </g>
@@ -72,7 +85,8 @@ export function FlaskGraphic({ progress = 0, params, hitLayer = false }) {
         />
         <path
           className="flask-highlight" d={highlight}
-          fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="2.5" strokeLinecap="round"
+          fill="none" stroke="var(--flask-highlight, rgba(255,255,255,0.22))"
+          strokeWidth="2.5" strokeLinecap="round"
         />
         {cap && (
           // 瓶塞：偏透明的玻璃塞，仅比瓶身略实一点，保持通透质感
@@ -87,7 +101,7 @@ export function FlaskGraphic({ progress = 0, params, hitLayer = false }) {
           // 内侧填一层暗色，不然敞口和封口的轮廓完全一样，分不出来。
           <ellipse
             className="flask-rim" cx={rim.cx} cy={rim.cy} rx={rim.rx} ry={rim.ry}
-            fill="rgba(0,0,0,0.22)" stroke="var(--flask-stroke, rgba(255,255,255,0.55))"
+            fill="var(--flask-rim-fill, rgba(0,0,0,0.22))" stroke="var(--flask-stroke, rgba(255,255,255,0.55))"
             strokeWidth="1.4"
           />
         )}

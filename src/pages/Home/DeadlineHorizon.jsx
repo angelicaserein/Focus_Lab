@@ -35,13 +35,29 @@ function urgencyClass(days) {
 // **横轴＝时间轴，且只由天数决定**：近 → 左（脚边），远 → 右（地平线）。
 // 纵轴不携带信息，只用来把同一时段的卡片错开，所以卡片永远不会横向漂移，
 // 「它在哪 = 还剩几天」这条读法始终成立。
-function projectDeadline(days) {
-  const clamped = Math.min(Math.max(days, 0), HORIZON_DAYS);
+// 逾期＝已经走过去的时间，独占「今天」左边那一列（画面最左、最烫的一端），
+// 不跟今天到期的混在一起，逾期越久越贴边。
+const OVERDUE_FX = 0.07; // 逾期列的最左端（逾期 ≥7 天）
+const OVERDUE_EDGE_FX = 0.14; // 逾期列的最右端（昨天刚过）
+const TODAY_FX = 0.28; // 今天到期的位置，即未来那段时间轴的起点
+const HORIZON_FX = 0.9; // 地平线（HORIZON_DAYS 及以外）
+
+export function projectDeadline(days) {
+  if (days < 0) {
+    const over = Math.min(-days, 7) / 7; // 0(昨天) → 1(逾期很久)
+    return {
+      t: 0,
+      fx: OVERDUE_EDGE_FX - over * (OVERDUE_EDGE_FX - OVERDUE_FX),
+      scale: 1,
+      opacity: 1,
+    };
+  }
+  const clamped = Math.min(days, HORIZON_DAYS);
   // sqrt 让临近的几天在画面上「铺开」，拥有更多空间，远期被压缩到地平线
   const t = Math.sqrt(clamped / HORIZON_DAYS); // 0(近) → 1(远)
   return {
     t,
-    fx: 0.1 + t * 0.8, // 近 → 左，远 → 右
+    fx: TODAY_FX + t * (HORIZON_FX - TODAY_FX), // 近 → 左，远 → 右
     scale: 1 - t * 0.42, // 1 → 0.58
     opacity: 1 - t * 0.38, // 1 → 0.62
   };

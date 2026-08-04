@@ -135,6 +135,7 @@ const KEY_MAP = {
   scenarios:       { key: STORAGE_KEYS.SCENARIOS        },
   scenarioOptions: { key: STORAGE_KEYS.SCENARIO_OPTIONS },
   focusRecords:  { key: STORAGE_KEYS.FOCUS_RECORDS    },
+  activityLog:   { key: STORAGE_KEYS.ACTIVITY_LOG     },
   coins:         { key: STORAGE_KEYS.COINS            },
   ownedRewards:  { key: STORAGE_KEYS.REWARD_OWNED     },
   redeemCounts:  { key: STORAGE_KEYS.REWARD_REDEEM    },

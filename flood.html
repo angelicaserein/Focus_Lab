@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>Focus Lab 积水</title>
+    <!--
+      第三个 Vite 入口：贴在屏幕底部的那层积水。
+      和桌宠一样刻意不复用 index.html —— 这里只有一块 canvas，
+      不需要路由 / Context，更不该把整个应用再跑一遍。
+      窗口全程鼠标穿透，见 electron/main.cjs 的 createFloodWindow。
+    -->
+  </head>
+  <body class="flood-body">
+    <canvas id="flood-canvas"></canvas>
+    <script type="module" src="/src/flood/main.js"></script>
+  </body>
+</html>

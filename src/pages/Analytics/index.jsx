@@ -1,5 +1,7 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import useFocusAnalytics from "@/hooks/focus/useFocusAnalytics";
+import { useFeatures } from "@/context/FeatureContext";
 import { formatDurationChinese as fmt } from "@/utils/time";
 import "./Analytics.css";
 
@@ -51,11 +53,11 @@ export default function AnalyticsPage() {
     sessionCount,
     avgSessionSecs,
   } = useFocusAnalytics();
+  const { isEnabled } = useFeatures();
 
   // ── 衍生值 ───────────────────────────────────────────────────────────────
   const hourlyMax = Math.max(...hourly.map((h) => h.totalSecs), 1);
   const durationMax = Math.max(...durationBuckets.map((b) => b.count), 1);
-  const distMax = Math.max(...distData.hourly.map((h) => h.count), 1);
   const bestBlock = blocks[0];
   const peakDistHour = distData.hourly.reduce(
     (best, h) => (h.count > best.count ? h : best),
@@ -186,38 +188,24 @@ export default function AnalyticsPage() {
         )}
       </section>
 
-      {/* ── 4. 分心高峰 ───────────────────────────────────────────────────── */}
-      <section className="ana-section">
-        <SectionHead
-          title="分心高峰时段"
-          badge={
-            peakDistHour.count > 0
-              ? `${peakDistHour.hour}时最易分心`
-              : null
-          }
-        />
-
-        {distData.total === 0 ? (
-          <div className="ana-empty-tip">还没有分心记录</div>
-        ) : (
-          <>
-            <HourlyBars
-              data={distData.hourly}
-              getValue={(h) => h.count}
-              max={distMax}
-              barClassName="ana-hour-bar distraction"
-              formatTitle={(h) => `${h.hour}:00 — ${h.count} 次分心`}
-            />
-
+      {/* ── 4. 分心 —— 详细统计在 /distraction，这里只留一句概览 + 入口 ────── */}
+      {isEnabled("/distraction") && distData.total > 0 && (
+        <section className="ana-section">
+          <SectionHead
+            title="分心"
+            badge={peakDistHour.count > 0 ? `${peakDistHour.hour}时最易分心` : null}
+          />
+          <Link to="/distraction" className="ana-insight-row ana-crosslink">
+            共记录 <strong>{distData.total}</strong> 次分心
             {distData.topTag && (
-              <div className="ana-insight-row">
-                最常见分心原因：<strong>{distData.topTag}</strong>
-                {" "}· 共记录 {distData.total} 次分心
-              </div>
+              <>
+                {" "}· 最常见原因 <strong>{distData.topTag}</strong>
+              </>
             )}
-          </>
-        )}
-      </section>
+            {" "}· 看分心统计 →
+          </Link>
+        </section>
+      )}
     </div>
   );
 }

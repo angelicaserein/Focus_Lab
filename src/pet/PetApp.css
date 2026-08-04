@@ -1,14 +1,35 @@
 /* 桌宠窗样式。这个窗口是无边框 + 透明的，所以底色必须全程保持 transparent：
    任何一处漏了背景色，桌面上就会出现一块灰矩形。 */
 
+/* 配色全部从 theme.css 的主题变量派生（main.jsx 里只引了那份变量表），
+   主窗口换皮时会把主题名推过来写到本窗的 <html data-theme> 上。
+   所以这里一条固定色都不要写死——写死的那条就是换皮时不跟着变的那条。 */
 :root {
-  /* FocusFlask 用 var(--accent) 填液面。桌宠窗不加载主 app 的主题 CSS，
-     在这里给一个与应用主色一致的定值。 */
-  --accent: #a07898;
-  --pet-glass: rgba(32, 26, 38, 0.82);
-  --pet-line: rgba(255, 255, 255, 0.14);
-  --pet-text: rgba(255, 255, 255, 0.92);
-  --pet-dim: rgba(255, 255, 255, 0.55);
+  /* 面板：跟着卡片色走，但比应用内更实一点——它压的是别人的壁纸，不是页面底色 */
+  --pet-glass: color-mix(in srgb, var(--card) 90%, transparent);
+  --pet-line: var(--border-accent);
+  --pet-text: var(--text-body);
+  --pet-dim: var(--text-muted);
+  --pet-head: var(--text-heading);
+
+  /* 主色淡染的填充，两档：静置 / hover 与选中 */
+  --pet-fill: rgba(var(--accent-rgb), 0.09);
+  --pet-fill-strong: rgba(var(--accent-rgb), 0.17);
+
+  /* 主色块上的字。浅色皮的 accent 都够深，白字最干净 */
+  --pet-on-accent: #fff;
+
+  /* 烧瓶烟熏玻璃、进度环轨道、投影共用的一支「深墨」。
+     它不跟卡片走：烧瓶直接压在壁纸上，浅色玻璃遇到白底壁纸会整只消失。
+     浅色皮里 --text-heading 正好是同色系的深色，暗色皮下面单独覆盖。 */
+  --pet-ink: var(--text-heading);
+}
+
+/* 暗夜皮的 --text-heading 是近白色，直接拿来当深墨会让烧瓶在浅色壁纸上糊掉，
+   同理主色偏亮，按钮上要换成深字。 */
+:root[data-theme="night"] {
+  --pet-ink: #16151c;
+  --pet-on-accent: #14131a;
 }
 
 html,
@@ -79,27 +100,70 @@ body,
 .pet-flask .immersive-flask {
   display: grid;
   place-items: center;
+  /* 倒瓶子：翻转的是瓶身，不是整个 .pet-flask —— 进度环得留在原地，
+     它走的是没被扣掉的真实进度，跟着一起转就白白暗示「进度也翻了」。 */
+  transition: transform 0.62s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.pet-flask.is-spilling .immersive-flask {
+  transform: rotate(180deg);
 }
 
 .pet-flask .immersive-flask > svg {
   width: 76px;
   height: 123.5px;
-  /* 应用内的烧瓶是浅色玻璃——那是因为它待在深色卡片上。桌宠飘在别人的壁纸上，
-     浅色玻璃遇到白底壁纸就整只消失，所以这里换成深色烟熏玻璃：
-     深底配白描边，深浅壁纸上都是一只轮廓完整的瓶子。 */
-  --flask-glass-top: rgba(46, 36, 58, 0.44);
-  --flask-glass-mid: rgba(46, 36, 58, 0.33);
-  --flask-glass-bot: rgba(46, 36, 58, 0.42);
-  --flask-stroke: rgba(255, 255, 255, 0.62);
-  /* 再贴一圈极窄的暗描边，白色描边压在浅色壁纸上时才不至于糊掉 */
-  filter:
-    drop-shadow(0 0 1px rgba(0, 0, 0, 0.5))
-    drop-shadow(0 3px 9px rgba(0, 0, 0, 0.38));
+  /* 桌宠飘在别人的壁纸上，瓶身得自己撑住轮廓。做法不是把玻璃压黑（那样在桌面上
+     就是一坨很重的深色块），而是反过来：淡淡的磨砂白玻璃 + 一圈深墨描边。
+     浅色壁纸上靠深描边看得见，深色壁纸上靠白玻璃看得见，两头都不丢。
+     描边用主题的深墨（--pet-ink），换皮时轮廓也跟着换色相。 */
+  --flask-glass-top: rgba(255, 255, 255, 0.74);
+  --flask-glass-mid: rgba(255, 255, 255, 0.56);
+  --flask-glass-bot: rgba(255, 255, 255, 0.66);
+  /* 扁平风：没有投影兜底，轮廓全靠这一根描边撑，所以它不能再淡 */
+  --flask-stroke: color-mix(in srgb, var(--pet-ink) 58%, transparent);
+  /* 玻璃变浅之后，原来那道白高光会糊在瓶身里，提亮一档才留得住受光面 */
+  --flask-highlight: rgba(255, 255, 255, 0.85);
+  /* 敞口内侧：比瓶身稍暗一点点就够分辨，深色会在浅瓶上凿出一个洞 */
+  --flask-rim-fill: color-mix(in srgb, var(--pet-ink) 10%, transparent);
 }
 
 /* 液面上涨要有过渡，否则每次推送状态都是一跳一跳的 */
 .flask-liquid {
   transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+/* ── 倒出去的水 ── */
+/* 瓶子转过来之后瓶口朝下，落在这个高度上（瓶身 svg 高 123.5，在 168 的格子里居中）。
+   水滴在到达窗口下沿之前就淡掉，不然会被窗口边缘齐刷刷切一刀。 */
+.pet-pour {
+  position: absolute;
+  left: 50%;
+  top: 134px;
+  width: 0;
+  pointer-events: none;
+}
+
+.pet-drop {
+  position: absolute;
+  width: 6px;
+  height: 8px;
+  margin-left: -3px;
+  border-radius: 50% 50% 60% 60%;
+  background: var(--accent);
+  opacity: 0;
+  animation: petDrop 1.15s linear infinite;
+}
+
+/* 五滴水完全同一条线会像一串省略号，各自偏一点才像在滴 */
+.pet-drop:nth-child(2) { margin-left: -7px; }
+.pet-drop:nth-child(3) { margin-left: 1px; }
+.pet-drop:nth-child(4) { margin-left: -5px; }
+.pet-drop:nth-child(5) { margin-left: -1px; }
+
+@keyframes petDrop {
+  0% { transform: translateY(0) scale(0.55); opacity: 0; }
+  20% { opacity: 0.8; }
+  100% { transform: translateY(32px) scale(1); opacity: 0; }
 }
 
 .pet-ring {
@@ -110,8 +174,6 @@ body,
   /* 从正上方开始顺时针 */
   transform: rotate(-90deg);
   pointer-events: none;
-  /* 同理：细环在浅色背景上要有一点点暗边才看得出来 */
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
 }
 
 .pet-ring circle {
@@ -119,9 +181,9 @@ body,
   stroke-linecap: round;
 }
 
-/* 轨道用中性灰而不是半透明白：白色在浅色壁纸上等于没画 */
+/* 轨道用主题深墨而不是半透明白：白色在浅色壁纸上等于没画 */
 .pet-ring-track {
-  stroke: rgba(126, 116, 138, 0.5);
+  stroke: color-mix(in srgb, var(--pet-ink) 30%, transparent);
   stroke-width: 3;
 }
 
@@ -151,11 +213,28 @@ body,
   flex-direction: column;
   gap: 10px;
   padding: 12px;
-  border-radius: 14px;
-  background: var(--pet-glass);
+  border-radius: 16px;
+  /* 卡片色打底，再压一层从上到下的主色薄晕：纯平的一块底在壁纸上很死。 */
+  background:
+    linear-gradient(
+      180deg,
+      rgba(var(--accent-rgb), 0.1),
+      rgba(var(--accent-rgb), 0.02) 42%,
+      transparent
+    ),
+    var(--pet-glass);
   border: 1px solid var(--pet-line);
   backdrop-filter: blur(14px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  /* 扁平风：不投影、不打内高光，面板与桌面的边界只由这一根 border 交代 */
+  /* 面板是等窗口变大之后才挂上来的，直接出现会「啪」一下。
+     从烧瓶那一侧（右下）微微升起，短到几乎察觉不到，只为磨掉突兀的边。 */
+  transform-origin: 100% 100%;
+  animation: pet-panel-in 140ms ease-out both;
+}
+
+@keyframes pet-panel-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.985); }
+  to { opacity: 1; transform: none; }
 }
 
 .pet-panel-head {
@@ -166,6 +245,8 @@ body,
 
 .pet-clock {
   font-size: 22px;
+  font-weight: 600;
+  color: var(--pet-head);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
 }
@@ -183,7 +264,7 @@ body,
 
 .pet-icon-btn:hover {
   color: var(--pet-text);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--pet-fill);
 }
 
 .pet-tasks {
@@ -200,13 +281,57 @@ body,
   line-height: 1.4;
   padding: 6px 8px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--pet-fill);
 }
 
 .pet-task-empty {
   color: var(--pet-dim);
   background: transparent;
   padding-left: 0;
+}
+
+/* 待机时列表里的每条任务都能点：点一下就是选中它这次专注做 */
+.pet-task-pick {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  text-align: left;
+  color: var(--pet-text);
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.pet-task-pick:hover {
+  background: var(--pet-fill-strong);
+}
+
+.pet-task-pick.is-on {
+  border-color: var(--accent);
+  background: var(--pet-fill-strong);
+}
+
+.pet-task-dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid var(--pet-line);
+}
+
+.pet-task-pick.is-on .pet-task-dot {
+  background: var(--accent);
+  border-color: transparent;
+}
+
+/* 一行放不下就截断——桌宠面板窄，换行会把列表撑得很乱 */
+.pet-task-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pet-actions {
@@ -218,24 +343,41 @@ body,
   flex: 1;
   padding: 8px 10px;
   font-size: 13px;
-  color: var(--pet-text);
-  background: rgba(255, 255, 255, 0.08);
+  font-family: inherit;
+  color: var(--accent-mid);
+  background: var(--pet-fill);
   border: 1px solid var(--pet-line);
-  border-radius: 9px;
+  border-radius: 10px;
   cursor: pointer;
 }
 
 .pet-btn:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--pet-fill-strong);
 }
 
 .pet-btn-primary {
+  color: var(--pet-on-accent);
   background: var(--accent);
   border-color: transparent;
 }
 
 .pet-btn-primary:hover {
   filter: brightness(1.12);
+  background: var(--accent);
+}
+
+/* 没勾任务时「开始专注」是灰的：这时候不该有任何 hover 反馈骗人去点 */
+.pet-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.pet-btn:disabled:hover {
+  filter: none;
+  background: var(--pet-fill);
+}
+
+.pet-btn-primary:disabled:hover {
   background: var(--accent);
 }
 
@@ -246,9 +388,9 @@ body,
   font-size: 13px;
   font-family: inherit;
   color: var(--pet-text);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--pet-fill);
   border: 1px solid var(--pet-line);
-  border-radius: 9px;
+  border-radius: 10px;
   outline: none;
   user-select: text;
   -webkit-user-select: text;
@@ -280,6 +422,10 @@ body,
 /* 系统开了「减少动态效果」就别在桌面上一直呼吸 */
 @media (prefers-reduced-motion: reduce) {
   .pet-ring.is-running .pet-ring-fill { animation: none; }
+  .pet-panel { animation: none; }
   .pet-ring-fill { transition: none; }
   .flask-liquid { transition: none; }
+  /* 翻转本身留着（它是一条状态信息，不是装饰），只是不再补间；滴水就整个撤掉 */
+  .pet-flask .immersive-flask { transition: none; }
+  .pet-pour { display: none; }
 }

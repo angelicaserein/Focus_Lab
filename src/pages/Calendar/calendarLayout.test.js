@@ -1,10 +1,15 @@
 import { describe, it, expect } from "vitest";
 import {
+  HOUR_PX,
   dayKey,
   groupRecordsByDay,
+  groupActivitiesByDay,
   buildMonthGrid,
+  buildWeekRow,
   buildDayView,
   formatTime,
+  formatCellDuration,
+  startOfWeek,
 } from "./calendarLayout";
 
 // 用本地时间构造时间戳，和被测函数一致（全部走本地日历口径，避免 UTC 偏移）
@@ -23,6 +28,14 @@ const rec = (over = {}) => ({
   scenarioTitle: over.scenarioTitle,
 });
 
+// 造一条使用记录（加 / 完成 / 删任务，都没开计时器）
+const act = (type, ts, text = "倒垃圾") => ({
+  id: `a-${type}-${ts}-${Math.random()}`,
+  type,
+  ts,
+  text,
+});
+
 describe("dayKey", () => {
   it("按本地时区输出零填充的 YYYY-MM-DD", () => {
     expect(dayKey(new Date(2026, 6, 1))).toBe("2026-07-01");
@@ -36,6 +49,18 @@ describe("groupRecordsByDay", () => {
       rec({ startedAt: at(2026, 6, 1, 9) }),
       rec({ startedAt: at(2026, 6, 1, 22) }),
       rec({ startedAt: at(2026, 6, 2, 8) }),
+    ]);
+    expect(map.get("2026-07-01")).toHaveLength(2);
+    expect(map.get("2026-07-02")).toHaveLength(1);
+  });
+});
+
+describe("groupActivitiesByDay", () => {
+  it("把使用记录按本地自然日归组", () => {
+    const map = groupActivitiesByDay([
+      act("add", at(2026, 6, 1, 8)),
+      act("complete", at(2026, 6, 1, 23, 59)),
+      act("delete", at(2026, 6, 2, 0, 1)),
     ]);
     expect(map.get("2026-07-01")).toHaveLength(2);
     expect(map.get("2026-07-02")).toHaveLength(1);
@@ -70,12 +95,26 @@ describe("buildMonthGrid", () => {
     expect(jul2.secs).toBe(0);
     expect(jul2.level).toBe(0);
   });
+
+  it("没专注但有使用记录的日子带上 actCount", () => {
+    const actMap = groupActivitiesByDay([
+      act("complete", at(2026, 6, 2, 10)),
+      act("add", at(2026, 6, 2, 11)),
+    ]);
+    const withAct = buildMonthGrid(2026, 6, dayMap, "2026-07-01", actMap);
+    const jul2 = withAct.find((c) => c.key === "2026-07-02");
+    expect(jul2.secs).toBe(0);
+    expect(jul2.actCount).toBe(2);
+    // 不传 actMap 时退化为 0，不影响旧调用
+    expect(cells.find((c) => c.key === "2026-07-02").actCount).toBe(0);
+  });
 });
 
 describe("buildDayView", () => {
   it("无记录时返回空轨道", () => {
     const view = buildDayView([], false);
     expect(view.sessions).toEqual([]);
+    expect(view.marks).toEqual([]);
     expect(view.height).toBe(0);
     expect(view.nowTop).toBeNull();
   });
@@ -117,12 +156,97 @@ describe("buildDayView", () => {
     expect(view.sessions[0].lanes).toBe(2);
   });
 
+  it("只有使用记录、没有专注时也排出轨道", () => {
+    const view = buildDayView([], false, [
+      act("complete", at(2026, 6, 1, 9, 0), "交表"),
+      act("add", at(2026, 6, 1, 14, 0), "买菜"),
+    ]);
+    expect(view.sessions).toEqual([]);
+    expect(view.marks).toHaveLength(2);
+    expect(view.startHour).toBe(9);
+    // 9:00 那条落在轨道顶端，14:00 那条在 5 小时之后
+    expect(view.marks[0].top).toBe(0);
+    expect(view.marks[1].top).toBeCloseTo(5 * HOUR_PX, 5);
+    expect(view.counts).toEqual({ complete: 1, add: 1 });
+  });
+
+  it("时间范围同时覆盖专注与晚于它的使用记录", () => {
+    const view = buildDayView(
+      [rec({ sessionId: "s", durationSecs: 1800, startedAt: at(2026, 6, 1, 9, 0) })],
+      false,
+      [act("delete", at(2026, 6, 1, 16, 20), "退掉的课")],
+    );
+    expect(view.startHour).toBe(9);
+    expect(view.height).toBeGreaterThanOrEqual(7 * HOUR_PX); // 至少排到 16 点之后
+    expect(view.marks[0].top).toBeCloseTo(7 * HOUR_PX + 20 * (HOUR_PX / 60), 5);
+  });
+
+  it("同类动作挤在 5 分钟内并成一条，跨类型不合并", () => {
+    const view = buildDayView([], false, [
+      act("add", at(2026, 6, 1, 9, 0), "写引言"),
+      act("add", at(2026, 6, 1, 9, 2), "写方法"),
+      act("add", at(2026, 6, 1, 9, 3), "写结论"),
+      act("complete", at(2026, 6, 1, 9, 4), "写引言"),
+    ]);
+    expect(view.marks).toHaveLength(2);
+    expect(view.marks[0].count).toBe(3);
+    expect(view.marks[0].text).toBe("写引言"); // 展示首条，其余进 texts
+    expect(view.marks[0].texts).toHaveLength(3);
+    expect(view.marks[1].type).toBe("complete");
+    expect(view.counts).toEqual({ add: 3, complete: 1 });
+  });
+
+  it("时刻挨太近的记录被顺次下推，轨道跟着长高", () => {
+    const view = buildDayView([], false, [
+      act("add", at(2026, 6, 1, 9, 0)),
+      act("complete", at(2026, 6, 1, 9, 1)),
+      act("delete", at(2026, 6, 1, 9, 2)),
+    ]);
+    const tops = view.marks.map((m) => m.top);
+    for (let i = 1; i < tops.length; i++) {
+      expect(tops[i] - tops[i - 1]).toBeGreaterThanOrEqual(26);
+    }
+    expect(view.height).toBeGreaterThanOrEqual(tops[tops.length - 1]);
+    expect(view.marks[2].shifted).toBe(true);
+  });
+
   it("非当天不给当前时刻线", () => {
     const view = buildDayView(
       [rec({ sessionId: "s", startedAt: at(2026, 6, 1, 9) })],
       false,
     );
     expect(view.nowTop).toBeNull();
+  });
+});
+
+describe("startOfWeek / buildWeekRow", () => {
+  it("周日属于上一周（周一开头）", () => {
+    expect(dayKey(startOfWeek(new Date(2026, 7, 2)))).toBe("2026-07-27"); // 周日
+    expect(dayKey(startOfWeek(new Date(2026, 7, 3)))).toBe("2026-08-03"); // 周一
+  });
+
+  it("从周一起给七格，跨月也不置灰，并带上当天时长", () => {
+    const dayMap = groupRecordsByDay([
+      rec({ sessionId: "s1", startedAt: at(2026, 7, 3, 9), durationSecs: 1500 }),
+    ]);
+    const cells = buildWeekRow(new Date(2026, 6, 27), dayMap, "2026-07-27");
+    expect(cells).toHaveLength(7);
+    expect(cells[0].key).toBe("2026-07-27");
+    expect(cells[6].key).toBe("2026-08-02");
+    expect(cells.every((c) => c.inMonth)).toBe(true);
+    expect(cells[0].isToday).toBe(true);
+    expect(buildWeekRow(new Date(2026, 7, 3), dayMap, "")[0].secs).toBe(1500);
+  });
+});
+
+describe("formatCellDuration", () => {
+  it("不足一分钟不显示，其余压成短标签", () => {
+    expect(formatCellDuration(0)).toBe("");
+    expect(formatCellDuration(45)).toBe("");
+    expect(formatCellDuration(1500)).toBe("25m");
+    expect(formatCellDuration(3600)).toBe("1h");
+    expect(formatCellDuration(4800)).toBe("1h20");
+    expect(formatCellDuration(3660)).toBe("1h01");
   });
 });
 

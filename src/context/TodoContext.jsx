@@ -2,6 +2,7 @@ import "@/types";
 import React, { useReducer, useEffect, useRef, useContext } from "react";
 import { loadVersioned, WRAPPER_VERSION } from "@/utils/storage/storage";
 import useUndoDelete from "@/hooks/common/useUndoDelete";
+import { useActivityLog } from "@/context/ActivityContext";
 import usePersistedWrite from "@/hooks/common/usePersistedWrite";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 import { getTodayStr } from "@/utils/time";
@@ -97,6 +98,9 @@ export function TodoProvider({ children }) {
 
   usePersistedWrite(STORAGE_KEYS.TODOS, todos);
 
+  // 使用记录：任务的增 / 删 / 完成都记一笔时刻，时间轴才看得到没专注的那些事
+  const { logActivity, dropActivity } = useActivityLog();
+
   // 保持 todosRef 指向最新 todos，供 visibilitychange 回调读取（避免 stale closure）
   const todosRef = useRef(todos);
   useEffect(() => { todosRef.current = todos; }, [todos]);
@@ -144,6 +148,7 @@ export function TodoProvider({ children }) {
       ...(recurringDays?.length && { recurringDays, lastResetDate: today }),
     };
     dispatch({ type: ADD, payload: item });
+    logActivity("add", { taskId: item.id, text: item.text });
     return item;
   };
 
@@ -151,7 +156,14 @@ export function TodoProvider({ children }) {
   const deleteTodosByDatabase = (databaseId) =>
     dispatch({ type: DELETE_BY_DB, payload: databaseId });
 
-  const toggleTodo = (id) => dispatch({ type: TOGGLE, payload: id });
+  // log:false 供专注结算调用 —— 那次完成已经写进专注记录，时间轴上不必再多一个点。
+  const toggleTodo = (id, { log = true } = {}) => {
+    const todo = todos.find((t) => t.id === id);
+    dispatch({ type: TOGGLE, payload: id });
+    if (log && todo) {
+      logActivity(todo.completed ? "uncomplete" : "complete", { taskId: id, text: todo.text });
+    }
+  };
 
   const toggleRecurring = (id, days) => dispatch({ type: TOGGLE_RECURRING, payload: { id, days } });
 
@@ -172,6 +184,9 @@ export function TodoProvider({ children }) {
   const { pendingDelete, deleteFn: deleteTodo, undoDelete } = useUndoDelete({
     items: todos,
     dispatch,
+    onDelete: (id, item) => logActivity("delete", { taskId: id, text: item.text }),
+    // meta 即那条删除记录的 id：撤销时一并撤掉
+    onRestore: (_item, meta) => dropActivity(meta),
   });
 
   const value = {

@@ -12,6 +12,7 @@ import industry from "./industry";
 import home from "./home";
 import ddl from "./ddl";
 import focus from "./focus";
+import distraction from "./distraction";
 import todo from "./todo";
 import settings from "./settings";
 import gantt from "./gantt";
@@ -38,6 +39,7 @@ const MODULES = [
   home,
   ddl,
   focus,
+  distraction,
   todo,
   settings,
   gantt,

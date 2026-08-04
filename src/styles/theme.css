@@ -26,12 +26,13 @@
      │  按钮、选中状态、高亮文字的核心颜色                  │
      └─────────────────────────────────────────────────────┘ */
 
-  /* 主色 — 整个网站最醒目的品牌色 */
-  --accent: #a07898;
+  /* 主色 — 整个网站最醒目的品牌色。柔藕紫 hsl(312 28% 55%)：
+     不能再低饱和了——之前 S17% 配 S100% 的粉底色，主色反而像脏灰。 */
+  --accent: #ac6c9f;
 
   /* 主色的 RGB 三元组 — 下面所有 rgba(var(--accent-rgb), …) 衍生色的来源。
      换主题时改这一行，其余透明衍生色自动跟随。 */
-  --accent-rgb: 160, 120, 152;
+  --accent-rgb: 172, 108, 159;
 
   /* 由 --accent-rgb 自动派生的透明衍生色（改主色无需动这里） */
   --accent-bg: rgba(var(--accent-rgb), 0.1); /* 激活背景、标签底色 */
@@ -45,18 +46,18 @@
      │  渐变、图表、计时器等多层次场景                      │
      └─────────────────────────────────────────────────────┘ */
 
-  /* 中色 — 标签文字、次级按钮文字 */
-  --accent-mid: #7d5876;
+  /* 中色 — 标签文字、次级按钮文字。明度压到 40% 才够在白卡上当正文（≈5.4:1） */
+  --accent-mid: #874579;
 
   /* 深色 — 渐变深端、按钮次要文字 */
-  --accent-deep: #8c6885;
+  --accent-deep: #9e5790;
 
   /* ┌─────────────────────────────────────────────────────┐
      │  文字颜色                                            │
      └─────────────────────────────────────────────────────┘ */
 
-  /* 大标题 — 深蓝紫色 */
-  --text-heading: #1e1b4b;
+  /* 大标题 — 主色同色系的深梅色。以前是靛蓝 #1e1b4b，和藕紫主色/粉底色分属三个色系 */
+  --text-heading: #3a1833;
 
   /* 正文 — 近黑色 */
   --text-body: #0f172a;
@@ -74,8 +75,9 @@
      │  背景 & 卡片                                         │
      └─────────────────────────────────────────────────────┘ */
 
-  /* 整体页面底色 — 淡粉紫 */
-  --bg: #fff0f6;
+  /* 整体页面底色 — 主色的淡染 hsl(315 48% 96.5%)。
+     旧值 #fff0f6 是 S100% 的糖果粉，比主色还抢眼，全站看着廉价 */
+  --bg: #faf2f8;
 
   /* 卡片、侧边栏背景 — 纯白 */
   --card: #ffffff;
@@ -100,8 +102,8 @@
   /* 轻模糊半径（清透，不糊成毛玻璃） */
   --glass-blur: 8px;
 
-  /* 浮层投影（来自 --text-heading 31,27,75） */
-  --glass-shadow: rgba(31, 27, 75, 0.18);
+  /* 浮层投影（来自 --text-heading 58,24,51） */
+  --glass-shadow: rgba(58, 24, 51, 0.18);
 
   /* ┌─────────────────────────────────────────────────────┐
      │  边框                                                │
@@ -111,7 +113,7 @@
   --timer-track: rgba(var(--accent-rgb), 0.1);
 
   /* 主色背景上的淡色文字（如选中卡片上的小字） */
-  --on-accent-light: #e0cedd;
+  --on-accent-light: #eedceb;
 
   /* 以下 4 条边框均派生自 --accent-rgb */
   --border-card: rgba(var(--accent-rgb), 0.12); /* 卡片细边框 */
@@ -206,20 +208,28 @@
 /* ══════════════════════════════════════════════════════════
    彩色主题皮肤（奖励商城可购）
    —— 每套只改主色与少量文字/底色，透明衍生色全部跟随 --accent-rgb
+
+   所有皮肤共用一套配方，别再凭感觉挑 hex——各套之间会明显不齐：
+     accent      同色系 S 38~62% / L 46~62%（再艳就吵，再灰就脏）
+     accent-mid  同色相 L 38~42%  ← 它要在白卡上当正文，低于 5:1 不合格
+     accent-deep 夹在 accent 与 mid 之间
+     bg          主色淡染 L≈96%，饱和度必须低于 accent，否则底色抢主色
+     card        近白（L≈99%），比 bg 更干净，卡片才浮得起来
+     text-heading同色相 L 15~17%，不要跨色系（默认皮以前就是靛蓝配藕紫）
    ══════════════════════════════════════════════════════════ */
 
-/* 粉色 <html data-theme="pink"> */
+/* 粉色 <html data-theme="pink"> —— 玫瑰粉，比原来的糖果粉收一档 */
 :root[data-theme="pink"] {
-  --bg:   #fff0f8;
-  --card: #fff5fa;
+  --bg:   #fceef4;
+  --card: #fefbfc;
 
-  --accent:      #e075a8;
-  --accent-rgb:  224, 117, 168;
-  --accent-mid:  #c0507e;
-  --accent-deep: #d05090;
+  --accent:      #d66697;
+  --accent-rgb:  214, 102, 151;
+  --accent-mid:  #99335f;
+  --accent-deep: #c7427c;
 
-  --text-heading:    #3d1030;
-  --on-accent-light: #fce8f3;
+  --text-heading:    #3f1829;
+  --on-accent-light: #f6e4ec;
 }
 
 /* 海洋蓝 <html data-theme="ocean"> */
@@ -250,18 +260,18 @@
   --on-accent-light: #d6ede0;
 }
 
-/* 蜜橘暖阳 <html data-theme="sunset"> */
+/* 蜜橘暖阳 <html data-theme="sunset"> —— 旧主色 S78% 是全站最艳的一支，压到 60% */
 :root[data-theme="sunset"] {
-  --bg:   #fff4ec;
-  --card: #fffaf6;
+  --bg:   #fcf4ee;
+  --card: #fefcfb;
 
-  --accent:      #e8874a;
-  --accent-rgb:  232, 135, 74;
-  --accent-mid:  #c66d38;
-  --accent-deep: #d67840;
+  --accent:      #d38050;
+  --accent-rgb:  211, 128, 80;
+  --accent-mid:  #96532b;
+  --accent-deep: #c06834;
 
-  --text-heading:    #4a2410;
-  --on-accent-light: #fbe4d3;
+  --text-heading:    #402616;
+  --on-accent-light: #f6e9df;
 }
 
 /* 薰衣草 <html data-theme="lavender"> */
@@ -278,30 +288,32 @@
   --on-accent-light: #e8e3f8;
 }
 
-/* 薄荷青 <html data-theme="teal"> */
+/* 薄荷青 <html data-theme="teal"> —— 主色相从 174°（近纯青，在近白底上发「荧光/医用」）
+   偏到 170° 并降饱和，变成柔和的海沫绿 */
 :root[data-theme="teal"] {
-  --bg:   #ecf8f6;
-  --card: #f6fdfc;
+  --bg:   #f0f9f7;
+  --card: #fbfdfd;
 
-  --accent:      #3fb3a8;
-  --accent-rgb:  63, 179, 168;
-  --accent-mid:  #2f8f86;
-  --accent-deep: #379e94;
+  --accent:      #48a293;
+  --accent-rgb:  72, 162, 147;
+  --accent-mid:  #2f7468;
+  --accent-deep: #3d8f81;
 
-  --text-heading:    #0f3330;
-  --on-accent-light: #d3efec;
+  --text-heading:    #173631;
+  --on-accent-light: #e3f2f0;
 }
 
-/* 蜜桃 <html data-theme="peach"> */
+/* 蜜桃 <html data-theme="peach"> —— 旧主色 S76%/L74% 又亮又艳，成了荧光鲑鱼色，
+   且当图标/文字时对白卡只有 ~1.9:1。压暗到 L66%、降饱和，回到真正的蜜桃珊瑚 */
 :root[data-theme="peach"] {
-  --bg:   #fff2ef;
-  --card: #fffaf8;
+  --bg:   #fcf3f0;
+  --card: #fefcfb;
 
-  --accent:      #ef9a8a;
-  --accent-rgb:  239, 154, 138;
-  --accent-mid:  #cf7565;
-  --accent-deep: #dd8474;
+  --accent:      #de8173;
+  --accent-rgb:  222, 129, 115;
+  --accent-mid:  #a14436;
+  --accent-deep: #ca5a49;
 
-  --text-heading:    #4a1f18;
-  --on-accent-light: #fce4de;
+  --text-heading:    #3f1d18;
+  --on-accent-light: #f7e7e3;
 }

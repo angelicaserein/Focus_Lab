@@ -20,6 +20,13 @@ export default function usePrefs() {
   const [cardVisible, setCardVisible] = useLocalStorage(STORAGE_KEYS.PREF_CARD_VISIBLE, true);
   // 桌面通知默认关闭：通知属打扰型能力，opt-in 才符合预期，也避免无意义的授权弹窗。
   const [notifyEnabled, setNotifyEnabled] = useLocalStorage(STORAGE_KEYS.PREF_NOTIFY_ENABLED, false);
+  // 分心水位（桌面版）：默认关。这项会让 app 去看你前台开着什么程序，
+  // 必须是 opt-in，跟桌面通知同一个道理——打扰型/窥探型能力不能默认生效。
+  const [appWatchRaw, setAppWatch] = useLocalStorage(STORAGE_KEYS.PREF_APP_WATCH, null);
+  const appWatch = {
+    enabled: !!appWatchRaw?.enabled,
+    allow: Array.isArray(appWatchRaw?.allow) ? appWatchRaw.allow : [],
+  };
   return {
     countupFullMins, setCountupFullMins,
     countdownMins, setCountdownMins,
@@ -31,5 +38,6 @@ export default function usePrefs() {
     ritualEnabled, setRitualEnabled,
     cardVisible, setCardVisible,
     notifyEnabled, setNotifyEnabled,
+    appWatch, setAppWatch,
   };
 }

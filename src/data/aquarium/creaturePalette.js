@@ -4,6 +4,10 @@
 // 一缸鱼彼此分得开，却仍和当前皮肤是一家人，换主题时整缸一起变。
 //
 // 亮度/饱和度会夹到一个可读区间：暗夜里的 --accent-mid 本身很浅，不夹住会在水里发白看不清。
+//
+// 色相偏移不直接用：物种表里的 hue 拉到 ±190°（鲸、魟、蓝吊…）已经转到主色的补色去了，
+// 一缸鱼看着像另一套配色。故这里把它压进主色附近的邻近色带（±HUE_MAX），
+// 被压掉的那部分转成明度差——邻近色 + 深浅分层，既是一家人又彼此分得清。
 
 function clamp(v, lo, hi) {
   return v < lo ? lo : v > hi ? hi : v;
@@ -48,15 +52,29 @@ function hsl(h, s, l, a = 1) {
     : `hsl(${hh.toFixed(1)} ${s.toFixed(1)}% ${l.toFixed(1)}% / ${a})`;
 }
 
+const HUE_SCALE = 0.3;  // 物种表里的原始偏移压缩比
+const HUE_MAX = 54;     // 压缩后仍不许越过的邻近色边界（度）
+const HUE_RAW = 190;    // 物种表里最大的原始偏移，用来把余量归一成 -1~1
+
+// 物种 → 实际用的色偏。canvas 与图鉴（FishGlyph）共用这一份，两边颜色才对得上。
+//   hue:  相对主题主色的色相偏移（度，已压进邻近色带）
+//   tone: 明度倾向 -1~1，承接被压掉的那部分色相差
+export function speciesShift(species) {
+  const raw = species?.hue ?? 0;
+  const hue = clamp(raw * HUE_SCALE, -HUE_MAX, HUE_MAX);
+  return { hue, tone: clamp((raw - hue) / HUE_RAW, -1, 1) };
+}
+
 // base: 主题主色（任意可解析的颜色字符串）；species: 取它的 hue / rarity。
 // 返回 creatureShapes 里各 role 对应的颜色。
 export function creaturePalette(base, species) {
-  const rgb = parseColor(base) ?? [125, 88, 118];
+  const rgb = parseColor(base) ?? [135, 69, 121]; // 默认皮肤的 --accent-mid
   const [h0, s0, l0] = rgbToHsl(rgb);
-  const h = h0 + (species?.hue ?? 0);
+  const shift = speciesShift(species);
+  const h = h0 + shift.hue;
   // 史诗略艳一点，看得出「这只不一样」，但不靠额外颜色语言，仍是同一支色。
   const s = clamp(s0 * 1.15 + (species?.rarity === 3 ? 12 : 0), 34, 76);
-  const l = clamp(l0, 44, 62);
+  const l = clamp(clamp(l0, 44, 62) + shift.tone * 9, 40, 68);
   return {
     body: hsl(h, s, l),
     deep: hsl(h, s * 0.95, l - 13),

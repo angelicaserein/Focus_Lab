@@ -3,7 +3,7 @@
 // 不引 concurrently / wait-on 之类的依赖，就为了这一件事加两个包不值当。
 // 关键点是「等就绪」——Electron 起太早会 loadURL 失败，白屏且不会自己重试。
 
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import process from "node:process";
 
 // 与 vite.config.js 的 server.port 保持一致（那边写死 5173 且 strictPort）
@@ -23,9 +23,26 @@ function run(cmd, args, env) {
   return child;
 }
 
-// 任一进程退出就把另一个也带走，别留下孤儿 vite 占着 5173
+// 任一进程退出就把另一个也带走，别留下孤儿 vite 占着 5173。
+//
+// Windows 上 shell:true 意味着我们手里的 pid 是外层 cmd.exe，真正的 node vite.js
+// 是它的孙进程。c.kill() 只杀壳，vite 会活下来继续占 5173，下次启动必然报端口冲突。
+// taskkill /T 才能把整棵树带走；用 spawnSync 是因为紧接着就 process.exit 了，
+// 异步版本来不及执行。
+function killTree(child) {
+  if (child.exitCode !== null || child.signalCode !== null) return; // 已经没了
+  if (shellOpt) {
+    spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
+  } else {
+    child.kill();
+  }
+}
+
+let shuttingDown = false;
 function shutdown(code = 0) {
-  for (const c of children) { try { c.kill(); } catch { /* 已经没了 */ } }
+  if (shuttingDown) return; // 两个 exit 事件会前后脚都触发，别重入
+  shuttingDown = true;
+  for (const c of children) { try { killTree(c); } catch { /* 已经没了 */ } }
   process.exit(code);
 }
 process.on("SIGINT", () => shutdown(0));

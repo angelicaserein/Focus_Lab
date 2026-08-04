@@ -45,6 +45,25 @@ export default {
   "settings.prefs.notifyUnsupported": { en: "This browser does not support desktop notifications.", zh: "当前浏览器不支持桌面通知。" },
   "settings.prefs.notifyDenied": { en: "Notifications are blocked by the browser. Allow them in the site permission settings, then turn this on.", zh: "通知已被浏览器拦截，请在地址栏的网站权限设置中手动允许后再开启。" },
   "settings.prefs.notifyHint": { en: "When on, flask-full alerts and today's deadlines alert you via system notifications (even on other tabs).", zh: "开启后，烧瓶注满和今日 DDL 会以系统通知提醒你（即使切到其它标签页）。" },
+  "settings.watch.title": { en: "Distraction water level", zh: "分心水位" },
+  "settings.watch.hint": {
+    en: "During focus, if the app in front isn't one you picked, the desktop flask tips over and pours out. The water pools at the bottom of your screen and drains the moment you come back.",
+    zh: "专注时，如果最前面的程序不是你勾的那几个，桌宠的烧瓶会翻过来往外倒水，水积在屏幕底部；回到勾选的程序就立刻退潮。",
+  },
+  "settings.watch.enable": { en: "Watch the app in front", zh: "看住前台程序" },
+  "settings.watch.privacy": {
+    en: "Off by default. When on, Focus Lab reads which program is in front — only while a focus session is running, and only its name. Nothing is recorded, and your real focus time is never deducted.",
+    zh: "默认关闭。开启后 Focus Lab 会读取当前最前面的程序是哪一个——只在专注进行中读，只读程序名。不会记录，也不会扣掉你真实的专注时长。",
+  },
+  "settings.watch.allowLabel": { en: "Counts as focused", zh: "算在专注里" },
+  "settings.watch.empty": {
+    en: "Nothing here yet. Run one focus session and the programs you use will show up for you to tick.",
+    zh: "这里还是空的。先跑一次专注，用过的程序会陆续出现在这里，勾一下即可。",
+  },
+  "settings.watch.needOne": {
+    en: "Tick at least one — with nothing ticked, everything would count as a distraction, so the feature stays idle.",
+    zh: "至少勾一个。一个都不勾等于「什么都算分心」，所以功能会保持不工作。",
+  },
   "settings.prefs.notifyEnabledTitle": { en: "🔔 Notifications enabled", zh: "🔔 通知已开启" },
   "settings.prefs.notifyEnabledBody": { en: "Flask-full alerts and deadline reminders will show up here.", zh: "烧瓶注满与 DDL 提醒会在这里提醒你。" },
   "settings.tone.title": { en: "Character voice", zh: "角色语气" },

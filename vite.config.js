@@ -5,13 +5,15 @@ export default defineConfig({
   base: './',
   build: {
     rollupOptions: {
-      // 两个入口：index.html 是完整应用（网页版 / Electron 主窗口），
-      // pet.html 是 Electron 的桌宠悬浮窗。桌宠刻意不复用 index.html——
-      // 它只需要一只 SVG 烧瓶，不该把路由 / Context / three.js 再跑一遍。
-      // 网页版部署时多出来的 pet.html 无人访问，也不进 SW 预缓存清单。
+      // 三个入口：index.html 是完整应用（网页版 / Electron 主窗口），
+      // pet.html 是 Electron 的桌宠悬浮窗，flood.html 是贴在屏幕底部的积水层。
+      // 后两个刻意不复用 index.html——一个只要一只 SVG 烧瓶、一个只要一块 canvas，
+      // 都不该把路由 / Context / three.js 再跑一遍。
+      // 网页版部署时多出来的这两个页面无人访问，也不进 SW 预缓存清单。
       input: {
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
         pet: fileURLToPath(new URL('./pet.html', import.meta.url)),
+        flood: fileURLToPath(new URL('./flood.html', import.meta.url)),
       },
     },
   },

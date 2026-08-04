@@ -1,9 +1,10 @@
 // 预加载脚本：渲染进程唯一能碰到 Electron 的入口。
 // contextIsolation 开着，所以这里手工列出一份最小 API，不暴露 ipcRenderer 本体。
 //
-// 两个窗口共用这一个 preload，靠主进程注入的 --focuslab-role 区分身份：
-// 主窗口拿到的是「发布状态 / 接收指令」，桌宠拿到的是「接收状态 / 发指令 + 窗口控制」。
-// 反向的方法在对应窗口里也存在但用不到，无害，省得写两份 preload。
+// 三个窗口共用这一个 preload，靠主进程注入的 --focuslab-role 区分身份：
+// 主窗口拿到的是「发布状态 / 接收指令」，桌宠拿到的是「接收状态 / 发指令 + 窗口控制」，
+// 积水窗只用得上一个 onFloodLevel。
+// 用不到的方法在对应窗口里也存在，无害，省得写三份 preload。
 
 const { contextBridge, ipcRenderer } = require("electron");
 
@@ -30,6 +31,11 @@ contextBridge.exposeInMainWorld("focusDesktop", {
   // 认领一条在页面挂载前就发出来的计时指令（懒加载路由会错过实时推送）
   claimCommand: () => ipcRenderer.invoke("desktop:claim-command"),
   onNavigate: (cb) => on("desktop:navigate", cb),
+
+  // 分心水位：设置页发白名单，积水窗收水位
+  setWatchConfig: (cfg) => ipcRenderer.send("desktop:watch-config", cfg),
+  onAppsSeen: (cb) => on("desktop:apps-seen", cb),
+  onFloodLevel: (cb) => on("flood:level", cb),
 
   // 桌宠侧
   onState: (cb) => on("desktop:state", cb),

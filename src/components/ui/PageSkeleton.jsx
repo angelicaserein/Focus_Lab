@@ -418,6 +418,45 @@ function AnalyticsSk() {
   );
 }
 
+// ── 分心统计：标题 / 四张总览卡 / 趋势柱状 / 24 小时柱状 ────────────────────
+function DistractionSk() {
+  return (
+    <div className="sk-page skp-analytics">
+      <div className="sk-headline">
+        <Sk w="30%" h={30} r={10} />
+        <Sk w="50%" h={14} />
+      </div>
+
+      <div className="sk-stats">
+        <div className="sk-stat sk-card--accent">
+          <Sk w="50%" h={24} />
+          <Sk w="80%" h={12} />
+        </div>
+        {rep(3).map((i) => (
+          <div className="sk-stat" key={i}>
+            <Sk w="50%" h={24} />
+            <Sk w="80%" h={12} />
+          </div>
+        ))}
+      </div>
+
+      {rep(2).map((s) => (
+        <div className="sk-section" key={s}>
+          <div className="sk-between">
+            <Sk w={120} h={16} />
+            <Sk w={100} h={22} r={10} />
+          </div>
+          <div className="sk-chart sk-chart--hourly">
+            {HOURLY.map((h, i) => (
+              <Sk key={i} h={`${h}%`} cn="sk-bar" />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── 任务库：标题+新建 / 数据库标签 / 工具栏 / 表格 ──────────────────────────
 function TasksSk() {
   return (
@@ -536,6 +575,7 @@ const VARIANTS = {
   "/settings": SettingsSk,
   "/research": ResearchSk,
   "/analytics": AnalyticsSk,
+  "/distraction": DistractionSk,
   "/tasks": TasksSk,
   "/ddl": DDLSk,
 };

@@ -17,6 +17,7 @@ const {
 const path = require("node:path");
 const fs = require("node:fs");
 const { pathToFileURL } = require("node:url");
+const { AppWatcher, SUPPORTED: WATCH_SUPPORTED } = require("./appWatch.cjs");
 
 const DEV_SERVER = process.env.VITE_DEV_SERVER_URL || "";
 const IS_DEV = !!DEV_SERVER;
@@ -41,6 +42,7 @@ protocol.registerSchemesAsPrivileged([
 
 let mainWindow = null;
 let petWindow = null;
+let floodWindow = null;
 let tray = null;
 let quitting = false;
 
@@ -248,6 +250,212 @@ function togglePetWindow() {
   else petWindow.show();
 }
 
+// ── 分心水位 ────────────────────────────────────────────────────
+// 专注进行中，如果前台程序不在用户勾的白名单里，桌宠的烧瓶就翻过来往外倒水，
+// 倒出去的水积在屏幕底部。回到白名单立刻退潮，水回到瓶子里。
+//
+// 三条刻意的设计约束（都是用户拍板的）：
+//   1. 不扣真实专注进度。水位只是一面镜子，seconds 一秒都不会少。
+//      所以这里算出来的 level 只喂给「显示」，不参与任何结算。
+//   2. 回到白名单立刻退潮，而且退得比涨得快得多——回头的动作要马上被奖励。
+//   3. 不设宽限期。切走就开始倒。之所以敢这么严，正是因为 1 和 2：
+//      代价可逆、又不真的扣分，严格才不至于变成惩罚。
+//
+// 只在「功能开着 + 勾了至少一个白名单 + 正在跑的专注会话」三者同时成立时工作，
+// 其余时间连探测子进程都不起。
+
+const FLOOD_TICK_MS = 200;
+const FLOOD_RISE_SECS = 480; // 持续分心多久积满一屏（到设定的最大水位）
+const FLOOD_DRAIN_SECS = 45; // 回到白名单后从满退到空要多久
+const FLOOD_MAX_RATIO = 0.5; // 积水窗只占屏幕下半：全屏透明窗常驻画波浪太费 GPU
+const RECENT_APP_LIMIT = 24;
+
+// Focus Lab 自己永远不算分心：点桌宠、回主窗口看任务都不该触发倒水。
+// dev 下前台进程是 electron，打包后是 Focus Lab.exe。
+const SELF_PROC = path.basename(process.execPath, ".exe").toLowerCase();
+
+// 这些是系统外壳，不是「用户在用的程序」。锁屏、开始菜单、输入法候选框
+// 一闪而过就翻瓶子会非常吵，遇到它们一律维持原判。
+const NEUTRAL_PROCS = new Set([
+  "lockapp", "logonui", "searchhost", "searchapp", "shellexperiencehost",
+  "startmenuexperiencehost", "textinputhost", "applicationframehost", "dwm",
+]);
+
+let watchCfg = { enabled: false, allow: [] };
+let watcher = null;
+let currentApp = null;
+let distracted = false;
+let floodLevel = 0;
+let floodTimer = null;
+let lastFloodTick = 0;
+let lastPushedFlood = -1;
+let lastPushedSpill = "";
+const recentApps = new Map(); // name → { name, label, seenAt }
+let recentKey = "";
+
+function watchGateOpen() {
+  return !!(
+    WATCH_SUPPORTED
+    && watchCfg.enabled
+    && watchCfg.allow.length > 0
+    && lastState?.focus?.isRunning
+  );
+}
+
+// 返回 true=分心 / false=专心 / null=维持原判（系统外壳之类）
+function judgeApp(a) {
+  if (!a?.name) return null;
+  if (a.name === SELF_PROC) return false;
+  if (NEUTRAL_PROCS.has(a.name)) return null;
+  // 标题为空的 explorer 是桌面本身或任务栏，点一下任务栏切窗口会短暂经过这里
+  if (a.name === "explorer" && !a.title) return null;
+  return !watchCfg.allow.includes(a.name);
+}
+
+function createFloodWindow() {
+  const { bounds } = screen.getPrimaryDisplay();
+  const height = Math.round(bounds.height * FLOOD_MAX_RATIO);
+
+  floodWindow = new BrowserWindow({
+    x: bounds.x,
+    y: bounds.y + bounds.height - height,
+    width: bounds.width,
+    height,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    movable: false,
+    focusable: false, // 绝不能抢焦点：它盖在别人正在用的窗口上面
+    skipTaskbar: true,
+    hasShadow: false,
+    fullscreenable: false,
+    backgroundColor: "#00000000",
+    show: false,
+    webPreferences: {
+      preload: preloadPath(),
+      contextIsolation: true,
+      nodeIntegration: false,
+      // 这个窗口的全部意义就是「用户在别的程序里的时候还在动」，
+      // 默认的后台节流会把水面的 rAF 掐到几乎不动。
+      backgroundThrottling: false,
+      additionalArguments: ["--focuslab-role=flood"],
+    },
+  });
+
+  // 比普通置顶高，但低于桌宠用的 screen-saver 层——水要在瓶子后面。
+  floodWindow.setAlwaysOnTop(true, "pop-up-menu");
+  floodWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  // 永久穿透，而且不 forward：这个窗口从头到尾不需要知道鼠标在哪，
+  // 它唯一的职责是画一层看得见、碰不到的水。
+  floodWindow.setIgnoreMouseEvents(true);
+  floodWindow.loadURL(IS_DEV ? `${DEV_SERVER}flood.html` : `${APP_ORIGIN}/flood.html`);
+  floodWindow.on("closed", () => { floodWindow = null; });
+}
+
+function sendToFlood(channel, payload) {
+  if (!floodWindow || floodWindow.isDestroyed()) return;
+  const wc = floodWindow.webContents;
+  if (wc.isLoading()) wc.once("did-finish-load", () => wc.send(channel, payload));
+  else wc.send(channel, payload);
+}
+
+// 水位推给两个窗口：积水窗画水，桌宠按同一个值把瓶子倒空——
+// 瓶里少掉的正好是屏幕上多出来的，两边是同一摊水。
+function pushFlood() {
+  // 翻瓶子这一下必须立刻推，不能被「水位没怎么变」的阈值挡住
+  const key = `${distracted}`;
+  if (key === lastPushedSpill && lastPushedFlood >= 0
+      && Math.abs(floodLevel - lastPushedFlood) < 0.004) return;
+  lastPushedSpill = key;
+  lastPushedFlood = floodLevel;
+  lastState = { ...(lastState || {}), watch: { level: floodLevel, spilling: distracted } };
+  sendToPet("desktop:state", lastState);
+  sendToFlood("flood:level", { level: floodLevel, rising: distracted });
+}
+
+function floodTick() {
+  const now = Date.now();
+  const dt = Math.min((now - lastFloodTick) / 1000, 1); // 睡眠唤醒后别一口气灌满
+  lastFloodTick = now;
+
+  const before = floodLevel;
+  if (distracted) floodLevel = Math.min(1, floodLevel + dt / FLOOD_RISE_SECS);
+  else floodLevel = Math.max(0, floodLevel - dt / FLOOD_DRAIN_SECS);
+
+  if (floodLevel > 0 && !floodWindow) createFloodWindow();
+  if (floodLevel > 0 && floodWindow && !floodWindow.isVisible()) {
+    floodWindow.showInactive(); // show() 会抢焦点，把用户从正在打字的窗口里踢出去
+  }
+  if (floodLevel > 0 || before > 0) pushFlood();
+
+  // 退干净了就把窗口藏起来、停掉计时：桌面上不该留一个空转的透明窗
+  if (floodLevel === 0 && !distracted) {
+    if (floodWindow && !floodWindow.isDestroyed()) floodWindow.hide();
+    stopFloodTimer();
+  }
+}
+
+function startFloodTimer() {
+  if (floodTimer) return;
+  lastFloodTick = Date.now();
+  floodTimer = setInterval(floodTick, FLOOD_TICK_MS);
+}
+
+function stopFloodTimer() {
+  clearInterval(floodTimer);
+  floodTimer = null;
+}
+
+function setDistracted(next) {
+  if (distracted === next) return;
+  distracted = next;
+  startFloodTimer();
+}
+
+// 白名单 / 专注状态 / 前台程序，任何一个变了都重新过一遍这里。
+function reevaluateWatch() {
+  const open = watchGateOpen();
+
+  if (open && !watcher) {
+    watcher = new AppWatcher(app.getPath("userData"));
+    watcher.on("app", (a) => {
+      currentApp = a;
+      rememberApp(a);
+      const verdict = judgeApp(a);
+      if (verdict !== null) setDistracted(verdict);
+    });
+    watcher.on("unavailable", () => { watchCfg = { ...watchCfg, enabled: false }; reevaluateWatch(); });
+  }
+
+  if (open) {
+    watcher.start();
+    // 白名单刚改过的话，当前这个前台程序的判定可能已经不一样了
+    const verdict = judgeApp(currentApp);
+    if (verdict !== null) setDistracted(verdict);
+  } else if (watcher) {
+    watcher.stop();
+    currentApp = null;
+    setDistracted(false);
+    startFloodTimer(); // 让已经积起来的水正常退潮，退完计时器自己会停
+  }
+}
+
+// 设置页要给用户勾的那张表。让探测器自己攒，用户就不用去猜「Word 的进程名叫什么」。
+function rememberApp(a) {
+  if (!a.name || a.name === SELF_PROC || NEUTRAL_PROCS.has(a.name)) return;
+  recentApps.set(a.name, { name: a.name, label: a.label, seenAt: Date.now() });
+  if (recentApps.size > RECENT_APP_LIMIT) {
+    const oldest = [...recentApps.values()].sort((x, y) => x.seenAt - y.seenAt)[0];
+    recentApps.delete(oldest.name);
+  }
+  // 判重按名字排序，不看先后：来回切两个已知程序不该反复刷设置页那张表。
+  // 推过去的仍然按最近使用排序，新面孔出现时顺序自然会跟着更新一次。
+  const key = [...recentApps.keys()].sort().join("|");
+  if (key === recentKey) return;
+  recentKey = key;
+  sendToMain("desktop:apps-seen", [...recentApps.values()].sort((x, y) => y.seenAt - x.seenAt));
+}
+
 // ── 托盘 ────────────────────────────────────────────────────────
 function trayIcon() {
   // 打包后 icon 在 dist/ 里（public/ 的内容会原样拷过去）；dev 时读 public/。
@@ -289,7 +497,12 @@ function createTray() {
 // ── IPC ─────────────────────────────────────────────────────────
 function registerIpc() {
   // 渲染进程启动时握手，顺便把当前快照带回去（桌宠窗重载后不至于空白）。
-  ipcMain.handle("desktop:hello", () => ({ state: lastState }));
+  ipcMain.handle("desktop:hello", () => ({
+    state: lastState,
+    // 设置页要用「最近见过的应用」渲染白名单，重载后不该等到下次切窗口才有内容
+    apps: [...recentApps.values()].sort((x, y) => y.seenAt - x.seenAt),
+    watchSupported: WATCH_SUPPORTED,
+  }));
 
   // 主窗口 → 桌宠：状态快照。收到的是「补丁」而不是全量，主进程负责浅合并。
   //
@@ -297,11 +510,24 @@ function registerIpc() {
   // 语言、烧瓶形状），只在 /focus 挂载的 useDesktopFocusSync 发 focus 段（计时）。
   // 各发各的、互不覆盖，Focus 页卸载时发一个 { focus: null } 就干净地退回待机态。
   ipcMain.on("desktop:publish-state", (_e, patch) => {
+    const wasRunning = !!lastState?.focus?.isRunning;
     lastState = { ...(lastState || {}), ...(patch || {}) };
     // 桌宠还在加载就不必发了：它挂载后会用 desktop:hello 主动取一份最新快照。
     if (petWindow && !petWindow.isDestroyed() && !petWindow.webContents.isLoading()) {
       petWindow.webContents.send("desktop:state", lastState);
     }
+    // 分心探测只在专注跑起来的时候工作，所以「开始/暂停/结束」都要重新过一遍闸门
+    if (wasRunning !== !!lastState?.focus?.isRunning) reevaluateWatch();
+  });
+
+  // 设置页改了白名单 / 开关。真值存在主窗口的 localStorage 里（跟其他偏好一致），
+  // 主进程只拿一份用来判定，不落盘——专注必然要主窗口在，冷启动没有先于它的时刻。
+  ipcMain.on("desktop:watch-config", (_e, cfg) => {
+    watchCfg = {
+      enabled: !!cfg?.enabled,
+      allow: Array.isArray(cfg?.allow) ? cfg.allow.map((s) => String(s).toLowerCase()) : [],
+    };
+    reevaluateWatch();
   });
 
   // 桌宠 → 主窗口：操作指令。部分指令主进程自己也要顺手做点事（比如唤起主窗口）。
@@ -382,6 +608,18 @@ if (!app.requestSingleInstanceLock()) {
       sendToPet("desktop:pet-quick-capture");
     });
 
+    // 积水窗是按主显示器的尺寸一次性摆好的。分辨率变了 / 拔了外接屏之后
+    // 那份 bounds 就不对了，直接销毁，下次要用时按新尺寸重建。
+    const rebuildFlood = () => {
+      if (!floodWindow || floodWindow.isDestroyed()) return;
+      floodWindow.destroy();
+      floodWindow = null;
+      lastPushedFlood = -1; // 新窗口是空白的，得重推一次水位
+    };
+    screen.on("display-metrics-changed", rebuildFlood);
+    screen.on("display-added", rebuildFlood);
+    screen.on("display-removed", rebuildFlood);
+
     app.on("activate", () => {
       if (BrowserWindow.getAllWindows().length === 0) { createMainWindow(); createPetWindow(); }
       else showMainWindow();
@@ -392,5 +630,10 @@ if (!app.requestSingleInstanceLock()) {
   app.on("window-all-closed", () => {});
 
   app.on("before-quit", () => { quitting = true; });
-  app.on("will-quit", () => globalShortcut.unregisterAll());
+  app.on("will-quit", () => {
+    globalShortcut.unregisterAll();
+    // 探测子进程是我们 spawn 出来的，不收拾它会在退出后继续留在任务管理器里
+    stopFloodTimer();
+    watcher?.stop();
+  });
 }

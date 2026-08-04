@@ -112,6 +112,7 @@
 .cal-nav {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -176,6 +177,62 @@
   border-color: transparent;
 }
 
+/* 收起态显示的这一周日期区间 */
+.cal-nav-week {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 展开 / 收起 ── */
+.cal-expand-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 160ms, color 160ms, border-color 160ms;
+}
+
+.cal-expand-btn:hover {
+  background: var(--accent-bg);
+  border-color: var(--border-accent);
+  color: var(--accent-mid);
+}
+
+/* 收起态底部的整条展开条：比小按钮更好点 */
+.cal-expand-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  padding: 7px 0;
+  border-radius: 12px;
+  border: 1.5px dashed var(--border-dashed);
+  background: transparent;
+  color: var(--text-faint);
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 160ms, color 160ms, border-color 160ms;
+}
+
+.cal-expand-bar:hover {
+  background: var(--accent-bg);
+  border-color: var(--border-accent);
+  color: var(--accent-mid);
+}
+
 /* ── 星期表头 ── */
 .cal-weekdays {
   display: grid;
@@ -201,6 +258,12 @@
   gap: 5px;
 }
 
+/* 收起态：只留一行本周，格子矮一点、宽一点 */
+.cal-grid.week .cal-cell {
+  aspect-ratio: auto;
+  min-height: 58px;
+}
+
 .cal-cell {
   position: relative;
   aspect-ratio: 1 / 1;
@@ -209,9 +272,11 @@
   background: var(--card);
   cursor: pointer;
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  justify-content: flex-start;
-  padding: 6px 0 0 7px;
+  justify-content: space-between;
+  gap: 2px;
+  padding: 6px 7px 5px;
   font-family: inherit;
   transition: transform 140ms cubic-bezier(0.34, 1.4, 0.64, 1),
     box-shadow 140ms, border-color 140ms, background 140ms;
@@ -270,20 +335,19 @@
   color: #fff;
 }
 
-/* 底部小色条，直观表示当天强度 */
-.cal-cell-bar {
-  position: absolute;
-  left: 7px;
-  right: 7px;
-  bottom: 6px;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--accent);
+/* 当天专注了多久，直接写在格子里 */
+.cal-cell-secs {
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--accent-mid);
+  font-variant-numeric: tabular-nums;
 }
 
-.cal-cell[data-level="3"] .cal-cell-bar,
-.cal-cell[data-level="4"] .cal-cell-bar {
-  background: rgba(255, 255, 255, 0.85);
+.cal-cell[data-level="3"] .cal-cell-secs,
+.cal-cell[data-level="4"] .cal-cell-secs {
+  color: rgba(255, 255, 255, 0.92);
 }
 
 /* ── 图例 ── */
@@ -378,6 +442,12 @@
   box-shadow: 0 2px 12px var(--shadow-sm);
   padding: 10px 14px 10px 0;
   --rail: 52px;
+  /* 右侧使用记录栏；没有记录时宽度为 0，会话块自然铺满 */
+  --erail: 0px;
+}
+
+.cal-track.has-marks {
+  --erail: min(44%, 210px);
 }
 
 /* 小时刻度线 + 标签 */
@@ -432,8 +502,8 @@
 /* 会话块 —— 按时刻定位，高度随时长 */
 .cal-block {
   position: absolute;
-  left: calc(var(--rail) + 6px + var(--lane) * (100% - var(--rail) - 14px) / var(--lanes));
-  width: calc((100% - var(--rail) - 14px - 6px) / var(--lanes) - 6px);
+  left: calc(var(--rail) + 6px + var(--lane) * (100% - var(--rail) - 14px - var(--erail)) / var(--lanes));
+  width: calc((100% - var(--rail) - 14px - var(--erail) - 6px) / var(--lanes) - 6px);
   border-radius: 13px;
   padding: 7px 11px;
   box-sizing: border-box;
@@ -580,6 +650,121 @@
   background: color-mix(in srgb, #f59e0b 14%, transparent);
 }
 
+/* ── 使用记录：轨道右侧的时刻点（加 / 完成 / 删，都没开计时器） ── */
+.cal-mark {
+  position: absolute;
+  right: 14px;
+  width: calc(var(--erail) - 10px);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 9px 0 7px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--border-card);
+  box-shadow: 0 1px 4px var(--shadow-xs);
+  z-index: 3;
+  transform: translateY(-11px); /* 圆点对齐真实时刻 */
+  transition: transform 130ms, box-shadow 130ms;
+}
+
+.cal-mark:hover {
+  transform: translateY(-11px) translateX(-2px);
+  box-shadow: 0 4px 12px var(--shadow-sm);
+  z-index: 5;
+}
+
+/* 连回时间轴的小圆点 */
+.cal-mark-dot {
+  position: absolute;
+  left: -5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.cal-mark.complete   { color: #16a34a; border-color: color-mix(in srgb, #22c55e 40%, var(--border-card)); }
+.cal-mark.add        { color: var(--accent-mid); border-color: var(--border-accent); }
+.cal-mark.delete     { color: #b45309; border-color: color-mix(in srgb, #f59e0b 40%, var(--border-card)); }
+.cal-mark.uncomplete { color: var(--text-faint); }
+
+.cal-mark-time {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.cal-mark-icon {
+  flex-shrink: 0;
+}
+
+.cal-mark-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cal-mark.delete .cal-mark-text,
+.cal-mark.uncomplete .cal-mark-text {
+  color: var(--text-muted);
+}
+
+.cal-mark-count {
+  color: var(--text-faint);
+  font-weight: 700;
+}
+
+/* 当日动作小结 */
+.cal-day-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: -4px;
+}
+
+.cal-count-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent-mid);
+}
+
+.cal-count-chip.complete   { color: #15803d; background: color-mix(in srgb, #22c55e 14%, transparent); }
+.cal-count-chip.delete     { color: #b45309; background: color-mix(in srgb, #f59e0b 14%, transparent); }
+.cal-count-chip.uncomplete { color: var(--text-muted); background: var(--accent-bg-dim); }
+
+/* 月历格：有动作没专注的日子也留个小点 */
+.cal-cell-act {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  opacity: 0.8;
+}
+
+.cal-cell[data-level="3"] .cal-cell-act,
+.cal-cell[data-level="4"] .cal-cell-act {
+  background: rgba(255, 255, 255, 0.9);
+}
+
 /* ── 响应式：窄屏改为单栏 ── */
 @media (max-width: 780px) {
   .cal-layout {
@@ -609,5 +794,22 @@
   .cal-grid,
   .cal-weekdays {
     gap: 4px;
+  }
+
+  .cal-cell {
+    padding: 5px 5px 4px;
+  }
+
+  .cal-cell-secs {
+    font-size: 0.56rem;
+  }
+
+  /* 窄屏：使用记录栏收窄，给会话块留出可读宽度 */
+  .cal-track.has-marks {
+    --erail: 46%;
+  }
+
+  .cal-mark-time {
+    display: none;
   }
 }

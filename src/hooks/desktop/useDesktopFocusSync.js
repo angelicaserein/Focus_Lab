@@ -34,7 +34,7 @@ export default function useDesktopFocusSync({
       switch (cmd.type) {
         case "start":
           // 主进程已经把窗口切到 /focus 了。没选任务就什么都不做——
-          // 桌宠那边此时展示的是「先去挑个任务」，点了只会唤起主窗口。
+          // 正常情况下走不到这儿：桌宠面板里没勾任务时「开始专注」是禁用的。
           if (!a.isRunning && a.hasSelection) a.onStart();
           break;
         case "toggle-pause":

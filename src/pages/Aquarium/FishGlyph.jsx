@@ -1,6 +1,7 @@
 import React from "react";
 import { shapeOf } from "@/data/aquarium/creatureShapes";
 import { speciesById } from "@/data/aquarium/aquariumData";
+import { speciesShift } from "@/data/aquarium/creaturePalette";
 
 // 图鉴/收集卡里的生物图形。造型与缸里是同一份数据（creatureShapes），这里渲染成 SVG DOM。
 //
@@ -8,17 +9,20 @@ import { speciesById } from "@/data/aquarium/aquariumData";
 // 再整体 hue-rotate 到物种自己的色相——于是图鉴里的颜色和缸里那只对得上，
 // 而且照样跟随主题主色，不需要在 React 里做颜色计算。
 // 顺带 saturate 一档：canvas 那边算色时抬过饱和度，不抬这里会灰一截、像另一个物种。
+// 色偏取 speciesShift（与 canvas 同一份）：色相压在邻近色带内，余量落到 brightness 上。
 
 export default function FishGlyph({ glyph, size = 30, className }) {
   const sp = speciesById(glyph);
-  const hue = sp?.hue ?? 0;
+  const { hue, tone } = speciesShift(sp);
   return (
     <svg
       className={`cg${className ? ` ${className}` : ""}`}
       viewBox="0 0 24 24"
       width={size}
       height={size}
-      style={{ filter: `saturate(1.6) hue-rotate(${hue}deg)` }}
+      style={{
+        filter: `saturate(1.6) hue-rotate(${hue}deg) brightness(${(1 + tone * 0.1).toFixed(3)})`,
+      }}
       aria-hidden="true"
     >
       {shapeOf(glyph).map((p, i) => {

@@ -21,6 +21,7 @@ const ROUTES = [
   { path: "/research",       importer: () => import("@/pages/Research") },
   { path: "/scenario-stats", importer: () => import("@/pages/ScenarioStats") },
   { path: "/analytics",      importer: () => import("@/pages/Analytics") },
+  { path: "/distraction",    importer: () => import("@/pages/Distraction") },
   { path: "/tasks",          importer: () => import("@/pages/Tasks") },
   { path: "/ddl",            importer: () => import("@/pages/DDLReminders") },
   { path: "/memo",           importer: () => import("@/pages/Memo") },

@@ -9,23 +9,15 @@
   --card2: color-mix(in srgb, var(--accent) 5%, var(--card));
   --line-tank: var(--border-card);
 
-  /* 页宽与其他页一致（功能树/技能树同为 1040）。宽屏时缸与图鉴并排，
-     窄屏自动落成一列——避免以前那种「680px 窄柱 + 四个大空方格」的空旷感。 */
-  width: min(1040px, 100%);
+  /* 缸是主角，所以这一页不收窄成 1040 的书页宽——缸卡片吃满内容区宽度，
+     图鉴（居住民）永远排在缸下面，从手机到宽屏都是同一条竖向阅读线。 */
+  width: 100%;
   margin: 0 auto;
   padding: 24px 4px 64px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-content: start;
   gap: 16px;
-}
-@media (min-width: 900px) {
-  .page-aquarium {
-    grid-template-columns: minmax(0, 1fr) 296px;
-    align-items: start;
-    column-gap: 20px;
-  }
-  .aq-headline { grid-column: 1 / -1; }
 }
 
 .aq-headline {
@@ -57,7 +49,8 @@
   /* 尺寸由 CSS 说了算，canvas 内部几何按实测宽高推导（见 AquariumTank）。
      不再用固定宽高比：手机上给足高度，桌面上不至于顶到屏幕外。 */
   width: 100%;
-  height: clamp(300px, 46vh, 440px);
+  /* 缸变宽了，高度跟着放宽一点，别成一条又扁又长的鱼缸 */
+  height: clamp(300px, 52vh, 520px);
   display: block;
   touch-action: manipulation;
 }
@@ -114,23 +107,14 @@
 .aq-poor { color: var(--text-muted); }
 .aq-allmet { color: var(--accent); font-weight: 600; }
 
-/* —— 图鉴：宽屏时是缸右侧的一栏，窄屏时落到缸下面 —— */
+/* —— 图鉴（居住民）：始终在缸卡片下面的一整条 —— */
 .aq-dex {
   min-width: 0;
   background: var(--card);
   border: 1px solid var(--border-card);
   border-radius: 24px;
   box-shadow: 0 1px 2px var(--shadow-sm);
-  padding: 16px;
-}
-@media (min-width: 900px) {
-  .aq-dex {
-    position: sticky;
-    top: 24px;
-    /* 22 个物种在 3 列窄栏里能排到八九行，比屏幕还高——粘住的那一栏自己滚 */
-    max-height: calc(100vh - 48px);
-    overflow: auto;
-  }
+  padding: 16px clamp(16px, 2vw, 20px) clamp(16px, 2vw, 20px);
 }
 .aq-dex-head {
   display: flex;
@@ -152,9 +136,9 @@
 }
 .aq-grid {
   display: grid;
-  /* 按可用宽度自动定列数：手机 3 列、右栏 3 列、宽屏单列时自动铺更多，
-     不再是写死 4 列（桌面上撑成大空方格、手机上挤成一团）。 */
-  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  /* 按可用宽度自动定列数：手机 3～4 列，宽屏一行铺开更多，
+     格子上限靠 minmax 的下界把控，不会在超宽屏撑成大空方格。 */
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   gap: 10px;
 }
 .aq-slot {
@@ -263,7 +247,7 @@ button.aq-slot.buyable:disabled { cursor: default; opacity: 0.55; transform: non
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgba(31, 27, 75, 0.34);
+  background: rgba(58, 24, 51, 0.34);
   backdrop-filter: blur(4px);
   animation: aq-veil-in 0.25s ease;
   transition: left 220ms var(--ease);

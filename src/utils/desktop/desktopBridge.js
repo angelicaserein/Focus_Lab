@@ -26,6 +26,14 @@ export const desktop = {
   // 主进程要求主窗口跳转到某个 hash 路由（托盘菜单 / 桌宠的「开始专注」）
   onNavigate: bridge ? (cb) => bridge.onNavigate(cb) : noopSub,
 
+  // ── 分心水位 ──
+  // 白名单配置：真值在主窗口的 localStorage 里，这里只是同步给主进程做判定
+  setWatchConfig: bridge ? (cfg) => bridge.setWatchConfig(cfg) : noop,
+  // 探测器攒的「最近用过的应用」，设置页拿它渲染勾选表
+  onAppsSeen: bridge ? (cb) => bridge.onAppsSeen(cb) : noopSub,
+  // 积水窗专用
+  onFloodLevel: bridge ? (cb) => bridge.onFloodLevel(cb) : noopSub,
+
   // ── 桌宠侧 ──
   onState: bridge ? (cb) => bridge.onState(cb) : noopSub,
   sendCommand: bridge ? (cmd) => bridge.sendCommand(cmd) : noop,

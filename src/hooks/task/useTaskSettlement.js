@@ -43,7 +43,8 @@ export default function useTaskSettlement({
       noteCount,
       events: eventsSnapshot ?? getSnapshot(),
     }));
-    if (outcome === "completed" && !todo.completed) toggleTodo(todo.id);
+    // log:false —— 这次完成已经记在专注记录里，不必在时间轴上再多一个使用记录点
+    if (outcome === "completed" && !todo.completed) toggleTodo(todo.id, { log: false });
     removeFocusTodo(todo.id);
   }, [seconds, getSession, logEvent, addFocusRecord, selectedScenarioId, scenarioTitle, getSnapshot, toggleTodo, removeFocusTodo]);
 

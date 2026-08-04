@@ -34,6 +34,7 @@ export const FUNCTION_BRANCHES = [
       { path: "/gantt",          labelKey: "nav.gantt",         icon: "📊" },
       { path: "/history",        labelKey: "nav.history",       icon: "🕰️" },
       { path: "/analytics",      labelKey: "nav.analytics",     icon: "📈" },
+      { path: "/distraction",    labelKey: "nav.distraction",   icon: "⚡" },
       { path: "/scenario-stats", labelKey: "nav.scenarioStats", icon: "🥧" },
     ],
   },

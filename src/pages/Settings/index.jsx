@@ -3,6 +3,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import LanguageSection from "@/pages/Settings/LanguageSection";
 import ThemeSection from "@/pages/Settings/ThemeSection";
 import PrefsSection from "@/pages/Settings/PrefsSection";
+import AppWatchSection from "@/pages/Settings/AppWatchSection";
 import ToneSection from "@/pages/Settings/ToneSection";
 import DataSection from "@/pages/Settings/DataSection";
 import "./Settings.css";
@@ -42,7 +43,13 @@ export default function SettingsPage() {
             <PrefsSection group="appearance" />
           </>
         )}
-        {tab === "timing" && <PrefsSection group="timing" />}
+        {tab === "timing" && (
+          <>
+            <PrefsSection group="timing" />
+            {/* 桌面版限定，网页版下这个组件自己返回 null */}
+            <AppWatchSection />
+          </>
+        )}
         {tab === "tone" && <ToneSection />}
         {tab === "language" && <LanguageSection />}
         {tab === "data" && <DataSection />}

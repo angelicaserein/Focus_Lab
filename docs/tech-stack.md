@@ -45,7 +45,7 @@ Context 嵌套顺序在 `src/AppProviders.jsx` 的 `providers` 数组中声明�
 嵌套层级，越靠前越外层）。当前（从外到内）：
 
 ```
-LanguageProvider → ThemeProvider → RewardProvider → FocusProvider
+LanguageProvider → ThemeProvider → RewardProvider → FocusProvider → ActivityProvider
 → DatabaseProvider → TodoProvider → ScenarioProvider → DDLProvider → FeatureProvider
 ```
 
