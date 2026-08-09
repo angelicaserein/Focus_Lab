@@ -11,6 +11,7 @@ export default function useTaskSettlement({
   addFocusRecord,
   selectedScenarioId,
   scenarioTitle,
+  activeFlaskId,
   getSnapshot,
   toggleTodo,
   removeFocusTodo,
@@ -37,6 +38,7 @@ export default function useTaskSettlement({
       sessionId: overrideSess.sessionId,
       scenarioId: selectedScenarioId,
       scenarioTitle,
+      flaskId: activeFlaskId,
       coinsEarned,
       distractionCount,
       distractionSecs,
@@ -46,7 +48,7 @@ export default function useTaskSettlement({
     // log:false —— 这次完成已经记在专注记录里，不必在时间轴上再多一个使用记录点
     if (outcome === "completed" && !todo.completed) toggleTodo(todo.id, { log: false });
     removeFocusTodo(todo.id);
-  }, [seconds, getSession, logEvent, addFocusRecord, selectedScenarioId, scenarioTitle, getSnapshot, toggleTodo, removeFocusTodo]);
+  }, [seconds, getSession, logEvent, addFocusRecord, selectedScenarioId, scenarioTitle, activeFlaskId, getSnapshot, toggleTodo, removeFocusTodo]);
 
   return { settleTask };
 }

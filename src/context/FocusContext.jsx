@@ -60,6 +60,7 @@ export function FocusProvider({ children }) {
     outcome,
     scenarioId,
     scenarioTitle,
+    flaskId,
     coinsEarned,
     distractionCount,
     distractionSecs,
@@ -77,6 +78,8 @@ export function FocusProvider({ children }) {
       sessionId,
       outcome,
       ...(scenarioId ? { scenarioId, scenarioTitle } : {}),
+      // 这段专注注进了烧瓶架上的哪一只（烧瓶架页据此现算注满进度）
+      ...(flaskId ? { flaskId } : {}),
       ...(coinsEarned !== undefined ? { coinsEarned } : {}),
       ...(distractionCount !== undefined ? { distractionCount } : {}),
       ...(distractionSecs !== undefined ? { distractionSecs } : {}),

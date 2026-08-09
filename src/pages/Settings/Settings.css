@@ -461,6 +461,33 @@
   color: var(--accent);
 }
 
+/* 存进烧瓶架：与「恢复默认」同款，但底色更实一点——它是这一行里唯一
+   会产生新东西（架上多一只瓶子）的动作 */
+.settings-flask-save {
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  transition: background 150ms ease, opacity 150ms ease;
+}
+
+.settings-flask-save:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.settings-flask-save:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.settings-flask-save.saved {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
 /* ── 语气设置 ── */
 .settings-tone-presets {
   display: flex;

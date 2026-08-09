@@ -12,6 +12,7 @@ import industry from "./industry";
 import home from "./home";
 import ddl from "./ddl";
 import focus from "./focus";
+import flasks from "./flasks";
 import distraction from "./distraction";
 import todo from "./todo";
 import settings from "./settings";
@@ -39,6 +40,7 @@ const MODULES = [
   home,
   ddl,
   focus,
+  flasks,
   distraction,
   todo,
   settings,

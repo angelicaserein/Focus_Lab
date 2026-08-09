@@ -15,6 +15,7 @@ import useScenarioFromRoute from "@/hooks/scenario/useScenarioFromRoute";
 import usePruneDeletedFocus from "@/hooks/focus/usePruneDeletedFocus";
 import useAutoStopOnEmpty from "@/hooks/focus/useAutoStopOnEmpty";
 import useFlaskFullNotify from "@/hooks/focus/useFlaskFullNotify";
+import useFlaskShelf from "@/hooks/flask/useFlaskShelf";
 import useDesktopFocusSync from "@/hooks/desktop/useDesktopFocusSync";
 import { filterSinceSession } from "@/utils/records/focusRecords";
 import { FocusSessionContext } from "@/pages/Focus/FocusSessionContext";
@@ -156,6 +157,9 @@ export default function FocusPage() {
   // 当前模式对应的三档快捷预设
   const targetPresets = timerMode === "countdown" ? countdownPresets : countupPresets;
 
+  // 烧瓶架上当前选中的那只：本次专注的时长会记在它名下（架子空着时为 null，不记账）
+  const { activeId: activeFlaskId } = useFlaskShelf();
+
   // 烧瓶注满（倒计时归零）弹系统通知，仅在开启「桌面通知」偏好时生效
   useFlaskFullNotify({ seconds, targetMins, isRunning, enabled: notifyEnabled });
 
@@ -184,6 +188,7 @@ export default function FocusPage() {
     sessionNotes,
     addFocusRecord, addCoins, removeFocusTodo, toggleTodo,
     selectedTodos, selectedScenarioId: activeScenarioId, scenarioTitle,
+    activeFlaskId,
     setSessionStartTs,
     onStart: () => {
       setIsImmersive(true);

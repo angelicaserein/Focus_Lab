@@ -1,5 +1,6 @@
 import React, { useId } from "react";
 import usePrefs from "@/hooks/common/usePrefs";
+import useFlaskShelf from "@/hooks/flask/useFlaskShelf";
 import { buildFlask } from "@/pages/Focus/flaskShapes";
 
 // 烧瓶进度图：液面高度随 progress（0~1）上升。
@@ -119,8 +120,10 @@ export function FlaskGraphic({ progress = 0, params, hitLayer = false, drainToNe
   );
 }
 
-// 应用内使用：形状默认取用户在设置页保存的参数；传入 params 可覆盖（用于设置页预览）。
+// 应用内使用：形状优先取烧瓶架上选中的那只——那就是「我这次要往里注水的瓶子」，
+// 专注页自然该画它；架子空着时退回设置页调的形状。传入 params 可覆盖（用于设置页预览）。
 export default function FocusFlask({ progress, params }) {
   const { flaskShape } = usePrefs();
-  return <FlaskGraphic progress={progress} params={params ?? flaskShape.params} />;
+  const { activeParams } = useFlaskShelf();
+  return <FlaskGraphic progress={progress} params={params ?? activeParams ?? flaskShape.params} />;
 }

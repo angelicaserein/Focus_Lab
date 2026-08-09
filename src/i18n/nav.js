@@ -13,6 +13,7 @@ export default {
   "nav.world": { en: "World map", zh: "世界地图" },
   "nav.industry": { en: "Industry", zh: "工业点数" },
   "nav.focus": { en: "Focus", zh: "专注" },
+  "nav.flasks": { en: "Flask shelf", zh: "烧瓶架" },
   "nav.tasks": { en: "Tasks", zh: "任务库" },
   "nav.memo": { en: "Memo", zh: "备忘录" },
   "nav.ddl": { en: "Deadlines", zh: "DDL 提醒" },

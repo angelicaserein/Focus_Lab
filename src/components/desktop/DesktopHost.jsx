@@ -6,6 +6,7 @@ import { useScenarios } from "@/context/ScenarioContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useTheme } from "@/context/ThemeContext";
 import usePrefs from "@/hooks/common/usePrefs";
+import useFlaskShelf from "@/hooks/flask/useFlaskShelf";
 import useMemos from "@/hooks/useMemos";
 import desktop, { isDesktop } from "@/utils/desktop/desktopBridge";
 
@@ -31,6 +32,8 @@ export default function DesktopHost() {
   const { lang } = useLanguage();
   const { activeTheme } = useTheme();
   const { flaskShape, timerMode, appWatch } = usePrefs();
+  // 桌宠画的瓶子跟着烧瓶架上选中的那只走，与专注页保持同一只（架子空着时用设置页的形状）
+  const { activeParams } = useFlaskShelf();
   const { addMemo } = useMemos();
 
   // 这些回调每次渲染都是新函数，但指令订阅只想建一次。
@@ -86,7 +89,7 @@ export default function DesktopHost() {
       // 统一成 data-theme 的取值（default 表示不带属性的默认皮）。
       theme: (activeTheme || "default").replace(/^theme-/, ""),
       timerMode,
-      flaskParams: flaskShape.params,
+      flaskParams: activeParams ?? flaskShape.params,
       scenarioTitle: activeScenario?.title ?? null,
       selectedTitles: selected.map((t) => t.text),
       selectedIds: focusedTodoIds,
@@ -97,7 +100,7 @@ export default function DesktopHost() {
     if (key === lastPayload.current) return;
     lastPayload.current = key;
     desktop.publishState({ app });
-  }, [todos, focusedTodoIds, activeScenario, lang, activeTheme, timerMode, flaskShape]);
+  }, [todos, focusedTodoIds, activeScenario, lang, activeTheme, timerMode, flaskShape, activeParams]);
 
   return null;
 }

@@ -15,6 +15,7 @@ const ROUTES = [
   { path: "/tutorial",       importer: () => import("@/pages/Tutorial") },
   { path: "/skilltree",      importer: () => import("@/pages/SkillTree") },
   { path: "/focus",          importer: () => import("@/pages/Focus") },
+  { path: "/flasks",         importer: () => import("@/pages/Flasks") },
   { path: "/history",        importer: () => import("@/pages/History") },
   { path: "/scenario",       importer: () => import("@/pages/Scenario") },
   { path: "/reward",         importer: () => import("@/pages/Reward") },

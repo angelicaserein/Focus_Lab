@@ -1,0 +1,243 @@
+/* 烧瓶架页。配色全部走主题 token（--accent / --card / --border-card），
+   任何皮肤与暗夜模式自动跟随，页面本身不写死颜色。 */
+
+.page-flasks {
+  /* 烧瓶图形默认是给沉浸层的深色底调的（白描边白玻璃），摆到这一页的浅色卡片上
+     整只瓶子就只剩下水、看不见瓶壁。所以按主题正文色重配一套玻璃：
+     深色皮里 --text-body 是浅的、浅色皮里是深的，两边都描得出轮廓。 */
+  --flask-stroke: color-mix(in srgb, var(--text-body) 42%, transparent);
+  --flask-glass-top: color-mix(in srgb, var(--text-body) 8%, transparent);
+  --flask-glass-mid: color-mix(in srgb, var(--text-body) 4%, transparent);
+  --flask-glass-bot: color-mix(in srgb, var(--text-body) 7%, transparent);
+  --flask-highlight: color-mix(in srgb, var(--text-body) 14%, transparent);
+  --flask-rim-fill: color-mix(in srgb, var(--text-body) 12%, transparent);
+
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 24px 4px 64px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 12px;
+}
+
+.fk-headline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.fk-headline h1 {
+  margin: 0;
+  font-size: 26px;
+  color: var(--text-heading);
+}
+.fk-count {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.fk-lead {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* —— 空架子 —— */
+.fk-empty {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 40px 20px 44px;
+  background: var(--card);
+  border: 1px solid var(--border-card);
+  border-radius: 16px;
+  text-align: center;
+}
+/* 空态那只瓶子只是个示意，压暗一点，别抢走「架子是空的」这句话 */
+.fk-empty .immersive-flask {
+  opacity: 0.45;
+  margin-bottom: 6px;
+}
+.fk-empty-title {
+  margin: 0;
+  font-size: 16px;
+  color: var(--text-body);
+}
+.fk-empty-hint {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.fk-empty-link {
+  margin-top: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  text-decoration: none;
+}
+.fk-empty-link:hover {
+  filter: brightness(1.08);
+}
+
+/* —— 架子 —— */
+.fk-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.fk-item {
+  background: var(--card);
+  border: 1px solid var(--border-card);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+/* 选中的那只：整格描一圈 accent，一眼看出水正往哪儿注 */
+.fk-item.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
+
+.fk-pick {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px 16px;
+  cursor: pointer;
+}
+.fk-pick:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -4px;
+}
+
+.fk-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.fk-name {
+  flex: 1 1 160px;
+  min-width: 0;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text-body);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: text;
+}
+.fk-name:hover {
+  border-color: var(--border-card);
+}
+.fk-name:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--bg);
+}
+
+.fk-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent-mid, var(--accent));
+  font-size: 12px;
+  white-space: nowrap;
+}
+/* 未选中格子上的提示：平时很淡，鼠标扫过整格时才亮起来 */
+.fk-hint-pick {
+  font-size: 12px;
+  color: var(--text-muted);
+  opacity: 0.5;
+  white-space: nowrap;
+}
+.fk-pick:hover .fk-hint-pick {
+  opacity: 1;
+}
+
+.fk-remove {
+  display: inline-flex;
+  padding: 5px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.fk-remove:hover {
+  background: color-mix(in srgb, #ef4444 14%, transparent);
+  color: #ef4444;
+}
+
+/* —— 一排瓶子 —— */
+.fk-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding-bottom: 4px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+.fk-bottle {
+  flex: 0 0 auto;
+}
+/* FlaskGraphic 的 svg 自带 100x163 的尺寸属性，这里按架子的尺度缩小（CSS 覆盖属性） */
+.fk-bottle svg {
+  width: 62px;
+  height: 101px;
+  display: block;
+}
+/* 已注满的往后退一层：正在接的那只才是此刻该看的 */
+.fk-bottle.done {
+  opacity: 0.62;
+}
+.fk-bottle.filling {
+  opacity: 1;
+}
+.fk-more {
+  align-self: center;
+  flex: 0 0 auto;
+  margin-right: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.fk-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.fk-meta-total {
+  color: var(--text-body);
+}
+.fk-meta-full {
+  color: var(--accent-mid, var(--accent));
+}
+
+@media (max-width: 560px) {
+  .fk-bottle svg {
+    width: 50px;
+    height: 82px;
+  }
+}

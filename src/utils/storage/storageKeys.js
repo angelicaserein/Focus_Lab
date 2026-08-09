@@ -40,6 +40,9 @@ export const STORAGE_KEYS = {
   // （born = 入缸时刻，用来算它现在是卵/幼体/成体，见 data/aquarium/growth；
   //   老存档是纯 id 字符串数组，读的时候就地迁移，故沿用同一个 key）
   AQUARIUM_COLLECTION:  "aquarium_collection_v1",
+  // 烧瓶架：把设置页调好的形状存成一只只烧瓶，{ items: [{id,name,preset,params,savedAt}], activeId }。
+  // 注满进度不存在这里——它由专注记录里的 flaskId 现算（见 pages/Flasks/flaskShelf）。
+  FLASK_SHELF: "flask_shelf_v1",
   // 任务属性定义（v6 及以前的全局 schema，v7 起折叠进 DATABASES，仅保留兼容）
   TASK_ATTRS: "task_attrs_v1",
   // 多 database（v7 起）：每个 database 含独立的列 schema

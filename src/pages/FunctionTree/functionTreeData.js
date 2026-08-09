@@ -21,6 +21,7 @@ export const FUNCTION_BRANCHES = [
       { path: "/world",     labelKey: "nav.world",     icon: "🗺️" },
       { path: "/industry",  labelKey: "nav.industry",  icon: "🏭" },
       { path: "/focus",     labelKey: "nav.focus",     icon: "⏱️" },
+      { path: "/flasks",    labelKey: "nav.flasks",    icon: "⚗️" },
       { path: "/tasks",     labelKey: "nav.tasks",     icon: "📋" },
       { path: "/memo",      labelKey: "nav.memo",      icon: "📝" },
       { path: "/ddl",       labelKey: "nav.ddl",       icon: "⏰" },

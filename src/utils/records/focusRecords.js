@@ -31,6 +31,7 @@ export function buildFocusRecord(todo, outcome, {
   sessionId,
   scenarioId,
   scenarioTitle,
+  flaskId,
   coinsEarned,
   distractionCount,
   distractionSecs,
@@ -44,6 +45,8 @@ export function buildFocusRecord(todo, outcome, {
     startedAt: startedAt ?? Date.now() - durationSecs * 1000,
     sessionId,
     outcome,
+    // 这段时长注进了烧瓶架上的哪一只（架子空着时为空）。烧瓶架的注满进度即由此现算。
+    flaskId: flaskId ?? undefined,
     scenarioId: scenarioId ?? undefined,
     scenarioTitle: scenarioTitle ?? undefined,
     coinsEarned,
