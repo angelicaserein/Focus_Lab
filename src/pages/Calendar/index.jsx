@@ -5,7 +5,6 @@ import {
 } from "lucide-react";
 import { useFocus } from "@/context/FocusContext";
 import { useActivityLog } from "@/context/ActivityContext";
-import { useLanguage } from "@/context/LanguageContext";
 import { totalFocusSecs } from "@/utils/records/focusRecords";
 import { formatDuration } from "@/utils/time";
 import DayLog from "@/components/records/DayLog";
@@ -29,7 +28,6 @@ const MONTH_NAMES = [
 export default function CalendarPage() {
   const { focusRecords } = useFocus();
   const { activities } = useActivityLog();
-  const { t } = useLanguage();
 
   // 不缓存 today：页面可能整天开着，跨午夜需自然刷新到真实今天。
   const today = new Date();
@@ -246,139 +244,8 @@ export default function CalendarPage() {
             )}
           </div>
 
-          {/* 当日动作小结：完成 / 添加 / 删除各几条 */}
-          {view.marks.length > 0 && (
-            <div className="cal-day-counts">
-              {ACTIVITY_ORDER.filter((type) => view.counts[type] > 0).map((type) => {
-                const Icon = ACTIVITY_ICONS[type];
-                return (
-                  <span key={type} className={`cal-count-chip ${ACTIVITY_META[type].cls}`}>
-                    <Icon size={12} aria-hidden="true" />
-                    {t(ACTIVITY_META[type].labelKey)} {view.counts[type]}
-                  </span>
-                );
-              })}
-            </div>
-          )}
-
-          {view.sessions.length === 0 && view.marks.length === 0 ? (
-            <div className="cal-day-empty">
-              <Clock3 size={26} aria-hidden="true" />
-              <span>这一天还没有任何记录</span>
-            </div>
-          ) : (
-            <div
-              className={`cal-track${view.marks.length > 0 ? " has-marks" : ""}`}
-              style={{ height: view.height }}
-            >
-              {/* 小时刻度 */}
-              {view.hours.map((h, i) => (
-                <div
-                  key={h}
-                  className="cal-track-hour"
-                  style={{ top: (h - view.startHour) * HOUR_PX }}
-                >
-                  <span className="cal-track-hlabel">
-                    {i === view.hours.length - 1 ? "" : `${String(h).padStart(2, "0")}:00`}
-                  </span>
-                  <span className="cal-track-hline" />
-                </div>
-              ))}
-
-              {/* 当前时刻线 */}
-              {view.nowTop != null && (
-                <div className="cal-track-now" style={{ top: view.nowTop }}>
-                  <span className="cal-track-now-dot" />
-                </div>
-              )}
-
-              {/* 会话块 */}
-              {view.sessions.map((s) => {
-                const compact = s.height < 78;
-                return (
-                  <div
-                    key={s.key}
-                    className={`cal-block tone-${s.tone}${compact ? " compact" : ""}`}
-                    style={{
-                      top: s.top,
-                      height: s.height,
-                      "--lane": s.lane,
-                      "--lanes": s.lanes,
-                    }}
-                  >
-                    <div className="cal-block-head">
-                      <span className="cal-block-time">{formatTime(s.startMs)}</span>
-                      <span className="cal-block-dur">{formatDuration(s.totalSecs)}</span>
-                      {s.scenarioTitle && !compact && (
-                        <span className="cal-block-scenario">{s.scenarioTitle}</span>
-                      )}
-                    </div>
-
-                    <div className="cal-block-tasks">
-                      {s.tasks.slice(0, compact ? 1 : 3).map((task, i) => {
-                        const meta = OUTCOME_META[task.outcome];
-                        return (
-                          <div key={i} className="cal-block-task">
-                            <span className="cal-block-task-name">{task.text}</span>
-                            {!compact && (
-                              <span className={`cal-block-outcome ${meta?.cls ?? "ended"}`}>
-                                {meta ? t(meta.labelKey) : task.outcome}
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
-                      {compact && s.tasks.length > 1 && (
-                        <span className="cal-block-more">+{s.tasks.length - 1}</span>
-                      )}
-                    </div>
-
-                    {!compact && (s.coins > 0 || s.distractions > 0) && (
-                      <div className="cal-block-foot">
-                        {s.coins > 0 && (
-                          <span className="cal-block-chip">
-                            <Coins size={12} aria-hidden="true" />+{s.coins}
-                          </span>
-                        )}
-                        {s.distractions > 0 && (
-                          <span className="cal-block-chip warn">
-                            <Zap size={12} aria-hidden="true" />分心 {s.distractions}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-
-              {/* 使用记录：没开计时器也发生过的事，点在轨道右侧 */}
-              {view.marks.map((m) => {
-                const meta = ACTIVITY_META[m.type];
-                const markLabel = meta ? t(meta.labelKey) : m.type;
-                const Icon = ACTIVITY_ICONS[m.type] ?? Check;
-                return (
-                  <div
-                    key={m.id}
-                    className={`cal-mark ${meta.cls}`}
-                    style={{ top: m.top }}
-                    title={m.texts.join("\n")}
-                  >
-                    <span className="cal-mark-dot" />
-                    <span className="cal-mark-time">{formatTime(m.ts)}</span>
-                    <Icon className="cal-mark-icon" size={12} aria-hidden="true" />
-                    <span className="cal-mark-text">
-                      {m.text || markLabel}
-                      {m.count > 1 && (
-                        <span className="cal-mark-count">
-                          {t("history.activityMore", { count: m.count })}
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          {/* 当日流水：会话卡与使用记录混排，与 /history 共用同一套渲染 */}
+          <DayLog records={selectedDay.records} activities={selectedDay.activities} />
         </section>
       </div>
     </div>
