@@ -24,13 +24,13 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .fc-solo-toggle:hover { border-color: var(--accent); color: var(--accent); }
 .fc-solo-toggle.active {
-  background: var(--accent);
+  background: var(--accent-solid);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 /* 「整理一下」：把留在原位的已完成卡片收回已完成堆 */
@@ -46,7 +46,7 @@
   color: var(--text-muted);
   font-size: 0.78rem;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 .fc-tidy:hover { color: var(--accent); border-color: var(--accent); }
 
@@ -132,13 +132,13 @@
   font-weight: 700;
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
 }
 .fc-hero-btn:hover { border-color: var(--accent); color: var(--accent); }
 .fc-hero-btn.primary {
-  background: var(--accent);
+  background: var(--accent-solid);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   box-shadow: 0 4px 14px var(--accent-glow);
 }
 .fc-hero-btn.primary:hover { opacity: 0.9; color: #fff; }
@@ -154,7 +154,7 @@
   border: 1.5px solid var(--border-card);
   background: var(--card);
   box-shadow: 0 2px 8px var(--shadow-xs);
-  transition: border-color 0.15s;
+  transition: border-color var(--dur-fast) var(--ease);
 }
 .fc-capture:focus-within { border-color: var(--accent); }
 .fc-capture-icon { color: var(--text-faint); flex-shrink: 0; }
@@ -173,12 +173,12 @@
   padding: 8px 18px;
   border-radius: 12px;
   border: none;
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition: opacity var(--dur-fast) var(--ease);
 }
 .fc-capture-btn:hover { opacity: 0.88; }
 
@@ -223,7 +223,7 @@
   border: 1.5px solid var(--border-card);
   background: var(--card);
   box-shadow: 0 2px 8px var(--shadow-xs);
-  transition: box-shadow 0.15s, border-color 0.15s, transform 0.1s;
+  transition: box-shadow var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 .fc-card:hover { box-shadow: 0 4px 16px var(--shadow-sm); border-color: var(--border-accent); }
 .fc-card.done { opacity: 0.6; }
@@ -243,7 +243,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
 }
 .fc-check:hover { border-color: var(--accent); }
 .fc-card.done .fc-check {
@@ -287,7 +287,7 @@
   color: var(--text-faint);
   cursor: pointer;
   border-radius: 8px;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
 }
 .fc-expand:hover { color: var(--accent); background: var(--accent-hover); }
 .fc-del { opacity: 0; }

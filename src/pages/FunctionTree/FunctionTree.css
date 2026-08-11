@@ -17,7 +17,9 @@
 }
 .ft-headline h1 {
   margin: 0;
-  font-size: 26px;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  line-height: var(--page-title-lh);
   color: var(--text-heading, var(--text));
 }
 
@@ -38,7 +40,7 @@
   border-radius: 9px;
   font-size: 13px;
   cursor: pointer;
-  transition: all 0.15s var(--ease, ease);
+  transition: all var(--dur-fast) var(--var(--ease), ease);
 }
 .ft-reset:hover:not(:disabled) { color: var(--accent); border-color: var(--accent-border, var(--accent)); }
 .ft-reset:disabled { opacity: 0.4; cursor: default; }
@@ -119,8 +121,8 @@
   border: 1.5px solid var(--border-card, rgba(0, 0, 0, 0.1));
   cursor: pointer;
   text-align: left;
-  transition: transform 0.15s var(--ease, ease), border-color 0.15s var(--ease, ease),
-    box-shadow 0.15s var(--ease, ease), opacity 0.15s var(--ease, ease);
+  transition: transform var(--dur-fast) var(--var(--ease), ease), border-color var(--dur-fast) var(--var(--ease), ease),
+    box-shadow var(--dur-fast) var(--var(--ease), ease), opacity var(--dur-fast) var(--var(--ease), ease);
 }
 /* 连到树干的横向短线 */
 .ft-node::before {
@@ -149,7 +151,7 @@
   border-radius: 999px;
   background: var(--border-card, rgba(0, 0, 0, 0.18));
   position: relative;
-  transition: background 0.18s var(--ease, ease);
+  transition: background var(--dur-fast) var(--var(--ease), ease);
 }
 .ft-switch-knob {
   position: absolute;
@@ -160,7 +162,7 @@
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-  transition: transform 0.18s var(--ease, ease);
+  transition: transform var(--dur-fast) var(--var(--ease), ease);
 }
 
 /* 已开启：分支色描边 + 开关点亮 */
@@ -180,7 +182,33 @@
 .ft-node.off .ft-node-label { color: var(--text-muted); }
 .ft-node.off:hover { opacity: 0.8; }
 
+/* 组节点（如情境功能）：一个总闸 + 缩进一级的子开关列。
+   总闸关掉时整组压暗，子开关停用但仍显示自己的记忆（重开即恢复原样）。 */
+.ft-group { display: flex; flex-direction: column; gap: 8px; }
+
+.ft-group-count {
+  margin: -2px 0 0 13px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 子开关列：树干再往里缩一级，视觉上明确「属于上面那个总闸」 */
+.ft-nodes-sub { padding-left: 30px; gap: 6px; }
+.ft-nodes-sub::before { left: 17px; bottom: 18px; }
+
+.ft-node-sub { padding: 9px 12px; }
+.ft-node-sub .ft-node-icon { font-size: 16px; }
+.ft-node-sub .ft-node-label { font-size: 12.5px; font-weight: 500; }
+.ft-node-sub .ft-switch { width: 30px; height: 17px; }
+.ft-node-sub .ft-switch-knob { width: 13px; height: 13px; }
+.ft-node-sub.on .ft-switch-knob { transform: translateX(13px); }
+
+/* 总闸关闭：整组压暗；子开关不可点，光标也不再暗示可点 */
+.ft-group.off .ft-nodes-sub { opacity: 0.45; }
+.ft-group.off .ft-node-sub { cursor: default; }
+.ft-group.off .ft-node-sub:hover { transform: none; box-shadow: none; }
+
 @media (max-width: 600px) {
-  .ft-headline h1 { font-size: 22px; }
   .ft-branches { gap: 24px; }
 }

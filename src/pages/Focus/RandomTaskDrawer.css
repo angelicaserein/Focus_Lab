@@ -3,12 +3,15 @@
 .rtd-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.32);
-  backdrop-filter: blur(4px);
+  background: var(--overlay-bg);
+  backdrop-filter: var(--overlay-blur);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 300;
+  /* 必须高于侧栏(999)与它的展开把手(桌面 1000 / 移动 1001)，否则全屏遮罩盖不住导航，
+     用户能穿过遮罩点到侧栏。取 1050 而非 1000：与把手同值会变成靠 DOM 顺序决胜负。
+     上限留给祈愿揭晓层(1100)。层级表见 docs/z-index.md。 */
+  z-index: 1050;
   animation: rtd-overlay-in 200ms ease both;
 }
 
@@ -59,7 +62,7 @@
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 8px;
-  transition: color 150ms ease, background 150ms ease;
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 
 .rtd-close:hover {
@@ -149,7 +152,7 @@
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  transition: background 150ms ease, transform 100ms ease, opacity 150ms ease;
+  transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease);
 }
 
 .rtd-btn:active {
@@ -157,8 +160,8 @@
 }
 
 .rtd-btn--primary {
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
 }
 
 .rtd-btn--primary:hover {

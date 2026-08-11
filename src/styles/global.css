@@ -5,6 +5,40 @@
   --glass: var(--accent-bg);
   /* 统一的丝滑缓动曲线 */
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 微交互时长（hover / 按下 / 选中这类即时反馈）。
+     此前这一档散着 13 种取值：160ms 125 处、150ms 175 处、140ms 50 处、
+     120ms 49 处，还有 100/130/180/200ms 若干。都是同一种"手指底下的反馈"，
+     快慢却差了一倍，逐页逛过去会觉得不像同一个 app。
+     超过 200ms 的入场 / 揭晓动画不归这里管，各自保留节奏。 */
+  --dur-fast: 150ms;
+
+  /* ── 页面标题字阶 ──
+     以前各页自己写死：一半用 clamp(1.6rem, 2.2vw, 2.2rem)（宽屏能涨到 35px），
+     一半用 26px，还有两页 1.5rem，同一套 app 里三档大小。统一成这一条。
+     用 vw+rem 混合而不是纯 vw：纯 vw 在平板宽度会塌回下限，字阶断档。 */
+  --page-title-size: clamp(1.375rem, 0.9vw + 1.1rem, 1.75rem);
+  --page-title-weight: 800;
+  --page-title-lh: 1.15;
+  /* 标题下方那行说明文字 —— 原本 0.9rem / 0.95rem / 14px 三种混用 */
+  --page-sub-size: 0.9rem;
+  --page-sub-lh: 1.6;
+
+  /* ── 弹窗遮罩 ──
+     原本 6 种颜色（纯黑 .45/.55、石板 .28/.32/.42、color-mix）配 5 档模糊
+     （无 / 2 / 3 / 4px）。同一个"背后的东西退下去"的动作，深浅差了一倍。
+     底色统一用石板灰（= --text-body），纯黑压在暖色皮肤上会发脏。 */
+  --overlay-bg: rgba(15, 23, 42, 0.42);
+  /* 揭晓类浮层（抽卡结果、结算卡）用更重的一档：这类时刻要让页面彻底退场 */
+  --overlay-bg-strong: rgba(15, 23, 42, 0.62);
+  --overlay-blur: blur(3px);
+
+  /* ── 空状态 ──
+     原本各页 padding 从 12px 到 60px、圆角 16/18/20/24、边框实线/虚线/无，
+     同一个"这里还没有东西"在不同页面长得完全不一样。 */
+  --empty-pad: 40px 24px;
+  --empty-radius: 20px;
+  --empty-border: 1.5px dashed var(--border-dashed);
 }
 
 * {
@@ -75,25 +109,38 @@ body {
   }
 }
 
-/* ── 无障碍：尊重系统"减少动态效果" ── */
+/* ── 无障碍：键盘焦点环 ──
+   全站兜底。此前只有 9 个文件写了 :focus-visible，其余十几个页面用键盘
+   Tab 过去完全看不出焦点在哪。页面自己写了更贴合的焦点样式时，
+   其选择器权重高于这里的元素选择器，会自然覆盖掉这条。
+   用 :focus-visible 而非 :focus —— 鼠标点击不该冒出焦点环。
+   不含 input / textarea / select：它们大多已有自己的 :focus 描边或投影，
+   再叠一层 outline 会变成双圈；何况输入框还有光标指示焦点，按钮和链接没有。 */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible,
+[role="radio"]:focus-visible,
+[role="checkbox"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── 无障碍：尊重系统"减少动态效果" ──
+   原本是一份手点的选择器名单，只覆盖了 todo 那批老组件；后来加的
+   专注仪式、生态缸、祈愿、烧瓶架全都漏在名单外。改成全局兜底。
+   注意不能用 animation: none —— 那样 animationend 不会触发，
+   靠动画结束回调收尾的组件（卡片移除、过渡层）会卡住。压到 0.01ms
+   可以既没有观感上的动效，又照常派发事件。 */
 @media (prefers-reduced-motion: reduce) {
-  .todo-item,
-  .todo-item:hover,
-  .todo-item.new,
-  .todo-item.removing,
-  .todo-item.selected,
-  .todo-input,
-  .add-btn,
-  .custom-checkbox,
-  .delete-btn,
-  .edit-btn,
-  .todo-edit-input,
-  .toast,
-  .toast-undo,
-  .filter-tabs .tab,
-  .nav-link {
-    animation: none !important;
-    transition: none !important;
-    transform: none !important;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

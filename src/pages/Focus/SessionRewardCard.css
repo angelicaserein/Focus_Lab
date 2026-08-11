@@ -7,8 +7,8 @@
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(3px);
+  background: var(--overlay-bg-strong);
+  backdrop-filter: var(--overlay-blur);
   animation: srewards-fade 0.25s ease;
 }
 
@@ -68,11 +68,11 @@
   font-weight: 600;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: all 0.18s var(--ease, ease);
+  transition: all var(--dur-fast) var(--var(--ease), ease);
 }
 .srewards-btn.primary {
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
 }
 .srewards-btn.primary:hover { background: var(--accent-hover, var(--accent-deep, var(--accent))); }
 

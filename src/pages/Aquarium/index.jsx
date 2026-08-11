@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Coins, Egg, Fish } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useReward } from "@/context/RewardContext";
@@ -15,6 +15,7 @@ import {
   HATCH_AT,
   STAGE,
   growthOf,
+  feedResident,
   newResident,
   normalizeCollection,
   ownedSpecies,
@@ -99,8 +100,15 @@ export default function AquariumPage() {
   const settle = (id) => {
     const rec = newResident(id);
     setCollection((prev) => [...normalizeCollection(prev), rec]);
-    tankRef.current?.drop(id, rec.born, () => setBusy(false));
+    tankRef.current?.drop(rec, () => setBusy(false));
   };
+
+  // 缸里某一只吃到一粒饵：往前赶一点成长。喂已经长成的那只不改存档（feedResident 原样返回），
+  // 故一缸成体怎么喂都不会一直往 localStorage 写。
+  const feed = useCallback(
+    (uid) => setCollection((prev) => feedResident(prev, uid)),
+    [setCollection],
+  );
 
   // 收集满之后：花金币把喜欢的鱼「再请一只」进缸——已在册，故不弹收集卡，直接扔进去。
   // 也是一颗新卵，和先来的那只各长各的。
@@ -121,7 +129,22 @@ export default function AquariumPage() {
   return (
     <div className="page-aquarium">
       <header className="aq-headline">
-        <h1>{t("aquarium.title")}</h1>
+        <h1>
+          {t("aquarium.title")}
+          {/* 玩法提示（help icon）：跟专注页优先级矩阵的问号同一套，悬停/点开才展开 */}
+          <span className="aq-info">
+            <button
+              type="button"
+              className="aq-info-btn"
+              aria-label={t("aquarium.tapHintAria")}
+            >
+              ?
+            </button>
+            <span className="aq-info-tip" role="tooltip">
+              {t("aquarium.tapHint")}
+            </span>
+          </span>
+        </h1>
         <div className="aq-coins">
           <Coins size={16} aria-hidden="true" />
           <span className="aq-coins-val">{coins}</span>
@@ -136,6 +159,7 @@ export default function AquariumPage() {
           initial={initial}
           label={t("aquarium.title")}
           paused={!!card}
+          onFeed={feed}
         />
 
         <div className="aq-actions">
@@ -275,6 +299,8 @@ function GrowthBoard({ entries, now, t }) {
             : t("aquarium.growAllDone")}
         </span>
       </div>
+      {/* 喂食能加速这件事，只有在「看得见进度」的地方说才有用——写在缸边上没人会把两件事连起来 */}
+      {growing > 0 && <p className="aq-grow-note">{t("aquarium.feedNote")}</p>}
       {/* 破膜刻度的位置来自同一份 growth，改门槛时刻度自己跟着挪，不会和条对不上 */}
       <ul className="aq-grow-list" style={{ "--hatch": `${(HATCH_AT * 100).toFixed(1)}%` }}>
         {rows.map((r) => {

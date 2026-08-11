@@ -7,8 +7,8 @@
   background: var(--card);
   border: 1px solid var(--border-input);
   transition:
-    transform 180ms var(--ease),
-    border-color 180ms var(--ease);
+    transform var(--dur-fast) var(--var(--ease)),
+    border-color var(--dur-fast) var(--var(--ease));
 }
 .rec-item:hover {
   transform: translateY(-1px);
@@ -73,8 +73,8 @@
   border-radius: 40px;
   cursor: pointer;
   transition:
-    background 160ms var(--ease),
-    transform 160ms var(--ease);
+    background var(--dur-fast) var(--var(--ease)),
+    transform var(--dur-fast) var(--var(--ease));
 }
 .rec-go-btn:hover,
 .rec-add-btn:hover {
@@ -101,7 +101,7 @@
   padding: 5px 12px;
   font-size: 13px;
   cursor: pointer;
-  transition: background 160ms var(--ease);
+  transition: background var(--dur-fast) var(--var(--ease));
 }
 .rec-ai-btn:hover:not(:disabled) {
   background: var(--accent-hover);

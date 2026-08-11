@@ -31,6 +31,9 @@ export const STORAGE_KEYS = {
   SKILLTREE_UNLOCKED: "skilltree_unlocked_v1",
   // 功能树：被用户「关掉」的功能路径列表。默认空数组＝全部开启；核心功能不入内。
   DISABLED_FEATURES: "disabled_features_v1",
+  // 废弃页面：被用户主动「捡回来」的旧功能路径列表。与上面相反是「反向名单」——
+  // 废弃页默认全部关闭，只有出现在这个列表里才可见可达。
+  ENABLED_DEPRECATED: "enabled_deprecated_v1",
   // 角色卡/结算卡的「语气包」：用户输入 prompt 后 AI 生成的一整套质化文案覆盖
   TONE_PACK: "tone_pack_v1",
   // 伙伴 / 祈愿（二游式无损收集）：已遇见的图鉴 id 列表、当前佩戴的立绘皮肤 id
@@ -43,6 +46,9 @@ export const STORAGE_KEYS = {
   // 烧瓶架：把设置页调好的形状存成一只只烧瓶，{ items: [{id,name,preset,params,savedAt}], activeId }。
   // 注满进度不存在这里——它由专注记录里的 flaskId 现算（见 pages/Flasks/flaskShelf）。
   FLASK_SHELF: "flask_shelf_v1",
+  // 烧瓶水位的调试覆盖表（仅开发环境用得到）：{ [flaskId]: secs }。
+  // 只盖住烧瓶架页显示的水位，不动专注记录，见 pages/Flasks/flaskDebug。
+  FLASK_DEBUG_FILL: "flask_debug_fill_v1",
   // 任务属性定义（v6 及以前的全局 schema，v7 起折叠进 DATABASES，仅保留兼容）
   TASK_ATTRS: "task_attrs_v1",
   // 多 database（v7 起）：每个 database 含独立的列 schema

@@ -16,7 +16,7 @@
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
   color: var(--text-muted);
   cursor: pointer;
-  transition: transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+  transition: transform var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 
 .immersive-fullscreen-btn:hover {
@@ -50,7 +50,7 @@
   line-height: 1;
   color: var(--text-faint);
   opacity: 0.7;
-  transition: opacity 160ms ease, color 160ms ease, border-color 160ms ease;
+  transition: opacity var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 
 .immersive-fullscreen-btn:hover .immersive-fullscreen-key {

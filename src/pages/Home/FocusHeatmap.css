@@ -104,7 +104,7 @@
 .heatmap-cell {
   border-radius: 3px;
   cursor: default;
-  transition: opacity 120ms;
+  transition: opacity var(--dur-fast) var(--ease);
 }
 
 .heatmap-cell:hover {

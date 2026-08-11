@@ -28,7 +28,7 @@
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .reward-debug-btn:hover {
@@ -43,7 +43,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--overlay-bg);
+  backdrop-filter: var(--overlay-blur);
   padding: 20px;
 }
 
@@ -104,9 +105,9 @@
 
 .reward-headline h1 {
   margin: 0;
-  font-size: clamp(1.6rem, 2.2vw, 2.2rem);
-  font-weight: 800;
-  line-height: 1.15;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  line-height: var(--page-title-lh);
   color: var(--text-heading);
 }
 
@@ -242,8 +243,8 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  transition: transform 160ms ease, box-shadow 160ms ease,
-    border-color 160ms ease;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
 }
 
 .shop-card:hover {
@@ -337,7 +338,7 @@
   font-size: 0.82rem;
   font-weight: 700;
   white-space: nowrap;
-  transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 
 .shop-card-btn:hover:not(:disabled) {
@@ -383,7 +384,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: transform 180ms ease, box-shadow 180ms ease;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 
 .reward-shop-card:hover {
@@ -439,14 +440,14 @@
 
 .reward-buy-btn {
   border: none;
-  background: var(--accent);
-  color: var(--card);
+  background: var(--accent-solid);
+  color: var(--on-accent);
   padding: 8px 16px;
   border-radius: 12px;
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 700;
-  transition: opacity 150ms ease, transform 150ms ease;
+  transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 
 .reward-buy-btn:hover:not(:disabled) {
@@ -487,7 +488,7 @@
   line-height: 1;
   cursor: pointer;
   opacity: 0.75;
-  transition: opacity 150ms ease, transform 150ms ease;
+  transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 
 .reward-shop-action:hover {
@@ -510,7 +511,7 @@
   padding: 10px 14px;
   border-radius: 12px;
   font-size: 0.9rem;
-  transition: border-color 150ms ease;
+  transition: border-color var(--dur-fast) var(--ease);
 }
 
 .reward-custom-input:focus {
@@ -536,14 +537,14 @@
 
 .reward-custom-add {
   border: none;
-  background: var(--accent);
-  color: var(--card);
+  background: var(--accent-solid);
+  color: var(--on-accent);
   padding: 10px 20px;
   border-radius: 12px;
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 700;
-  transition: opacity 150ms ease, transform 150ms ease;
+  transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 
 .reward-custom-add:hover:not(:disabled) {
@@ -566,7 +567,7 @@
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 600;
-  transition: border-color 150ms ease, color 150ms ease;
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .reward-custom-cancel:hover {

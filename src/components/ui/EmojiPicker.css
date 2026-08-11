@@ -15,7 +15,7 @@
   font-size: 1.4rem;
   line-height: 1;
   cursor: pointer;
-  transition: border-color 150ms ease;
+  transition: border-color var(--dur-fast) var(--ease);
 }
 
 .emoji-picker-trigger:hover {
@@ -75,7 +75,7 @@
   font-size: 1.25rem;
   line-height: 1;
   cursor: pointer;
-  transition: background 120ms ease;
+  transition: background var(--dur-fast) var(--ease);
 }
 
 .emoji-picker-cell:hover {

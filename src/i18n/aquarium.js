@@ -9,6 +9,13 @@ export default {
     zh: "全员到齐了。想再养一只的话，挑下面任意一种（{n} 金币）。",
   },
   "aquarium.addOne": { en: "Add another ({n} coins)", zh: "再请一只（{n} 金币）" },
+  // 缸是可以上手的（见 AquariumTank 的指针交互）——不说一句没人会想到去点水面。
+  // 收进标题旁的问号气泡里，跟专注页优先级矩阵那颗一个样式，别在缸下面占一整段
+  "aquarium.tapHintAria": { en: "How do I play with the tank?", zh: "缸里能怎么玩？" },
+  "aquarium.tapHint": {
+    en: "Tap the surface to scatter food; tap deeper and a ripple spreads, nudging whoever it passes aside. Press and hold one to pick it up. Go slowly and they follow your finger; swipe fast and they scatter.",
+    zh: "点水面撒点饵；点水里则荡开一圈水波，扫到谁就把谁轻轻推开。按住一只可以把它拎起来。手慢慢挪，它们会跟过来；划得快，就都散开了。",
+  },
   "aquarium.dexTitle": { en: "Residents", zh: "已入住" },
   "aquarium.dexCount": { en: "{n} / {total} kinds", zh: "{n} / {total} 种" },
   "aquarium.unmet": { en: "Not yet met", zh: "尚未相遇" },
@@ -27,6 +34,10 @@ export default {
     zh: "{total} 只里还有 {n} 只在长",
   },
   "aquarium.growAllDone": { en: "All grown", zh: "全都长成了" },
+  "aquarium.feedNote": {
+    en: "Feeding helps: every pellet eaten moves that one a couple of minutes ahead. Eggs don't eat — they hatch on their own time.",
+    zh: "喂食有用：吃到一粒饵，那一只就往前赶两分钟。卵不吃东西，得自己等到破膜。",
+  },
   "aquarium.eggNote": {
     en: "It goes in as an egg — give it a while to grow into this.",
     zh: "放进缸里的是一颗卵，过一阵子才会长成这个样子。",

@@ -43,6 +43,8 @@ export const desktop = {
   onState: bridge ? (cb) => bridge.onState(cb) : noopSub,
   sendCommand: bridge ? (cmd) => bridge.sendCommand(cmd) : noop,
   onQuickCapture: bridge ? (cb) => bridge.onQuickCapture(cb) : noopSub,
+  // 桌宠窗失焦，面板据此自动收起
+  onPetBlur: bridge ? (cb) => bridge.onPetBlur(cb) : noopSub,
   dragStart: bridge ? (pt) => bridge.dragStart(pt) : noop,
   dragMove: bridge ? (pt) => bridge.dragMove(pt) : noop,
   dragEnd: bridge ? () => bridge.dragEnd() : noop,

@@ -32,17 +32,17 @@
 
 .history-headline h1 {
   margin: 0;
-  font-size: clamp(1.6rem, 2.2vw, 2.2rem);
-  font-weight: 800;
-  line-height: 1.15;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  line-height: var(--page-title-lh);
   color: var(--text-heading);
 }
 
 .history-headline p {
   margin: 0;
   color: var(--text-muted);
-  font-size: 0.95rem;
-  line-height: 1.65;
+  font-size: var(--page-sub-size);
+  line-height: var(--page-sub-lh);
 }
 
 /* 页头里指向姊妹页（如分心统计）的小链接 */
@@ -89,7 +89,7 @@
 }
 
 .hist-stat-card.accent {
-  background: var(--accent);
+  background: var(--accent-solid);
   border-color: transparent;
   box-shadow: 0 8px 28px var(--accent-glow);
 }
@@ -103,7 +103,7 @@
 }
 
 .hist-stat-card.accent .hist-stat-value {
-  color: var(--card);
+  color: var(--on-accent);
 }
 
 .hist-stat-label {
@@ -114,7 +114,7 @@
 }
 
 .hist-stat-card.accent .hist-stat-label {
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--on-accent-dim);
 }
 
 /* ── Stats row 2 ── */
@@ -282,7 +282,7 @@
   cursor: pointer;
   font-size: 0.82rem;
   font-weight: 600;
-  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 
 .hist-clear-btn:hover {
@@ -296,14 +296,15 @@
 }
 
 .hist-empty {
-  padding: 40px 24px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.8);
+  padding: var(--empty-pad);
+  border-radius: var(--empty-radius);
+  /* 原本写死 rgba(255,255,255,0.8) —— 暗夜皮肤下这块会亮成一张白纸 */
+  background: var(--card);
   color: var(--text-muted);
-  border: 1.5px dashed var(--border-dashed);
-  font-size: 0.95rem;
+  border: var(--empty-border);
+  font-size: 0.9rem;
   text-align: center;
-  line-height: 1.65;
+  line-height: 1.6;
 }
 
 .hist-day-group {
@@ -336,7 +337,7 @@
   background: var(--card);
   border: 1.5px solid var(--border-card);
   box-shadow: 0 1px 6px var(--shadow-xs);
-  transition: transform 180ms ease, box-shadow 180ms ease;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 
 .hist-record-card:hover {
@@ -379,7 +380,7 @@
   background: var(--card);
   border: 1.5px solid var(--border-card);
   box-shadow: 0 1px 6px var(--shadow-xs);
-  transition: transform 180ms ease, box-shadow 180ms ease;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 
 .hist-session-card:hover {

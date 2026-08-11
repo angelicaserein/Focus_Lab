@@ -16,7 +16,9 @@
 }
 .st-headline h1 {
   margin: 0;
-  font-size: 26px;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  line-height: var(--page-title-lh);
   color: var(--text-heading, var(--text));
 }
 
@@ -36,7 +38,7 @@
   border-radius: 8px;
   font-size: 13px;
   cursor: pointer;
-  transition: all 0.18s var(--ease, ease);
+  transition: all var(--dur-fast) var(--var(--ease), ease);
 }
 .st-view-btn.active {
   background: var(--card);
@@ -110,7 +112,7 @@
   border-radius: 9px;
   font-size: 13px;
   cursor: pointer;
-  transition: all 0.15s var(--ease, ease);
+  transition: all var(--dur-fast) var(--var(--ease), ease);
 }
 .st-tree-reset:hover:not(:disabled) { color: var(--accent); border-color: var(--accent-border, var(--accent)); }
 .st-tree-reset:disabled { opacity: 0.4; cursor: default; }
@@ -149,7 +151,7 @@
   background: var(--card);
   border: 2px solid var(--border-card, rgba(0, 0, 0, 0.1));
   cursor: default;
-  transition: transform 0.15s var(--ease, ease), box-shadow 0.15s var(--ease, ease), border-color 0.15s var(--ease, ease);
+  transition: transform var(--dur-fast) var(--var(--ease), ease), box-shadow var(--dur-fast) var(--var(--ease), ease), border-color var(--dur-fast) var(--var(--ease), ease);
 }
 .st-node-icon { font-size: 24px; line-height: 1; }
 .st-node-title { font-size: 11px; font-weight: 600; color: var(--text-body, var(--text)); text-align: center; line-height: 1.2; }
@@ -227,7 +229,7 @@
   background: var(--bg, transparent);
   border: 2px solid var(--border-card, rgba(0, 0, 0, 0.1));
   cursor: pointer;
-  transition: transform 0.15s var(--ease, ease), box-shadow 0.15s var(--ease, ease), border-color 0.15s var(--ease, ease);
+  transition: transform var(--dur-fast) var(--var(--ease), ease), box-shadow var(--dur-fast) var(--var(--ease), ease), border-color var(--dur-fast) var(--var(--ease), ease);
 }
 .st-aura:hover { transform: translateY(-2px); box-shadow: 0 6px 16px color-mix(in srgb, var(--branch) 24%, transparent); }
 .st-aura-icon { font-size: 22px; line-height: 1; }
@@ -240,7 +242,6 @@
 .st-aura.worn .st-aura-state { color: var(--branch); font-weight: 700; }
 
 @media (max-width: 600px) {
-  .st-headline h1 { font-size: 22px; }
   .st-node { width: 78px; }
   .st-node-icon { font-size: 21px; }
 }

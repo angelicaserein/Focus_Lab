@@ -212,6 +212,17 @@ function createPetWindow() {
   petWindow.once("ready-to-show", () => petWindow.show());
   petWindow.loadURL(IS_DEV ? `${DEV_SERVER}pet.html` : `${APP_ORIGIN}/pet.html`);
 
+  // 藏起来期间攒下的状态在这里补一份，否则重新显示的头一秒画的是过期的进度。
+  petWindow.on("show", () => {
+    if (!petStateDirty) return;
+    petStateDirty = false;
+    pushPetState();
+  });
+
+  // 桌宠失去焦点 = 用户回去用别的程序了，展开的面板该让路。
+  // 只是通知渲染层收起，窗口本身不动（烧瓶要一直在）。
+  petWindow.on("blur", () => sendToPet("desktop:pet-blur"));
+
   // 拖动结束后记住位置。app-region 拖动不触发 moved，用 move 节流写盘。
   let saveTimer = null;
   petWindow.on("move", () => {
@@ -236,6 +247,20 @@ function sendToPet(channel, payload) {
   const wc = petWindow.webContents;
   if (wc.isLoading()) wc.once("did-finish-load", () => wc.send(channel, payload));
   else wc.send(channel, payload);
+}
+
+// 状态快照专用的推送口。藏起来的桌宠不必收：它一个像素都没在画，
+// 而分心水位是 200ms 一发、计时是每秒一发，藏着的一整天下来全是白烧的
+// 渲染。藏着期间只记一个脏标记，下次 show 出来时补一份最新的。
+let petStateDirty = false;
+
+function pushPetState() {
+  if (!petWindow || petWindow.isDestroyed()) return;
+  if (!petWindow.isVisible()) { petStateDirty = true; return; }
+  const wc = petWindow.webContents;
+  // 还在加载就别发：它挂载后会用 desktop:hello 主动取一份最新快照
+  if (wc.isLoading()) return;
+  wc.send("desktop:state", lastState);
 }
 
 function showMainWindow(hash) {
@@ -293,7 +318,7 @@ const NEUTRAL_PROCS = new Set([
   "startmenuexperiencehost", "textinputhost", "applicationframehost", "dwm",
 ]);
 
-let watchCfg = { enabled: false, allow: [] };
+let watchCfg = { enabled: false, allow: [], deny: [] };
 let watcher = null;
 let currentApp = null;
 let distracted = false;
@@ -336,7 +361,19 @@ function judgeApp(a) {
   if (NEUTRAL_PROCS.has(a.name)) return null;
   // 标题为空的 explorer 是桌面本身或任务栏，点一下任务栏切窗口会短暂经过这里
   if (a.name === "explorer" && !a.title) return null;
-  return !watchCfg.allow.includes(a.name);
+  if (!watchCfg.allow.includes(a.name)) return true;
+  // 勾了的程序还要再过一道标题关键词。浏览器整个勾进来是没办法的事——查论文和刷
+  // 视频是同一个 msedge.exe，只有窗口标题（= 当前标签页的标题）能把它们分开。
+  return titleBlocked(a.title);
+}
+
+// 标题里出现关键词就算分心。只在内存里比一次，比完就丢：
+// 「用户开着 Edge」和「用户在看叫 XX 的视频」是两个敏感度档位，后者不落盘、
+// 不进记录、也不发给渲染层——分心记录里留下的仍然只有「Microsoft Edge」。
+function titleBlocked(title) {
+  if (!title || watchCfg.deny.length === 0) return false;
+  const lower = title.toLowerCase();
+  return watchCfg.deny.some((w) => lower.includes(w));
 }
 
 function createFloodWindow() {
@@ -404,7 +441,7 @@ function pushFlood() {
   lastPushedSpill = key;
   lastPushedFlood = floodLevel;
   lastState = { ...(lastState || {}), watch: { level: floodLevel, spilling: distracted } };
-  sendToPet("desktop:state", lastState);
+  pushPetState();
   sendToFlood("flood:level", { level: floodLevel, rising: distracted });
 }
 
@@ -546,6 +583,28 @@ function trayIcon() {
   return img.isEmpty() ? img : img.resize({ width: 16, height: 16 });
 }
 
+// 托盘 tooltip 跟着专注状态走：鼠标扫过任务栏那一格就知道跑到哪儿了，
+// 不用把主窗口或桌宠翻出来。会话没开始时退回单纯的应用名。
+let lastTooltip = "";
+
+function updateTrayTooltip() {
+  if (!tray || tray.isDestroyed()) return;
+  const f = lastState?.focus;
+  const en = lastState?.app?.lang === "en";
+  let tip = "Focus Lab";
+  if (f && (f.isRunning || f.seconds > 0)) {
+    const total = Math.max(0, Math.round(f.seconds || 0));
+    const mm = String(Math.floor(total / 60)).padStart(2, "0");
+    const ss = String(total % 60).padStart(2, "0");
+    const label = f.isRunning ? (en ? "Focusing" : "专注中") : (en ? "Paused" : "已暂停");
+    tip = `Focus Lab — ${label} ${mm}:${ss}`;
+  }
+  // 计时每秒推一次状态，同一句话没必要反复过一遍原生调用
+  if (tip === lastTooltip) return;
+  lastTooltip = tip;
+  tray.setToolTip(tip);
+}
+
 function buildTrayMenu() {
   const petVisible = !!petWindow && !petWindow.isDestroyed() && petWindow.isVisible();
   return Menu.buildFromTemplate([
@@ -592,10 +651,8 @@ function registerIpc() {
   ipcMain.on("desktop:publish-state", (_e, patch) => {
     const wasOpen = watchGateOpen();
     lastState = { ...(lastState || {}), ...(patch || {}) };
-    // 桌宠还在加载就不必发了：它挂载后会用 desktop:hello 主动取一份最新快照。
-    if (petWindow && !petWindow.isDestroyed() && !petWindow.webContents.isLoading()) {
-      petWindow.webContents.send("desktop:state", lastState);
-    }
+    pushPetState();
+    updateTrayTooltip();
     // 分心探测只在专注跑起来的时候工作，所以「开始/暂停/结束/离开专注页」
     // 都要重新过一遍闸门。比的是闸门本身而不是 isRunning：被我们自动暂停的
     // 会话 isRunning 是 false，但闸门要继续开着（见 watchGateOpen）。
@@ -608,6 +665,10 @@ function registerIpc() {
     watchCfg = {
       enabled: !!cfg?.enabled,
       allow: Array.isArray(cfg?.allow) ? cfg.allow.map((s) => String(s).toLowerCase()) : [],
+      // 关键词一律转小写并丢掉空串：比对时标题也转小写，两边一致才不会漏
+      deny: Array.isArray(cfg?.deny)
+        ? cfg.deny.map((s) => String(s).trim().toLowerCase()).filter(Boolean)
+        : [],
     };
     reevaluateWatch();
   });
@@ -615,6 +676,8 @@ function registerIpc() {
   // 桌宠 → 主窗口：操作指令。部分指令主进程自己也要顺手做点事（比如唤起主窗口）。
   ipcMain.on("desktop:command", (_e, raw) => {
     if (raw?.type === "open-main") { showMainWindow(raw.hash); return; }
+    // 注意：id 是这条「指令」的流水号，会盖掉 raw 里同名的字段。
+    // 所以指令的载荷不能叫 id——要带任务 id 就叫 taskId（见 select-task）。
     const cmd = { ...raw, id: `cmd-${++commandSeq}` };
     // 「开始专注」必须先把主窗口切到 /focus：计时状态活在 Focus 页面组件里，
     // 页面没挂载就没人接这条指令（详见 useDesktopFocusSync 的注释）。

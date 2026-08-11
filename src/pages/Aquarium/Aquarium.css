@@ -29,8 +29,74 @@
 }
 .aq-headline h1 {
   margin: 0;
-  font-size: 26px;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  line-height: var(--page-title-lh);
   color: var(--text-heading, var(--text));
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* —— 玩法提示气泡：同 .matrix-info 那颗问号，标题旁一颗小圆点，不占正文 —— */
+.aq-info {
+  position: relative;
+  display: inline-flex;
+}
+.aq-info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1.5px solid var(--border-input);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  font: 700 0.7rem/1 inherit;
+  cursor: help;
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.aq-info-btn:hover,
+.aq-info-btn:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  outline: none;
+}
+.aq-info-tip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  width: max-content;
+  max-width: min(280px, 72vw);
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-input);
+  background: var(--card);
+  color: var(--text-body);
+  font: 500 0.74rem/1.5 inherit;
+  letter-spacing: normal;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-3px);
+  transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease), visibility var(--dur-fast) var(--ease);
+  pointer-events: none;
+}
+/* 触屏没有 hover：:focus-within 让点一下问号也能展开，点别处收起 */
+.aq-info:hover .aq-info-tip,
+.aq-info:focus-within .aq-info-tip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .aq-info-tip {
+    transition: opacity var(--dur-fast) var(--ease), visibility var(--dur-fast) var(--ease);
+    transform: none;
+  }
 }
 
 /* —— 缸台：缸是主角，占满可用宽度 —— */
@@ -52,8 +118,13 @@
   /* 缸变宽了，高度跟着放宽一点，别成一条又扁又长的鱼缸 */
   height: clamp(300px, 52vh, 520px);
   display: block;
-  touch-action: manipulation;
+  /* 缸里的手势要自己接：拖一只鱼时若交给浏览器做惯性滚动，手指一动鱼就脱手了。
+     代价是缸这块区域不能用来滚页面——缸上下的标题、提示、按钮、图鉴都还能滚。 */
+  touch-action: none;
+  /* 缸可以上手：点水面撒饵、点水里荡水波、按住一只可以拎起来（见 AquariumTank） */
+  cursor: grab;
 }
+.aq-canvas.aq-dragging { cursor: grabbing; }
 .aq-actions {
   display: flex;
   flex-direction: column;
@@ -81,14 +152,14 @@
   width: min(100%, 320px);
   border: none;
   cursor: pointer;
-  color: var(--card);
-  background: var(--accent);
+  color: var(--on-accent);
+  background: var(--accent-solid);
   font: 600 15px/1 inherit;
   padding: 13px 20px;
   border-radius: 13px;
   letter-spacing: 0.02em;
   box-shadow: 0 6px 18px rgba(var(--accent-rgb), 0.34);
-  transition: transform 0.12s, filter 0.2s;
+  transition: transform var(--dur-fast) var(--ease), filter var(--dur-fast) var(--ease);
 }
 .aq-buy:hover { filter: brightness(1.06); }
 .aq-buy:active { transform: translateY(1px) scale(0.99); }
@@ -212,6 +283,13 @@
   box-shadow: 0 1px 2px var(--shadow-sm);
   padding: 16px clamp(16px, 2vw, 20px) clamp(16px, 2vw, 20px);
 }
+/* 「喂食有用」这句：说明性质，比行内容轻一档 */
+.aq-grow-note {
+  margin: -4px 0 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-faint);
+}
 .aq-grow-list {
   list-style: none;
   margin: 0;
@@ -323,7 +401,7 @@
 button.aq-slot.buyable {
   font: inherit;
   cursor: pointer;
-  transition: transform 0.12s, box-shadow 0.2s, border-color 0.2s;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 button.aq-slot.buyable:hover {
   transform: translateY(-2px);
@@ -464,12 +542,12 @@ body.sidebar-collapsed .aq-card-veil { left: 40px; }
   width: 100%;
   border: none;
   cursor: pointer;
-  color: var(--card);
-  background: var(--accent);
+  color: var(--on-accent);
+  background: var(--accent-solid);
   font: 600 15px/1 inherit;
   padding: 13px;
   border-radius: 12px;
-  transition: filter 0.2s, transform 0.1s;
+  transition: filter var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 .aq-card-btn:hover { filter: brightness(1.06); }
 .aq-card-btn:active { transform: translateY(1px); }

@@ -17,16 +17,17 @@
 
 .cal-headline h1 {
   margin: 0;
-  font-size: clamp(1.6rem, 2.2vw, 2.2rem);
-  font-weight: 800;
-  line-height: 1.15;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  line-height: var(--page-title-lh);
   color: var(--text-heading);
 }
 
 .cal-headline p {
   margin: 0;
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: var(--page-sub-size);
+  line-height: var(--page-sub-lh);
 }
 
 /* ── 月度汇总 ── */
@@ -50,7 +51,7 @@
 }
 
 .cal-summary-card.accent {
-  background: linear-gradient(135deg, var(--accent), var(--accent-mid));
+  background: linear-gradient(135deg, var(--accent-solid), var(--accent-solid));
   border-color: transparent;
   box-shadow: 0 8px 24px var(--accent-glow);
 }
@@ -64,7 +65,7 @@
 }
 
 .cal-summary-card.accent .cal-summary-icon {
-  color: #fff;
+  color: var(--on-accent);
   opacity: 0.7;
 }
 
@@ -77,7 +78,7 @@
 }
 
 .cal-summary-card.accent .cal-summary-value {
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .cal-summary-label {
@@ -86,7 +87,7 @@
 }
 
 .cal-summary-card.accent .cal-summary-label {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--on-accent-dim);
 }
 
 /* ── 两栏布局：桌面月历在左、当日轨道在右 ── */
@@ -127,7 +128,7 @@
   background: var(--card);
   color: var(--text-muted);
   cursor: pointer;
-  transition: background 160ms, color 160ms, border-color 160ms;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 
 .cal-nav-btn:hover {
@@ -168,12 +169,12 @@
   font-size: 0.76rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 160ms, color 160ms;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .cal-today-btn:hover {
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   border-color: transparent;
 }
 
@@ -199,7 +200,7 @@
   font-size: 0.76rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 160ms, color 160ms, border-color 160ms;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 
 .cal-expand-btn:hover {
@@ -224,7 +225,7 @@
   font-size: 0.74rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 160ms, color 160ms, border-color 160ms;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 
 .cal-expand-bar:hover {
@@ -278,15 +279,15 @@
   gap: 2px;
   padding: 6px 7px 5px;
   font-family: inherit;
-  transition: transform 140ms cubic-bezier(0.34, 1.4, 0.64, 1),
-    box-shadow 140ms, border-color 140ms, background 140ms;
+  transition: transform var(--dur-fast) cubic-bezier(0.34, 1.4, 0.64, 1),
+    box-shadow var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 
 /* 有专注的日子：主色底纹随热度加深 */
 .cal-cell[data-level="1"] { background: color-mix(in srgb, var(--accent) 14%, var(--card)); border-color: transparent; }
 .cal-cell[data-level="2"] { background: color-mix(in srgb, var(--accent) 30%, var(--card)); border-color: transparent; }
 .cal-cell[data-level="3"] { background: color-mix(in srgb, var(--accent) 52%, var(--card)); border-color: transparent; }
-.cal-cell[data-level="4"] { background: color-mix(in srgb, var(--accent) 78%, var(--card)); border-color: transparent; }
+.cal-cell[data-level="4"] { background: color-mix(in srgb, var(--accent-solid) 78%, var(--card)); border-color: transparent; }
 
 .cal-cell.weekend[data-level="0"] {
   background: var(--accent-bg-dim);
@@ -323,7 +324,7 @@
 
 .cal-cell[data-level="3"] .cal-cell-day,
 .cal-cell[data-level="4"] .cal-cell-day {
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .cal-cell.today .cal-cell-day {
@@ -347,7 +348,7 @@
 
 .cal-cell[data-level="3"] .cal-cell-secs,
 .cal-cell[data-level="4"] .cal-cell-secs {
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--on-accent);
 }
 
 /* ── 图例 ── */
@@ -401,8 +402,8 @@
   font-size: 0.66rem;
   font-weight: 800;
   letter-spacing: 0.04em;
-  color: #fff;
-  background: var(--accent);
+  color: var(--on-accent);
+  background: var(--accent-solid);
   padding: 2px 8px;
   border-radius: 999px;
 }
@@ -514,7 +515,7 @@
   z-index: 2;
   border-left: 3px solid var(--accent);
   box-shadow: 0 2px 8px var(--shadow-xs);
-  transition: transform 130ms, box-shadow 130ms;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 
 .cal-block:hover {
@@ -667,7 +668,7 @@
   box-shadow: 0 1px 4px var(--shadow-xs);
   z-index: 3;
   transform: translateY(-11px); /* 圆点对齐真实时刻 */
-  transition: transform 130ms, box-shadow 130ms;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 
 .cal-mark:hover {

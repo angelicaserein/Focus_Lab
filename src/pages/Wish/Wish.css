@@ -23,12 +23,15 @@
 }
 .wish-headline h1 {
   margin: 0;
-  font-size: 26px;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  line-height: var(--page-title-lh);
   color: var(--text-heading, var(--text));
 }
 .wish-sub {
   margin: 6px 0 0;
-  font-size: 14px;
+  font-size: var(--page-sub-size);
+  line-height: var(--page-sub-lh);
   color: var(--text-muted);
   max-width: 60ch;
 }
@@ -75,11 +78,11 @@
   border-radius: 14px;
   font-size: 16px;
   font-weight: 700;
-  color: #fff;
+  color: var(--on-accent);
   cursor: pointer;
-  background: linear-gradient(135deg, var(--accent-mid, var(--accent)), var(--accent));
+  background: linear-gradient(135deg, var(--accent-mid, var(--accent-solid)), var(--accent-solid));
   box-shadow: 0 6px 20px var(--accent-glow, rgba(0, 0, 0, 0.2));
-  transition: transform 0.15s var(--ease, ease), box-shadow 0.15s var(--ease, ease);
+  transition: transform var(--dur-fast) var(--var(--ease), ease), box-shadow var(--dur-fast) var(--var(--ease), ease);
 }
 .wish-btn:hover:not(:disabled) {
   transform: translateY(-2px);
@@ -145,7 +148,7 @@
 }
 button.wish-card.owned {
   cursor: pointer;
-  transition: transform 0.15s var(--ease, ease), box-shadow 0.15s var(--ease, ease);
+  transition: transform var(--dur-fast) var(--var(--ease), ease), box-shadow var(--dur-fast) var(--var(--ease), ease);
 }
 button.wish-card.owned:hover {
   transform: translateY(-3px);
@@ -180,8 +183,8 @@ button.wish-card.owned:hover {
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 999px;
-  color: #fff;
-  background: var(--accent);
+  color: var(--on-accent);
+  background: var(--accent-solid);
 }
 .wish-card.equipped {
   border-color: var(--accent);
@@ -231,8 +234,8 @@ button.wish-card.owned:hover {
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(3px);
+  background: var(--overlay-bg-strong);
+  backdrop-filter: var(--overlay-blur);
   animation: srewards-fade 0.25s ease;
 }
 .wish-result {
@@ -317,7 +320,7 @@ button.wish-card.owned:hover {
   font-weight: 600;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: all 0.18s var(--ease, ease);
+  transition: all var(--dur-fast) var(--var(--ease), ease);
 }
 .wish-result-btn.ghost {
   background: transparent;
@@ -325,11 +328,10 @@ button.wish-card.owned:hover {
   color: var(--text-body, var(--text));
 }
 .wish-result-btn.ghost:hover { background: var(--accent-bg-dim, rgba(0, 0, 0, 0.05)); }
-.wish-result-btn.primary { background: var(--accent); color: #fff; }
+.wish-result-btn.primary { background: var(--accent-solid); color: var(--on-accent); }
 .wish-result-btn.primary:hover { background: var(--accent-deep, var(--accent)); }
 
 @media (max-width: 560px) {
-  .wish-headline h1 { font-size: 22px; }
   .wish-altar { gap: 18px; padding: 22px 14px; }
 }
 

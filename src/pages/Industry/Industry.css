@@ -10,12 +10,15 @@
 .ind-headline { margin-bottom: 18px; }
 .ind-headline h1 {
   margin: 0;
-  font-size: 26px;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  line-height: var(--page-title-lh);
   color: var(--text-heading, var(--text));
 }
 .ind-subtitle {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--page-sub-size);
+  line-height: var(--page-sub-lh);
   color: var(--text-muted);
 }
 
@@ -198,7 +201,7 @@
   background: transparent;
   color: rgba(167, 243, 228, 0.7);
   cursor: pointer;
-  transition: all 0.15s var(--ease, ease);
+  transition: all var(--dur-fast) var(--var(--ease), ease);
 }
 .ind-log-refresh:hover:not(:disabled) { color: #2dd4bf; background: rgba(45, 212, 191, 0.1); }
 .ind-log-refresh:disabled { opacity: 0.5; cursor: default; }
@@ -324,7 +327,6 @@
 }
 
 @media (max-width: 600px) {
-  .ind-headline h1 { font-size: 22px; }
   .ind-total-num { font-size: 42px; }
   .ind-throughput { width: 100%; }
   .ind-tp { flex: 1; }

@@ -30,7 +30,7 @@
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+  transition: transform var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
   white-space: nowrap;
 }
 
@@ -119,7 +119,7 @@
   font-size: 0.88rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 150ms ease, transform 120ms ease;
+  transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 
 .immersive-return-btn:hover {
@@ -164,7 +164,7 @@
   padding: 10px 12px;
   outline: none;
   box-sizing: border-box;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 
 .immersive-note-textarea::placeholder {
@@ -186,13 +186,13 @@
   padding: 6px 16px;
   border-radius: 999px;
   border: none;
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   font: inherit;
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
-  transition: opacity 150ms ease, transform 120ms ease;
+  transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 
 .immersive-note-save:disabled {
@@ -215,7 +215,7 @@
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 150ms ease, color 150ms ease;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .immersive-note-cancel:hover {
@@ -233,8 +233,8 @@
   padding: 0 4px;
   margin-left: 6px;
   border-radius: 999px;
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   font-size: 0.68rem;
   font-weight: 700;
   line-height: 1;

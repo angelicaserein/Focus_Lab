@@ -45,7 +45,7 @@
   cursor: pointer;
   font-size: 0.82rem;
   font-weight: 600;
-  transition: background 150ms ease, color 150ms ease;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .chat-history-clear:hover:not(:disabled) {

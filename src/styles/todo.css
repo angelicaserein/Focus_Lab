@@ -38,9 +38,9 @@
   border-bottom: 2px solid transparent;
   cursor: pointer;
   transition:
-    color 180ms ease,
-    border-color 180ms ease,
-    transform 120ms ease;
+    color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
 }
 .filter-tabs .tab:hover {
   transform: translateY(-1px);
@@ -69,8 +69,8 @@
   outline: none;
   background: transparent;
   transition:
-    border-color 180ms var(--ease),
-    transform 160ms var(--ease);
+    border-color var(--dur-fast) var(--var(--ease)),
+    transform var(--dur-fast) var(--var(--ease));
 }
 .todo-input::placeholder {
   color: var(--text-placeholder);
@@ -82,12 +82,12 @@
 
 .add-btn {
   padding: 10px 14px;
-  background: var(--accent);
-  color: white;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   border: none;
   border-radius: 16px;
   cursor: pointer;
-  transition: transform 160ms var(--ease);
+  transition: transform var(--dur-fast) var(--var(--ease));
 }
 .add-btn:hover {
   transform: scale(1.03);
@@ -112,10 +112,10 @@
   justify-content: center;
   gap: 3px;
   transition:
-    color 160ms var(--ease),
-    border-color 160ms var(--ease),
-    background 160ms var(--ease),
-    transform 140ms var(--ease);
+    color var(--dur-fast) var(--var(--ease)),
+    border-color var(--dur-fast) var(--var(--ease)),
+    background var(--dur-fast) var(--var(--ease)),
+    transform var(--dur-fast) var(--var(--ease));
 }
 .recurring-toggle:hover {
   color: var(--accent);
@@ -159,10 +159,10 @@
   background: var(--card);
   border: 1px solid var(--border-input);
   transition:
-    transform 180ms var(--ease),
-    background 180ms var(--ease),
-    border-color 180ms var(--ease),
-    opacity 180ms var(--ease);
+    transform var(--dur-fast) var(--var(--ease)),
+    background var(--dur-fast) var(--var(--ease)),
+    border-color var(--dur-fast) var(--var(--ease)),
+    opacity var(--dur-fast) var(--var(--ease));
   cursor: pointer;
   user-select: none;
 }
@@ -228,9 +228,9 @@
   border-radius: 8px;
   line-height: 1;
   transition:
-    transform 140ms var(--ease),
-    color 160ms var(--ease),
-    background 160ms var(--ease);
+    transform var(--dur-fast) var(--var(--ease)),
+    color var(--dur-fast) var(--var(--ease)),
+    background var(--dur-fast) var(--var(--ease));
 }
 .delete-btn:hover {
   color: var(--danger);
@@ -252,10 +252,10 @@
   line-height: 1;
   opacity: 0;
   transition:
-    opacity 160ms var(--ease),
-    transform 140ms var(--ease),
-    color 160ms var(--ease),
-    background 160ms var(--ease);
+    opacity var(--dur-fast) var(--var(--ease)),
+    transform var(--dur-fast) var(--var(--ease)),
+    color var(--dur-fast) var(--var(--ease)),
+    background var(--dur-fast) var(--var(--ease));
 }
 .todo-item:hover .edit-btn,
 .edit-btn:focus-visible {
@@ -285,9 +285,9 @@
   gap: 2px;
   white-space: nowrap;
   transition:
-    opacity 160ms var(--ease),
-    color 160ms var(--ease),
-    background 160ms var(--ease);
+    opacity var(--dur-fast) var(--var(--ease)),
+    color var(--dur-fast) var(--var(--ease)),
+    background var(--dur-fast) var(--var(--ease));
 }
 .todo-item:hover .recurring-item-btn,
 .recurring-item-btn:focus-visible,
@@ -344,9 +344,9 @@
   line-height: 1;
   opacity: 0;
   transition:
-    opacity 160ms var(--ease),
-    color 160ms var(--ease),
-    background 160ms var(--ease);
+    opacity var(--dur-fast) var(--var(--ease)),
+    color var(--dur-fast) var(--var(--ease)),
+    background var(--dur-fast) var(--var(--ease));
 }
 .todo-item:hover .tag-item-btn,
 .tag-item-btn:focus-visible,
@@ -421,7 +421,7 @@
   padding: 2px 6px;
   border-radius: 6px;
   white-space: nowrap;
-  transition: color 120ms ease, background 120ms ease;
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .scenario-filter-clear:hover {
   color: var(--danger, #e57373);
@@ -455,12 +455,12 @@
   color: var(--muted);
   font-size: 12px;
   cursor: pointer;
-  transition: all 120ms ease;
+  transition: all var(--dur-fast) var(--ease);
 }
 .day-preset-btn:hover,
 .day-preset-btn.active {
-  background: var(--accent);
-  color: white;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   border-color: var(--accent);
 }
 
@@ -483,12 +483,12 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all 120ms ease;
+  transition: all var(--dur-fast) var(--ease);
 }
 .day-btn:hover,
 .day-btn.active {
-  background: var(--accent);
-  color: white;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   border-color: var(--accent);
 }
 
@@ -501,7 +501,7 @@
   color: var(--muted);
   font-size: 12px;
   cursor: pointer;
-  transition: all 120ms ease;
+  transition: all var(--dur-fast) var(--ease);
 }
 .day-cancel-btn:hover {
   color: var(--danger, #e57373);
@@ -521,7 +521,7 @@
   border-radius: 8px;
   background: var(--card);
   outline: none;
-  transition: border-color 160ms var(--ease);
+  transition: border-color var(--dur-fast) var(--var(--ease));
 }
 .todo-edit-input:focus {
   border-color: var(--accent);
@@ -548,7 +548,7 @@
   margin-right: 6px;
   border: 1.5px solid var(--border-checkbox);
   background: var(--card);
-  transition: all 180ms ease;
+  transition: all var(--dur-fast) var(--ease);
   position: relative;
 }
 .custom-checkbox.checked {
@@ -598,7 +598,7 @@
 /* 非今天的固定任务：弱化但可操作 */
 .todo-item-wrap.other-day .todo-item {
   opacity: 0.4;
-  transition: opacity 160ms ease;
+  transition: opacity var(--dur-fast) var(--ease);
 }
 .todo-item-wrap.other-day:hover .todo-item,
 .todo-item-wrap.other-day:focus-within .todo-item {

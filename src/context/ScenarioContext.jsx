@@ -1,4 +1,4 @@
-import React, { useReducer, useState, useContext, useCallback } from "react";
+import React, { useReducer, useState, useContext, useCallback, useEffect } from "react";
 import {
   loadVersioned,
   loadVersionedScalar,
@@ -7,6 +7,8 @@ import {
 import useUndoDelete from "@/hooks/common/useUndoDelete";
 import usePersistedWrite from "@/hooks/common/usePersistedWrite";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
+import { useFeatures } from "@/context/FeatureContext";
+import { FEATURE_KEYS } from "@/pages/FunctionTree/functionTreeData";
 import {
   DEFAULT_SCENARIO_SETTINGS,
   DEFAULT_SCENARIO_OPTIONS,
@@ -99,6 +101,15 @@ export function ScenarioProvider({ children }) {
   usePersistedWrite(STORAGE_KEYS.SCENARIOS, scenarios);
   usePersistedWrite(STORAGE_KEYS.ACTIVE_SCENARIO, activeScenarioId);
   usePersistedWrite(STORAGE_KEYS.SCENARIO_OPTIONS, scenarioOptions);
+
+  // 情境功能被整组关掉时清空当前情景：否则选择器与配置页都不见了，专注会话却仍在
+  // 悄悄按上次那个情景记账（focusRecords 带 scenarioId），成了看不见的隐形状态。
+  // 只清「当前」这一个指针，情景本身与历史记录都不动；重开后由用户自己再选。
+  const { isEnabled } = useFeatures();
+  const scenarioOn = isEnabled(FEATURE_KEYS.SCENARIO_GROUP);
+  useEffect(() => {
+    if (!scenarioOn) setActiveScenarioId(null);
+  }, [scenarioOn]);
 
   // 已被删除的情景 id 不应再是「当前情景」；派生时校验，避免悬空引用。
   const activeScenario =

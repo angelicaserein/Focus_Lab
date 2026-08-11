@@ -15,14 +15,15 @@
 }
 .tutorial-title {
   margin: 0;
-  font-size: 1.9rem;
-  font-weight: 800;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
   color: var(--text-heading);
   letter-spacing: -0.02em;
 }
 .tutorial-subtitle {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: var(--page-sub-size);
+  line-height: var(--page-sub-lh);
   font-weight: 600;
   color: var(--accent);
 }
@@ -132,8 +133,8 @@
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 140ms ease, border-color 140ms ease, color 140ms ease,
-    background 140ms ease;
+  transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease);
 }
 .tutorial-link:hover {
   transform: translateY(-1px);
@@ -151,7 +152,7 @@
 }
 .tutorial-link-arrow {
   opacity: 0.55;
-  transition: transform 140ms ease;
+  transition: transform var(--dur-fast) var(--ease);
 }
 .tutorial-link:hover .tutorial-link-arrow {
   transform: translateX(2px);

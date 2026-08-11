@@ -23,6 +23,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useFeatures } from "@/context/FeatureContext";
 import "./Tutorial.css";
 
 // 六个阶段就是软件的工作流（SOP）：捕捉 → 理清 → 专注 → 复盘 → 成长 → 定制。
@@ -85,6 +86,7 @@ const STAGES = [
 export default function Tutorial() {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { isEnabled } = useFeatures();
 
   return (
     <main className="page page-tutorial">
@@ -114,8 +116,9 @@ export default function Tutorial() {
                 <p className="tutorial-stage-desc">
                   {t(`tutorial.stage.${stage.id}.desc`)}
                 </p>
+                {/* 被关掉（或还搁在废弃页面里）的功能不给入口——点了也只会被弹回主页 */}
                 <div className="tutorial-links">
-                  {stage.links.map(({ to, labelKey, Icon: LinkIcon }) => (
+                  {stage.links.filter(({ to }) => isEnabled(to)).map(({ to, labelKey, Icon: LinkIcon }) => (
                     <button
                       key={`${stage.id}-${to}`}
                       type="button"

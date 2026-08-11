@@ -17,10 +17,10 @@
 
 .scs-header h1 {
   margin: 0;
-  font-size: clamp(1.6rem, 2.2vw, 2.2rem);
-  font-weight: 800;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
   color: var(--text-heading);
-  line-height: 1.15;
+  line-height: var(--page-title-lh);
 }
 
 .scs-back-link {
@@ -72,7 +72,7 @@
   box-shadow: 0 1px 6px var(--shadow-xs);
   cursor: pointer;
   text-align: left;
-  transition: background 150ms ease, box-shadow 150ms ease, transform 120ms ease;
+  transition: background var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 
 .scs-row:hover {

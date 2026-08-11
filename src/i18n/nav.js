@@ -8,6 +8,7 @@ export default {
   "nav.character": { en: "Character", zh: "角色" },
   "nav.skilltree": { en: "Skill tree", zh: "技能树" },
   "nav.functiontree": { en: "Function tree", zh: "功能树" },
+  "nav.deprecated": { en: "Retired pages", zh: "废弃页面" },
   "nav.wish": { en: "Wishing", zh: "祈愿" },
   "nav.aquarium": { en: "Aquarium", zh: "生态缸" },
   "nav.world": { en: "World map", zh: "世界地图" },

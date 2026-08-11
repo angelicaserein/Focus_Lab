@@ -19,9 +19,12 @@ import { FeatureProvider } from "@/context/FeatureContext";
  * - RewardProvider 次之：金币/资产与具体业务解耦，任意页面均可消费。
  * - FocusProvider 再次：只持有专注选择 id 集合与记录，TodoProvider 可作为子级反向联动。
  * - ActivityProvider 在 TodoProvider 外层：任务的增/删/完成由 TodoContext 写入使用记录。
+ * - FeatureProvider 靠外：它只依赖 localStorage，而 ScenarioProvider 需要读功能开关
+ *   （情境功能被整组关掉时清空当前情景，避免留下看不见却仍在记账的隐形状态）。
  */
 const providers = [
   LanguageProvider,
+  FeatureProvider,
   ThemeProvider,
   RewardProvider,
   FocusProvider,
@@ -30,7 +33,6 @@ const providers = [
   TodoProvider,
   ScenarioProvider,
   DDLProvider,
-  FeatureProvider,
 ];
 
 export default function AppProviders({ children }) {

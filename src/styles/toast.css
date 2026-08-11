@@ -46,8 +46,8 @@
   padding: 4px 8px;
   border-radius: 8px;
   transition:
-    background 160ms var(--ease),
-    transform 140ms var(--ease);
+    background var(--dur-fast) var(--var(--ease)),
+    transform var(--dur-fast) var(--var(--ease));
 }
 .toast-undo:hover {
   background: var(--accent-bg);

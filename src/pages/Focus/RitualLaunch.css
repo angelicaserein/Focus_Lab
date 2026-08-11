@@ -45,7 +45,7 @@
   cursor: pointer;
   padding: 6px 12px;
   border-radius: 10px;
-  transition: color 150ms ease, background 150ms ease;
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 
 .ritual-skip:hover {
@@ -182,13 +182,13 @@
   padding: 14px 20px;
   border-radius: 16px;
   border: none;
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   font-size: 1rem;
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
-  transition: background 150ms ease, transform 100ms ease;
+  transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 
 .ritual-begin-btn:hover  { background: var(--accent-mid); }

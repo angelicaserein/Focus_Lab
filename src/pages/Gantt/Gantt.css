@@ -17,16 +17,17 @@
 
 .gantt-headline h1 {
   margin: 0;
-  font-size: clamp(1.6rem, 2.2vw, 2.2rem);
-  font-weight: 800;
-  line-height: 1.15;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  line-height: var(--page-title-lh);
   color: var(--text-heading);
 }
 
 .gantt-headline p {
   margin: 0;
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: var(--page-sub-size);
+  line-height: var(--page-sub-lh);
 }
 
 /* ── 概览卡 ── */
@@ -48,7 +49,7 @@
 }
 
 .gantt-summary-card.accent {
-  background: var(--accent);
+  background: var(--accent-solid);
   border-color: transparent;
   box-shadow: 0 6px 20px var(--accent-glow);
 }
@@ -62,7 +63,7 @@
 }
 
 .gantt-summary-card.accent .gantt-summary-value {
-  color: var(--card);
+  color: var(--on-accent);
 }
 
 .gantt-summary-label {
@@ -71,7 +72,7 @@
 }
 
 .gantt-summary-card.accent .gantt-summary-label {
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--on-accent-dim);
 }
 
 /* ── 项目切换条 ── */
@@ -92,16 +93,16 @@
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 160ms, color 160ms, border-color 160ms;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 .gantt-projtab:hover {
   border-color: var(--border-accent);
   color: var(--accent-mid);
 }
 .gantt-projtab.is-active {
-  background: var(--accent);
+  background: var(--accent-solid);
   border-color: transparent;
-  color: #fff;
+  color: var(--on-accent);
   box-shadow: 0 4px 14px var(--accent-glow);
 }
 .gantt-projtab.add {
@@ -121,10 +122,11 @@
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  padding: 48px 24px;
+  padding: var(--empty-pad);
   background: var(--card);
-  border: 1.5px dashed var(--border-card);
-  border-radius: 24px;
+  border: var(--empty-border);
+  border-radius: var(--empty-radius);
+  color: var(--text-muted);
   text-align: center;
 }
 .gantt-empty.inner {
@@ -245,8 +247,8 @@
   border: 1px solid color-mix(in srgb, var(--lane) 40%, transparent);
   box-shadow: 0 1px 4px var(--shadow-xs);
   cursor: default;
-  transition: transform 140ms cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow 140ms,
-    outline-color 140ms;
+  transition: transform var(--dur-fast) cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow var(--dur-fast) var(--ease),
+    outline-color var(--dur-fast) var(--ease);
   outline: 2px solid transparent;
   outline-offset: 1px;
 }
@@ -337,7 +339,7 @@
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 160ms, color 160ms, border-color 160ms, opacity 160ms;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease);
 }
 
 .gantt-btn.sm {
@@ -346,8 +348,8 @@
 }
 
 .gantt-btn.primary {
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   box-shadow: 0 4px 14px var(--accent-glow);
 }
 .gantt-btn.primary:hover {
@@ -382,8 +384,8 @@
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: color-mix(in srgb, var(--text-heading) 34%, transparent);
-  backdrop-filter: blur(2px);
+  background: var(--overlay-bg);
+  backdrop-filter: var(--overlay-blur);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -429,7 +431,7 @@
   background: var(--accent-bg);
   color: var(--text-muted);
   cursor: pointer;
-  transition: background 160ms, color 160ms;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 .gantt-modal-close:hover {
   background: var(--accent-bg-dim);
@@ -460,7 +462,7 @@
   color: var(--text-body);
   font-family: inherit;
   font-size: 0.88rem;
-  transition: border-color 160ms, box-shadow 160ms;
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 
 .gantt-field input:focus,
@@ -520,7 +522,7 @@
   color: var(--text-body);
   font-family: inherit;
   font-size: 0.86rem;
-  transition: border-color 160ms, box-shadow 160ms;
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 .gantt-lanerow input:focus {
   outline: none;
@@ -545,7 +547,7 @@
   background: var(--card);
   color: var(--text-muted);
   cursor: pointer;
-  transition: background 140ms, color 140ms, border-color 140ms, opacity 140ms;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease);
 }
 .gantt-iconbtn:hover:not(:disabled) {
   border-color: var(--border-accent);

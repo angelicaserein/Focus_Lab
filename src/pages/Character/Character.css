@@ -16,7 +16,9 @@
 }
 .char-headline h1 {
   margin: 0;
-  font-size: 26px;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  line-height: var(--page-title-lh);
   color: var(--text-heading, var(--text));
 }
 
@@ -191,7 +193,7 @@
   border: 1px solid var(--border-card, transparent);
   opacity: 0.55;
   filter: grayscale(0.8);
-  transition: all 0.2s var(--ease, ease);
+  transition: all var(--dur-fast) var(--var(--ease), ease);
 }
 .cm-ach.unlocked {
   opacity: 1;

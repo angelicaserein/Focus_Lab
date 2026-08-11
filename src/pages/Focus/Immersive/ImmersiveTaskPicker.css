@@ -99,7 +99,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 
 .immersive-picker-option:hover {

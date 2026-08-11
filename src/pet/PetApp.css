@@ -95,6 +95,18 @@ body,
   cursor: grabbing;
 }
 
+/* 光标落到瓶身上时透出一点主色。桌宠没有边框、没有按钮的样子，
+   这一下是它唯一在说「我是可以点的」。
+   （.pet-flask 自己 pointer-events:none，但命中 .flask-hit 时 :hover 照样会
+   传到祖先上，所以这条选择器成立——且只在真的碰到瓶身时成立，方块四角不算。） */
+.pet-flask .immersive-flask > svg {
+  transition: filter var(--dur-fast) var(--ease);
+}
+
+.pet-flask:hover .immersive-flask > svg {
+  filter: drop-shadow(0 0 5px rgba(var(--accent-rgb), 0.45));
+}
+
 /* 烧瓶自身的 svg 固定输出 100x163，这里按环的内径重新定尺寸（保持 80:130 比例）。
    注意不能用 transform: scale——那样布局尺寸不变，svg 会撑出格子去。 */
 .pet-flask .immersive-flask {
@@ -152,6 +164,8 @@ body,
   background: var(--accent);
   opacity: 0;
   animation: petDrop 1.15s linear infinite;
+  /* 水滴只在分心期间存在，提前提层比每帧重画瓶子那一块便宜 */
+  will-change: transform, opacity;
 }
 
 /* 五滴水完全同一条线会像一串省略号，各自偏一点才像在滴 */
@@ -169,7 +183,11 @@ body,
 
 /* ── 迷你面板 ── */
 .pet-panel {
-  flex: 1;
+  /* 高度按内容长，不撑满整扇窗：窗口是固定尺寸的（收起时上半截空着），
+     面板要是 flex:1，一条任务也会摊出一整块半透明玻璃盖住人家的桌面。
+     锚点在右下角，所以它是从烧瓶那头往上长的，长多长都不会推到烧瓶。 */
+  flex: 0 1 auto;
+  max-height: 100%;
   min-height: 0;
   width: 100%;
   box-sizing: border-box;
@@ -203,8 +221,31 @@ body,
 
 .pet-panel-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 8px;
+}
+
+.pet-head-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* 场景名 / 还剩几条待办。一行放不下就截断，绝不让它把时钟顶下去 */
+.pet-sub {
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--pet-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pet-head-btns {
+  display: flex;
+  flex: none;
+  gap: 2px;
 }
 
 .pet-clock {
@@ -232,7 +273,8 @@ body,
 }
 
 .pet-tasks {
-  flex: 1;
+  /* 同理：任务少就只占几行，多到装不下时才滚（外面那层 max-height 兜着） */
+  flex: 0 1 auto;
   min-height: 0;
   overflow-y: auto;
   display: flex;
@@ -368,8 +410,31 @@ body,
   color: var(--pet-dim);
 }
 
+/* 底行：左边是回主窗口的入口，右边留给「已记下」的回执 */
+.pet-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  /* 回执是后出现的，这一行的高度不能跟着变，否则面板会抖一下 */
+  min-height: 16px;
+}
+
+/* 记一条之后什么可见的东西都不会变（记录落在主窗口的备忘里），
+   这一行就是唯一的回执。淡入淡出，不用动位置。 */
+.pet-saved {
+  flex: none;
+  font-size: 11px;
+  color: var(--accent-mid);
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+
+.pet-saved.is-on {
+  opacity: 1;
+}
+
 .pet-link {
-  align-self: flex-start;
   padding: 0;
   border: 0;
   background: transparent;
@@ -389,5 +454,8 @@ body,
   .flask-liquid { transition: none; }
   /* 翻转本身留着（它是一条状态信息，不是装饰），只是不再补间；滴水就整个撤掉 */
   .pet-flask .immersive-flask { transition: none; }
+  .pet-flask .immersive-flask > svg { transition: none; }
   .pet-pour { display: none; }
+  /* 回执照旧要出现（它是信息），只是直接出现，不淡入 */
+  .pet-saved { transition: none; }
 }

@@ -8,6 +8,7 @@ import aquarium from "./aquarium";
 import world from "./world";
 import skilltree from "./skilltree";
 import functiontree from "./functiontree";
+import deprecated from "./deprecated";
 import industry from "./industry";
 import home from "./home";
 import ddl from "./ddl";
@@ -36,6 +37,7 @@ const MODULES = [
   world,
   skilltree,
   functiontree,
+  deprecated,
   industry,
   home,
   ddl,

@@ -55,7 +55,7 @@
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.15s var(--ease, ease);
+  transition: all var(--dur-fast) var(--var(--ease), ease);
 }
 .gm-refresh:hover:not(:disabled) { color: var(--accent); background: var(--accent-bg-dim, rgba(0, 0, 0, 0.05)); }
 .gm-refresh:disabled { opacity: 0.5; cursor: default; }

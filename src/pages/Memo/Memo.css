@@ -10,8 +10,9 @@
 /* ─── 标题 ─────────────────────────────────────────────── */
 
 .memo-headline h1 {
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  line-height: var(--page-title-lh);
   color: var(--text-heading);
   margin: 0 0 6px;
   letter-spacing: -0.02em;
@@ -19,7 +20,8 @@
 
 .memo-subtitle {
   margin: 0;
-  font-size: 0.86rem;
+  font-size: var(--page-sub-size);
+  line-height: var(--page-sub-lh);
   color: var(--text-muted);
 }
 
@@ -49,7 +51,7 @@
   resize: vertical;
   outline: none;
   font-family: inherit;
-  transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+  transition: border-color var(--dur-fast) var(--var(--ease)), box-shadow var(--dur-fast) var(--var(--ease));
 }
 
 .memo-compose-input:focus {
@@ -62,12 +64,12 @@
   padding: 9px 24px;
   border-radius: 99px;
   border: none;
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
-  transition: opacity 160ms var(--ease), box-shadow 160ms var(--ease);
+  transition: opacity var(--dur-fast) var(--var(--ease)), box-shadow var(--dur-fast) var(--var(--ease));
   box-shadow: 0 4px 14px var(--accent-glow);
 }
 
@@ -102,8 +104,8 @@
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 160ms var(--ease), background 160ms var(--ease),
-    color 160ms var(--ease);
+  transition: border-color var(--dur-fast) var(--var(--ease)), background var(--dur-fast) var(--var(--ease)),
+    color var(--dur-fast) var(--var(--ease));
 }
 
 .memo-filter-chip:hover {
@@ -128,8 +130,8 @@
 }
 
 .memo-filter-chip.active .memo-filter-count {
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
 }
 
 /* ─── 标签筛选栏 ───────────────────────────────────────── */
@@ -153,8 +155,8 @@
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 140ms var(--ease), background 140ms var(--ease),
-    color 140ms var(--ease);
+  transition: border-color var(--dur-fast) var(--var(--ease)), background var(--dur-fast) var(--var(--ease)),
+    color var(--dur-fast) var(--var(--ease));
 }
 
 .memo-tagbar-chip:hover {
@@ -231,7 +233,7 @@
   padding: 2px 8px 2px 4px;
   cursor: pointer;
   opacity: 0.6;
-  transition: opacity 140ms var(--ease);
+  transition: opacity var(--dur-fast) var(--var(--ease));
 }
 
 .memo-tag-remove:hover {
@@ -247,7 +249,7 @@
   padding: 3px 10px;
   border-radius: 99px;
   cursor: pointer;
-  transition: border-color 140ms var(--ease), color 140ms var(--ease);
+  transition: border-color var(--dur-fast) var(--var(--ease)), color var(--dur-fast) var(--var(--ease));
 }
 
 .memo-tag-add:hover {
@@ -274,11 +276,13 @@
 /* ─── 空态 ─────────────────────────────────────────────── */
 
 .memo-empty {
-  padding: 36px 24px;
-  border-radius: 18px;
-  border: 1.5px dashed var(--border-card);
+  padding: var(--empty-pad);
+  border-radius: var(--empty-radius);
+  border: var(--empty-border);
+  background: var(--card);
   color: var(--text-muted);
   font-size: 0.9rem;
+  line-height: 1.6;
   text-align: center;
 }
 
@@ -361,7 +365,7 @@
   display: inline-flex;
   gap: 4px;
   opacity: 0;
-  transition: opacity 140ms var(--ease);
+  transition: opacity var(--dur-fast) var(--var(--ease));
 }
 
 .memo-item:hover .memo-item-actions {
@@ -377,7 +381,7 @@
   padding: 3px 8px;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 140ms var(--ease), color 140ms var(--ease);
+  transition: background var(--dur-fast) var(--var(--ease)), color var(--dur-fast) var(--var(--ease));
 }
 
 .memo-item-btn:hover {
@@ -435,8 +439,8 @@
   padding: 6px 18px;
   border-radius: 99px;
   border: none;
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
@@ -525,13 +529,13 @@
   padding: 7px 18px;
   border-radius: 99px;
   border: none;
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 4px 14px var(--accent-glow);
-  transition: opacity 140ms var(--ease);
+  transition: opacity var(--dur-fast) var(--var(--ease));
 }
 
 .memo-actionbar-go:hover:not(:disabled) {
@@ -552,8 +556,8 @@
   z-index: 60;
   padding: 10px 20px;
   border-radius: 99px;
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   font-size: 0.85rem;
   font-weight: 600;
   box-shadow: 0 8px 24px var(--accent-glow);

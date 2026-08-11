@@ -41,8 +41,8 @@
   outline: none;
   background: transparent;
   transition:
-    border-color 180ms var(--ease),
-    transform 160ms var(--ease);
+    border-color var(--dur-fast) var(--var(--ease)),
+    transform var(--dur-fast) var(--var(--ease));
 }
 .scenario-input::placeholder {
   color: var(--text-placeholder);
@@ -67,10 +67,10 @@
   background: var(--card);
   border: 1px solid var(--border-input);
   transition:
-    transform 180ms var(--ease),
-    background 180ms var(--ease),
-    border-color 180ms var(--ease),
-    opacity 180ms var(--ease);
+    transform var(--dur-fast) var(--var(--ease)),
+    background var(--dur-fast) var(--var(--ease)),
+    border-color var(--dur-fast) var(--var(--ease)),
+    opacity var(--dur-fast) var(--var(--ease));
   cursor: pointer;
   user-select: none;
 }
@@ -155,7 +155,7 @@
   border-radius: 8px;
   background: var(--card);
   outline: none;
-  transition: border-color 160ms var(--ease);
+  transition: border-color var(--dur-fast) var(--var(--ease));
 }
 .scenario-edit-input:focus {
   border-color: var(--accent);
@@ -177,9 +177,9 @@
   cursor: pointer;
   opacity: 0;
   transition:
-    opacity 160ms ease,
-    background 150ms ease,
-    transform 120ms ease;
+    opacity var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
 }
 
 .scenario-item:hover .scenario-quickstart-btn {
@@ -187,8 +187,8 @@
 }
 
 .scenario-quickstart-btn:hover {
-  background: var(--accent);
-  color: var(--card);
+  background: var(--accent-solid);
+  color: var(--on-accent);
   transform: scale(1.1);
 }
 
@@ -226,8 +226,8 @@
   line-height: 1;
   cursor: pointer;
   transition:
-    color 160ms var(--ease),
-    background 160ms var(--ease);
+    color var(--dur-fast) var(--var(--ease)),
+    background var(--dur-fast) var(--var(--ease));
 }
 .scenario-config-close:hover {
   color: var(--accent);
@@ -263,10 +263,10 @@
   cursor: pointer;
   opacity: 0;
   transition:
-    opacity 160ms var(--ease),
-    color 160ms var(--ease),
-    background 160ms var(--ease),
-    transform 140ms var(--ease);
+    opacity var(--dur-fast) var(--var(--ease)),
+    color var(--dur-fast) var(--var(--ease)),
+    background var(--dur-fast) var(--var(--ease)),
+    transform var(--dur-fast) var(--var(--ease));
 }
 .scenario-item:hover .scenario-settings-btn,
 .scenario-settings-btn:focus-visible,
@@ -322,7 +322,7 @@
   color: var(--muted);
   font-size: 13px;
   cursor: pointer;
-  transition: all 120ms ease;
+  transition: all var(--dur-fast) var(--ease);
   white-space: nowrap;
 }
 .settings-chip:hover {
@@ -331,8 +331,8 @@
   background: var(--card);
 }
 .settings-chip.active {
-  background: var(--accent);
-  color: white;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   border-color: var(--accent);
 }
 
@@ -355,7 +355,7 @@
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
-  transition: all 120ms ease;
+  transition: all var(--dur-fast) var(--ease);
 }
 .settings-manage-btn:hover,
 .settings-manage-btn.active {
@@ -473,7 +473,7 @@
   line-height: 1.5;
   font-family: inherit;
   outline: none;
-  transition: border-color 160ms var(--ease);
+  transition: border-color var(--dur-fast) var(--var(--ease));
 }
 .scenario-ai-input::placeholder {
   color: var(--text-placeholder);
@@ -495,12 +495,12 @@
   cursor: pointer;
   white-space: nowrap;
   transition:
-    background 160ms var(--ease),
-    color 160ms var(--ease);
+    background var(--dur-fast) var(--var(--ease)),
+    color var(--dur-fast) var(--var(--ease));
 }
 .scenario-ai-btn:hover:not(:disabled) {
-  background: var(--accent);
-  color: white;
+  background: var(--accent-solid);
+  color: var(--on-accent);
 }
 .scenario-ai-btn:disabled {
   opacity: 0.55;
@@ -575,8 +575,8 @@
   font-weight: 600;
   padding: 0 4px;
   border-radius: 6px;
-  background: var(--accent);
-  color: white;
+  background: var(--accent-solid);
+  color: var(--on-accent);
 }
 .scenario-ai-chip.is-new em {
   background: var(--accent);
@@ -598,14 +598,14 @@
 
 .scenario-ai-apply {
   border: none;
-  background: var(--accent);
-  color: white;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   border-radius: 10px;
   padding: 6px 16px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 160ms var(--ease);
+  transition: opacity var(--dur-fast) var(--var(--ease));
 }
 .scenario-ai-apply:hover {
   opacity: 0.9;
@@ -619,7 +619,7 @@
   padding: 6px 14px;
   font-size: 13px;
   cursor: pointer;
-  transition: color 160ms var(--ease);
+  transition: color var(--dur-fast) var(--var(--ease));
 }
 .scenario-ai-dismiss:hover {
   color: var(--accent);

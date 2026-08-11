@@ -10,8 +10,9 @@
 /* ─── 标题 + 日期导航 ─────────────────────────────────── */
 
 .research-headline h1 {
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  line-height: var(--page-title-lh);
   color: var(--text-heading);
   margin: 0 0 16px;
   letter-spacing: -0.02em;
@@ -36,7 +37,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 160ms var(--ease), border-color 160ms var(--ease);
+  transition: background var(--dur-fast) var(--var(--ease)), border-color var(--dur-fast) var(--var(--ease));
   flex-shrink: 0;
 }
 
@@ -183,8 +184,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 160ms var(--ease), border-color 160ms var(--ease),
-    color 160ms var(--ease);
+  transition: background var(--dur-fast) var(--var(--ease)), border-color var(--dur-fast) var(--var(--ease)),
+    color var(--dur-fast) var(--var(--ease));
   flex-shrink: 0;
 }
 
@@ -195,9 +196,9 @@
 }
 
 .research-likert-btn.selected {
-  background: var(--accent);
+  background: var(--accent-solid);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .research-likert-anchors {
@@ -246,7 +247,7 @@
   font-size: 0.95rem;
   font-weight: 600;
   outline: none;
-  transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+  transition: border-color var(--dur-fast) var(--var(--ease)), box-shadow var(--dur-fast) var(--var(--ease));
 }
 
 .research-number-input:focus {
@@ -269,7 +270,7 @@
   resize: vertical;
   outline: none;
   font-family: inherit;
-  transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+  transition: border-color var(--dur-fast) var(--var(--ease)), box-shadow var(--dur-fast) var(--var(--ease));
 }
 
 .research-textarea:focus {
@@ -292,12 +293,12 @@
   padding: 11px 28px;
   border-radius: 99px;
   border: none;
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   font-size: 0.92rem;
   font-weight: 700;
   cursor: pointer;
-  transition: opacity 160ms var(--ease), box-shadow 160ms var(--ease);
+  transition: opacity var(--dur-fast) var(--var(--ease)), box-shadow var(--dur-fast) var(--var(--ease));
   box-shadow: 0 4px 14px var(--accent-glow);
 }
 
@@ -315,7 +316,7 @@
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 160ms var(--ease), background 160ms var(--ease);
+  transition: border-color var(--dur-fast) var(--var(--ease)), background var(--dur-fast) var(--var(--ease));
 }
 
 .research-export-btn:hover:not(:disabled) {

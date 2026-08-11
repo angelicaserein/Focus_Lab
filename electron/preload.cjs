@@ -43,6 +43,8 @@ contextBridge.exposeInMainWorld("focusDesktop", {
   onState: (cb) => on("desktop:state", cb),
   sendCommand: (cmd) => ipcRenderer.send("desktop:command", cmd),
   onQuickCapture: (cb) => on("desktop:pet-quick-capture", cb),
+  // 桌宠窗失焦（用户回去用别的程序了）：展开的面板该自己收起来
+  onPetBlur: (cb) => on("desktop:pet-blur", cb),
   dragStart: (pt) => ipcRenderer.send("desktop:pet-drag-start", pt),
   dragMove: (pt) => ipcRenderer.send("desktop:pet-drag-move", pt),
   dragEnd: () => ipcRenderer.send("desktop:pet-drag-end"),

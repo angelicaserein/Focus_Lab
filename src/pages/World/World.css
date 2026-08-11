@@ -11,12 +11,15 @@
 }
 .world-headline h1 {
   margin: 0;
-  font-size: 26px;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  line-height: var(--page-title-lh);
   color: var(--text-heading, var(--text));
 }
 .world-sub {
   margin: 6px 0 0;
-  font-size: 14px;
+  font-size: var(--page-sub-size);
+  line-height: var(--page-sub-lh);
   color: var(--text-muted);
   max-width: 62ch;
 }
@@ -74,7 +77,7 @@
   cursor: pointer;
 }
 .world-node.clickable circle {
-  transition: stroke-width 120ms ease, filter 120ms ease;
+  transition: stroke-width var(--dur-fast) var(--ease), filter var(--dur-fast) var(--ease);
 }
 .world-node.clickable:hover circle,
 .world-node.clickable:focus-visible circle {
@@ -161,7 +164,7 @@ button.world-region {
   color: inherit;
   text-align: left;
   cursor: pointer;
-  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 button.world-region:hover {
   transform: translateY(-2px);
@@ -248,6 +251,3 @@ button.world-region:focus-visible {
   max-width: 40ch;
 }
 
-@media (max-width: 560px) {
-  .world-headline h1 { font-size: 22px; }
-}

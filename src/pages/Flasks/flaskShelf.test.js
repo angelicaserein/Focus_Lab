@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
   FLASK_FULL_SECS,
-  MAX_BOTTLES_DRAWN,
   bottlesOf,
   normalizeShelf,
   shelfFillSecs,
@@ -61,12 +60,6 @@ describe("bottlesOf", () => {
   it("整点注满时，满瓶数进位、新的一只从零开始", () => {
     const b = bottlesOf(FLASK_FULL_SECS * 3);
     expect(b).toMatchObject({ full: 3, partial: 0, total: 4 });
-  });
-
-  it("瓶子多到画不下时省略前面的满瓶，正在接的那只永远留着", () => {
-    const b = bottlesOf(FLASK_FULL_SECS * 40);
-    expect(b.drawn).toBe(MAX_BOTTLES_DRAWN);
-    expect(b.hidden).toBe(41 - MAX_BOTTLES_DRAWN);
   });
 });
 

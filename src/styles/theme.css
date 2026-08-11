@@ -52,6 +52,19 @@
   /* 深色 — 渐变深端、按钮次要文字 */
   --accent-deep: #9e5790;
 
+  /* 实底面的底色 —— 填充按钮、选中药丸、彩色统计卡，即"彩底上要放字"的面。
+     不等于 --accent：--accent 是中等明度的柔和色，好看，但白字压上去只有
+     2.8~3.9:1，够不到 WCAG AA 的 4.5:1。
+
+     ⚠ 别图省事拿 --accent-mid 顶这个位置。那支是按"在白卡上当正文要够深"
+     调的，比当底色所需深得多；蜜橘皮上会从 #d38050 掉到 #96532b，按钮变栗棕，
+     而侧边栏选中态还是橘的 —— 一套皮肤劈成两种颜色。
+
+     配方：保持 --accent 的色相与饱和度不变，只把明度压到白字刚够 4.6:1 为止。
+     各皮肤压 5%~16% 不等，压完仍是同一支颜色，只是深一档。
+     纯装饰的主色填充（进度条、图表柱、热力格）不走这里，仍用 --accent。 */
+  --accent-solid: #a35c95;
+
   /* ┌─────────────────────────────────────────────────────┐
      │  文字颜色                                            │
      └─────────────────────────────────────────────────────┘ */
@@ -114,6 +127,17 @@
 
   /* 主色背景上的淡色文字（如选中卡片上的小字） */
   --on-accent-light: #eedceb;
+
+  /* 主色「实底」上的文字色 —— 填充按钮、选中药丸、角标。
+     此前全站 61 处各写各的：54 处写死 #fff / white，7 处用 var(--card)。
+     两套约定同时存在，且换肤时都跟不上主色明度的变化。
+     新皮肤只需判断一件事：accent 是深色就填白字，是浅色就填深字。 */
+  --on-accent: #ffffff;
+
+  /* 主色实底上的次要文字（卡片副标题、单位、角标注解）。
+     各页原本写 rgba(255,255,255,0.6~0.8) 五六种透明度，且同样跟不上换肤。
+     跟着 --on-accent 走，暗夜皮肤自动变成半透明深色。 */
+  --on-accent-dim: color-mix(in srgb, var(--on-accent) 72%, transparent);
 
   /* 以下 4 条边框均派生自 --accent-rgb */
   --border-card: rgba(var(--accent-rgb), 0.12); /* 卡片细边框 */
@@ -189,6 +213,15 @@
   /* 主色背景上的淡字 */
   --on-accent-light: #e8e6f2;
 
+  /* 暗底上不能再往深里压：--accent-mid 在这套皮肤里是"更亮"的那一支（见上），
+     拿它当底色会比卡片还刺眼。直接用 --accent，配下面的深字已经 7.41:1。 */
+  --accent-solid: var(--accent);
+
+  /* 唯一一套 accent 比背景更亮的皮肤，实底上必须反过来填深字。
+     原先这些按钮写死白字，白字压在 #a9a0d0 上只有 2.43:1，几乎糊成一片；
+     换成近黑后是 7.41:1。 */
+  --on-accent: #14121a;
+
   /* 暗底需要更明显的边框，故这几条在派生值上再加一档不透明度 */
   --border-card:     rgba(var(--accent-rgb), 0.16);
   --border-pill:     rgba(var(--accent-rgb), 0.16);
@@ -227,6 +260,7 @@
   --accent-rgb:  214, 102, 151;
   --accent-mid:  #99335f;
   --accent-deep: #c7427c;
+  --accent-solid: #cb3e7c;
 
   --text-heading:    #3f1829;
   --on-accent-light: #f6e4ec;
@@ -241,6 +275,7 @@
   --accent-rgb:  74, 144, 217;
   --accent-mid:  #3a72b0;
   --accent-deep: #4180c4;
+  --accent-solid: #2a76c6;
 
   --text-heading:    #0f2b4a;
   --on-accent-light: #d6e8f7;
@@ -255,6 +290,7 @@
   --accent-rgb:  74, 157, 110;
   --accent-mid:  #3a7d57;
   --accent-deep: #418c61;
+  --accent-solid: #3d815b;
 
   --text-heading:    #123024;
   --on-accent-light: #d6ede0;
@@ -269,6 +305,7 @@
   --accent-rgb:  211, 128, 80;
   --accent-mid:  #96532b;
   --accent-deep: #c06834;
+  --accent-solid: #b35e2d;
 
   --text-heading:    #402616;
   --on-accent-light: #f6e9df;
@@ -283,6 +320,7 @@
   --accent-rgb:  157, 140, 228;
   --accent-mid:  #7a68c8;
   --accent-deep: #8877d6;
+  --accent-solid: #7861da;
 
   --text-heading:    #2a2150;
   --on-accent-light: #e8e3f8;
@@ -298,6 +336,7 @@
   --accent-rgb:  72, 162, 147;
   --accent-mid:  #2f7468;
   --accent-deep: #3d8f81;
+  --accent-solid: #398074;
 
   --text-heading:    #173631;
   --on-accent-light: #e3f2f0;
@@ -313,6 +352,7 @@
   --accent-rgb:  222, 129, 115;
   --accent-mid:  #a14436;
   --accent-deep: #ca5a49;
+  --accent-solid: #ce4631;
 
   --text-heading:    #3f1d18;
   --on-accent-light: #f7e7e3;

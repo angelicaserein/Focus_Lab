@@ -30,10 +30,10 @@
 
 .tasks-title {
   margin: 0;
-  font-size: clamp(1.5rem, 2vw, 2rem);
-  font-weight: 800;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
   color: var(--text-heading);
-  line-height: 1.2;
+  line-height: var(--page-title-lh);
 }
 
 .tasks-count {
@@ -46,13 +46,13 @@
   padding: 8px 18px;
   border-radius: 999px;
   border: none;
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: opacity 0.15s;
+  transition: opacity var(--dur-fast) var(--ease);
 }
 .tasks-add-btn:hover { opacity: 0.85; }
 
@@ -73,7 +73,7 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: border-color 0.15s, color 0.15s;
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 .tasks-assist-btn:hover { border-color: var(--accent); color: var(--accent); }
 
@@ -99,12 +99,12 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s, color 0.15s;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 .tasks-view-btn:hover { color: var(--accent); }
 .tasks-view-btn.active {
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
 }
 
 /* 倒脑子助手：一大块随便写的输入区 */
@@ -121,7 +121,7 @@
   font-family: inherit;
   resize: vertical;
   outline: none;
-  transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+  transition: border-color var(--dur-fast) var(--var(--ease)), box-shadow var(--dur-fast) var(--var(--ease));
 }
 .bd-input:focus {
   border-color: var(--accent-border);
@@ -137,8 +137,8 @@
   z-index: 60;
   padding: 10px 20px;
   border-radius: 99px;
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   font-size: 0.85rem;
   font-weight: 600;
   box-shadow: 0 8px 24px var(--accent-glow);
@@ -203,7 +203,7 @@
   color: var(--text-body);
   font-size: 0.875rem;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color var(--dur-fast) var(--ease);
 }
 .tasks-search:focus { border-color: var(--accent); }
 .tasks-search::placeholder { color: var(--text-placeholder); }
@@ -246,7 +246,7 @@
   font-size: 0.78rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
   white-space: nowrap;
 }
 .flt-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -294,7 +294,7 @@
   font-size: 0.78rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
 }
 .flt-clear:hover { background: var(--danger-subtle); }
 
@@ -321,7 +321,7 @@
   font-size: 0.78rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
   white-space: nowrap;
 }
 .sort-btn:hover { background: var(--accent-hover); color: var(--accent); }
@@ -337,7 +337,7 @@
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
   white-space: nowrap;
 }
 .query-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -392,7 +392,7 @@
   font-size: 0.8rem;
   outline: none;
   cursor: pointer;
-  transition: border-color 0.15s;
+  transition: border-color var(--dur-fast) var(--ease);
 }
 .query-select:focus,
 .query-conj-select:focus { border-color: var(--accent); }
@@ -410,7 +410,7 @@
   color: var(--text-body);
   font-size: 0.8rem;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color var(--dur-fast) var(--ease);
 }
 .query-value-input:focus { border-color: var(--accent); }
 .query-value-spacer { flex: 1; }
@@ -431,7 +431,7 @@
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
   white-space: nowrap;
 }
 .query-opt-chip:hover { border-color: var(--accent); color: var(--accent); }
@@ -459,7 +459,7 @@
   padding: 2px 6px;
   border-radius: 6px;
   line-height: 1;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
 }
 .query-rule-remove:hover { color: var(--danger); background: var(--danger-subtle); }
 
@@ -478,7 +478,7 @@
   font-size: 0.76rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
 }
 .query-dir-btn + .query-dir-btn { border-left: 1.5px solid var(--border-input); }
 .query-dir-btn:hover { color: var(--accent); }
@@ -505,7 +505,7 @@
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
 }
 .query-add-btn:hover:not(:disabled) { background: var(--accent-hover); }
 .query-add-btn:disabled { color: var(--text-faint); cursor: default; }
@@ -518,7 +518,7 @@
   font-size: 0.78rem;
   cursor: pointer;
   border-radius: 7px;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
 }
 .query-clear-btn:hover { color: var(--danger); background: var(--danger-subtle); }
 
@@ -604,7 +604,7 @@
 /* Body rows */
 .tasks-row {
   border-bottom: 1px solid var(--border-input);
-  transition: background 0.1s;
+  transition: background var(--dur-fast) var(--ease);
 }
 .tasks-row:last-child { border-bottom: none; }
 .tasks-row:hover { background: var(--accent-hover); }
@@ -695,7 +695,7 @@
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.12s, background 0.12s, color 0.12s;
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .date-preset-btn:hover {
@@ -704,9 +704,9 @@
 }
 
 .date-preset-btn.active {
-  background: var(--accent);
+  background: var(--accent-solid);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .date-clear-btn {
@@ -821,7 +821,7 @@
   line-height: 1;
   color: var(--text-muted);
   opacity: 0.5;
-  transition: opacity 0.15s, color 0.15s;
+  transition: opacity var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 .ddl-toggle:hover { opacity: 1; }
 .ddl-toggle.active {
@@ -855,7 +855,7 @@
   cursor: pointer;
   padding: 2px 6px;
   border-radius: 4px;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
   opacity: 0;
 }
 .tasks-row:hover .del-btn { opacity: 1; }
@@ -895,7 +895,7 @@
   font-weight: 500;
   cursor: pointer;
   text-align: left;
-  transition: background 0.1s;
+  transition: background var(--dur-fast) var(--ease);
   white-space: nowrap;
 }
 .popup-opt:hover { background: var(--accent-hover); }
@@ -949,7 +949,7 @@
   cursor: pointer;
   text-align: left;
   border-radius: 0 0 14px 14px;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
 }
 .tasks-add-bottom:hover {
   background: var(--accent-hover);
@@ -996,7 +996,7 @@
   cursor: pointer;
   padding: 8px 6px;
   border-radius: 0;
-  transition: color 0.1s, background 0.1s;
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
   display: block;
 }
 .th-add-btn:hover { color: var(--accent); background: var(--accent-hover); }
@@ -1053,7 +1053,7 @@
   color: var(--text-body);
   font-size: 0.875rem;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color var(--dur-fast) var(--ease);
 }
 .attr-editor-input:focus { border-color: var(--accent); }
 .attr-editor-input-sm { max-width: 120px; }
@@ -1080,7 +1080,7 @@
   font-size: 0.78rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
 }
 .type-opt:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 .type-opt.active {
@@ -1113,7 +1113,7 @@
   border: 2px solid rgba(0,0,0,0.12);
   cursor: pointer;
   padding: 0;
-  transition: transform 0.1s;
+  transition: transform var(--dur-fast) var(--ease);
 }
 .option-color-swatch:hover { transform: scale(1.2); }
 
@@ -1138,7 +1138,7 @@
   cursor: pointer;
   padding: 2px 5px;
   border-radius: 4px;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
 }
 .option-remove:hover { color: var(--danger); background: var(--danger-subtle); }
 
@@ -1158,7 +1158,7 @@
   border: 2px solid transparent;
   cursor: pointer;
   padding: 0;
-  transition: transform 0.1s;
+  transition: transform var(--dur-fast) var(--ease);
 }
 .color-dot:hover { transform: scale(1.2); }
 .color-dot.selected {
@@ -1175,7 +1175,7 @@
   color: var(--text-muted);
   font-size: 0.78rem;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
 }
 .add-option-btn:hover { border-color: var(--accent); color: var(--accent); }
 
@@ -1192,12 +1192,12 @@
   padding: 7px 0;
   border-radius: 8px;
   border: none;
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition: opacity var(--dur-fast) var(--ease);
 }
 .attr-editor-save:hover { opacity: 0.85; }
 
@@ -1210,7 +1210,7 @@
   font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
 }
 .attr-editor-delete:hover { background: var(--danger-subtle); }
 
@@ -1222,7 +1222,7 @@
   color: var(--text-muted);
   font-size: 0.82rem;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
 }
 .attr-editor-cancel:hover { border-color: var(--accent); color: var(--accent); }
 
@@ -1251,7 +1251,7 @@
   font-size: 0.78rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--dur-fast) var(--ease);
 }
 .attr-col-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 .attr-col-btn:disabled { opacity: 0.4; cursor: default; }

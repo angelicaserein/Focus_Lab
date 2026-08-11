@@ -77,3 +77,29 @@ export function normalizeCollection(raw) {
 // 已入住的物种（去重）。图鉴与「是否收集满」看的是物种，不是只数。
 export const ownedSpecies = (list) =>
   new Set(normalizeCollection(list).map((e) => e.id));
+
+// 吃到一粒饵，往前赶一点进度。
+// 喂食本来只是「点着好玩」，有了这一下才成立：你喂的那只确实长得比没喂的快。
+// 实现上不加「已吃多少」这类新状态，而是把 born 往前挪——成长仍只由 born 与当下时间决定，
+// 一处口径，图鉴、缸里、生长卡自动一致。
+export const FEED_BOOST_MS = 2 * 60 * 1000;
+
+// 喂一口之后的 born。到顶就是「刚好成体」，不会被挪得更早——否则会攒出一笔看不见的余量。
+// 缸里那份住客数据和存档各存各的 born，两边都用这一个函数算，才不会喂完就对不上。
+export function feedBorn(born, now = Date.now(), boost = FEED_BOOST_MS) {
+  return Math.max(now - ADULT_MS, born - boost);
+}
+
+// 喂 uid 这一只。已经长成的喂了也只是好吃，不改存档。
+// 没有任何改变时原样返回入参，调用方据此跳过一次落盘。
+export function feedResident(list, uid, now = Date.now(), boost = FEED_BOOST_MS) {
+  const items = normalizeCollection(list);
+  const floor = now - ADULT_MS;
+  let changed = false;
+  const next = items.map((e) => {
+    if (e.uid !== uid || e.born <= floor) return e;
+    changed = true;
+    return { ...e, born: feedBorn(e.born, now, boost) };
+  });
+  return changed ? next : list;
+}

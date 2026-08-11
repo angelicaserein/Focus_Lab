@@ -3,8 +3,8 @@
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: rgba(15, 23, 42, 0.32);
-  backdrop-filter: blur(3px);
+  background: var(--overlay-bg);
+  backdrop-filter: var(--overlay-blur);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -57,7 +57,7 @@
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 8px;
-  transition: background 140ms var(--ease), color 140ms var(--ease);
+  transition: background var(--dur-fast) var(--var(--ease)), color var(--dur-fast) var(--var(--ease));
 }
 
 .ait-close:hover {
@@ -120,7 +120,7 @@
   border-radius: 14px;
   border: 1.5px solid var(--border-card);
   background: var(--card);
-  transition: opacity 140ms var(--ease), border-color 140ms var(--ease);
+  transition: opacity var(--dur-fast) var(--var(--ease)), border-color var(--dur-fast) var(--var(--ease));
 }
 
 .ait-row.off {
@@ -159,7 +159,7 @@
   font-size: 0.9rem;
   font-family: inherit;
   outline: none;
-  transition: border-color 150ms var(--ease);
+  transition: border-color var(--dur-fast) var(--var(--ease));
 }
 
 .ait-row-input:focus {
@@ -217,7 +217,7 @@
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition: border-color 140ms var(--ease);
+  transition: border-color var(--dur-fast) var(--var(--ease));
 }
 
 .ait-btn-ghost:hover {
@@ -228,14 +228,14 @@
   padding: 8px 22px;
   border-radius: 99px;
   border: none;
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   font-size: 0.85rem;
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
   box-shadow: 0 4px 14px var(--accent-glow);
-  transition: opacity 140ms var(--ease);
+  transition: opacity var(--dur-fast) var(--var(--ease));
 }
 
 .ait-btn-primary:hover:not(:disabled) {

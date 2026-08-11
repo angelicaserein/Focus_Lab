@@ -113,7 +113,7 @@
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 600;
-  transition: background 150ms ease, color 150ms ease;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .clear-focus:hover:not(:disabled) {
@@ -154,7 +154,7 @@
   font-family: inherit;
   cursor: pointer;
   letter-spacing: 0.03em;
-  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .focus-draw-btn:hover {
@@ -173,8 +173,8 @@
   margin-left: 8px;
   padding: 0 5px;
   border-radius: 9px;
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0;
@@ -224,12 +224,12 @@
   font-size: 1.05rem;
   line-height: 1;
   cursor: pointer;
-  transition: background 150ms ease, color 150ms ease;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .focus-chip-remove:hover {
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
 }
 
 
@@ -259,7 +259,7 @@
   font-size: 0.88rem;
   outline: none;
   cursor: pointer;
-  transition: border-color 150ms ease;
+  transition: border-color var(--dur-fast) var(--ease);
 }
 
 .focus-scenario-select:focus {
@@ -304,13 +304,13 @@
   font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
-  transition: filter 0.15s ease, background 0.15s ease;
+  transition: filter var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 
 .focus-scenario-nudge-go {
   border: none;
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
 }
 
 .focus-scenario-nudge-go:hover {
@@ -347,12 +347,12 @@
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 160ms ease, color 160ms ease;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .focus-mode-btn.active {
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
 }
 
 /* 烧瓶时长选择 */
@@ -384,13 +384,13 @@
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 
 .focus-duration-pill.active {
-  background: var(--accent);
+  background: var(--accent-solid);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .focus-duration-pill:disabled {
@@ -407,11 +407,11 @@
   border-radius: 999px;
   border: 1.5px solid var(--accent-border);
   background: var(--accent-bg-dim);
-  transition: background 160ms ease, border-color 160ms ease;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 
 .focus-duration-custom.active {
-  background: var(--accent);
+  background: var(--accent-solid);
   border-color: var(--accent);
 }
 
@@ -453,7 +453,7 @@
 .focus-duration-custom.active .focus-duration-input,
 .focus-duration-custom.active .focus-duration-unit,
 .focus-duration-custom.active .focus-duration-input::placeholder {
-  color: #fff;
+  color: var(--on-accent);
   opacity: 1;
 }
 
@@ -479,7 +479,7 @@
   cursor: pointer;
   font-size: 0.95rem;
   font-weight: 600;
-  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -487,8 +487,8 @@
 }
 
 .focus-action-btn.primary {
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   grid-column: 1 / -1;
 }
 

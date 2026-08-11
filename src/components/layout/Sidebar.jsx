@@ -12,6 +12,7 @@ import {
   Network,
   Fish,
   ListTree,
+  Archive,
   Map,
   Factory,
   History,
@@ -40,6 +41,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useReward, SHOP_ITEMS } from "@/context/RewardContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useFeatures } from "@/context/FeatureContext";
+import { FEATURE_KEYS } from "@/pages/FunctionTree/functionTreeData";
 import { LANGUAGES } from "@/i18n/translations";
 
 const NAV_SECTIONS = [
@@ -76,6 +78,7 @@ const NAV_SECTIONS = [
     items: [
       { to: "/tutorial",     labelKey: "nav.tutorial",     Icon: BookOpen },
       { to: "/functiontree", labelKey: "nav.functiontree", Icon: ListTree },
+      { to: "/deprecated",   labelKey: "nav.deprecated",   Icon: Archive },
       { to: "/scenario",     labelKey: "nav.scenario",     Icon: Layers },
       { to: "/reward",       labelKey: "nav.reward",       Icon: Gift },
       { to: "/research",     labelKey: "nav.research",     Icon: FlaskConical },
@@ -212,7 +215,15 @@ export default function Sidebar() {
         onMouseLeave={() => setPeek(false)}
       >
       <div className="sidebar-brand">
-        <img className="sidebar-brand-logo" src="./icon-192.png" alt="" />
+        {/* 不能直接放 icon-192.png：那张图的紫底是写死的像素，换主题时不会变。
+            改用 logo-mask.png（同一张图抠出的猫形 alpha 遮罩，形状逐像素一致）：
+            底板刷 --accent，遮罩里刷 --on-accent-light，主色一换整个 logo 跟着走。
+            遮罩图在 public/ 下，Vite 不处理，故按 BASE_URL 拼绝对路径（同 notify.js）。 */}
+        <span
+          className="sidebar-brand-logo"
+          style={{ "--brand-mask": `url("${import.meta.env.BASE_URL}logo-mask.png")` }}
+          aria-hidden="true"
+        />
         <span className="sidebar-brand-name">Focus Lab</span>
         <button
           type="button"
@@ -225,7 +236,8 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {scenarios.length > 0 && (
+      {/* 「当前情景」不是页面，但也是功能树上的一个开关（挂在情境功能组下） */}
+      {scenarios.length > 0 && isEnabled(FEATURE_KEYS.SCENARIO_PICKER) && (
         <div className="sidebar-scenario">
           <label className="sidebar-scenario-label" htmlFor="sidebar-scenario-select">
             {t("sidebar.currentScenario")}

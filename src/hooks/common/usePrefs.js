@@ -23,9 +23,12 @@ export default function usePrefs() {
   // 分心水位（桌面版）：默认关。这项会让 app 去看你前台开着什么程序，
   // 必须是 opt-in，跟桌面通知同一个道理——打扰型/窥探型能力不能默认生效。
   const [appWatchRaw, setAppWatch] = useLocalStorage(STORAGE_KEYS.PREF_APP_WATCH, null);
+  // deny 是标题关键词：勾进白名单的程序，窗口标题里出现这些词照样算分心。
+  // 浏览器只能整个勾进来，查论文和刷视频是同一个进程，靠它才分得开。
   const appWatch = {
     enabled: !!appWatchRaw?.enabled,
     allow: Array.isArray(appWatchRaw?.allow) ? appWatchRaw.allow : [],
+    deny: Array.isArray(appWatchRaw?.deny) ? appWatchRaw.deny : [],
   };
   return {
     countupFullMins, setCountupFullMins,

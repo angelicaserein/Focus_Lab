@@ -15,14 +15,15 @@
 }
 
 .ddl-title {
-  font-size: clamp(1.5rem, 2vw, 2rem);
-  font-weight: 800;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
   color: var(--text-heading);
   margin: 0;
 }
 
 .ddl-subtitle {
-  font-size: 0.88rem;
+  font-size: var(--page-sub-size);
+  line-height: var(--page-sub-lh);
   color: var(--text-muted);
   margin: 0;
 }
@@ -33,7 +34,10 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  padding: 60px 24px;
+  padding: var(--empty-pad);
+  background: var(--card);
+  border: var(--empty-border);
+  border-radius: var(--empty-radius);
   color: var(--text-muted);
   text-align: center;
 }
@@ -113,7 +117,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: border-color 0.15s, color 0.15s;
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .ddl-today-check:hover {
@@ -167,7 +171,7 @@
   flex-direction: column;
   gap: 12px;
   box-shadow: 0 2px 8px var(--shadow-sm);
-  transition: border-color 0.15s;
+  transition: border-color var(--dur-fast) var(--ease);
 }
 
 .ddl-card.card-overdue {
@@ -237,7 +241,7 @@
   gap: 8px;
   padding: 6px 8px;
   border-radius: 8px;
-  transition: background 0.12s;
+  transition: background var(--dur-fast) var(--ease);
 }
 
 .ddl-cp:hover {
@@ -267,13 +271,13 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .ddl-cp.done .ddl-cp-check {
-  background: var(--accent);
+  background: var(--accent-solid);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .ddl-cp-check:hover {
@@ -304,7 +308,7 @@
   padding: 0 2px;
   line-height: 1;
   opacity: 0;
-  transition: opacity 0.15s, color 0.15s;
+  transition: opacity var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .ddl-cp:hover .ddl-cp-del {
@@ -324,7 +328,7 @@
   font-size: 0.82rem;
   color: var(--text-muted);
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
   text-align: left;
 }
 
@@ -394,7 +398,7 @@
   font-size: 0.75rem;
   color: var(--text-muted);
   cursor: pointer;
-  transition: border-color 0.12s, color 0.12s, background 0.12s;
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 
 .ddl-quick-btn:hover,
@@ -427,14 +431,14 @@
 
 .ddl-save-btn {
   padding: 5px 16px;
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   border: none;
   border-radius: 8px;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition: opacity var(--dur-fast) var(--ease);
 }
 
 .ddl-save-btn:disabled {
@@ -450,7 +454,7 @@
   font-size: 0.85rem;
   color: var(--text-muted);
   cursor: pointer;
-  transition: border-color 0.15s;
+  transition: border-color var(--dur-fast) var(--ease);
 }
 
 .ddl-cancel-btn:hover {
@@ -479,7 +483,7 @@
   color: var(--text-muted);
   cursor: pointer;
   box-shadow: 0 2px 8px var(--shadow-sm);
-  transition: border-color 0.15s, color 0.15s;
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .ddl-debug-toggle:hover,
@@ -568,7 +572,7 @@
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background var(--dur-fast) var(--ease);
 }
 
 .ddl-debug-modal-btn:hover {

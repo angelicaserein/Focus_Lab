@@ -32,12 +32,25 @@
   border-bottom: 1px solid var(--border-dark);
 }
 
+/* 主色底板 + 猫形遮罩两层，颜色全走主题变量（遮罩图 URL 由 JSX 传 --brand-mask）。
+   原来这里是 <img>，图里的紫底写死、换肤不动。 */
 .sidebar-brand-logo {
+  position: relative;
   width: 32px;
   height: 32px;
   border-radius: 9px;
   flex-shrink: 0;
   box-shadow: 0 1px 4px var(--shadow-sm);
+  background: var(--accent);
+}
+
+.sidebar-brand-logo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--on-accent-light);
+  -webkit-mask: var(--brand-mask) center / contain no-repeat;
+  mask: var(--brand-mask) center / contain no-repeat;
 }
 
 .sidebar-brand-name {
@@ -66,7 +79,7 @@
   color: var(--muted);
   opacity: 0.7;
   cursor: pointer;
-  transition: all 200ms ease;
+  transition: all var(--dur-fast) var(--ease);
 }
 
 .sidebar-collapse-btn:hover {
@@ -104,7 +117,7 @@
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 200ms ease;
+  transition: all var(--dur-fast) var(--ease);
 }
 
 .sidebar-scenario-select:hover {
@@ -153,7 +166,7 @@
   border-radius: 12px;
   text-decoration: none;
   color: var(--muted);
-  transition: all 200ms ease;
+  transition: all var(--dur-fast) var(--ease);
   font-weight: 500;
   font-size: 0.95rem;
 }
@@ -209,7 +222,7 @@
   text-decoration: none;
   font-size: 0.85rem;
   font-weight: 700;
-  transition: all 200ms ease;
+  transition: all var(--dur-fast) var(--ease);
 }
 
 .sidebar-coins:hover {
@@ -249,7 +262,7 @@
   opacity: 0.7;
   text-decoration: none;
   cursor: pointer;
-  transition: all 200ms ease;
+  transition: all var(--dur-fast) var(--ease);
 }
 
 .sidebar-icon-btn:hover {
@@ -345,10 +358,10 @@
     cursor: pointer;
     opacity: 0.85;
     transition:
-      opacity 180ms var(--ease),
-      background 180ms var(--ease),
-      color 180ms var(--ease),
-      transform 120ms var(--ease);
+      opacity var(--dur-fast) var(--var(--ease)),
+      background var(--dur-fast) var(--var(--ease)),
+      color var(--dur-fast) var(--var(--ease)),
+      transform var(--dur-fast) var(--var(--ease));
   }
   .sidebar-launcher:hover {
     opacity: 1;
@@ -439,8 +452,8 @@
     box-shadow: 0 2px 10px var(--shadow-sm);
     cursor: pointer;
     transition:
-      background 160ms var(--ease),
-      transform 120ms var(--ease);
+      background var(--dur-fast) var(--var(--ease)),
+      transform var(--dur-fast) var(--var(--ease));
   }
   .sidebar-toggle:hover {
     background: var(--accent-bg);

@@ -50,13 +50,13 @@ export default {
   "settings.prefs.notifyHint": { en: "When on, flask-full alerts and today's deadlines alert you via system notifications (even on other tabs).", zh: "开启后，烧瓶注满和今日 DDL 会以系统通知提醒你（即使切到其它标签页）。" },
   "settings.watch.title": { en: "Distraction water level", zh: "分心水位" },
   "settings.watch.hint": {
-    en: "During focus, if the app in front isn't one you picked, the desktop flask tips over and pours out. The water pools at the bottom of your screen and drains the moment you come back.",
-    zh: "专注时，如果最前面的程序不是你勾的那几个，桌宠的烧瓶会翻过来往外倒水，水积在屏幕底部；回到勾选的程序就立刻退潮。",
+    en: "During focus, if the app in front isn't one you picked, the desktop flask tips over and pours out — the water pools at the bottom of your screen. The timer pauses at the same time, and the stretch gets logged as a distraction: which program, from when to when. Come back and the water drains, the timer picks up where it left off.",
+    zh: "专注时，如果最前面的程序不是你勾的那几个，桌宠的烧瓶会翻过来往外倒水，水积在屏幕底部；同时计时器暂停，并把这一段记成一次分心——几点到几点、用的哪个程序。回到勾选的程序立刻退潮，计时接着往下走。",
   },
   "settings.watch.enable": { en: "Watch the app in front", zh: "看住前台程序" },
   "settings.watch.privacy": {
-    en: "Off by default. When on, Focus Lab reads which program is in front — only while a focus session is running, and only its name. Nothing is recorded, and your real focus time is never deducted.",
-    zh: "默认关闭。开启后 Focus Lab 会读取当前最前面的程序是哪一个——只在专注进行中读，只读程序名。不会记录，也不会扣掉你真实的专注时长。",
+    en: "Off by default. When on, Focus Lab reads which program is in front — only while a focus session is open. It reads the program's name, plus its window title if you've set any title words below; the title is compared in memory and dropped, never saved. What gets written into your own distraction records is the program name and the time you spent there, stored on this machine like everything else and sent nowhere. Focus time you've already banked is never deducted, but the timer is paused while you're away.",
+    zh: "默认关闭。开启后 Focus Lab 会读取当前最前面的程序是哪一个——只在一次没结束的专注里读。读的是程序名；如果你在下面设了标题关键词，还会读窗口标题拿来比对一次，比完就丢，不落盘。真正写进分心记录的只有程序名和起止时间，跟其他数据一样只存在本机、不发去任何地方。已经跑到的专注时长不会被扣掉，但切走期间计时器是停着的。",
   },
   "settings.watch.allowLabel": { en: "Counts as focused", zh: "算在专注里" },
   "settings.watch.empty": {
@@ -67,6 +67,14 @@ export default {
     en: "Tick at least one — with nothing ticked, everything would count as a distraction, so the feature stays idle.",
     zh: "至少勾一个。一个都不勾等于「什么都算分心」，所以功能会保持不工作。",
   },
+  "settings.watch.denyLabel": { en: "…except these words", zh: "但标题里有这些词就不算" },
+  "settings.watch.denyHint": {
+    en: "A browser is one program whether you're reading a paper or watching videos, so ticking it above lets both through. Add a word here and a ticked program still counts as a distraction whenever the word shows up in its window title — which for a browser is the title of the tab you're on. Matching happens in memory and the title is thrown away straight after: it is never saved, and your distraction records still say only \"Microsoft Edge\".",
+    zh: "浏览器是同一个程序——查论文和刷视频都走它，上面勾了就等于两样都放行。在这里加个词，勾过的程序只要窗口标题里出现这个词，照样算分心；浏览器的窗口标题就是你当前那个标签页的标题。比对只在内存里做一次，比完标题就丢掉：不落盘、不进记录，分心记录里留下的仍然只有「Microsoft Edge」。",
+  },
+  "settings.watch.denyPlaceholder": { en: "e.g. youtube", zh: "比如 youtube" },
+  "settings.watch.denyAdd": { en: "Add", zh: "添加" },
+  "settings.watch.denyRemove": { en: "Remove", zh: "删除" },
   "settings.prefs.notifyEnabledTitle": { en: "🔔 Notifications enabled", zh: "🔔 通知已开启" },
   "settings.prefs.notifyEnabledBody": { en: "Flask-full alerts and deadline reminders will show up here.", zh: "烧瓶注满与 DDL 提醒会在这里提醒你。" },
   "settings.tone.title": { en: "Character voice", zh: "角色语气" },

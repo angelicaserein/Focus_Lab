@@ -9,9 +9,9 @@
 
 .settings-headline h1 {
   margin: 0;
-  font-size: clamp(1.6rem, 2.2vw, 2.2rem);
-  font-weight: 800;
-  line-height: 1.15;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  line-height: var(--page-title-lh);
   color: var(--text-heading);
 }
 
@@ -37,7 +37,7 @@
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .settings-tab:hover:not(.active) {
@@ -96,7 +96,7 @@
   border: 2px solid var(--border-card);
   box-shadow: 0 2px 10px var(--shadow-sm);
   cursor: pointer;
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
   text-align: center;
 }
 
@@ -204,7 +204,7 @@
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .settings-data-btn:hover {
@@ -289,7 +289,7 @@
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .settings-pill:hover {
@@ -318,7 +318,7 @@
   border-radius: 99px;
   border: 2px solid var(--border-card);
   background: var(--card);
-  transition: border-color 150ms ease;
+  transition: border-color var(--dur-fast) var(--ease);
 }
 
 .settings-preset-item:focus-within {
@@ -374,7 +374,7 @@
   border-radius: 16px;
   border: 2px solid var(--border-card);
   background: var(--card);
-  transition: border-color 150ms ease, background 150ms ease;
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 
 .settings-flask-item.active {
@@ -453,7 +453,7 @@
   font-weight: 600;
   color: var(--text-muted);
   cursor: pointer;
-  transition: border-color 150ms ease, color 150ms ease;
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .settings-flask-restore:hover {
@@ -472,7 +472,7 @@
   font-weight: 600;
   color: var(--accent);
   cursor: pointer;
-  transition: background 150ms ease, opacity 150ms ease;
+  transition: background var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease);
 }
 
 .settings-flask-save:hover:not(:disabled) {
@@ -507,7 +507,7 @@
   font-size: 0.9rem;
   line-height: 1.5;
   font-family: inherit;
-  transition: border-color 150ms ease;
+  transition: border-color var(--dur-fast) var(--ease);
 }
 .settings-tone-input:focus {
   outline: none;
@@ -565,7 +565,7 @@
   font-weight: 600;
   color: var(--text-muted);
   padding: 0;
-  transition: color 150ms ease;
+  transition: color var(--dur-fast) var(--ease);
 }
 
 .settings-toggle-btn.active {
@@ -579,7 +579,7 @@
   border-radius: 99px;
   background: var(--border-card);
   position: relative;
-  transition: background 200ms ease;
+  transition: background var(--dur-fast) var(--ease);
   flex-shrink: 0;
 }
 
@@ -595,7 +595,7 @@
   height: 18px;
   border-radius: 50%;
   background: #fff;
-  transition: transform 200ms ease;
+  transition: transform var(--dur-fast) var(--ease);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 
@@ -624,7 +624,7 @@
   color: var(--text-muted);
   text-align: left;
   cursor: pointer;
-  transition: border-color 160ms ease, color 160ms ease;
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .settings-app:hover {
@@ -677,4 +677,81 @@
   flex: none;
   font-size: 0.72rem;
   color: var(--text-faint);
+}
+
+/* ── 分心水位：标题关键词 ── */
+.settings-word-input {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.settings-word-input input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 2px solid var(--border-card);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--text-heading);
+  font-family: inherit;
+  font-size: 0.85rem;
+  transition: border-color var(--dur-fast) var(--ease);
+}
+
+.settings-word-input input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.settings-word-input button {
+  flex: none;
+  padding: 8px 16px;
+  border: 2px solid var(--accent);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.settings-word-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+/* 一个词一颗，点一下就走。加过的（is-on）实心一点，建议词留在描边态：
+   两组挨在一起，得一眼看出哪些已经生效。 */
+.settings-word {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid var(--border-card);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.settings-word:hover {
+  border-color: var(--accent-mid);
+}
+
+.settings-word.is-on {
+  border-color: var(--accent);
+  background: var(--accent-bg-dim);
+  color: var(--text-heading);
+}
+
+.settings-word-x {
+  font-size: 0.9rem;
+  line-height: 1;
+  opacity: 0.6;
 }

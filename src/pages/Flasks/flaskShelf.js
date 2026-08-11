@@ -13,9 +13,6 @@ import { FLASK_PRESETS, DEFAULT_FLASK_PRESET } from "@/pages/Focus/flaskShapes";
 export const FLASK_FULL_SECS = 3600; // 一只烧瓶注满 = 1 小时专注
 export const MAX_SHELF = 12; // 架子容量：再多就成了瓶子墙，找不着自己在专注哪只
 
-// 一排最多画多少只瓶子，超出的用 "+N" 交代。攒到几十小时时不至于铺满整页。
-export const MAX_BOTTLES_DRAWN = 12;
-
 // 存一只烧瓶：把当下的参数拷贝一份定格下来（之后在设置页继续调形状，
 // 不会改到已经存下来的这只——存的是「那一刻的它」）。
 export function makeShelfFlask({ name, preset, params }) {
@@ -72,14 +69,13 @@ export function shelfFillSecs(records) {
   return totals;
 }
 
-// 累计秒数 → 这一排瓶子的样子。
-// full＝已注满几只；partial＝正在接的那只到了几成（0~1）；
-// drawn＝实际要画的瓶子数（含正在接的那只），hidden＝因超上限而省略的满瓶数。
+// 累计秒数 → 这只烧瓶攒到哪儿了。
+// full＝已注满几只（页面上是瓶身旁的 ×N）；partial＝正在接的那只到了几成（0~1）；
+// total＝含正在接的那只在内一共几只。
 export function bottlesOf(totalSecs) {
   const secs = Math.max(0, totalSecs || 0);
   const full = Math.floor(secs / FLASK_FULL_SECS);
   const partial = (secs % FLASK_FULL_SECS) / FLASK_FULL_SECS;
   const total = full + 1; // 末尾永远有一只正在接的空瓶
-  const drawn = Math.min(total, MAX_BOTTLES_DRAWN);
-  return { full, partial, total, drawn, hidden: total - drawn, secs };
+  return { full, partial, total, secs };
 }

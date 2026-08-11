@@ -21,7 +21,7 @@
   font-weight: 600;
   cursor: pointer;
   letter-spacing: 0.06em;
-  transition: background 150ms ease, color 150ms ease;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .tweaks-toggle:hover,
@@ -165,7 +165,7 @@
   font-weight: 600;
   cursor: pointer;
   text-align: center;
-  transition: background 130ms ease, color 130ms ease, border-color 130ms ease, transform 120ms ease;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
   white-space: nowrap;
 }
 
@@ -254,7 +254,7 @@
   font-weight: 600;
   cursor: pointer;
   width: 100%;
-  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 
 .tweaks-anim-toggle.active {
@@ -269,7 +269,7 @@
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
   flex-shrink: 0;
-  transition: background 150ms ease;
+  transition: background var(--dur-fast) var(--ease);
 }
 
 .tweaks-anim-toggle.active .tweaks-anim-dot {

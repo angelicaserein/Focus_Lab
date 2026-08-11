@@ -1,9 +1,11 @@
-import React, { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, Trash2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useFocus } from "@/context/FocusContext";
 import useFlaskShelf from "@/hooks/flask/useFlaskShelf";
+import useLocalStorage from "@/hooks/common/useLocalStorage";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 import { FlaskGraphic } from "@/pages/Focus/FocusFlask";
 import {
   FLASK_FULL_SECS,
@@ -11,11 +13,21 @@ import {
   bottlesOf,
   shelfFillSecs,
 } from "./flaskShelf";
+import {
+  clearDebugFill,
+  mergeDebugFills,
+  normalizeDebugFills,
+  setDebugFill,
+} from "./flaskDebug";
+import FlaskDebugPanel from "./FlaskDebugPanel";
 import "./Flasks.css";
 
 // 烧瓶架：把设置页调好的形状一只只存下来，挑一只作为「现在往里注水」的瓶子。
-// 一小时专注注满一只；接满了不停手，多出来的直接流进下一只同样形状的瓶子，
-// 所以一行看到的是「同一形状的一排」——前面几只满的是攒下的小时，末尾那只正在接。
+// 一小时专注注满一只；接满了不停手，多出来的直接流进下一只同样形状的瓶子。
+//
+// 排版：一只烧瓶一张小卡、网格并排。卡里只画「正在接的那只」，
+// 已注满的不再一只只重画（同形状的瓶子重复画一排既占地方又都长一个样），
+// 改用瓶身旁的 ×N 角标交代攒下了几只满瓶。
 //
 // 注满进度不在这儿存档，是从专注记录（record.flaskId）现算的，见 flaskShelf.js。
 
@@ -29,24 +41,76 @@ function dur(secs, t) {
   return t("flasks.m", { m });
 }
 
+// 水位调试按钮同奖励页：只在开发环境露出，发布给参与者时自动消失。
+const DEBUG_ENABLED = import.meta.env.DEV;
+
 export default function FlasksPage() {
   const { t } = useLanguage();
   const { focusRecords } = useFocus();
   const { items, activeId, removeFlask, renameFlask, setActiveFlask } = useFlaskShelf();
 
-  const fills = useMemo(() => shelfFillSecs(focusRecords), [focusRecords]);
+  const realFills = useMemo(() => shelfFillSecs(focusRecords), [focusRecords]);
+
+  // 调试覆盖：只有开发环境读得到，正式构建里 fills 就是现算值本身
+  const [rawDebug, setRawDebug] = useLocalStorage(STORAGE_KEYS.FLASK_DEBUG_FILL, null);
+  const debugFills = useMemo(
+    () => (DEBUG_ENABLED ? normalizeDebugFills(rawDebug) : {}),
+    [rawDebug],
+  );
+  const [debugOpen, setDebugOpen] = useState(false);
+  const fills = useMemo(
+    () => (DEBUG_ENABLED ? mergeDebugFills(realFills, debugFills) : realFills),
+    [realFills, debugFills],
+  );
+
+  // 移出是不可逆的（形状没了就得回设置页重调），所以点垃圾桶只是「问一句」，
+  // 真正动手要再确认一次。同一时刻只问一只。
+  const [confirmId, setConfirmId] = useState(null);
+
+  const handleRemove = useCallback(
+    (id) => {
+      setConfirmId(null);
+      removeFlask(id);
+    },
+    [removeFlask],
+  );
 
   return (
     <div className="page-flasks">
       <header className="fk-headline">
         <h1>{t("flasks.title")}</h1>
-        {items.length > 0 && (
-          <span className="fk-count">
-            {t("flasks.shelfCount", { n: items.length, total: MAX_SHELF })}
-          </span>
-        )}
+        <div className="fk-headline-side">
+          {items.length > 0 && (
+            <span className="fk-count">
+              {t("flasks.shelfCount", { n: items.length, total: MAX_SHELF })}
+            </span>
+          )}
+          {DEBUG_ENABLED && (
+            <button
+              type="button"
+              className="fk-debug-btn"
+              title="调试：修改烧瓶水位"
+              aria-label="调试：修改烧瓶水位"
+              onClick={() => setDebugOpen(true)}
+            >
+              🛠️ 调试
+            </button>
+          )}
+        </div>
       </header>
       <p className="fk-lead">{t("flasks.lead")}</p>
+
+      {DEBUG_ENABLED && debugOpen && (
+        <FlaskDebugPanel
+          flasks={items}
+          realFills={realFills}
+          debugFills={debugFills}
+          onSet={(id, secs) => setRawDebug((prev) => setDebugFill(prev, id, secs))}
+          onClear={(id) => setRawDebug((prev) => clearDebugFill(prev, id))}
+          onClearAll={() => setRawDebug({})}
+          onClose={() => setDebugOpen(false)}
+        />
+      )}
 
       {items.length === 0 ? (
         <div className="fk-empty">
@@ -58,17 +122,23 @@ export default function FlasksPage() {
           </Link>
         </div>
       ) : (
-        <ul className="fk-list" role="radiogroup" aria-label={t("flasks.setActive")}>
+        <ul className="fk-grid">
           {items.map((it) => (
-            <ShelfRow
+            <ShelfCard
               key={it.id}
               flask={it}
               secs={fills[it.id] ?? 0}
               active={it.id === activeId}
+              confirming={confirmId === it.id}
               t={t}
-              onSelect={() => setActiveFlask(it.id)}
+              onSelect={() => {
+                setConfirmId(null);
+                setActiveFlask(it.id);
+              }}
               onRename={(name) => renameFlask(it.id, name)}
-              onRemove={() => removeFlask(it.id)}
+              onAskRemove={() => setConfirmId(it.id)}
+              onCancelRemove={() => setConfirmId(null)}
+              onRemove={() => handleRemove(it.id)}
             />
           ))}
         </ul>
@@ -77,88 +147,109 @@ export default function FlasksPage() {
   );
 }
 
-// 架上的一格：一只烧瓶的名字、进度文字，和它那一排瓶子。
-// 整格可点＝选它接水（radio 语义）；名字输入框与删除按钮不参与选中，
+// 架上的一格：一张小卡，正中一只正在接水的瓶子，下面是名字与进度文字。
+// 整张卡可点＝选它接水；名字输入框与删除按钮不参与选中，
 // 故它们要挡住冒泡，不然改个名就顺手换了正在专注的瓶子。
-function ShelfRow({ flask, secs, active, t, onSelect, onRename, onRemove }) {
-  const { full, partial, drawn, hidden } = bottlesOf(secs);
+//
+// 这一页是纯鼠标操作：卡片不进 Tab 序列、不接任何按键。
+// 之前卡片是可聚焦的 radio，鼠标点完焦点就留在卡上，此后随便按一个键
+// （方向键滚个页面就够）都会把它翻成 :focus-visible，凭空描出一圈框。
+// 名字输入框还是输入框，该聚焦该打字照旧。
+function ShelfCard({
+  flask,
+  secs,
+  active,
+  confirming,
+  t,
+  onSelect,
+  onRename,
+  onAskRemove,
+  onCancelRemove,
+  onRemove,
+}) {
+  const { full, partial } = bottlesOf(secs);
   const presetName = t(`settings.prefs.flaskShape.${flask.preset}`);
   const remain = FLASK_FULL_SECS - (secs % FLASK_FULL_SECS);
 
   return (
-    // role="none"：radiogroup 的直接子元素只能是 radio，listitem 会破坏这个结构
-    <li className={`fk-item${active ? " active" : ""}`} role="none">
-      <div
-        className="fk-pick"
-        role="radio"
-        aria-checked={active}
-        tabIndex={0}
-        onClick={onSelect}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onSelect();
-          }
-        }}
-      >
-        <div className="fk-head">
-          <input
-            className="fk-name"
-            value={flask.name}
-            placeholder={presetName || t("flasks.namePlaceholder")}
-            onChange={(e) => onRename(e.target.value)}
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
-            aria-label={t("flasks.namePlaceholder")}
-          />
-          {active ? (
-            <span className="fk-badge">
-              <Check size={14} aria-hidden="true" />
-              {t("flasks.active")}
+    <li className={`fk-card${active ? " active" : ""}`}>
+      <div className="fk-pick" onClick={onSelect}>
+        <button
+          type="button"
+          className="fk-remove"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAskRemove();
+          }}
+          title={t("flasks.removeHint")}
+          aria-label={t("flasks.remove")}
+        >
+          <Trash2 size={15} aria-hidden="true" />
+        </button>
+
+        {/* 只画正在接的那只。攒下的满瓶不重画——同形状的瓶子画一排都长一个样，
+            只是白白占地方——改成瓶身右上角一枚 ×N 角标。 */}
+        <div className="fk-figure">
+          <FlaskGraphic progress={partial} params={flask.params} />
+          {full > 0 && (
+            <span className="fk-full" title={t("flasks.fullCount", { n: full })}>
+              ×{full}
             </span>
-          ) : (
-            <span className="fk-hint-pick">{t("flasks.setActive")}</span>
           )}
-          <button
-            type="button"
-            className="fk-remove"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove();
-            }}
-            title={t("flasks.removeHint")}
-            aria-label={t("flasks.remove")}
-          >
-            <Trash2 size={15} aria-hidden="true" />
-          </button>
         </div>
 
-        {/* 一排瓶子：满的在前，末尾那只是正在接的。多到画不下时，
-            前面省略若干满瓶，用一枚计数标记交代，末尾那只永远留着。 */}
-        <div className="fk-row">
-          {hidden > 0 && <span className="fk-more">{t("flasks.more", { n: hidden })}</span>}
-          {Array.from({ length: drawn }, (_, i) => {
-            // drawn 只画末尾这几只：前 drawn-1 只是满的，最后一只在接
-            const isLast = i === drawn - 1;
-            return (
-              <div key={i} className={`fk-bottle${isLast ? " filling" : " done"}`}>
-                <FlaskGraphic progress={isLast ? partial : 1} params={flask.params} />
-              </div>
-            );
-          })}
-        </div>
+        <input
+          className="fk-name"
+          value={flask.name}
+          placeholder={presetName || t("flasks.namePlaceholder")}
+          onChange={(e) => onRename(e.target.value)}
+          onClick={(e) => e.stopPropagation()}
+          aria-label={t("flasks.namePlaceholder")}
+          // 确认层盖住整张卡时，名字框不该还能被 Tab 到
+          tabIndex={confirming ? -1 : 0}
+        />
 
         <p className="fk-meta">
           {secs > 0 ? (
             <>
               <span className="fk-meta-total">{t("flasks.total", { v: dur(secs, t) })}</span>
-              {full > 0 && <span className="fk-meta-full">{t("flasks.fullCount", { n: full })}</span>}
               <span className="fk-meta-next">{t("flasks.nextIn", { v: dur(remain, t) })}</span>
             </>
           ) : (
             <span className="fk-meta-total">{t("flasks.justStarted")}</span>
           )}
         </p>
+
+        {active ? (
+          <span className="fk-badge">
+            <Check size={14} aria-hidden="true" />
+            {t("flasks.active")}
+          </span>
+        ) : (
+          <span className="fk-hint-pick">{t("flasks.setActive")}</span>
+        )}
+
+        {/* 移出确认盖在这张卡上（而不是弹一个全屏对话框）：
+            要拿走的是哪只，眼睛不用离开就知道。 */}
+        {confirming && (
+          <div
+            className="fk-confirm"
+            role="alertdialog"
+            aria-label={t("flasks.confirmTitle")}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="fk-confirm-title">{t("flasks.confirmTitle")}</p>
+            <p className="fk-confirm-note">{t("flasks.confirmNote")}</p>
+            <div className="fk-confirm-row">
+              <button type="button" className="fk-confirm-no" onClick={onCancelRemove}>
+                {t("flasks.confirmNo")}
+              </button>
+              <button type="button" className="fk-confirm-yes" onClick={onRemove}>
+                {t("flasks.confirmYes")}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </li>
   );

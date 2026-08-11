@@ -103,13 +103,24 @@
 // ── 分心记录 ─────────────────────────────────────────────────────────────────
 
 /**
+ * type 的三种来源：
+ *   reactive  —— 用户自己按「我分心了」
+ *   proactive —— 用户自己按下的主动暂停（有时长）
+ *   app       —— 桌面版自动记的「切去别的软件」，计时器同时被按停
+ *                （见 electron/main.cjs 的 applyVerdict）。ts 是切走那一刻，
+ *                endTs 是回来的那一刻，tag 就是 appLabel。
+ *
  * @typedef {{
- *   id:       string,
- *   ts:       number,
- *   tag?:     string,
- *   note?:    string,
- *   secs?:    number,
- *   type?:    'reactive' | 'proactive',
+ *   id:        string,
+ *   ts:        number,
+ *   tag?:      string,
+ *   note?:     string,
+ *   secs?:     number,
+ *   type?:     'reactive' | 'proactive' | 'app',
+ *   durationSecs?: number,
+ *   endTs?:    number,
+ *   appName?:  string,
+ *   appLabel?: string,
  * }} DistractionRecord
  */
 

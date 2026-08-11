@@ -31,7 +31,9 @@
 }
 .fk-headline h1 {
   margin: 0;
-  font-size: 26px;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  line-height: var(--page-title-lh);
   color: var(--text-heading);
 }
 .fk-count {
@@ -50,10 +52,11 @@
   display: grid;
   justify-items: center;
   gap: 6px;
-  padding: 40px 20px 44px;
+  padding: var(--empty-pad);
   background: var(--card);
-  border: 1px solid var(--border-card);
-  border-radius: 16px;
+  border: var(--empty-border);
+  border-radius: var(--empty-radius);
+  color: var(--text-muted);
   text-align: center;
 }
 /* 空态那只瓶子只是个示意，压暗一点，别抢走「架子是空的」这句话 */
@@ -77,8 +80,8 @@
   margin-top: 8px;
   padding: 8px 18px;
   border-radius: 999px;
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-solid);
+  color: var(--on-accent);
   font-size: 14px;
   text-decoration: none;
 }
@@ -87,46 +90,41 @@
 }
 
 /* —— 架子 —— */
-.fk-list {
+/* 一只烧瓶一张小卡、并排铺满整行：卡宽自适应，右侧不再留下大片空白。 */
+.fk-grid {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
 }
 
-.fk-item {
+.fk-card {
   background: var(--card);
   border: 1px solid var(--border-card);
   border-radius: 16px;
   overflow: hidden;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
-/* 选中的那只：整格描一圈 accent，一眼看出水正往哪儿注 */
-.fk-item.active {
+/* 选中的那只：整张卡描一圈 accent，一眼看出水正往哪儿注 */
+.fk-card.active {
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent) inset;
 }
 
+/* 卡内竖排：瓶子 → 名字 → 进度 → 选中提示。
+   position:relative 是给右上角那枚删除按钮定的锚。 */
 .fk-pick {
+  position: relative;
   display: grid;
-  gap: 10px;
-  padding: 14px 16px 16px;
+  justify-items: center;
+  gap: 6px;
+  padding: 14px 12px 14px;
   cursor: pointer;
 }
-.fk-pick:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -4px;
-}
-
-.fk-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
 .fk-name {
-  flex: 1 1 160px;
+  width: 100%;
   min-width: 0;
   padding: 4px 8px;
   background: transparent;
@@ -135,6 +133,7 @@
   color: var(--text-body);
   font-size: 15px;
   font-weight: 600;
+  text-align: center;
   cursor: text;
 }
 .fk-name:hover {
@@ -155,7 +154,10 @@
   background: color-mix(in srgb, var(--accent) 16%, transparent);
   color: var(--accent-mid, var(--accent));
   font-size: 12px;
-  white-space: nowrap;
+  line-height: 1.4;
+  text-align: center;
+  /* 卡片窄，「正在往这只里注」这类长文案要允许折行，不能 nowrap 撑破卡 */
+  max-width: 100%;
 }
 /* 未选中格子上的提示：平时很淡，鼠标扫过整格时才亮起来 */
 .fk-hint-pick {
@@ -168,76 +170,311 @@
   opacity: 1;
 }
 
+/* 删除按钮浮在卡片右上角，平时隐去，鼠标扫过或键盘聚焦到卡上才现身 */
 .fk-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
   display: inline-flex;
   padding: 5px;
   border: none;
   border-radius: 8px;
   background: transparent;
   color: var(--text-muted);
+  opacity: 0;
   cursor: pointer;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+.fk-pick:hover .fk-remove,
+.fk-pick:focus-within .fk-remove,
+.fk-remove:focus-visible {
+  opacity: 1;
 }
 .fk-remove:hover {
   background: color-mix(in srgb, #ef4444 14%, transparent);
   color: #ef4444;
 }
 
-/* —— 一排瓶子 —— */
-.fk-row {
+/* —— 卡里的那只瓶子 —— */
+.fk-figure {
+  position: relative;
   display: flex;
-  align-items: flex-end;
-  gap: 6px;
-  padding-bottom: 4px;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
+  justify-content: center;
 }
-.fk-bottle {
-  flex: 0 0 auto;
-}
-/* FlaskGraphic 的 svg 自带 100x163 的尺寸属性，这里按架子的尺度缩小（CSS 覆盖属性） */
-.fk-bottle svg {
-  width: 62px;
-  height: 101px;
+/* FlaskGraphic 的 svg 自带 100x163 的尺寸属性，这里按卡片的尺度缩小（CSS 覆盖属性） */
+.fk-figure svg {
+  width: 86px;
+  height: 140px;
   display: block;
 }
-/* 已注满的往后退一层：正在接的那只才是此刻该看的 */
-.fk-bottle.done {
-  opacity: 0.62;
-}
-.fk-bottle.filling {
-  opacity: 1;
-}
-.fk-more {
-  align-self: center;
-  flex: 0 0 auto;
-  margin-right: 6px;
-  padding: 4px 10px;
+/* 已注满几只：贴在瓶肩右上，不再一只只重画 */
+.fk-full {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  padding: 2px 9px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-  color: var(--text-muted);
-  font-size: 12px;
+  background: color-mix(in srgb, var(--accent) 18%, var(--card));
+  color: var(--accent-mid, var(--accent));
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-.fk-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+/* —— 移出确认 ——
+   盖在那一张卡上（不弹全屏对话框）：要拿走的是哪只，视线不用离开。 */
+.fk-confirm {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  /* 半透明＋模糊：底下那只瓶子还认得出，但已经"不作数"了 */
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  backdrop-filter: blur(2px);
+  text-align: center;
+  cursor: default;
+  animation: fk-confirm-in 0.14s ease-out;
+}
+@keyframes fk-confirm-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fk-confirm {
+    animation: none;
+  }
+}
+.fk-confirm-title {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-heading);
+}
+.fk-confirm-note {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.fk-confirm-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.fk-confirm-row button {
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+}
+/* 「留着」是默认答案，做成安静的描边按钮；「拿走」才是那个要红的 */
+.fk-confirm-no {
+  border: 1px solid var(--border-card);
+  background: transparent;
+  color: var(--text-body);
+}
+.fk-confirm-no:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.fk-confirm-yes {
+  border: 1px solid transparent;
+  background: color-mix(in srgb, #ef4444 14%, transparent);
+  color: #ef4444;
+}
+.fk-confirm-yes:hover {
+  background: #ef4444;
+  color: #fff;
+}
+.fk-confirm-row button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.fk-meta {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
   color: var(--text-muted);
 }
 .fk-meta-total {
   color: var(--text-body);
-}
-.fk-meta-full {
-  color: var(--accent-mid, var(--accent));
+  font-size: 13px;
 }
 
 @media (max-width: 560px) {
-  .fk-bottle svg {
-    width: 50px;
-    height: 82px;
+  .fk-grid {
+    grid-template-columns: repeat(auto-fill, minmax(146px, 1fr));
+    gap: 10px;
+  }
+  .fk-figure svg {
+    width: 70px;
+    height: 114px;
+  }
+}
+
+/* —— 水位调试（仅开发环境渲染，正式构建里这些类一个都不出现） —— */
+.fk-headline-side {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fk-debug-btn {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border: 1px dashed var(--border-card);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.fk-debug-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.fk-debug-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--overlay-bg);
+  backdrop-filter: var(--overlay-blur);
+}
+.fk-debug-panel {
+  width: 100%;
+  max-width: 520px;
+  max-height: 82vh;
+  overflow-y: auto;
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--card);
+  border: 1px solid var(--border-card);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+.fk-debug-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+.fk-debug-note,
+.fk-debug-empty {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.fk-debug-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* 一行：缩略瓶 / 名字 / 输入 / 现状 / 恢复。名字那列可挤，别把输入框压没了 */
+.fk-debug-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-card);
+  border-radius: 12px;
+}
+.fk-debug-thumb svg {
+  display: block;
+  width: 26px;
+  height: 42px;
+}
+.fk-debug-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--text-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fk-debug-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.fk-debug-input {
+  width: 72px;
+  padding: 5px 8px;
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-heading);
+  font-size: 13px;
+}
+.fk-debug-state {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.fk-debug-flag {
+  margin-left: 6px;
+  font-style: normal;
+  color: var(--accent);
+}
+.fk-debug-restore,
+.fk-debug-reset,
+.fk-debug-close {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border: 1px solid var(--border-card);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-body);
+  font-size: 12px;
+  cursor: pointer;
+}
+.fk-debug-restore:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.fk-debug-restore:not(:disabled):hover,
+.fk-debug-reset:hover,
+.fk-debug-close:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.fk-debug-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 560px) {
+  /* 窄屏一行摆不下五列：让缩略瓶＋名字占一行，输入与按钮换行跟上 */
+  .fk-debug-row {
+    flex-wrap: wrap;
+  }
+  .fk-debug-name {
+    flex-basis: calc(100% - 36px);
   }
 }

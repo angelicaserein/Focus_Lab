@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import usePrefs from "@/hooks/common/usePrefs";
 import { useLanguage } from "@/context/LanguageContext";
 import desktop, { isDesktop } from "@/utils/desktop/desktopBridge";
@@ -9,11 +9,21 @@ import desktop, { isDesktop } from "@/utils/desktop/desktopBridge";
 // 这张表不让用户自己填。「Word 的进程名叫 WINWORD」这种知识不该由用户来提供，
 // 所以列表是探测器自己攒的：你专注时用过什么，它就出现在这里，勾一下即可。
 // 代价是首次使用时表是空的，得先跑一次专注让它见见世面（下面的 empty 文案说明了这点）。
+//
+// 第二张表是标题关键词。浏览器是个特例：查论文和刷视频是同一个 msedge.exe，
+// 勾或不勾都不对——勾了就整天摸鱼免罚，不勾就没法查资料。所以额外给一层，
+// 让窗口标题（就是当前标签页的标题）里出现某些词时照样算分心。
+
+// 关键词这东西第一次面对空输入框是想不出来的，给几个最常见的一键加上。
+// 只是起点，不是内置黑名单——加完就是普通的一条，可以随手删掉。
+const SUGGESTIONS = ["youtube", "bilibili", "抖音", "小红书", "微博", "知乎", "淘宝", "twitch"];
 
 export default function AppWatchSection() {
   const { appWatch, setAppWatch } = usePrefs();
   const { t } = useLanguage();
   const [seen, setSeen] = useState([]);
+  const [draft, setDraft] = useState("");
+  const inputRef = useRef(null);
 
   useEffect(() => {
     if (!isDesktop) return undefined;
@@ -39,6 +49,18 @@ export default function AppWatchSection() {
     allow: appWatch.allow.includes(name)
       ? appWatch.allow.filter((n) => n !== name)
       : [...appWatch.allow, name],
+  });
+
+  // 统一转小写存：主进程比对时标题也是转小写的，这边先归一化，去重才准
+  const addWord = (raw) => {
+    const word = String(raw).trim().toLowerCase();
+    setDraft("");
+    if (!word || appWatch.deny.includes(word)) return;
+    setAppWatch({ ...appWatch, deny: [...appWatch.deny, word] });
+  };
+  const removeWord = (word) => setAppWatch({
+    ...appWatch,
+    deny: appWatch.deny.filter((w) => w !== word),
   });
 
   return (
@@ -92,6 +114,57 @@ export default function AppWatchSection() {
               直接把功能视作关闭，这里把原因说出来，免得用户以为是坏了。 */}
           {appWatch.allow.length === 0 && rows.length > 0 && (
             <p className="settings-section-hint">{t("settings.watch.needOne")}</p>
+          )}
+
+          {/* 标题关键词。一个都没勾时这块不显示——白名单是空的，判定本来就不工作。 */}
+          {appWatch.allow.length > 0 && (
+            <div className="settings-pref-row settings-pref-row-block">
+              <span className="settings-pref-label">{t("settings.watch.denyLabel")}</span>
+              <p className="settings-section-hint">{t("settings.watch.denyHint")}</p>
+
+              {/* 回车也能提交、加完焦点留在输入框：一次想加好几个词时手不用离开键盘 */}
+              <div className="settings-word-input">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={draft}
+                  placeholder={t("settings.watch.denyPlaceholder")}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addWord(draft); } }}
+                />
+                <button type="button" onClick={() => { addWord(draft); inputRef.current?.focus(); }}>
+                  {t("settings.watch.denyAdd")}
+                </button>
+              </div>
+
+              {appWatch.deny.length > 0 && (
+                <div className="settings-word-list">
+                  {appWatch.deny.map((w) => (
+                    <button
+                      type="button"
+                      key={w}
+                      className="settings-word is-on"
+                      onClick={() => removeWord(w)}
+                      aria-label={`${t("settings.watch.denyRemove")} ${w}`}
+                    >
+                      {w}
+                      <span className="settings-word-x" aria-hidden="true">×</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {SUGGESTIONS.some((w) => !appWatch.deny.includes(w)) && (
+                <div className="settings-word-list">
+                  {SUGGESTIONS.filter((w) => !appWatch.deny.includes(w)).map((w) => (
+                    <button type="button" key={w} className="settings-word" onClick={() => addWord(w)}>
+                      <span className="settings-word-x" aria-hidden="true">+</span>
+                      {w}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </>
       )}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import desktop from "@/utils/desktop/desktopBridge";
 
 // 桌宠窗的「窗口行为」：拖动、点击穿透、展开收起。
@@ -54,15 +54,25 @@ export default function usePetWindow() {
   useEffect(() => {
     setIgnore(true); // 初始默认穿透，等光标真的移到烧瓶上再关掉
 
+    // 命中判定要走一次 elementFromPoint（强制一次布局），而光标扫过窗口时
+    // mousemove 是一路密集地来的。按帧合并：一帧最多判一次，手感完全一样。
+    let moveRaf = 0;
+    const flushHit = () => {
+      moveRaf = 0;
+      const pt = lastPointRef.current;
+      if (!pt || draggingRef.current) return;
+      setIgnore(!hitTest(pt.x, pt.y));
+    };
     const onMove = (e) => {
       lastPointRef.current = { x: e.clientX, y: e.clientY };
       if (draggingRef.current) return; // 拖动中绝不能穿透，否则窗口会从手里掉下去
-      setIgnore(!hitTest(e.clientX, e.clientY));
+      if (!moveRaf) moveRaf = requestAnimationFrame(flushHit);
     };
     // 光标移出窗口要恢复穿透。mouseleave 在「快速划出」时并不可靠，
     // 补一个 relatedTarget 为空的 mouseout（离开文档时才是空）兜底。
     const onLeave = () => {
       lastPointRef.current = null;
+      if (moveRaf) { cancelAnimationFrame(moveRaf); moveRaf = 0; }
       if (!draggingRef.current) setIgnore(true);
     };
     const onOut = (e) => { if (!e.relatedTarget) onLeave(); };
@@ -72,6 +82,7 @@ export default function usePetWindow() {
     document.addEventListener("mouseleave", onLeave);
     document.addEventListener("mouseout", onOut);
     return () => {
+      if (moveRaf) cancelAnimationFrame(moveRaf);
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("resize", recheck);
       document.removeEventListener("mouseleave", onLeave);
@@ -137,15 +148,15 @@ export default function usePetWindow() {
   // 拖动被系统打断（切窗口、锁屏、触控板手势冲突）时只有这两个事件会来
   const onPetPointerCancel = useCallback((e) => { endDrag(e); recheck(); }, [endDrag, recheck]);
 
-  return {
-    expanded,
-    setExpanded: applyExpanded,
-    petHandlers: {
-      onPointerDown: onPetPointerDown,
-      onPointerMove: onPetPointerMove,
-      onPointerUp: onPetPointerUp,
-      onPointerCancel: onPetPointerCancel,
-      onLostPointerCapture: onPetPointerCancel,
-    },
-  };
+  // handler 对象要保持同一个引用：它整包传给 memo 过的烧瓶组件，
+  // 每次渲染新建一个对象的话那层 memo 就永远命中不了。
+  const petHandlers = useMemo(() => ({
+    onPointerDown: onPetPointerDown,
+    onPointerMove: onPetPointerMove,
+    onPointerUp: onPetPointerUp,
+    onPointerCancel: onPetPointerCancel,
+    onLostPointerCapture: onPetPointerCancel,
+  }), [onPetPointerDown, onPetPointerMove, onPetPointerUp, onPetPointerCancel]);
+
+  return { expanded, setExpanded: applyExpanded, petHandlers };
 }
