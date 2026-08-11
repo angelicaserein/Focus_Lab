@@ -10,6 +10,9 @@ release/
 # Test coverage report
 coverage/
 
+# 桌面版驱动脚本的截图（.claude/skills/run-desktop）
+.tmp-shots/
+
 # Logs
 *.log
 npm-debug.log*
