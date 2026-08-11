@@ -5,6 +5,11 @@
 const MS_PER_DAY = 86_400_000;
 const TIME_FORMAT_OPTS = { hour: "2-digit", minute: "2-digit", hour12: false };
 
+// 带语言的格式化一律收 lang 参数，默认 "zh" —— 老调用点不传就是原来的中文行为，
+// 已接入 i18n 的页面从 useLanguage() 把 lang 透下来即可。
+// 时刻一律 24 小时制（两种语言都是），只有日期/时长的措辞随语言变。
+const localeOf = (lang) => (lang === "en" ? "en-US" : "zh-CN");
+
 // 返回 "YYYY-MM-DD" 格式的今日日期字符串（用于循环任务重置判断等）
 // 必须用本地年月日：toISOString() 是 UTC，在 UTC+8 的凌晨 0–8 点会返回昨天，
 // 与同处逻辑里的 new Date().getDay()（本地星期几）错位，导致循环任务凌晨漏重置、
@@ -53,47 +58,62 @@ export function formatDuration(secs) {
   return s > 0 ? `${m}m ${s}s` : `${m}m`;
 }
 
-// 秒数 → "1小时30分" / "30分钟" / "45秒"（分析页、详情页中文展示）
-export function formatDurationChinese(secs) {
-  if (!secs || secs <= 0) return "0分钟";
-  if (secs < 60) return `${secs}秒`;
-  if (secs < 3600) return `${Math.floor(secs / 60)}分钟`;
+// 秒数 → "1小时30分" / "30分钟" / "45秒"（分析页、详情页的长格式时长）
+// en: "1h 30m" / "30 min" / "45 sec"
+export function formatDurationChinese(secs, lang = "zh") {
+  const en = lang === "en";
+  if (!secs || secs <= 0) return en ? "0 min" : "0分钟";
+  if (secs < 60) return en ? `${secs} sec` : `${secs}秒`;
+  if (secs < 3600) {
+    const m = Math.floor(secs / 60);
+    return en ? `${m} min` : `${m}分钟`;
+  }
   const h = Math.floor(secs / 3600);
   const m = Math.floor((secs % 3600) / 60);
+  if (en) return m > 0 ? `${h}h ${m}m` : `${h}h`;
   return m > 0 ? `${h}小时${m}分` : `${h}小时`;
 }
 
-// 时间戳 → "14:30"（仅时刻，24小时制）
+// 时间戳 → "14:30"（仅时刻，24小时制；两种语言同形）
 export function formatTimestamp(ts) {
   return new Date(ts).toLocaleTimeString("zh-CN", TIME_FORMAT_OPTS);
 }
 
 // 时间戳 → "今天" / "昨天" / "6月14日"（仅日期标签，不含时刻）
-export function formatSessionDate(ts) {
+// en: "Today" / "Yesterday" / "Jun 14"
+export function formatSessionDate(ts, lang = "zh") {
   const d = new Date(ts);
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   const yesterday = today - MS_PER_DAY;
   const day = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-  if (day === today) return "今天";
-  if (day === yesterday) return "昨天";
+  const en = lang === "en";
+  if (day === today) return en ? "Today" : "今天";
+  if (day === yesterday) return en ? "Yesterday" : "昨天";
+  if (en) return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   return `${d.getMonth() + 1}月${d.getDate()}日`;
 }
 
 // 时间戳 → "刚刚" / "X分钟前" / "X小时前" / "昨天" / "X天前"
-export function formatRelativeTime(ts) {
+// en: "just now" / "Xm ago" / "Xh ago" / "yesterday" / "Xd ago"
+export function formatRelativeTime(ts, lang = "zh") {
   if (!ts) return "—";
+  const en = lang === "en";
   const diff = Date.now() - ts;
   const mins = Math.floor(diff / 60_000);
   const hours = Math.floor(diff / 3_600_000);
   const days = Math.floor(diff / MS_PER_DAY);
-  if (mins < 1) return "刚刚";
-  if (mins < 60) return `${mins}分钟前`;
-  if (hours < 24) return `${hours}小时前`;
-  if (days === 1) return "昨天";
-  if (days < 7) return `${days}天前`;
-  if (days < 30) return `${Math.floor(days / 7)}周前`;
-  return `${Math.floor(days / 30)}个月前`;
+  if (mins < 1) return en ? "just now" : "刚刚";
+  if (mins < 60) return en ? `${mins}m ago` : `${mins}分钟前`;
+  if (hours < 24) return en ? `${hours}h ago` : `${hours}小时前`;
+  if (days === 1) return en ? "yesterday" : "昨天";
+  if (days < 7) return en ? `${days}d ago` : `${days}天前`;
+  if (days < 30) {
+    const w = Math.floor(days / 7);
+    return en ? `${w}w ago` : `${w}周前`;
+  }
+  const mo = Math.floor(days / 30);
+  return en ? `${mo}mo ago` : `${mo}个月前`;
 }
 
 // "YYYY-MM-DD" → 距今天数（正=未来，0=今天，负=已过期）
@@ -111,7 +131,8 @@ export const dates = { formatTimestamp, formatSessionDate, formatRelativeTime, f
 export const calc  = { getElapsedSecs };
 
 // 时间戳 → "今天 14:30" / "昨天 14:30" / "6月14日 14:30"（记录时间）
-export function formatRecordDate(ts) {
+// en: "Today 14:30" / "Yesterday 14:30" / "Jun 14, 14:30"
+export function formatRecordDate(ts, lang = "zh") {
   const d = new Date(ts);
   const now = new Date();
   const isToday =
@@ -128,13 +149,15 @@ export function formatRecordDate(ts) {
     );
   })();
 
+  const en = lang === "en";
   const time = d.toLocaleTimeString("zh-CN", TIME_FORMAT_OPTS);
-  if (isToday) return `今天 ${time}`;
-  if (isYesterday) return `昨天 ${time}`;
-  return d.toLocaleDateString("zh-CN", {
+  if (isToday) return `${en ? "Today" : "今天"} ${time}`;
+  if (isYesterday) return `${en ? "Yesterday" : "昨天"} ${time}`;
+  return d.toLocaleDateString(localeOf(lang), {
     month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false, // 与上面「今天 14:30」保持同一制式，别在英文下冒出 AM/PM
   });
 }

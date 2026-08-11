@@ -1,6 +1,10 @@
 // 应用文案字典。新增可见文案时进对应命名空间文件补 { en, zh } 两份。
 // key 采用 "命名空间.名称" 的扁平结构；t() 缺失时回退到 en，再回退到 key 本身。
 // 每条文案的中英并置在同一处，避免两套字典漂移。
+import common from "./common";
+import analytics from "./analytics";
+import history from "./history";
+import memo from "./memo";
 import nav from "./nav";
 import character from "./character";
 import wish from "./wish";
@@ -30,6 +34,10 @@ export const DEFAULT_LANG = "zh";
 
 // 各命名空间按显示顺序合并；后者不覆盖前者的 key（命名空间前缀天然不冲突）。
 const MODULES = [
+  common,
+  analytics,
+  history,
+  memo,
   nav,
   character,
   wish,
