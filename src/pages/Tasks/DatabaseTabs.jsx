@@ -4,6 +4,7 @@ import { useTodos } from "@/context/TodoContext";
 import { useLanguage } from "@/context/LanguageContext";
 import Popover from "@/components/ui/Popover";
 import DatabaseCreateDialog from "@/pages/Tasks/DatabaseCreateDialog";
+import useConfirm from "@/hooks/common/useConfirm";
 import "./DatabaseTabs.css";
 
 export default function DatabaseTabs() {
@@ -16,6 +17,7 @@ export default function DatabaseTabs() {
   } = useDatabases();
   const { deleteTodosByDatabase } = useTodos();
   const { t } = useLanguage();
+  const [confirm, confirmDialog] = useConfirm();
 
   const sorted = [...databases].sort((a, b) => a.order - b.order);
 
@@ -42,13 +44,18 @@ export default function DatabaseTabs() {
     setRenamingId(null);
   };
 
-  const handleDelete = (db) => {
+  const handleDelete = async (db) => {
     closeMenu();
     if (db.id === DEFAULT_DB_ID) return;
-    if (window.confirm(t("tasks.db.confirmDelete", { name: db.name }))) {
-      deleteTodosByDatabase(db.id);
-      deleteDatabase(db.id);
-    }
+    const ok = await confirm({
+      title: t("tasks.db.confirmDelete", { name: db.name }),
+      message: t("tasks.db.confirmDeleteDetail"),
+      confirmLabel: t("common.delete"),
+      danger: true,
+    });
+    if (!ok) return;
+    deleteTodosByDatabase(db.id);
+    deleteDatabase(db.id);
   };
 
   return (
@@ -128,6 +135,8 @@ export default function DatabaseTabs() {
           onClose={() => setCreateAnchor(null)}
         />
       )}
+
+      {confirmDialog}
     </div>
   );
 }

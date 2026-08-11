@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { X, Trash2, Plus, ChevronUp, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import useConfirm from "@/hooks/common/useConfirm";
 import { UNITS } from "./ganttDate";
 
 // 项目设置弹窗：改名 / 时间轴（粒度 + 起止日期）/ 泳道增删改排 / 删除项目。
@@ -12,6 +13,7 @@ export default function GanttProjectModal({
   onClose,
 }) {
   const { t } = useLanguage();
+  const [confirm, confirmDialog] = useConfirm();
   const [newLane, setNewLane] = useState("");
 
   useEffect(() => {
@@ -137,8 +139,14 @@ export default function GanttProjectModal({
             <button
               type="button"
               className="gantt-btn danger"
-              onClick={() => {
-                if (window.confirm(t("gantt.project.deleteConfirm"))) onDelete();
+              onClick={async () => {
+                const ok = await confirm({
+                  title: t("gantt.project.deleteConfirm"),
+                  message: t("gantt.project.deleteConfirmDetail"),
+                  confirmLabel: t("common.delete"),
+                  danger: true,
+                });
+                if (ok) onDelete();
               }}
             >
               <Trash2 size={15} aria-hidden="true" />
@@ -151,6 +159,8 @@ export default function GanttProjectModal({
             </button>
           </div>
         </div>
+
+        {confirmDialog}
       </div>
     </div>
   );

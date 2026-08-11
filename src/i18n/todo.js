@@ -90,8 +90,22 @@ export default {
   "tasks.db.delete": { en: "Delete this database", zh: "删除此库" },
   "tasks.db.deleteDefault": { en: "The default database can't be deleted", zh: "默认库不可删除" },
   "tasks.db.confirmDelete": {
-    en: "Delete database “{name}”? Every task in it will be deleted too.",
-    zh: "删除 database「{name}」？其下所有任务也会被删除。",
+    en: "Delete database “{name}”?",
+    zh: "删除 database「{name}」？",
+  },
+  "tasks.db.confirmDeleteDetail": {
+    en: "Every task in it will be deleted too. This cannot be undone.",
+    zh: "其下所有任务也会被删除，此操作不可撤销。",
+  },
+
+  // 属性列删除确认
+  "tasks.attr.confirmDelete": {
+    en: "Delete attribute “{name}”?",
+    zh: "删除属性「{name}」？",
+  },
+  "tasks.attr.confirmDeleteDetail": {
+    en: "This field's data will be lost on every task. This cannot be undone.",
+    zh: "所有任务的该字段数据都会丢失，此操作不可撤销。",
   },
 
   // 心流视图（任务库的 ADHD 友好视图）

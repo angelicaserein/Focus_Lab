@@ -3,9 +3,13 @@ import { useTaskAttrs } from "@/context/DatabaseContext";
 import Popover from "@/components/ui/Popover";
 import { ATTR_TYPE_OPTIONS } from "@/utils/task/editorConstants";
 import AttrOptionsEditor from "@/pages/Tasks/AttrOptionsEditor";
+import useConfirm from "@/hooks/common/useConfirm";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function AttrHeaderEditor({ attrDef, anchorEl, onClose }) {
   const { taskAttrs, addTaskAttr, updateTaskAttr, deleteTaskAttr, reorderTaskAttrs } = useTaskAttrs();
+  const { t } = useLanguage();
+  const [confirm, confirmDialog] = useConfirm();
   const isNew = !attrDef;
 
   const [name,    setName]    = useState(attrDef?.name ?? "新属性");
@@ -55,12 +59,17 @@ export default function AttrHeaderEditor({ attrDef, anchorEl, onClose }) {
     onClose();
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!attrDef) return;
-    if (window.confirm(`删除属性「${attrDef.name}」？所有任务的该字段数据将丢失。`)) {
-      deleteTaskAttr(attrDef.id);
-      onClose();
-    }
+    const ok = await confirm({
+      title: t("tasks.attr.confirmDelete", { name: attrDef.name }),
+      message: t("tasks.attr.confirmDeleteDetail"),
+      confirmLabel: t("common.delete"),
+      danger: true,
+    });
+    if (!ok) return;
+    deleteTaskAttr(attrDef.id);
+    onClose();
   };
 
   return (
@@ -85,12 +94,12 @@ export default function AttrHeaderEditor({ attrDef, anchorEl, onClose }) {
       <div className="attr-editor-field">
         <label className="attr-editor-label">类型</label>
         <div className="type-selector">
-          {ATTR_TYPE_OPTIONS.map(t => (
+          {ATTR_TYPE_OPTIONS.map(opt => (
             <button
-              key={t.id}
-              className={`type-opt${type === t.id ? " active" : ""}`}
-              onClick={() => setType(t.id)}
-            >{t.label}</button>
+              key={opt.id}
+              className={`type-opt${type === opt.id ? " active" : ""}`}
+              onClick={() => setType(opt.id)}
+            >{opt.label}</button>
           ))}
         </div>
       </div>
@@ -145,6 +154,8 @@ export default function AttrHeaderEditor({ attrDef, anchorEl, onClose }) {
         )}
         <button className="attr-editor-cancel" onClick={onClose}>取消</button>
       </div>
+
+      {confirmDialog}
     </div>
     </Popover>
   );
