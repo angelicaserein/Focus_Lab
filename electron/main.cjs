@@ -24,6 +24,12 @@ const DEV_SERVER = process.env.VITE_DEV_SERVER_URL || "";
 const IS_DEV = !!DEV_SERVER;
 const DIST = path.join(__dirname, "..", "dist");
 
+// 开机自启写进注册表的那条命令带 --hidden（见托盘菜单的 setLoginItemSettings）。
+// 此时主窗口照样要创建——它是 localStorage 和全部业务状态的唯一 owner，没有它
+// 桌宠就没有数据来源——只是不弹到用户脸上，开机后看到的只有托盘和桌宠。
+// 用 let：这一枪只打第一次创建，之后从托盘 / 桌宠唤起主窗口时当然要显示。
+let startHidden = process.argv.includes("--hidden");
+
 // 桌宠窗尺寸：固定，一直按「展开后」的大小开着，收起时上半截只是空的。
 // 曾经是收起 176 / 展开 460 两档，点一下改窗口大小——但透明无边框窗在 Windows 上
 // 每次 setBounds 都会把新露出来的那块先刷一帧再合成，看起来就是「闪一下才出现」。
@@ -159,7 +165,10 @@ function createMainWindow() {
     },
   });
 
-  mainWindow.once("ready-to-show", () => mainWindow.show());
+  mainWindow.once("ready-to-show", () => {
+    if (!startHidden) mainWindow.show();
+    startHidden = false;
+  });
   mainWindow.loadURL(IS_DEV ? DEV_SERVER : `${APP_ORIGIN}/index.html`);
 
   // 关闭 ≠ 退出：主窗口是全部业务状态和 localStorage 的 owner，
@@ -171,6 +180,29 @@ function createMainWindow() {
   });
 
   mainWindow.on("closed", () => { mainWindow = null; });
+
+  // 主窗口的渲染进程挂了（OOM、GPU 崩、three.js 把标签页拖死）不能就这么算了：
+  // 它是 localStorage 和全部业务状态的唯一 owner，没有它桌宠就没有数据来源、
+  // 托盘也永远停在最后一句话上——而用户看到的只是「桌宠不动了」，没有任何报错。
+  // 所以就地重建一个。
+  mainWindow.webContents.on("render-process-gone", (_e, details) => {
+    if (quitting || details.reason === "clean-exit") return;
+    console.error(`[main] 渲染进程退出：${details.reason}`);
+    const wasVisible = mainWindow.isVisible();
+    mainWindow.destroy(); // 不走 close：那个拦截器只会把它藏起来
+    mainWindow = null;
+    // 这次专注的计时活在页面组件里，跟着一起没了。与其让桌宠停在一个
+    // 永远不再前进的进度上，不如干净地退回待机态——这也会顺手关掉分心探测。
+    lastState = null;
+    focusStamp = 0;
+    syncClockTimer();
+    pushPetState();
+    updateTrayTooltip();
+    reevaluateWatch();
+    // 崩之前是藏着的（托盘常驻用法），重建后也不该突然弹到用户脸上
+    startHidden = !wasVisible;
+    createMainWindow();
+  });
 
   // 外链走系统浏览器，别在 app 里开一个没有导航栏的窗口。
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -250,6 +282,42 @@ function sendToPet(channel, payload) {
   else wc.send(channel, payload);
 }
 
+// ── 计时快照的时间补偿 ──────────────────────────────────────────
+// 主窗口点 X 只是藏起来（见 close 拦截）。而 Chromium 对隐藏窗口有 background
+// throttling：藏了几分钟之后，里面的 setInterval 会被掐到一分钟才跑一次——
+// 于是主窗口推给我们的 focus.seconds 也变成一分钟才走一步，桌宠上的秒数看着
+// 就是卡住了，托盘 tooltip 同理。
+//
+// 没有给主窗口关掉 backgroundThrottling：那会让专注页里的 three.js 伙伴在窗口
+// 藏起来之后继续满帧空转，代价比这个 bug 本身大得多。改成主进程自己补时间：
+// 记下收到快照的时刻，往外推之前按真实流逝补上差额。
+// 这么补是安全的——渲染层的秒数本来就是拿时间戳差值算的（见 useFocusTimer），
+// 不是累加 tick，所以它下一次真推上来的值和我们补出来的是同一个口径，
+// 每收到一份新快照 focusStamp 就重置，误差不会累积。
+let focusStamp = 0;
+let clockTimer = null;
+
+function viewState() {
+  const f = lastState?.focus;
+  if (!f?.isRunning || !focusStamp) return lastState;
+  const secs = Number(f.seconds);
+  if (!Number.isFinite(secs)) return lastState;
+  const elapsed = (Date.now() - focusStamp) / 1000;
+  return { ...lastState, focus: { ...f, seconds: Math.floor(secs + elapsed) } };
+}
+
+// 只在「有一次正在跑的专注」时开着。里面两件事都很便宜：桌宠藏起来时
+// pushPetState 直接返回，tooltip 文案没变时 updateTrayTooltip 也不过原生调用。
+function syncClockTimer() {
+  const need = !!lastState?.focus?.isRunning;
+  if (need && !clockTimer) {
+    clockTimer = setInterval(() => { pushPetState(); updateTrayTooltip(); }, 1000);
+  } else if (!need && clockTimer) {
+    clearInterval(clockTimer);
+    clockTimer = null;
+  }
+}
+
 // 状态快照专用的推送口。藏起来的桌宠不必收：它一个像素都没在画，
 // 而分心水位是 200ms 一发、计时是每秒一发，藏着的一整天下来全是白烧的
 // 渲染。藏着期间只记一个脏标记，下次 show 出来时补一份最新的。
@@ -261,7 +329,7 @@ function pushPetState() {
   const wc = petWindow.webContents;
   // 还在加载就别发：它挂载后会用 desktop:hello 主动取一份最新快照
   if (wc.isLoading()) return;
-  wc.send("desktop:state", lastState);
+  wc.send("desktop:state", viewState());
 }
 
 function showMainWindow(hash) {
@@ -541,7 +609,15 @@ function reevaluateWatch() {
       const verdict = judgeApp(a);
       if (verdict !== null) applyVerdict(a, verdict);
     });
-    watcher.on("unavailable", () => { watchCfg = { ...watchCfg, enabled: false }; reevaluateWatch(); });
+    // 探测器起不来（PowerShell 被组策略禁掉之类）：主进程这边关掉判定，
+    // 同时必须告诉主窗口——真值在它的 localStorage 里，不同步过去的话设置页
+    // 会一直显示「已开启」，而且下次改关键词又会把 enabled=true 推回来，
+    // 让一个注定失败的子进程反复重启。
+    watcher.on("unavailable", () => {
+      watchCfg = { ...watchCfg, enabled: false };
+      sendToMain("desktop:watch-unavailable");
+      reevaluateWatch();
+    });
   }
 
   if (open) {
@@ -590,7 +666,7 @@ let lastTooltip = "";
 
 function updateTrayTooltip() {
   if (!tray || tray.isDestroyed()) return;
-  const tip = formatTrayTooltip(lastState);
+  const tip = formatTrayTooltip(viewState());
   // 计时每秒推一次状态，同一句话没必要反复过一遍原生调用
   if (tip === lastTooltip) return;
   lastTooltip = tip;
@@ -629,7 +705,7 @@ function createTray() {
 function registerIpc() {
   // 渲染进程启动时握手，顺便把当前快照带回去（桌宠窗重载后不至于空白）。
   ipcMain.handle("desktop:hello", () => ({
-    state: lastState,
+    state: viewState(),
     // 设置页要用「最近见过的应用」渲染白名单，重载后不该等到下次切窗口才有内容
     apps: [...recentApps.values()].sort((x, y) => y.seenAt - x.seenAt),
     watchSupported: WATCH_SUPPORTED,
@@ -643,6 +719,9 @@ function registerIpc() {
   ipcMain.on("desktop:publish-state", (_e, patch) => {
     const wasOpen = watchGateOpen();
     lastState = { ...(lastState || {}), ...(patch || {}) };
+    // 收到新的计时快照就重置补偿基准（focus: null 也算——那是会话结束）
+    if (patch && "focus" in patch) focusStamp = Date.now();
+    syncClockTimer();
     pushPetState();
     updateTrayTooltip();
     // 分心探测只在专注跑起来的时候工作，所以「开始/暂停/结束/离开专注页」
@@ -719,6 +798,10 @@ function registerIpc() {
     savePetAnchor(currentPetAnchor());
   });
 
+  // 系统通知被点开时用。渲染层的 window.focus() 对一个已经 hide 掉的
+  // BrowserWindow 是没用的（点 X 只是藏起来），只有主进程能把它请回来。
+  ipcMain.on("desktop:show-main", (_e, hash) => showMainWindow(hash));
+
   ipcMain.on("desktop:pet-hide", () => {
     if (petWindow && !petWindow.isDestroyed()) petWindow.hide();
   });
@@ -732,6 +815,10 @@ if (!app.requestSingleInstanceLock()) {
   app.on("second-instance", () => showMainWindow());
 
   app.whenReady().then(() => {
+    // Windows 上通知和托盘是按 AppUserModelID 归属到某个应用的。不设的话，
+    // 系统通知里显示的发送者是 electron.app.Electron（开发时）或干脆没有图标，
+    // 而且通知中心里点不回我们。必须和 electron-builder.yml 的 appId 一致。
+    if (process.platform === "win32") app.setAppUserModelId("com.focuslab.desktop");
     if (!IS_DEV) registerAppProtocol();
     registerIpc();
     createMainWindow();
@@ -773,6 +860,7 @@ if (!app.requestSingleInstanceLock()) {
     globalShortcut.unregisterAll();
     // 探测子进程是我们 spawn 出来的，不收拾它会在退出后继续留在任务管理器里
     stopFloodTimer();
+    clearInterval(clockTimer);
     watcher?.stop();
   });
 }

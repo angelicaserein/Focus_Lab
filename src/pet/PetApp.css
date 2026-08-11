@@ -137,6 +137,10 @@ body,
   --flask-highlight: rgba(255, 255, 255, 0.85);
   /* 敞口内侧：比瓶身稍暗一点点就够分辨，深色会在浅瓶上凿出一个洞 */
   --flask-rim-fill: color-mix(in srgb, var(--pet-ink) 10%, transparent);
+  /* 水维持实底主色：app 里那套兑白的浅水是给深色卡片调的，
+     飘在白壁纸上会连水位都读不出来——桌宠这只瓶子唯一的信息就是水位。 */
+  --flask-liquid-top: var(--accent);
+  --flask-liquid-bot: var(--accent);
 }
 
 /* 液面上涨要有过渡，否则每次推送状态都是一跳一跳的 */

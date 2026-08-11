@@ -31,7 +31,7 @@ export default function DesktopHost() {
   const { activeScenario } = useScenarios();
   const { lang } = useLanguage();
   const { activeTheme } = useTheme();
-  const { flaskShape, timerMode, appWatch } = usePrefs();
+  const { flaskShape, timerMode, appWatch, setAppWatch } = usePrefs();
   // 桌宠画的瓶子跟着烧瓶架上选中的那只走，与专注页保持同一只（架子空着时用设置页的形状）
   const { activeParams } = useFlaskShelf();
   const { addMemo } = useMemos();
@@ -68,6 +68,19 @@ export default function DesktopHost() {
     lastWatch.current = key;
     desktop.setWatchConfig(appWatch);
   }, [appWatch]);
+
+  // 探测器在这台机器上跑不起来（PowerShell 被策略禁掉之类）。主进程那边已经
+  // 停了判定，这边也得把开关落下去——真值在 localStorage 里，不关的话设置页
+  // 一直显示「已开启」，而且下次改关键词又会把 enabled=true 推回去。
+  // 监听放在这里而不是设置页：崩的时候用户多半正在专注，不在设置页上。
+  const watchRef = useRef(appWatch);
+  watchRef.current = appWatch;
+  useEffect(() => {
+    if (!isDesktop) return undefined;
+    return desktop.onWatchUnavailable(() => {
+      if (watchRef.current.enabled) setAppWatch({ ...watchRef.current, enabled: false });
+    });
+  }, [setAppWatch]);
 
   // 待机态快照。
   // 不能只靠依赖数组把关：flaskShape / activeScenario 这些都是每次渲染新建的对象，

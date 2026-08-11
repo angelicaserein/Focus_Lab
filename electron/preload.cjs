@@ -33,10 +33,14 @@ contextBridge.exposeInMainWorld("focusDesktop", {
   onNavigate: (cb) => on("desktop:navigate", cb),
   // 切走 / 回来 / 一段用完的账（主进程判定，见 main.cjs 的 applyVerdict）
   onDistraction: (cb) => on("desktop:distraction", cb),
+  // 把主窗口请回前台（藏起来的窗口 window.focus() 叫不动）。可带 "#/focus" 之类的路由
+  showMain: (hash) => ipcRenderer.send("desktop:show-main", hash),
 
   // 分心水位：设置页发白名单，积水窗收水位
   setWatchConfig: (cfg) => ipcRenderer.send("desktop:watch-config", cfg),
   onAppsSeen: (cb) => on("desktop:apps-seen", cb),
+  // 探测器在这台机器上跑不起来：设置页据此把开关关掉并说明原因
+  onWatchUnavailable: (cb) => on("desktop:watch-unavailable", cb),
   onFloodLevel: (cb) => on("flood:level", cb),
 
   // 桌宠侧

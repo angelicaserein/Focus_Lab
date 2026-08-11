@@ -183,6 +183,17 @@ const COMMANDS = {
 
   async press(key) { await page.keyboard.press(key); await sleep(250); console.log("pressed", key); },
 
+  // setfile <选择器> | <文件绝对路径>
+  // 给 <input type="file"> 塞文件，不走系统对话框——「设置 → 数据 → 导入」那条路
+  // 就是这么验的（原生文件选择框在自动化里点不了，但那个 input 本身能直接喂）。
+  async setfile(arg) {
+    const i = arg.indexOf(" | ");
+    const sel = arg.slice(0, i).trim();
+    const file = arg.slice(i + 3).trim();
+    await page.setInputFiles(sel, file);
+    console.log("setfile", sel, "←", file);
+  },
+
   async text(sel) {
     console.log(await page.evaluate(
       (s) => (s ? document.querySelector(s)?.innerText : document.body.innerText) ?? "(null)",

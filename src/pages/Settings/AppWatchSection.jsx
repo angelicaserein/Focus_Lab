@@ -24,11 +24,18 @@ export default function AppWatchSection() {
   const [seen, setSeen] = useState([]);
   const [draft, setDraft] = useState("");
   const inputRef = useRef(null);
+  // 探测器是 Windows-only（见 appWatch.cjs：靠 PowerShell P/Invoke user32）。
+  // 但 mac / Linux 照样在打包发布，之前这一整块在那些平台上照常渲染——
+  // 用户勾了一堆程序、开关也亮着，实际什么都不会发生。null=还没问到，先不画。
+  const [supported, setSupported] = useState(null);
 
   useEffect(() => {
     if (!isDesktop) return undefined;
     // 主进程缓存了一份，重进设置页不必等到下次切窗口才有内容
-    desktop.hello().then((r) => { if (Array.isArray(r?.apps)) setSeen(r.apps); });
+    desktop.hello().then((r) => {
+      if (Array.isArray(r?.apps)) setSeen(r.apps);
+      setSupported(!!r?.watchSupported);
+    }).catch(() => setSupported(true)); // 握手本身失败是另一回事，别顺手把功能藏了
     return desktop.onAppsSeen((list) => setSeen(Array.isArray(list) ? list : []));
   }, []);
 
@@ -41,7 +48,7 @@ export default function AppWatchSection() {
     return [...byName.values()].sort((a, b) => a.label.localeCompare(b.label));
   }, [seen, appWatch.allow]);
 
-  if (!isDesktop) return null;
+  if (!isDesktop || !supported) return null;
 
   const setEnabled = (enabled) => setAppWatch({ ...appWatch, enabled });
   const toggleApp = (name) => setAppWatch({

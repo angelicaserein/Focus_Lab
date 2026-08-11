@@ -17,6 +17,8 @@ function iconUrl() {
   return new URL(`${import.meta.env.BASE_URL}icon-192.png`, location.href).href;
 }
 
+import desktop from "@/utils/desktop/desktopBridge";
+
 export function notifySupported() {
   return typeof window !== "undefined" && "Notification" in window;
 }
@@ -47,6 +49,9 @@ export function showNotification(title, { body, tag, onClick } = {}) {
       badge: icon,
     });
     n.onclick = () => {
+      // 桌面版：点 X 关掉的主窗口只是 hide 了，对它调 window.focus() 什么都不会
+      // 发生——通知点了像没点。只有主进程能把窗口 show 回来（网页版下是 no-op）。
+      desktop.showMain();
       window.focus();
       onClick?.();
       n.close();
