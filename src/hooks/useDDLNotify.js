@@ -10,7 +10,7 @@ import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 //   • 弹窗   → 用户正打开着应用时的前台展示；
 //   • 通知   → 覆盖「页面在后台标签页 / 窗口最小化」的场景，系统层弹出。
 // 各自用独立的「今日已触发」标记，互不影响。
-export default function useDDLNotify({ todos, checkpointsMap, enabled }) {
+export default function useDDLNotify({ todos, checkpointsMap, enabled, t }) {
   useEffect(() => {
     if (!enabled || notifyPermission() !== "granted") return;
     if (localStorage.getItem(STORAGE_KEYS.DDL_NOTIFIED) === getTodayStr()) return;
@@ -19,8 +19,8 @@ export default function useDDLNotify({ todos, checkpointsMap, enabled }) {
     if (due.length === 0) return;
 
     const first = due[0];
-    const extra = due.length > 1 ? ` 等 ${due.length} 项` : "";
-    showNotification("📅 今日 DDL 提醒", {
+    const extra = due.length > 1 ? t("ddl.notify.more", { count: due.length }) : "";
+    showNotification(t("ddl.notify.title"), {
       body: `${first.todo.text} → ${first.checkpoint.message}${extra}`,
       tag: "ddl-due",
     });

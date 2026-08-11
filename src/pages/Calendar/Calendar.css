@@ -30,6 +30,37 @@
   line-height: var(--page-sub-lh);
 }
 
+/* ── 视图切换：日历 / 全部记录（与任务库的切换器同一套形制）── */
+.cal-view-switch {
+  display: flex;
+  align-self: flex-start;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+}
+
+.cal-view-btn {
+  padding: 5px 16px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.cal-view-btn:hover { color: var(--accent); }
+
+.cal-view-btn.active {
+  background: var(--accent-solid);
+  color: var(--on-accent);
+}
+
 /* ── 月度汇总 ── */
 .cal-summary {
   display: grid;

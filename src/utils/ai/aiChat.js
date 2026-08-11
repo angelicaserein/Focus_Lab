@@ -14,17 +14,30 @@
 // ──────────────────────────────────────────────────────────────
 import { IS_PROD, hasApiKey, delay, chatComplete, postProxy } from "@/utils/ai/aiClient";
 
-const SYSTEM_PROMPT =
-  "你是一个温柔、简洁的 ADHD 专注陪伴助手。每次回复不超过 2 句话，用中文，语气轻松鼓励。";
+const systemPrompt = (lang) =>
+  lang === "en"
+    ? "You are a gentle, concise focus companion for someone with ADHD. Reply in at most 2 sentences, in English, warm and encouraging."
+    : "你是一个温柔、简洁的 ADHD 专注陪伴助手。每次回复不超过 2 句话，用中文，语气轻松鼓励。";
 
-const SAMPLE_REPLIES = [
-  "先深呼吸一下，挑最小的一步开始就好 🌱",
-  "卡住很正常，把任务再拆小一点试试？",
-  "你已经坐下来开始了，这就很棒了。",
-  "走神了也没关系，轻轻把注意力拉回来就行。",
-  "要不要先做 2 分钟？常常做着做着就进入状态了。",
-  "累了就停一下，喝口水再继续也可以。",
-];
+// 无 key / 调用失败时轮换的示例回复（会直接显给用户，所以两种语言各一份）。
+const SAMPLE_REPLIES = {
+  zh: [
+    "先深呼吸一下，挑最小的一步开始就好 🌱",
+    "卡住很正常，把任务再拆小一点试试？",
+    "你已经坐下来开始了，这就很棒了。",
+    "走神了也没关系，轻轻把注意力拉回来就行。",
+    "要不要先做 2 分钟？常常做着做着就进入状态了。",
+    "累了就停一下，喝口水再继续也可以。",
+  ],
+  en: [
+    "Take a breath, then start with the smallest possible step 🌱",
+    "Getting stuck is normal — try breaking the task down a bit more?",
+    "You sat down and started. That already counts.",
+    "Drifting off is fine; just gently bring your attention back.",
+    "How about just 2 minutes? Often you slide into it from there.",
+    "If you’re tired, pause. Water first, then carry on.",
+  ],
+};
 
 export { hasApiKey };
 
@@ -35,12 +48,13 @@ const toChatMsgs = (messages) =>
     content: m.text,
   }));
 
-// messages: [{ role: 'user' | 'ai', text }]
-export async function getAiReply(messages) {
+// messages: [{ role: 'user' | 'ai', text }]；lang 决定回复语言与离线示例语言。
+export async function getAiReply(messages, lang = "zh") {
   const userCount = messages.filter((m) => m.role === "user").length;
+  const samples = SAMPLE_REPLIES[lang] ?? SAMPLE_REPLIES.zh;
   const sampleReply = async () => {
     await delay(500 + Math.random() * 400);
-    return SAMPLE_REPLIES[userCount % SAMPLE_REPLIES.length];
+    return samples[userCount % samples.length];
   };
 
   // 本地开发且无 API key → 示例回复
@@ -49,7 +63,7 @@ export async function getAiReply(messages) {
   // 生产环境 → 调用服务器代理（API key 不暴露给浏览器）
   if (IS_PROD) {
     try {
-      const { text } = await postProxy("/api/chat", { messages: toChatMsgs(messages) });
+      const { text } = await postProxy("/api/chat", { messages: toChatMsgs(messages), lang });
       return text;
     } catch {
       return sampleReply();
@@ -59,7 +73,7 @@ export async function getAiReply(messages) {
   // 本地开发 + 有 API key → 直接调用 SDK
   try {
     return await chatComplete({
-      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...toChatMsgs(messages)],
+      messages: [{ role: "system", content: systemPrompt(lang) }, ...toChatMsgs(messages)],
       maxTokens: 256,
     });
   } catch {

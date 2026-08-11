@@ -12,10 +12,10 @@ import "./DDLReminderModal.css";
 
 // 调试预览用的示例到期节点：当没有任何真实到期提醒时，强制打开（调试）会用它
 // 填充弹窗，让人直观看到"如果有提醒会长什么样"。形状与 collectDueReminders 一致。
-const MOCK_PREVIEW_ITEMS = [
-  { todo: { id: "mock-1", text: "期末论文" }, checkpoint: { id: "mock-cp-1", message: "完成初稿" }, daysLeft: 2 },
-  { todo: { id: "mock-2", text: "项目答辩" }, checkpoint: { id: "mock-cp-2", message: "准备 PPT" }, daysLeft: -1 },
-  { todo: { id: "mock-3", text: "课程作业" }, checkpoint: { id: "mock-cp-3", message: "整理文献" }, daysLeft: 0 },
+const mockPreviewItems = (t) => [
+  { todo: { id: "mock-1", text: t("ddl.mock.thesis") },   checkpoint: { id: "mock-cp-1", message: t("ddl.mock.draft") },  daysLeft: 2 },
+  { todo: { id: "mock-2", text: t("ddl.mock.defense") },  checkpoint: { id: "mock-cp-2", message: t("ddl.mock.slides") }, daysLeft: -1 },
+  { todo: { id: "mock-3", text: t("ddl.mock.homework") }, checkpoint: { id: "mock-cp-3", message: t("ddl.mock.refs") },   daysLeft: 0 },
 ];
 
 export default function DDLReminderModal() {
@@ -26,7 +26,7 @@ export default function DDLReminderModal() {
   const navigate = useNavigate();
 
   // 后台/最小化时由系统通知兜底（每天一次），与下方前台弹窗互补
-  useDDLNotify({ todos, checkpointsMap, enabled: notifyEnabled });
+  useDDLNotify({ todos, checkpointsMap, enabled: notifyEnabled, t });
 
   const [open, setOpen] = useState(false);
 
@@ -49,7 +49,7 @@ export default function DDLReminderModal() {
 
   // 调试强制打开且没有真实到期项时，用示例数据预览"有提醒"的样子
   const isPreview = modalForcedOpen && dueItems.length === 0;
-  const items = isPreview ? MOCK_PREVIEW_ITEMS : dueItems;
+  const items = isPreview ? mockPreviewItems(t) : dueItems;
 
   const dismiss = () => {
     // 强制打开（调试）时关闭不写今日已关闭记录

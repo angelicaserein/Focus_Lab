@@ -4,6 +4,7 @@ import { useScenarios } from "@/context/ScenarioContext";
 import { useTaskAttrs } from "@/context/DatabaseContext";
 import { buildScenarioContext, recommendTasks } from "@/utils/scenario/scenarioRecommend";
 import { rerankRecommendations, hasApiKey } from "@/utils/ai/aiRecommend";
+import { useLanguage } from "@/context/LanguageContext";
 
 // 编排「情景智能推荐」：规则排序即时算出，AI 精排按需触发。
 //   · base       规则层 Top N（同步 useMemo），每项 { todo, score, reasons }
@@ -15,13 +16,14 @@ export default function useScenarioRecommend({ todos: todosArg, limit = 5 } = {}
   const { todos: allTodos } = useTodos();
   const { activeScenario } = useScenarios();
   const { taskAttrs } = useTaskAttrs();
+  const { t, lang } = useLanguage();
 
   const todos = todosArg ?? allTodos;
   const priorityAttr = useMemo(() => taskAttrs.find((a) => a.id === "priority"), [taskAttrs]);
 
   const ctx = useMemo(
-    () => (activeScenario ? buildScenarioContext(activeScenario, priorityAttr) : null),
-    [activeScenario, priorityAttr],
+    () => (activeScenario ? buildScenarioContext(activeScenario, priorityAttr, t) : null),
+    [activeScenario, priorityAttr, t],
   );
 
   const base = useMemo(() => {
@@ -57,6 +59,7 @@ export default function useScenarioRecommend({ todos: todosArg, limit = 5 } = {}
       const result = await rerankRecommendations(candidates, {
         scenario: activeScenario,
         envProfile: ctx?.envProfile,
+        lang,
       });
       setAi({ ...result, baseKey });
       setAiStatus("done");

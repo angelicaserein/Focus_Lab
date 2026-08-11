@@ -11,7 +11,7 @@
 //  全部纯函数、now 由调用方注入（便于 vitest 固定时间），不依赖 React。
 // ──────────────────────────────────────────────────────────────
 
-import { buildSortWeightMap } from "@/utils/task/taskAttrUtils";
+import { buildSortWeightMap, optionLabel } from "@/utils/task/taskAttrUtils";
 
 // ── 可调权重（集中放顶部，便于实验迭代）─────────────────────────
 const TAG_MATCH = 40; // 任务标签命中当前情景任务类型
@@ -47,12 +47,12 @@ export function deriveEnvProfile(settings) {
   const phoneOnly = devices.length > 0 && devices.every((d) => d === "phone");
 
   if (isQuiet && hasFocusDevice) {
-    return { preferredDuration: "long", label: "适合深度工作" };
+    return { preferredDuration: "long", labelKey: "scenario.env.long" };
   }
   if (phoneOnly) {
-    return { preferredDuration: "short", label: "适合碎片任务" };
+    return { preferredDuration: "short", labelKey: "scenario.env.short" };
   }
-  return { preferredDuration: "any", label: "" };
+  return { preferredDuration: "any", labelKey: "" };
 }
 
 // ── 单维度打分 helper ────────────────────────────────────────
@@ -67,41 +67,42 @@ function daysUntil(dueDate, now) {
 }
 
 function scoreDue(days) {
-  if (days === null) return { delta: 0, label: "" };
-  if (days < 0) return { delta: DUE_OVERDUE, label: "已逾期" };
-  if (days === 0) return { delta: DUE_TODAY, label: "今天截止" };
-  if (days <= 2) return { delta: DUE_SOON, label: "即将截止" };
-  if (days <= 7) return { delta: DUE_WEEK, label: "本周截止" };
-  return { delta: 0, label: "" };
+  if (days === null) return { delta: 0, labelKey: "" };
+  if (days < 0) return { delta: DUE_OVERDUE, labelKey: "scenario.due.overdue" };
+  if (days === 0) return { delta: DUE_TODAY, labelKey: "scenario.due.today" };
+  if (days <= 2) return { delta: DUE_SOON, labelKey: "scenario.due.soon" };
+  if (days <= 7) return { delta: DUE_WEEK, labelKey: "scenario.due.week" };
+  return { delta: 0, labelKey: "" };
 }
 
 // estimatedMins 与环境时长偏好的契合度。
 function scoreEnvFit(estimatedMins, preferredDuration) {
   if (preferredDuration === "any" || estimatedMins == null) {
-    return { delta: 0, label: "" };
+    return { delta: 0, labelKey: "" };
   }
   if (preferredDuration === "long") {
-    if (estimatedMins >= 25) return { delta: ENV_FIT, label: "适合此刻深度投入" };
-    if (estimatedMins < 10) return { delta: ENV_MISFIT, label: "" };
-    return { delta: 0, label: "" };
+    if (estimatedMins >= 25) return { delta: ENV_FIT, labelKey: "scenario.fit.deep" };
+    if (estimatedMins < 10) return { delta: ENV_MISFIT, labelKey: "" };
+    return { delta: 0, labelKey: "" };
   }
   // short
-  if (estimatedMins <= 15) return { delta: ENV_FIT, label: "短任务正合适" };
-  if (estimatedMins > 45) return { delta: ENV_MISFIT, label: "" };
-  return { delta: 0, label: "" };
+  if (estimatedMins <= 15) return { delta: ENV_FIT, labelKey: "scenario.fit.short" };
+  if (estimatedMins > 45) return { delta: ENV_MISFIT, labelKey: "" };
+  return { delta: 0, labelKey: "" };
 }
 
 // ── 单任务打分 ───────────────────────────────────────────────
 
 // ctx: { taskTypes: string[], envProfile, prioritySortMap, priorityLabels }
-// 返回 { todo, score, reasons:[{ key, label, delta }] }，reasons 仅收正向理由供 UI 解释。
+// 返回 { todo, score, reasons:[{ key, labelKey, vars, delta }] }，reasons 仅收正向理由供 UI 解释。
+// 理由只给 key，由 UI 层用 t() 取文案（优先级等名字以 vars 传入）。
 export function scoreTask(todo, ctx, now) {
   const { taskTypes = [], envProfile, prioritySortMap = {}, priorityLabels = {} } = ctx;
   const attrs = todo.attrs ?? {};
   let score = 0;
   const reasons = [];
-  const push = (key, label, delta) => {
-    if (delta > 0 && label) reasons.push({ key, label, delta });
+  const push = (key, labelKey, delta, vars) => {
+    if (delta > 0 && labelKey) reasons.push({ key, labelKey, vars, delta });
   };
 
   // 1. taskType 匹配
@@ -110,7 +111,7 @@ export function scoreTask(todo, ctx, now) {
     const hit = tags.some((t) => taskTypes.includes(t));
     if (hit) {
       score += TAG_MATCH;
-      push("tag", "契合当前情景", TAG_MATCH);
+      push("tag", "scenario.reason.tag", TAG_MATCH);
     } else {
       score += TAG_MISMATCH;
     }
@@ -122,18 +123,18 @@ export function scoreTask(todo, ctx, now) {
     const delta = weight * PRIORITY_FACTOR;
     score += delta;
     const label = priorityLabels[attrs.priority];
-    if (weight >= 3 && label) push("priority", `${label}优先级`, delta);
+    if (weight >= 3 && label) push("priority", "scenario.reason.priority", delta, { label });
   }
 
   // 3. 截止临近度
   const due = scoreDue(daysUntil(attrs.dueDate, now));
   score += due.delta;
-  push("due", due.label, due.delta);
+  push("due", due.labelKey, due.delta);
 
   // 4. 环境时长契合
   const env = scoreEnvFit(attrs.estimatedMins, envProfile?.preferredDuration ?? "any");
   score += env.delta;
-  push("env", env.label, env.delta);
+  push("env", env.labelKey, env.delta);
 
   return { todo, score, reasons };
 }
@@ -141,10 +142,10 @@ export function scoreTask(todo, ctx, now) {
 // ── 上下文构建 ───────────────────────────────────────────────
 
 // 由情景 + priority 列定义构建打分上下文（供组件 useMemo 缓存）。
-export function buildScenarioContext(scenario, priorityAttr) {
+export function buildScenarioContext(scenario, priorityAttr, t = (k) => k) {
   const settings = scenario?.settings ?? {};
   const priorityLabels = Object.fromEntries(
-    (priorityAttr?.options ?? []).map((o) => [o.id, o.label]),
+    (priorityAttr?.options ?? []).map((o) => [o.id, optionLabel(t, o)]),
   );
   return {
     taskTypes: settings.taskTypes ?? [],

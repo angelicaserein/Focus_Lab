@@ -178,11 +178,11 @@ export default function FlasksPage() {
             <button
               type="button"
               className="fk-debug-btn"
-              title="调试：修改烧瓶水位"
-              aria-label="调试：修改烧瓶水位"
+              title={t("flasks.debug.open")}
+              aria-label={t("flasks.debug.open")}
               onClick={() => setDebugOpen(true)}
             >
-              🛠️ 调试
+              {t("flasks.debug.btn")}
             </button>
           )}
         </div>
@@ -359,9 +359,8 @@ function FullCard({ flask, specimen, canSeal, t, onAskSeal, onUnseal }) {
           )}
         </div>
         <p className="fk-filled-name">{flask.name || presetName}</p>
-        <p className="fk-meta">
-          <span className="fk-meta-total">{t("flasks.filled")}</span>
-        </p>
+        {/* 「已注满」这三个字不写在卡上：这一整个板块的标题已经说了它们都是满的，
+            每张卡再重复一遍只是把卡面填满。里面封着谁才是这张卡真正要说的事。 */}
 
         {/* 封了：说清里面是谁，并留一条「取出放回缸里」的退路（封存是保存，不是牺牲）。
             没封且缸里有长成的：一枚按钮。缸里没有够格的就什么都不摆——
@@ -418,7 +417,17 @@ function ShelfCard({
   const sealLocked = !specimen && hasReady && !flaskReady(secs);
   const presetName = t(`settings.prefs.flaskShape.${flask.preset}`);
   const remain = FLASK_FULL_SECS - (secs % FLASK_FULL_SECS);
+
+  // 来历：几次专注注出来的、最近一次什么时候。不占卡面一行，挂在瓶子的 title 上。
   const lastAgo = ago(stat?.lastAt, t);
+  const history = stat?.sessions
+    ? [
+        stat.sessions === 1 ? t("flasks.sessions_one") : t("flasks.sessions", { n: stat.sessions }),
+        lastAgo && t("flasks.lastPour", { v: lastAgo }),
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : null;
 
   return (
     <li className={`fk-card${active ? " active" : ""}`}>
@@ -436,8 +445,10 @@ function ShelfCard({
           <Trash2 size={15} aria-hidden="true" />
         </button>
 
-        {/* 这张卡上的是正在接的那只；攒下的满瓶各自成卡（见 FullCard） */}
-        <div className="fk-figure">
+        {/* 这张卡上的是正在接的那只；攒下的满瓶各自成卡（见 FullCard）。
+            来历（几次注出来的、最近一次什么时候）挂在瓶子的 title 上：
+            它是「想起来才查」的背景信息，摆在卡面上只会和进度抢眼睛。 */}
+        <div className="fk-figure" title={history || undefined}>
           <FlaskGraphic progress={partial} params={flask.params} />
           {/* 标本浮在瓶肚子里：略偏灰、微微一晃都没有——它是被封住的那一只，不是还在游的 */}
           {specimen && glyph && (
@@ -463,37 +474,16 @@ function ShelfCard({
           tabIndex={confirming ? -1 : 0}
         />
 
+        {/* 卡面只留两个数：注进去了多少（主），还差多少注满（次）。
+            两行拉开字号与颜色的差，扫一眼先看见的永远是同一个位置的同一个数。 */}
         <p className="fk-meta">
-          {secs > 0 ? (
-            <>
-              <span className="fk-meta-total">{t("flasks.total", { v: dur(secs, t) })}</span>
-              <span className="fk-meta-next">{t("flasks.nextIn", { v: dur(remain, t) })}</span>
-            </>
-          ) : (
-            <span className="fk-meta-total">{t("flasks.justStarted")}</span>
+          <span className="fk-meta-total">
+            {secs > 0 ? t("flasks.total", { v: dur(secs, t) }) : t("flasks.justStarted")}
+          </span>
+          {secs > 0 && (
+            <span className="fk-meta-next">{t("flasks.toFull", { v: dur(remain, t) })}</span>
           )}
         </p>
-
-        {/* 这只瓶子的来历：几次专注注出来的、最近一次什么时候。
-            水是一次次注进去的，只报总量会让这只瓶子看起来像凭空满的。
-            没注过的瓶子不显示这行——上面那句「还没往里注过」已经说完了。 */}
-        {stat?.sessions > 0 && (
-          <p className="fk-history">
-            <span>
-              {stat.sessions === 1
-                ? t("flasks.sessions_one")
-                : t("flasks.sessions", { n: stat.sessions })}
-            </span>
-            {lastAgo && (
-              <>
-                <span className="fk-history-dot" aria-hidden="true">
-                  ·
-                </span>
-                <span>{t("flasks.lastPour", { v: lastAgo })}</span>
-              </>
-            )}
-          </p>
-        )}
 
         {/* —— 标本 ——
             差一点：一句话交代还差什么，不做成灰按钮——

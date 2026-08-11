@@ -15,7 +15,6 @@ import {
   Archive,
   Map,
   Factory,
-  History,
   BarChart3,
   PieChart,
   Zap,
@@ -62,13 +61,12 @@ const NAV_SECTIONS = [
       { to: "/ddl",   labelKey: "nav.ddl",   Icon: CalendarClock },
     ],
   },
-  // 回顾区四页各管一件事，别互相塞摘要：
-  // 时间轴=何时发生 / 历史记录=原始流水 / 数据分析=所有统计图表 / 分心统计=只管分心。
+  // 回顾三页各管一件事，别互相塞摘要：
+  // 时间轴=何时发生 + 原始流水（含随记/聊天） / 数据分析=所有统计图表 / 分心统计=只管分心。
   {
     titleKey: "nav.section.review",
     items: [
       { to: "/calendar",       labelKey: "nav.calendar",      Icon: CalendarRange },
-      { to: "/history",        labelKey: "nav.history",       Icon: History },
       { to: "/analytics",      labelKey: "nav.analytics",     Icon: BarChart3 },
       { to: "/distraction",    labelKey: "nav.distraction",   Icon: Zap },
       { to: "/scenario-stats", labelKey: "nav.scenarioStats", Icon: PieChart },

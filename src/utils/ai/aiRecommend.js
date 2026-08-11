@@ -87,7 +87,7 @@ function normalizeResult(obj) {
 
 // candidates: [{ id, text, attrs }]（由规则层的 todo 精简而来）。
 // 返回 { order, reasons }；调用方据 order 重排、把 reasons 合并进条目。
-export async function rerankRecommendations(candidates, { scenario, envProfile } = {}) {
+export async function rerankRecommendations(candidates, { scenario, envProfile, lang = "zh" } = {}) {
   if (!candidates?.length) return { order: [], reasons: {} };
 
   // 本地开发且无 key → 离线示例：保持规则顺序，给 Top1 一句通用理由。
@@ -97,7 +97,14 @@ export async function rerankRecommendations(candidates, { scenario, envProfile }
     const top = candidates[0];
     return {
       order,
-      reasons: top ? { [top.id]: "示例：契合当前情景，建议先从这件开始 🌱" } : {},
+      reasons: top
+        ? {
+            [top.id]:
+              lang === "en"
+                ? "Sample: fits your current scenario — start here 🌱"
+                : "示例：契合当前情景，建议先从这件开始 🌱",
+          }
+        : {},
     };
   }
 

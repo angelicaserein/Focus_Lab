@@ -1,5 +1,5 @@
 /* 一天的流水：会话卡 + 使用记录行。
-   /history 与 /calendar 共用这一套样式，两页的记录长得一模一样。 */
+   时间轴页的两个视图共用这一套样式，记录长得一模一样。 */
 
 .daylog {
   display: flex;
@@ -69,6 +69,11 @@
   color: var(--text-faint);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
+}
+
+.daylog-time-sep {
+  margin: 0 0.15em;
+  opacity: 0.55;
 }
 
 .daylog-scenario {

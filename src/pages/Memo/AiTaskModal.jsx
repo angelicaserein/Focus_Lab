@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { sanitizeTaskAttrs } from "@/utils/ai/aiTasks";
+import { attrUnit, optionLabel } from "@/utils/task/taskAttrUtils";
 import { useLanguage } from "@/context/LanguageContext";
 import "./AiTaskModal.css";
 
@@ -11,12 +12,15 @@ function attrChips(attrs, database, t) {
 
   if (attrs.priority) {
     const opt = (byId.get("priority")?.options ?? []).find((o) => o.id === attrs.priority);
-    if (opt) chips.push({ key: "priority", color: opt.color, label: opt.label });
+    if (opt) chips.push({ key: "priority", color: opt.color, label: optionLabel(t, opt) });
   }
   if (attrs.tags?.length) {
     const opts = byId.get("tags")?.options ?? [];
     const labels = attrs.tags
-      .map((id) => opts.find((o) => o.id === id)?.label)
+      .map((id) => {
+        const opt = opts.find((o) => o.id === id);
+        return opt ? optionLabel(t, opt) : "";
+      })
       .filter(Boolean);
     if (labels.length) chips.push({ key: "tags", label: labels.join(" · ") });
   }
@@ -24,7 +28,7 @@ function attrChips(attrs, database, t) {
     chips.push({ key: "dueDate", label: t("memo.ai.chipDue", { date: attrs.dueDate }) });
   }
   if (attrs.estimatedMins != null) {
-    const unit = byId.get("estimatedMins")?.unit || t("memo.ai.minutesUnit");
+    const unit = attrUnit(t, byId.get("estimatedMins")) || t("memo.ai.minutesUnit");
     chips.push({ key: "estimatedMins", label: `${attrs.estimatedMins}${unit}` });
   }
   if (attrs.notes) chips.push({ key: "notes", label: t("memo.ai.chipNotes") });

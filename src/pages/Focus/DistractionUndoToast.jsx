@@ -1,3 +1,4 @@
+import { useLanguage } from "@/context/LanguageContext";
 import React, { useEffect, useState } from "react";
 
 const AUTO_DISMISS_MS = 4000;
@@ -23,6 +24,8 @@ export default function DistractionUndoToast({ pending, onUndo, onDismiss }) {
     if (!visible) setContent(null);
   };
 
+  const { t } = useLanguage();
+
   if (!content) return null;
 
   return (
@@ -33,10 +36,10 @@ export default function DistractionUndoToast({ pending, onUndo, onDismiss }) {
       onTransitionEnd={handleTransitionEnd}
     >
       <span className="toast-text">
-        {content.blank ? "已记下这次分心（空白）" : "已记下这次分心"}
+        {t(content.blank ? "focus.distract.loggedBlank" : "focus.distract.logged")}
       </span>
       <button type="button" className="toast-undo" onClick={onUndo}>
-        撤回
+        {t("focus.distract.undo")}
       </button>
     </div>
   );

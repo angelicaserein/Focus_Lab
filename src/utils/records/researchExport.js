@@ -10,21 +10,22 @@ function csvField(val) {
   return s;
 }
 
-export function exportResearchCSV(records) {
+// 表头随当前语言导出；t 由调用方（研究记录页）传入。
+export function exportResearchCSV(records, t) {
   const headers = [
-    "日期",
-    "最大专注时长(秒)",
-    "今日总专注时长(秒)",
-    "实时分心次数",
-    "任务完成数",
-    "整体专注程度(1-5)",
-    "启动困难程度(1-5)",
-    "心情状态(1-5)",
-    "回顾分心次数",
-    "自感拖延时间(分钟)",
-    "主观感受",
-    "保存时间",
-  ];
+    "research.csv.date",
+    "research.csv.maxFocus",
+    "research.csv.totalFocus",
+    "research.csv.distractions",
+    "research.csv.tasksDone",
+    "research.csv.focusLevel",
+    "research.csv.startDifficulty",
+    "research.csv.moodState",
+    "research.csv.retroDistractions",
+    "research.csv.procrastination",
+    "research.csv.experience",
+    "research.csv.savedAt",
+  ].map((k) => csvField(t(k)));
 
   const sorted = [...records].sort((a, b) => a.date.localeCompare(b.date));
 

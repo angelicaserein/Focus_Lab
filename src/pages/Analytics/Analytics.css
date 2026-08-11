@@ -284,11 +284,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.ana-block-rate {
-  font-size: 0.7rem;
-  color: var(--text-faint);
-}
-
 /* ── 时长分布 ── */
 .ana-dur-list {
   display: flex;
@@ -375,19 +370,6 @@
   white-space: nowrap;
 }
 
-.ana-task-rate {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-/* 完成率低于一半：整页唯一一处非主色的着色，且跟随主题的 --danger */
-.ana-task-rate.hard {
-  color: var(--danger);
-}
-
 .ana-task-track {
   height: 6px;
   background: var(--accent-bg);
@@ -400,10 +382,6 @@
   background: var(--accent);
   border-radius: 99px;
   transition: width 500ms cubic-bezier(0.34, 1.2, 0.64, 1);
-}
-
-.ana-task-fill.hard {
-  background: var(--danger);
 }
 
 .ana-task-sub {

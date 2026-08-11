@@ -47,7 +47,7 @@ export default function DataSection() {
         setImportMsg({ type: "success", text: t("settings.data.importSuccess", { count: result.keys.length }) });
         setTimeout(() => window.location.reload(), 1500);
       } else {
-        setImportMsg({ type: "error", text: t("settings.data.importError", { error: result.error }) });
+        setImportMsg({ type: "error", text: t("settings.data.importError", { error: t(result.error) }) });
       }
     };
     reader.readAsText(file);

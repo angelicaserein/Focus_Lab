@@ -1,6 +1,7 @@
 import React from "react";
 import { TASK_TYPE_OPTIONS } from "@/utils/scenario/scenarioConstants";
 import { useLanguage } from "@/context/LanguageContext";
+import { optionLabel } from "@/utils/task/taskAttrUtils";
 
 export default function TaskTagPicker({ tags = [], options = TASK_TYPE_OPTIONS, onChange, onClose }) {
   const { t } = useLanguage();
@@ -25,7 +26,7 @@ export default function TaskTagPicker({ tags = [], options = TASK_TYPE_OPTIONS, 
           className={`day-btn${tags.includes(opt.id) ? " active" : ""}`}
           onClick={() => toggleTag(opt.id)}
         >
-          {opt.icon && <span>{opt.icon}</span>} {opt.label}
+          {opt.icon && <span>{opt.icon}</span>} {optionLabel(t, opt)}
         </button>
       ))}
       <button type="button" className="day-cancel-btn" onClick={clear}>

@@ -1,52 +1,7 @@
-/* ── History page layout ── */
-.page-history {
-  width: min(860px, 100%);
-  margin: 0 auto;
-  padding: 8px 0 64px;
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-}
-
-/* Header */
-.history-headline {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.eyebrow-hist {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: var(--accent-bg);
-  color: var(--accent-mid);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 0.72rem;
-  width: fit-content;
-}
-
-.history-headline h1 {
-  margin: 0;
-  font-size: var(--page-title-size);
-  font-weight: var(--page-title-weight);
-  line-height: var(--page-title-lh);
-  color: var(--text-heading);
-}
-
-.history-headline p {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: var(--page-sub-size);
-  line-height: var(--page-sub-lh);
-}
-
-/* 页头里曾有指向姊妹页的小链接（.hist-headline-row / .hist-cross-link）。
-   四个回顾页各管一件事之后，跨页摘要与跳转都撤了，样式随之删除。 */
+/* 记录类通用样式（.hist-*）：时间轴页的流水、分心统计、情景统计共用这一套。
+   原来是 /history 独有的 History.css；历史记录并入时间轴后，页面壳子的样式
+   （.page-history / .history-headline / .eyebrow-hist）随页面一起删了，
+   留下的只是「记录长什么样」这部分。 */
 
 /* ── Stats cards ── */
 .hist-stats {

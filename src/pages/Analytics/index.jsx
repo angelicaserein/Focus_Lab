@@ -12,7 +12,6 @@ const HOUR_TICKS = [0, 6, 12, 18, 23];
 
 // 页尾出口：本页给全局结论，更细的东西各有专页。
 const MORE_PAGES = [
-  { to: "/history", labelKey: "nav.history" },
   { to: "/distraction", labelKey: "nav.distraction" },
   { to: "/scenario-stats", labelKey: "nav.scenarioStats" },
   { to: "/calendar", labelKey: "nav.calendar" },
@@ -55,7 +54,7 @@ function HourlyBars({ data, getValue, max, barClassName, formatTitle, hourLabel 
 }
 
 // 数据分析 = 全部汇总数字与图表的唯一去处。
-// 记录原文在 /history，分心细节在 /distraction，这里都不再摆一份摘要。
+// 记录原文在 /calendar，分心细节在 /distraction，这里都不再摆一份摘要。
 export default function AnalyticsPage() {
   const {
     focusRecords,
@@ -135,11 +134,6 @@ export default function AnalyticsPage() {
               <div key={b.labelKey} className={`ana-block-card${i === 0 ? " best" : ""}`}>
                 <div className="ana-block-name">{t(b.labelKey)}</div>
                 <div className="ana-block-secs">{fmt(b.totalSecs)}</div>
-                <div className="ana-block-rate">
-                  {t("analytics.peak.completion", {
-                    rate: Math.round(b.completionRate * 100),
-                  })}
-                </div>
               </div>
             ))}
           </div>
@@ -173,7 +167,7 @@ export default function AnalyticsPage() {
         </div>
       </section>
 
-      {/* ── 3. 任务：投入时长与完成率合成一张表 ───────────────────────────── */}
+      {/* ── 3. 任务：按投入时长排的一张表 ─────────────────────────────────── */}
       {taskTable.length > 0 && (
         <section className="ana-section">
           <SectionHead
@@ -192,19 +186,11 @@ export default function AnalyticsPage() {
                 <div className="ana-task-top">
                   <span className="ana-task-rank">#{i + 1}</span>
                   <span className="ana-task-name">{taskName(task.text)}</span>
-                  {/* 完成率只在任务出现 ≥2 次时给出，一次性任务恒为 100% 没有参考价值 */}
-                  {task.completionRate !== null && (
-                    <span className={`ana-task-rate${task.hard ? " hard" : ""}`}>
-                      {t("analytics.tasks.rate", {
-                        rate: Math.round(task.completionRate * 100),
-                      })}
-                    </span>
-                  )}
                 </div>
-                {/* 条形长度看的是投入时长（表的排序依据），不是完成率 */}
+                {/* 条形长度看的是投入时长，也是这张表的排序依据 */}
                 <div className="ana-task-track">
                   <div
-                    className={`ana-task-fill${task.hard ? " hard" : ""}`}
+                    className="ana-task-fill"
                     style={{ width: `${Math.max((task.totalSecs / taskMax) * 100, 4)}%` }}
                   />
                 </div>

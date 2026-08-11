@@ -1,12 +1,10 @@
 import React from "react";
+import { useLanguage } from "@/context/LanguageContext";
 
-const SCALES = [
-  { key: "focusLevel",      label: "整体专注程度", low: "分心", high: "专注" },
-  { key: "startDifficulty", label: "启动困难程度", low: "困难", high: "容易" },
-  { key: "moodState",       label: "心情状态",     low: "焦虑", high: "平静" },
-];
+// 量表 key 同时是 i18n key 的中缀：research.scale.<key>[.low|.high]。
+const SCALE_KEYS = ["focusLevel", "startDifficulty", "moodState"];
 
-function LikertRow({ scaleKey, label, low, high, value, onChange }) {
+function LikertRow({ scaleKey, label, low, high, value, onChange, ariaFor }) {
   return (
     <div className="research-likert-row">
       <span className="research-likert-label">{label}</span>
@@ -17,7 +15,7 @@ function LikertRow({ scaleKey, label, low, high, value, onChange }) {
             type="button"
             className={`research-likert-btn${value === n ? " selected" : ""}`}
             onClick={() => onChange(scaleKey, value === n ? null : n)}
-            aria-label={`${label} ${n}分`}
+            aria-label={ariaFor(n)}
             aria-pressed={value === n}
           >
             {n}
@@ -35,17 +33,22 @@ function LikertRow({ scaleKey, label, low, high, value, onChange }) {
 
 // 自评量表网格：渲染全部 Likert 量表行。
 export default function ScaleGrid({ scales, onChange }) {
+  const { t } = useLanguage();
+
   return (
     <div className="research-likert-container">
-      {SCALES.map((s) => (
+      {SCALE_KEYS.map((key) => (
         <LikertRow
-          key={s.key}
-          scaleKey={s.key}
-          label={s.label}
-          low={s.low}
-          high={s.high}
-          value={scales[s.key]}
+          key={key}
+          scaleKey={key}
+          label={t(`research.scale.${key}`)}
+          low={t(`research.scale.${key}.low`)}
+          high={t(`research.scale.${key}.high`)}
+          value={scales[key]}
           onChange={onChange}
+          ariaFor={(n) =>
+            t("research.scale.point", { label: t(`research.scale.${key}`), n })
+          }
         />
       ))}
     </div>

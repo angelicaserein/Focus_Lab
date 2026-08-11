@@ -18,8 +18,8 @@ export function itemToForm(item) {
 }
 
 // 管理「我的自定义」商品表单：新增 / 编辑同用一套字段与提交逻辑。
-// 依赖注入 addCustomItem / updateCustomItem（来自 RewardContext）与 showToast（提示反馈）。
-export default function useCustomItemForm({ addCustomItem, updateCustomItem, showToast }) {
+// 依赖注入 addCustomItem / updateCustomItem（来自 RewardContext）、showToast（提示反馈）与 t（文案）。
+export default function useCustomItemForm({ addCustomItem, updateCustomItem, showToast, t }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState(null);
 
@@ -40,11 +40,11 @@ export default function useCustomItemForm({ addCustomItem, updateCustomItem, sho
     if (editingId) {
       if (updateCustomItem(editingId, form)) {
         cancelEdit();
-        showToast({ message: "已保存修改", icon: "✅" });
+        showToast({ message: t("reward.custom.saved"), icon: "✅" });
       }
     } else if (addCustomItem(form)) {
       setForm(EMPTY_FORM);
-      showToast({ message: "已添加到我的自定义", icon: "✨" });
+      showToast({ message: t("reward.custom.added"), icon: "✨" });
     }
   };
 

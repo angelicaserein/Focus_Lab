@@ -3,7 +3,6 @@ import {
   hourlyFocusData,
   timeBlockStats,
   sessionDurationBuckets,
-  mergeTaskTable,
   distractionByHour,
   TIME_BLOCKS,
   DURATION_BUCKETS,
@@ -21,17 +20,14 @@ const at = (hour, over = {}) => ({
 });
 
 describe("hourlyFocusData", () => {
-  it("同会话同小时按 max 去重时长，但 totalCount 记全部条目", () => {
+  it("同会话同小时按 max 去重时长", () => {
     const rows = hourlyFocusData([
-      at(9, { sessionId: "s1", durationSecs: 40, outcome: "completed" }),
-      at(9, { sessionId: "s1", durationSecs: 30, outcome: "ended" }),
+      at(9, { sessionId: "s1", durationSecs: 40 }),
+      at(9, { sessionId: "s1", durationSecs: 30 }),
     ]);
     const nine = rows[9];
     expect(nine.sessionCount).toBe(1); // 同一会话只算一次
     expect(nine.totalSecs).toBe(40); // 取 max，不是 40+30
-    expect(nine.totalCount).toBe(2);
-    expect(nine.completedCount).toBe(1);
-    expect(nine.completionRate).toBe(0.5);
   });
 
   it("同小时不同会话各自计入，时长相加", () => {
@@ -43,10 +39,10 @@ describe("hourlyFocusData", () => {
     expect(nine.totalSecs).toBe(60);
   });
 
-  it("返回定长 24 槽，无数据的小时 completionRate 为 0", () => {
+  it("返回定长 24 槽，无数据的小时全为 0", () => {
     const rows = hourlyFocusData([]);
     expect(rows).toHaveLength(24);
-    expect(rows[3]).toMatchObject({ hour: 3, sessionCount: 0, totalSecs: 0, completionRate: 0 });
+    expect(rows[3]).toMatchObject({ hour: 3, sessionCount: 0, totalSecs: 0 });
   });
 
   it("旧记录无 sessionId 时退化用记录自身 id 作会话键", () => {
@@ -62,19 +58,12 @@ describe("hourlyFocusData", () => {
 describe("timeBlockStats", () => {
   // 构造 24 长度的 hourlyData，只在指定小时填值。
   const blank = () =>
-    Array.from({ length: 24 }, (_, hour) => ({
-      hour,
-      sessionCount: 0,
-      totalSecs: 0,
-      completedCount: 0,
-      totalCount: 0,
-      completionRate: 0,
-    }));
+    Array.from({ length: 24 }, (_, hour) => ({ hour, sessionCount: 0, totalSecs: 0 }));
 
   it("只保留有会话的时间段，并按 totalSecs 降序", () => {
     const data = blank();
-    Object.assign(data[9], { sessionCount: 1, totalSecs: 100, completedCount: 1, totalCount: 2 }); // 上午
-    Object.assign(data[20], { sessionCount: 1, totalSecs: 300, completedCount: 0, totalCount: 1 }); // 晚上
+    Object.assign(data[9], { sessionCount: 1, totalSecs: 100 }); // 上午
+    Object.assign(data[20], { sessionCount: 1, totalSecs: 300 }); // 晚上
     const out = timeBlockStats(data);
     expect(out.map((b) => b.labelKey)).toEqual([
       "analytics.block.evening",
@@ -88,12 +77,13 @@ describe("timeBlockStats", () => {
     expect(out).toEqual([]);
   });
 
-  it("completionRate 按段内完成/总任务聚合", () => {
+  it("段内各小时的时长与会话数相加", () => {
     // 早晨 range [6,9) → 小时 6,7,8
     const data = blank();
-    Object.assign(data[7], { sessionCount: 1, totalSecs: 60, completedCount: 3, totalCount: 4 });
+    Object.assign(data[7], { sessionCount: 1, totalSecs: 60 });
+    Object.assign(data[8], { sessionCount: 2, totalSecs: 90 });
     const morning = timeBlockStats(data).find((b) => b.labelKey === "analytics.block.earlyMorning");
-    expect(morning.completionRate).toBe(0.75);
+    expect(morning).toMatchObject({ totalSecs: 150, sessions: 3 });
   });
 });
 
@@ -120,45 +110,6 @@ describe("sessionDurationBuckets", () => {
     const oneToTwo = out.find((b) => b.labelKey === "analytics.bucket.1to2h");
     expect(oneToTwo.count).toBe(1);
     expect(out.reduce((s, b) => s + b.count, 0)).toBe(1);
-  });
-});
-
-describe("mergeTaskTable", () => {
-  const rec = (taskText, outcome) => ({ taskText, outcome });
-  const row = (text, totalSecs) => ({ text, totalSecs, sessions: 1 });
-
-  it("保持 taskBreakdown 的时长排序，并给每行补完成率", () => {
-    const out = mergeTaskTable(
-      [
-        rec("难", "ended"),
-        rec("难", "ended"),
-        rec("难", "completed"), // 3 次完成 1 → 1/3
-        rec("易", "completed"),
-        rec("易", "completed"), // 2 次全完成 → 1
-      ],
-      [row("易", 100), row("难", 50)],
-    );
-    expect(out.map((t) => t.text)).toEqual(["易", "难"]);
-    expect(out[0].completionRate).toBe(1);
-    expect(out[1].completionRate).toBeCloseTo(1 / 3);
-    expect(out[1].hard).toBe(true); // 完成率 < 50%
-    expect(out[0].hard).toBe(false);
-  });
-
-  it("出现不足 2 次的任务不给完成率（一次性任务恒为 0/100%，没有参考价值）", () => {
-    const out = mergeTaskTable([rec("偶尔", "ended")], [row("偶尔", 10)]);
-    expect(out[0].completionRate).toBeNull();
-    expect(out[0].hard).toBe(false);
-  });
-
-  // 无名任务归一到空串，显示文案由页面 t("analytics.untitled") 补，
-  // 免得纯函数层塞死中文、切英文时冒出一条中文行。
-  it("无 taskText 归一为空串后仍能对上", () => {
-    const out = mergeTaskTable(
-      [rec(undefined, "ended"), rec(undefined, "completed")],
-      [row(undefined, 30)],
-    );
-    expect(out[0].completionRate).toBe(0.5);
   });
 });
 

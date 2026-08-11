@@ -217,12 +217,14 @@
   /* 卡片窄，「正在往这只里注」这类长文案要允许折行，不能 nowrap 撑破卡 */
   max-width: 100%;
 }
-/* 未选中格子上的提示：平时很淡，鼠标扫过整格时才亮起来 */
+/* 未选中格子上的提示：平时完全隐去（位置留着，免得鼠标一扫卡片就长高），
+   鼠标扫过这一格才浮出来。一屏十几张卡各挂一句「选它来接水」是纯噪音。 */
 .fk-hint-pick {
   font-size: 12px;
   color: var(--text-muted);
-  opacity: 0.5;
+  opacity: 0;
   white-space: nowrap;
+  transition: opacity var(--dur-fast) var(--ease);
 }
 .fk-pick:hover .fk-hint-pick {
   opacity: 1;
@@ -366,35 +368,27 @@
   outline-offset: 2px;
 }
 
+/* 卡面的两个数：注进去了多少（主）、还差多少注满（次）。
+   两行拉开字号和颜色，别做成两行一样重的小字——那样得逐字读才知道哪个是哪个。 */
 .fk-meta {
   display: grid;
   justify-items: center;
-  gap: 2px;
+  gap: 1px;
   margin: 0;
-  font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.45;
   text-align: center;
   color: var(--text-muted);
 }
 .fk-meta-total {
   color: var(--text-body);
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
-
-/* 来历那行：比进度更轻一档，是背景信息不是主角 */
-.fk-history {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px;
-  margin: -2px 0 0;
+.fk-meta-next {
   font-size: 11.5px;
-  line-height: 1.5;
-  color: var(--text-muted);
   opacity: 0.85;
-}
-.fk-history-dot {
-  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
 }
 
 /* —— 标本 ——

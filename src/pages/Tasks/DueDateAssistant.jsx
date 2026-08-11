@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { addDays } from "@/utils/time";
+import { useLanguage } from "@/context/LanguageContext";
 import "@/pages/Memo/AiTaskModal.css";
 
 // 「排截止日」助手：把当前库里还没设截止日的未完成任务列成一张评审表，
 // 每行用快捷按钮（今天/明天/+3天/+1周）或日期框排期，底部批量写入。
 // 纯手动、不调 AI；视觉复用「分任务」(AiTaskModal) 的 ait-* 外壳。
 const PRESETS = [
-  { label: "今天", days: 0 },
-  { label: "明天", days: 1 },
-  { label: "+3天", days: 3 },
-  { label: "+1周", days: 7 },
+  { labelKey: "common.today", days: 0 },
+  { labelKey: "tasks.due.tomorrow", days: 1 },
+  { labelKey: "tasks.due.plus3d", days: 3 },
+  { labelKey: "tasks.due.plus1w", days: 7 },
 ];
 
 export default function DueDateAssistant({ candidates, onAssign, onClose }) {
+  const { t } = useLanguage();
   // 本地草稿：{ [todoId]: "YYYY-MM-DD" }。确认时一次性写入。
   const [drafts, setDrafts] = useState({});
 
@@ -42,23 +44,23 @@ export default function DueDateAssistant({ candidates, onAssign, onClose }) {
     <div className="ait-backdrop" onClick={onClose}>
       <div className="ait-modal" onClick={(e) => e.stopPropagation()}>
         <div className="ait-head">
-          <h2 className="ait-title">排截止日</h2>
-          <button type="button" className="ait-close" onClick={onClose} aria-label="关闭">
+          <h2 className="ait-title">{t("tasks.due.title")}</h2>
+          <button type="button" className="ait-close" onClick={onClose} aria-label={t("brainDump.close")}>
             ✕
           </button>
         </div>
 
         {candidates.length === 0 ? (
           <div className="ait-state">
-            <p>当前库里的未完成任务都已经有截止日啦 🌿</p>
+            <p>{t("tasks.due.allSet")}</p>
             <button type="button" className="ait-btn-ghost" onClick={onClose}>
-              关闭
+              {t("brainDump.close")}
             </button>
           </div>
         ) : (
           <>
             <p className="ait-hint">
-              给还没排期的任务点一个截止日，点「今天/明天/…」或选日期，确认后统一写入。
+              {t("tasks.due.hint")}
             </p>
 
             <ul className="ait-list">
@@ -78,7 +80,7 @@ export default function DueDateAssistant({ candidates, onAssign, onClose }) {
                               className={`date-preset-btn${date === d ? " active" : ""}`}
                               onClick={() => setDate(todo.id, d)}
                             >
-                              {p.label}
+                              {t(p.labelKey)}
                             </button>
                           );
                         })}
@@ -93,7 +95,7 @@ export default function DueDateAssistant({ candidates, onAssign, onClose }) {
                             type="button"
                             className="dda-clear"
                             onClick={() => setDate(todo.id, null)}
-                            title="清除"
+                            title={t("tasks.clear")}
                           >
                             ×
                           </button>
@@ -107,7 +109,7 @@ export default function DueDateAssistant({ candidates, onAssign, onClose }) {
 
             <div className="ait-actions">
               <button type="button" className="ait-btn-ghost" onClick={onClose}>
-                取消
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
@@ -115,7 +117,7 @@ export default function DueDateAssistant({ candidates, onAssign, onClose }) {
                 onClick={handleCommit}
                 disabled={chosen.length === 0}
               >
-                设置 {chosen.length} 个截止日
+                {t("tasks.due.commit", { count: chosen.length })}
               </button>
             </div>
           </>

@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useScenarios } from "@/context/ScenarioContext";
 import { useDatabases } from "@/context/DatabaseContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { optionLabel } from "@/utils/task/taskAttrUtils";
 import { suggestScenarioConfig, hasApiKey } from "@/utils/ai/aiScenarioConfig";
 import { planScenarioConfig } from "@/utils/scenario/scenarioConfigPlan";
 import { DEFAULT_SCENARIO_SETTINGS } from "@/utils/scenario/scenarioConstants";
@@ -11,6 +13,15 @@ import { DEFAULT_SCENARIO_SETTINGS } from "@/utils/scenario/scenarioConstants";
 export default function ScenarioConfigAssistant({ scenario }) {
   const { scenarioOptions, addScenarioOptions, updateScenarioSettings } = useScenarios();
   const { allTagOptions } = useDatabases();
+  const { t } = useLanguage();
+
+  // AI 与 planScenarioConfig 都是按 label 文本认选项的（AI 只吐 label，不认 id），
+  // 而出厂选项的文案在 i18n 里。所以在这个边界上先把 labelKey 兑成当前语言的 label
+  // 再往下传——否则出厂选项在模型眼里全是空字符串，永远命中不了，只会一直「新建」。
+  const withLabels = (opts) => (opts ?? []).map((o) => ({ ...o, label: optionLabel(t, o) }));
+  const deviceOptions = useMemo(() => withLabels(scenarioOptions.devices), [scenarioOptions.devices, t]);
+  const commOptions = useMemo(() => withLabels(scenarioOptions.communication), [scenarioOptions.communication, t]);
+  const tagOptions = useMemo(() => withLabels(allTagOptions), [allTagOptions, t]);
 
   const [prompt, setPrompt] = useState("");
   const [status, setStatus] = useState("idle"); // idle | loading | error
@@ -23,14 +34,14 @@ export default function ScenarioConfigAssistant({ scenario }) {
     setPlan(null);
     try {
       const cfg = await suggestScenarioConfig(text, {
-        deviceOptions: scenarioOptions.devices,
-        commOptions: scenarioOptions.communication,
-        tagOptions: allTagOptions,
+        deviceOptions,
+        commOptions,
+        tagOptions,
       });
       const next = planScenarioConfig(cfg, {
-        deviceOptions: scenarioOptions.devices,
-        commOptions: scenarioOptions.communication,
-        tagOptions: allTagOptions,
+        deviceOptions,
+        commOptions,
+        tagOptions,
         baseSettings: scenario.settings ?? DEFAULT_SCENARIO_SETTINGS,
       });
       setPlan(next);

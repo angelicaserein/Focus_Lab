@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import useLocalStorage from "@/hooks/common/useLocalStorage";
 import { getAiReply } from "@/utils/ai/aiChat";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
+import { useLanguage } from "@/context/LanguageContext";
 
 // 专注页 AI 陪伴对话的状态。消息持久化到 localStorage，
 // 沉浸式左下角对话框与 Focus 页「聊天记录」共用同一份数据。
@@ -9,6 +10,7 @@ import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 export default function useFocusChat() {
   const [messages, setMessages] = useLocalStorage(STORAGE_KEYS.CHAT, []);
   const [sending, setSending] = useState(false);
+  const { lang } = useLanguage();
 
   const sendUserMessage = useCallback(
     async (input) => {
@@ -25,14 +27,14 @@ export default function useFocusChat() {
 
       setSending(true);
       try {
-        const reply = await getAiReply(history);
+        const reply = await getAiReply(history, lang);
         const aiMsg = { id: `a-${Date.now()}`, role: "ai", text: reply, ts: Date.now() };
         setMessages((prev) => [...prev, aiMsg]);
       } finally {
         setSending(false);
       }
     },
-    [sending, setMessages],
+    [sending, setMessages, lang],
   );
 
   const clearChat = useCallback(() => setMessages([]), [setMessages]);

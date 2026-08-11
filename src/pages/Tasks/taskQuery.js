@@ -17,47 +17,49 @@ export function isEmptyVal(v) {
 // 内置字段（任务名 / 状态 / 创建时间）+ 各库自定义列，统一成 { key, name, type, options, unit }。
 export function buildQueryFields(attrs = []) {
   const builtin = [
-    { key: "name", name: "任务名", type: "text", builtin: true },
+    { key: "name", nameKey: "tasks.field.name", type: "text", builtin: true },
     {
-      key: "status", name: "状态", type: "select", builtin: true,
+      key: "status", nameKey: "tasks.field.status", type: "select", builtin: true,
       options: [
-        { id: "active",    label: "待办" },
-        { id: "completed", label: "已完成" },
+        { id: "active",    labelKey: "tasks.status.active" },
+        { id: "completed", labelKey: "tasks.status.completed" },
       ],
     },
-    { key: "createdAt", name: "创建时间", type: "date", builtin: true },
+    { key: "createdAt", nameKey: "tasks.field.createdAt", type: "date", builtin: true },
   ];
   const attrFields = attrs.map(a => ({
-    key: a.id, name: a.name, type: a.type, options: a.options ?? [], unit: a.unit,
+    key: a.id, name: a.name, nameKey: a.nameKey, type: a.type,
+    options: a.options ?? [], unit: a.unit, unitKey: a.unitKey,
   }));
   return [...builtin, ...attrFields];
 }
 
 // ── 运算符注册表（精简版）──
+// 文案走 labelKey，由 UI 层用 t() 取；数学符号（= ≠ > <）无需翻译，仍用 label。
 // input: "none" | "text" | "number" | "date" | "options"（options 的规则值是 id 数组）
 const EMPTY_OPS = [
-  { id: "is_empty",     label: "为空",   input: "none", test: (v) => isEmptyVal(v) },
-  { id: "is_not_empty", label: "不为空", input: "none", test: (v) => !isEmptyVal(v) },
+  { id: "is_empty",     labelKey: "tasks.op.isEmpty",    input: "none", test: (v) => isEmptyVal(v) },
+  { id: "is_not_empty", labelKey: "tasks.op.isNotEmpty", input: "none", test: (v) => !isEmptyVal(v) },
 ];
 
 const OPS_BY_TYPE = {
   text: [
-    { id: "contains",     label: "包含",   input: "text", test: (v, rv) => str(v).toLowerCase().includes(str(rv).toLowerCase()) },
-    { id: "not_contains", label: "不包含", input: "text", test: (v, rv) => !str(v).toLowerCase().includes(str(rv).toLowerCase()) },
+    { id: "contains",     labelKey: "tasks.op.contains",    input: "text", test: (v, rv) => str(v).toLowerCase().includes(str(rv).toLowerCase()) },
+    { id: "not_contains", labelKey: "tasks.op.notContains", input: "text", test: (v, rv) => !str(v).toLowerCase().includes(str(rv).toLowerCase()) },
     ...EMPTY_OPS,
   ],
   select: [
-    { id: "is_any_of", label: "是其一", input: "options", test: (v, rv) => Array.isArray(rv) && rv.includes(v) },
+    { id: "is_any_of", labelKey: "tasks.op.isAnyOf", input: "options", test: (v, rv) => Array.isArray(rv) && rv.includes(v) },
     ...EMPTY_OPS,
   ],
   multiselect: [
-    { id: "has_any_of", label: "含其一", input: "options", test: (v, rv) => Array.isArray(v) && Array.isArray(rv) && v.some(x => rv.includes(x)) },
+    { id: "has_any_of", labelKey: "tasks.op.hasAnyOf", input: "options", test: (v, rv) => Array.isArray(v) && Array.isArray(rv) && v.some(x => rv.includes(x)) },
     ...EMPTY_OPS,
   ],
   date: [
-    { id: "before", label: "早于", input: "date", test: (v, rv) => !isEmptyVal(v) && str(v) < str(rv) },
-    { id: "after",  label: "晚于", input: "date", test: (v, rv) => !isEmptyVal(v) && str(v) > str(rv) },
-    { id: "is",     label: "等于", input: "date", test: (v, rv) => str(v) === str(rv) },
+    { id: "before", labelKey: "tasks.op.before", input: "date", test: (v, rv) => !isEmptyVal(v) && str(v) < str(rv) },
+    { id: "after",  labelKey: "tasks.op.after",  input: "date", test: (v, rv) => !isEmptyVal(v) && str(v) > str(rv) },
+    { id: "is",     labelKey: "tasks.op.is",     input: "date", test: (v, rv) => str(v) === str(rv) },
     ...EMPTY_OPS,
   ],
   number: [

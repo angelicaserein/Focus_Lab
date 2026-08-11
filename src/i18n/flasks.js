@@ -28,9 +28,8 @@ export default {
   "flasks.confirmNo": { en: "Keep it", zh: "留着" },
   "flasks.namePlaceholder": { en: "Name this flask", zh: "给这只起个名" },
   "flasks.total": { en: "{v} poured in", zh: "已注入 {v}" },
-  // 注满的瓶子各自成卡，卡上就这一句
-  "flasks.filled": { en: "Filled", zh: "已注满" },
-  "flasks.nextIn": { en: "{v} to go on the one in progress", zh: "正在接的这只还差 {v}" },
+  // 卡面第二行。这一层里每只都是「正在接的」，不必再说一遍是哪只，短句更好扫
+  "flasks.toFull": { en: "{v} to full", zh: "还差 {v} 注满" },
   "flasks.justStarted": { en: "Nothing poured in yet", zh: "还没往里注过" },
   // 这只瓶子的来历：几次专注注出来的、最近一次是什么时候
   "flasks.sessions": { en: "{n} sessions", zh: "{n} 次专注" },
@@ -89,4 +88,30 @@ export default {
   "flasks.hm": { en: "{h}h {m}m", zh: "{h} 小时 {m} 分" },
   "flasks.h": { en: "{h}h", zh: "{h} 小时" },
   "flasks.m": { en: "{m}m", zh: "{m} 分钟" },
+
+  // 水位调试面板（仅开发环境）
+  "flasks.debug.btn": { en: "🛠️ Debug", zh: "🛠️ 调试" },
+  "flasks.debug.open": { en: "Debug: flask levels", zh: "调试：修改烧瓶水位" },
+  "flasks.debug.aria": { en: "Debug: flask levels", zh: "调试：烧瓶水位" },
+  "flasks.debug.title": { en: "🛠️ Debug: flask levels", zh: "🛠️ 调试：烧瓶水位" },
+  "flasks.debug.note": {
+    en: "Enter how many minutes of liquid this flask holds ({mins} min fills one; the overflow runs into the next). Display only — focus records stay untouched.",
+    zh: "填的是这只瓶子里一共有多少分钟的水（{mins} 分钟注满一只，多出来的流进下一只）。只改显示，不写进专注记录。",
+  },
+  "flasks.debug.empty": {
+    en: "No flasks on the shelf yet — save one from Settings first.",
+    zh: "架子上还没有瓶子，先去设置页存一只。",
+  },
+  "flasks.debug.resetAll": { en: "Restore all to real", zh: "全部恢复真实" },
+  "flasks.debug.close": { en: "Close", zh: "关闭" },
+  "flasks.debug.unnamed": { en: "(unnamed)", zh: "（未命名）" },
+  "flasks.debug.levelAria": { en: "Liquid in {name} (minutes)", zh: "{name} 的水量（分钟）" },
+  "flasks.debug.unit": { en: "min", zh: "分钟" },
+  "flasks.debug.state": { en: "Full ×{full} · this one {pct}%", zh: "满 ×{full} · 这只 {pct}%" },
+  "flasks.debug.overridden": { en: "overridden", zh: "已覆盖" },
+  "flasks.debug.restore": { en: "Restore real", zh: "恢复真实" },
+  "flasks.debug.restoreTitle": {
+    en: "Restore to the {mins} min computed from records",
+    zh: "恢复成记录现算的 {mins} 分钟",
+  },
 };

@@ -1,3 +1,4 @@
+import { attrName } from "@/utils/task/taskAttrUtils";
 import React, { useState, useRef, useEffect } from "react";
 import { useTodos } from "@/context/TodoContext";
 import { useTaskAttrs } from "@/context/DatabaseContext";
@@ -70,7 +71,7 @@ export default function TasksTable({ todos, visibleAttrs, activeDatabaseId, isDb
                     title={t("tasks.editAttr")}
                     onClick={e => openAttrEditor(attr.id, e.currentTarget.closest("th"))}
                   >
-                    <span className="th-name">{attr.name}</span>
+                    <span className="th-name">{attrName(t, attr)}</span>
                   </div>
                 </th>
               ))}

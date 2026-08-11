@@ -2,6 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useScenarios } from "@/context/ScenarioContext";
 import { useDatabases } from "@/context/DatabaseContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { optionLabel } from "@/utils/task/taskAttrUtils";
 import { DEFAULT_SCENARIO_SETTINGS } from "@/utils/scenario/scenarioConstants";
 import ScenarioOptionEditor from "@/pages/Scenario/ScenarioOptionEditor";
 import ScenarioConfigAssistant from "@/pages/Scenario/ScenarioConfigAssistant";
@@ -9,6 +11,8 @@ import ScenarioConfigAssistant from "@/pages/Scenario/ScenarioConfigAssistant";
 export default function ScenarioSettings({ scenario }) {
   const { updateScenarioSettings, scenarioOptions } = useScenarios();
   const { allTagOptions } = useDatabases();
+  // 出厂标签的文案在 i18n 里（labelKey），用户自建的才有 label
+  const { t } = useLanguage();
 
   const settings = scenario.settings ?? DEFAULT_SCENARIO_SETTINGS;
 
@@ -26,7 +30,7 @@ export default function ScenarioSettings({ scenario }) {
 
   const toggleTaskType = (id) => {
     const taskTypes = settings.taskTypes.includes(id)
-      ? settings.taskTypes.filter((t) => t !== id)
+      ? settings.taskTypes.filter((tagId) => tagId !== id)
       : [...settings.taskTypes, id];
     updateScenarioSettings(scenario.id, { ...settings, taskTypes });
   };
@@ -76,7 +80,7 @@ export default function ScenarioSettings({ scenario }) {
                 className={`settings-chip${settings.taskTypes.includes(opt.id) ? " active" : ""}`}
                 onClick={() => toggleTaskType(opt.id)}
               >
-                {opt.icon ? `${opt.icon} ` : ""}{opt.label}
+                {opt.icon ? `${opt.icon} ` : ""}{optionLabel(t, opt)}
               </button>
             ))
           )}

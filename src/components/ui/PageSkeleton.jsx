@@ -1,5 +1,6 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
+import { useLanguage } from "@/context/LanguageContext";
 import "./PageSkeleton.css";
 
 // 懒加载页面切换时的占位骨架屏。
@@ -568,7 +569,7 @@ function GenericSk() {
 const VARIANTS = {
   "/": HomeSk,
   "/focus": FocusSk,
-  "/history": HistorySk,
+  "/calendar": HistorySk,
   "/scenario": ScenarioSk,
   "/scenario-stats": ScenarioStatsSk,
   "/reward": RewardSk,
@@ -581,13 +582,14 @@ const VARIANTS = {
 };
 
 export default function PageSkeleton() {
+  const { t } = useLanguage();
   const { pathname } = useLocation();
   const Variant = VARIANTS[pathname] ?? GenericSk;
 
   return (
-    <div className="sk-root" role="status" aria-busy="true" aria-label="加载中">
+    <div className="sk-root" role="status" aria-busy="true" aria-label={t("common.loading")}>
       <Variant />
-      <span className="sk-sr-only">加载中…</span>
+      <span className="sk-sr-only">{t("common.loadingEllipsis")}</span>
     </div>
   );
 }

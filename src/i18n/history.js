@@ -1,17 +1,13 @@
-// 历史页（/history）。
+// 记录流水的文案（时间轴页 /calendar 的「全部记录」视图、DayLog、分心/情景统计共用）。
 // 注意：history.chatTitle / history.notes 等聊天与随记区的 key 早先落在 focus.js，
 // 那边是专注页共用的，别在这里重复定义。
 // outcome.* 与 utils/records/focusRecords.js 的 OUTCOME_META.labelKey 一一对应。
 export default {
-  "history.title": { en: "History", zh: "历史记录" },
-  // 统计卡与图表已整体归口到 /analytics，这里只剩原始流水，副标题指路过去。
-  "history.subtitle": {
-    en: "Every session and note, as written. Numbers and charts live in Analytics.",
-    zh: "每一次专注、每一条随记的原文。统计与图表在「数据分析」。",
-  },
-
   // ── 全部记录 ──────────────────────────────────────────────────────────────
   "history.allRecords": { en: "All records", zh: "全部记录" },
+  // 时间轴页顶部的视图切换：日历 / 全部记录（后者复用 allRecords）
+  "history.viewCalendar": { en: "Calendar", zh: "日历" },
+  "history.viewSwitchAria": { en: "Record view", zh: "记录视图" },
   "history.clear": { en: "Clear records", zh: "清除记录" },
   "history.clearConfirm": { en: "Clear for real?", zh: "确认清除？" },
   "history.empty": {

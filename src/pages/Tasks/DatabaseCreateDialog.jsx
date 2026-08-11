@@ -2,53 +2,55 @@ import React, { useState } from "react";
 import Popover from "@/components/ui/Popover";
 import { useDatabases } from "@/context/DatabaseContext";
 import { DATABASE_TEMPLATES, DEFAULT_TEMPLATE_ID } from "@/utils/task/databaseTemplates";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function DatabaseCreateDialog({ anchorEl, onClose }) {
   const { addDatabase } = useDatabases();
+  const { t } = useLanguage();
   const [name, setName] = useState("");
   const [templateId, setTemplateId] = useState(DEFAULT_TEMPLATE_ID);
 
   const handleCreate = () => {
-    addDatabase(name.trim() || "新建库", templateId);
+    addDatabase(name.trim(), templateId);
     onClose();
   };
 
   return (
     <Popover anchorEl={anchorEl} onClose={onClose}>
       <div className="db-create-dialog" onClick={e => e.stopPropagation()}>
-        <div className="db-create-title">新建 Database</div>
+        <div className="db-create-title">{t("tasks.db.create")}</div>
 
         <div className="db-create-field">
-          <label className="db-create-label">名称</label>
+          <label className="db-create-label">{t("tasks.attr.nameLabel")}</label>
           <input
             className="db-create-input"
             autoFocus
             value={name}
             onChange={e => setName(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") onClose(); }}
-            placeholder="例如：阅读清单"
+            placeholder={t("tasks.db.namePlaceholder")}
           />
         </div>
 
         <div className="db-create-field">
-          <label className="db-create-label">模板</label>
+          <label className="db-create-label">{t("tasks.db.template")}</label>
           <div className="db-template-list">
-            {DATABASE_TEMPLATES.map(t => (
+            {DATABASE_TEMPLATES.map(tpl => (
               <button
-                key={t.id}
-                className={`db-template-opt${templateId === t.id ? " active" : ""}`}
-                onClick={() => setTemplateId(t.id)}
+                key={tpl.id}
+                className={`db-template-opt${templateId === tpl.id ? " active" : ""}`}
+                onClick={() => setTemplateId(tpl.id)}
               >
-                <span className="db-template-name">{t.name}</span>
-                <span className="db-template-desc">{t.description}</span>
+                <span className="db-template-name">{t(tpl.nameKey)}</span>
+                <span className="db-template-desc">{t(tpl.descKey)}</span>
               </button>
             ))}
           </div>
         </div>
 
         <div className="db-create-footer">
-          <button className="db-create-confirm" onClick={handleCreate}>创建</button>
-          <button className="db-create-cancel" onClick={onClose}>取消</button>
+          <button className="db-create-confirm" onClick={handleCreate}>{t("tasks.db.confirmCreate")}</button>
+          <button className="db-create-cancel" onClick={onClose}>{t("common.cancel")}</button>
         </div>
       </div>
     </Popover>

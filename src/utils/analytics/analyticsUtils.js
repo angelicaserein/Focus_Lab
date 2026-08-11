@@ -8,8 +8,6 @@ export function hourlyFocusData(records) {
   const slots = Array.from({ length: 24 }, (_, i) => ({
     hour: i,
     sessionMaxSecs: new Map(), // sessionId → 墙钟时长（避免多任务重复累加）
-    completedCount: 0,
-    totalCount: 0,
   }));
 
   for (const r of records) {
@@ -17,8 +15,6 @@ export function hourlyFocusData(records) {
     const slot = slots[hour];
     const key = sessionKey(r);
     slot.sessionMaxSecs.set(key, Math.max(slot.sessionMaxSecs.get(key) ?? 0, r.durationSecs));
-    slot.totalCount++;
-    if (r.outcome === "completed") slot.completedCount++;
   }
 
   return slots.map((slot) => {
@@ -28,9 +24,6 @@ export function hourlyFocusData(records) {
       hour: slot.hour,
       sessionCount: slot.sessionMaxSecs.size,
       totalSecs,
-      completedCount: slot.completedCount,
-      totalCount: slot.totalCount,
-      completionRate: slot.totalCount > 0 ? slot.completedCount / slot.totalCount : 0,
     };
   });
 }
@@ -55,14 +48,7 @@ export function timeBlockStats(hourlyData) {
     const slots = hourlyData.slice(start, end);
     const totalSecs = slots.reduce((s, h) => s + h.totalSecs, 0);
     const sessions = slots.reduce((s, h) => s + h.sessionCount, 0);
-    const completedTasks = slots.reduce((s, h) => s + h.completedCount, 0);
-    const totalTasks = slots.reduce((s, h) => s + h.totalCount, 0);
-    return {
-      ...block,
-      totalSecs,
-      sessions,
-      completionRate: totalTasks > 0 ? completedTasks / totalTasks : 0,
-    };
+    return { ...block, totalSecs, sessions };
   })
     .filter((b) => b.sessions > 0)
     .sort((a, b) => b.totalSecs - a.totalSecs);
@@ -87,39 +73,7 @@ export function sessionDurationBuckets(records) {
   return DURATION_BUCKETS.map((b, i) => ({ ...b, count: counts[i] }));
 }
 
-// ── 4. 任务榜：投入时长 + 完成率合成一张表 ────────────────────────────────
-// 从前这里是两张表：历史页按时长排的「任务专注排行」、分析页按未完成率排的「难度榜」，
-// 同一批任务被并排列两遍。现在合成一张，按投入时长排，完成率只作为同一行的一列。
-
-// 完成率至少要这么多次出现才给出：只做过一次的任务恒为 0% 或 100%，没有参考价值。
-const MIN_RATE_SAMPLES = 2;
-
-/**
- * @param {FocusRecord[]} records 全部原始记录，用来数完成次数
- * @param {{text:string,totalSecs:number,sessions:number}[]} taskBreakdown
- *   computeFocusStats 已按时长排好序的任务榜，本函数只往每行补完成率
- */
-export function mergeTaskTable(records, taskBreakdown) {
-  const tally = new Map();
-  for (const r of records) {
-    // 无名任务统一归一到空串，显示时由页面 t("analytics.untitled") 补；
-    // 这里塞中文字面量的话，切英文就会冒出一条中文行。
-    const key = r.taskText || "";
-    const hit = tally.get(key) ?? { total: 0, completed: 0 };
-    hit.total += 1;
-    if (r.outcome === "completed") hit.completed += 1;
-    tally.set(key, hit);
-  }
-
-  return taskBreakdown.map((task) => {
-    const hit = tally.get(task.text || "");
-    const rate =
-      hit && hit.total >= MIN_RATE_SAMPLES ? hit.completed / hit.total : null;
-    return { ...task, completionRate: rate, hard: rate !== null && rate < 0.5 };
-  });
-}
-
-// ── 5. 分心高峰（按小时） ─────────────────────────────────────────────────
+// ── 4. 分心高峰（按小时） ─────────────────────────────────────────────────
 /** @param {DistractionRecord[]} distractions */
 export function distractionByHour(distractions) {
   const counts = new Array(24).fill(0);

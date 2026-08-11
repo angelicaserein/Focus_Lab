@@ -1,4 +1,5 @@
 import React from "react";
+import { useLanguage } from "@/context/LanguageContext";
 
 function prevDay(dateStr) {
   const [y, mo, d] = dateStr.split("-").map(Number);
@@ -10,9 +11,9 @@ function nextDay(dateStr) {
   return new Date(Date.UTC(y, mo - 1, d + 1)).toISOString().slice(0, 10);
 }
 
-function formatDateLabel(dateStr) {
+function formatDateLabel(dateStr, lang) {
   const [y, mo, d] = dateStr.split("-").map(Number);
-  return new Date(Date.UTC(y, mo - 1, d, 12)).toLocaleDateString("zh-CN", {
+  return new Date(Date.UTC(y, mo - 1, d, 12)).toLocaleDateString(lang === "en" ? "en-GB" : "zh-CN", {
     timeZone: "Europe/London",
     year: "numeric",
     month: "long",
@@ -22,23 +23,25 @@ function formatDateLabel(dateStr) {
 }
 
 export default function DateNavigation({ dateStr, isToday, hasSavedRecord, onDateChange }) {
+  const { t, lang } = useLanguage();
+
   return (
     <div className="research-date-nav">
       <button
         type="button"
         className="research-date-nav-btn"
         onClick={() => onDateChange(prevDay(dateStr))}
-        aria-label="前一天"
+        aria-label={t("research.prevDay")}
       >
         ←
       </button>
-      <span className="research-date-label">{formatDateLabel(dateStr)}</span>
+      <span className="research-date-label">{formatDateLabel(dateStr, lang)}</span>
       <button
         type="button"
         className="research-date-nav-btn"
         onClick={() => onDateChange(nextDay(dateStr))}
         disabled={isToday}
-        aria-label="后一天"
+        aria-label={t("research.nextDay")}
       >
         →
       </button>
@@ -47,7 +50,7 @@ export default function DateNavigation({ dateStr, isToday, hasSavedRecord, onDat
           hasSavedRecord ? "research-date-badge--saved" : "research-date-badge--unsaved"
         }`}
       >
-        {hasSavedRecord ? "已保存" : "未保存"}
+        {hasSavedRecord ? t("research.saved") : t("research.unsaved")}
       </span>
     </div>
   );

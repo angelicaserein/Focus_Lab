@@ -1,5 +1,8 @@
 import React, { useState, useRef } from "react";
-import { formatDate, formatMins, isDuePast } from "@/utils/task/taskAttrUtils";
+import {
+  formatDate, formatMins, isDuePast, attrUnit, optionLabel,
+} from "@/utils/task/taskAttrUtils";
+import { useLanguage } from "@/context/LanguageContext";
 import Popover from "@/components/ui/Popover";
 import AttrCellSelect from "@/pages/Tasks/cells/AttrCellSelect";
 import AttrCellMultiSelect from "@/pages/Tasks/cells/AttrCellMultiSelect";
@@ -8,12 +11,14 @@ import AttrCellDate from "@/pages/Tasks/cells/AttrCellDate";
 import AttrCellNumber from "@/pages/Tasks/cells/AttrCellNumber";
 
 export default function AttrCell({ attrDef, todo, onSave }) {
+  const { t, lang } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState("");
   const displayRef = useRef(null);
 
   const value = todo.attrs?.[attrDef.id];
-  const { id: attrId, type, options = [], unit } = attrDef;
+  const { id: attrId, type, options = [] } = attrDef;
+  const unit = attrUnit(t, attrDef);
 
   // date 也走 Popover（预设按钮 + 日期框），避免在窄单元格里内联展开挤破布局
   const isPopup = type === "select" || type === "multiselect" || type === "date";
@@ -76,16 +81,15 @@ export default function AttrCell({ attrDef, todo, onSave }) {
   return (
     <>
       <div className="attr-cell-display" ref={displayRef} onClick={startEdit}>
-        {renderValue(attrId, type, value, options, unit, todo.completed, deadlineActive)}
+        {renderValue({
+          attrId, type, value, options, unit,
+          completed: todo.completed, deadlineActive, t, lang,
+        })}
         {isDeadlineCell && value && (
           <button
             type="button"
             className={`ddl-toggle${deadlineActive ? " active" : ""}`}
-            title={
-              deadlineActive
-                ? "已设为截止日期：联动主页截止图与提醒 · 点击取消"
-                : "仅作日期，不计入截止 · 点击设为截止日期"
-            }
+            title={t(deadlineActive ? "tasks.ddl.on" : "tasks.ddl.off")}
             onClick={(e) => { e.stopPropagation(); onSave("dueDateActive", !deadlineActive); }}
           >
             {deadlineActive ? "⚑" : "⚐"}
@@ -119,11 +123,13 @@ export default function AttrCell({ attrDef, todo, onSave }) {
   );
 }
 
-function renderValue(attrId, type, value, options, unit, completed, deadlineActive = true) {
+function renderValue({
+  attrId, type, value, options, unit, completed, deadlineActive = true, t, lang,
+}) {
   if (type === "select") {
     const opt = options.find(o => o.id === value);
     return opt
-      ? <span className="attr-select-badge" style={{ "--badge-color": opt.color }}>{opt.label}</span>
+      ? <span className="attr-select-badge" style={{ "--badge-color": opt.color }}>{optionLabel(t, opt)}</span>
       : <span className="cell-empty">—</span>;
   }
   if (type === "multiselect") {
@@ -137,14 +143,14 @@ function renderValue(attrId, type, value, options, unit, completed, deadlineActi
           // 有颜色的自定义多选 → 彩色药丸；只有图标的内置标签 → 图标
           if (opt.color) {
             return (
-              <span key={id} className="attr-ms-pill" style={{ "--badge-color": opt.color }} title={opt.label}>
-                {opt.icon ? `${opt.icon} ${opt.label}` : opt.label}
+              <span key={id} className="attr-ms-pill" style={{ "--badge-color": opt.color }} title={optionLabel(t, opt)}>
+                {opt.icon ? `${opt.icon} ${optionLabel(t, opt)}` : optionLabel(t, opt)}
               </span>
             );
           }
           return (
-            <span key={id} className="attr-multiselect-chip" title={opt.label}>
-              {opt.icon ?? opt.label}
+            <span key={id} className="attr-multiselect-chip" title={optionLabel(t, opt)}>
+              {opt.icon ?? optionLabel(t, opt)}
             </span>
           );
         })}
@@ -166,10 +172,11 @@ function renderValue(attrId, type, value, options, unit, completed, deadlineActi
   if (type === "number") {
     if (!value) return <span className="cell-empty">—</span>;
     // 仅内置「预计时长」(或单位为分钟) 按 时:分 格式化；其余按 数值 + 单位 展示。
-    const isMinutes = attrId === "estimatedMins" || unit === "分" || unit === "分钟";
+    const isMinutes =
+      attrId === "estimatedMins" || ["分", "分钟", "min", "mins"].includes(unit);
     return (
       <span className="est-value">
-        {isMinutes ? formatMins(value) : `${value}${unit ? ` ${unit}` : ""}`}
+        {isMinutes ? formatMins(value, lang) : `${value}${unit ? ` ${unit}` : ""}`}
       </span>
     );
   }

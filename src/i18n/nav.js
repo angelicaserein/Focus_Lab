@@ -20,7 +20,6 @@ export default {
   "nav.ddl": { en: "Deadlines", zh: "DDL 提醒" },
   "nav.calendar": { en: "Timeline", zh: "时间轴" },
   "nav.gantt": { en: "Gantt", zh: "甘特图" },
-  "nav.history": { en: "History", zh: "历史记录" },
   "nav.analytics": { en: "Analytics", zh: "数据分析" },
   "nav.scenarioStats": { en: "Scenario Stats", zh: "情景统计" },
   "nav.distraction": { en: "Distractions", zh: "分心统计" },

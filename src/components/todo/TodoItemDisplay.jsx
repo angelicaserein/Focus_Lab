@@ -1,6 +1,7 @@
 import React from "react";
 import { TASK_TYPE_OPTIONS } from "@/utils/scenario/scenarioConstants";
 import { useLanguage } from "@/context/LanguageContext";
+import { optionLabel } from "@/utils/task/taskAttrUtils";
 
 const TAG_MAP = Object.fromEntries(TASK_TYPE_OPTIONS.map((o) => [o.id, o]));
 
@@ -34,7 +35,7 @@ export default function TodoItemDisplay({ todo, recurringDays, todoTags, onToggl
           <div className="todo-tags">
             {todoTags.map((id) => TAG_MAP[id] && (
               <span key={id} className="todo-tag-chip">
-                {TAG_MAP[id].icon} {TAG_MAP[id].label}
+                {TAG_MAP[id].icon} {optionLabel(t, TAG_MAP[id])}
               </span>
             ))}
           </div>

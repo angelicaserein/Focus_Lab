@@ -7,7 +7,7 @@ import { buildDayEntries, ACTIVITY_ORDER } from "@/utils/records/dayLog";
 import { formatDuration, formatTimestamp } from "@/utils/time";
 import "./DayLog.css";
 
-// 一天的流水（唯一一套渲染）：/history 按天铺开全部，/calendar 只铺选中的那天。
+// 一天的流水（唯一一套渲染）：时间轴页的「全部记录」视图按天铺开全部，「日历」视图只铺选中的那天。
 // 顶部是当日动作小结（完成 / 添加 / 删除各几条），下面按时刻从新到旧混排会话卡与使用记录。
 
 const ACTIVITY_ICONS = {
@@ -71,7 +71,16 @@ function SessionCard({ entry, t }) {
   return (
     <div className="daylog-session">
       <div className="daylog-session-head">
-        <span className="daylog-time">{formatTimestamp(entry.ts)}</span>
+        <span className="daylog-time">
+          {formatTimestamp(entry.ts)}
+          {/* 几点开始 → 几点结束；跨度不足一分钟时两头同形，只留开始 */}
+          {formatTimestamp(entry.endedAt) !== formatTimestamp(entry.ts) && (
+            <>
+              <span className="daylog-time-sep">–</span>
+              {formatTimestamp(entry.endedAt)}
+            </>
+          )}
+        </span>
 
         {entry.scenarioTitle && (
           <span className="daylog-scenario">{entry.scenarioTitle}</span>

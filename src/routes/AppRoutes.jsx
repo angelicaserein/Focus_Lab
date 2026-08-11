@@ -17,7 +17,6 @@ const ROUTES = [
   { path: "/skilltree",      importer: () => import("@/pages/SkillTree") },
   { path: "/focus",          importer: () => import("@/pages/Focus") },
   { path: "/flasks",         importer: () => import("@/pages/Flasks") },
-  { path: "/history",        importer: () => import("@/pages/History") },
   { path: "/scenario",       importer: () => import("@/pages/Scenario") },
   { path: "/reward",         importer: () => import("@/pages/Reward") },
   { path: "/research",       importer: () => import("@/pages/Research") },
@@ -85,6 +84,8 @@ export default function AppRoutes() {
               ))}
               {/* 心流任务已并入任务库（成为其中一个视图），老链接直接接过去 */}
               <Route path="/flow-tasks" element={<Navigate to="/tasks" replace />} />
+              {/* 历史记录已并入时间轴（成为其中一个视图），老链接直接接过去 */}
+              <Route path="/history" element={<Navigate to="/calendar" replace />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

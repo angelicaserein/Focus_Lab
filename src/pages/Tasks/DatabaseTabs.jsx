@@ -1,3 +1,4 @@
+import { attrName as dbName } from "@/utils/task/taskAttrUtils";
 import React, { useState, useRef, useEffect } from "react";
 import { useDatabases, DEFAULT_DB_ID } from "@/context/DatabaseContext";
 import { useTodos } from "@/context/TodoContext";
@@ -36,7 +37,7 @@ export default function DatabaseTabs() {
   const startRename = (db) => {
     closeMenu();
     setRenamingId(db.id);
-    setRenameText(db.name);
+    setRenameText(dbName(t, db));
   };
 
   const commitRename = () => {
@@ -48,7 +49,7 @@ export default function DatabaseTabs() {
     closeMenu();
     if (db.id === DEFAULT_DB_ID) return;
     const ok = await confirm({
-      title: t("tasks.db.confirmDelete", { name: db.name }),
+      title: t("tasks.db.confirmDelete", { name: dbName(t, db) }),
       message: t("tasks.db.confirmDeleteDetail"),
       confirmLabel: t("common.delete"),
       danger: true,
@@ -84,9 +85,9 @@ export default function DatabaseTabs() {
               className="db-tab-label"
               onClick={() => setActiveDatabase(db.id)}
               onDoubleClick={() => startRename(db)}
-              title={db.name}
+              title={dbName(t, db)}
             >
-              {db.name}
+              {dbName(t, db)}
             </button>
             {isActive && (
               <button

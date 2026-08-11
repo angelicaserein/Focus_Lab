@@ -28,4 +28,5 @@ export default {
   "distraction.reasons.untagged": { en: "Untagged", zh: "未标注" },
   "distraction.sessions.title": { en: "Session by session", zh: "按会话明细" },
   // 历史页/分析页曾各挂一个「分心统计 →」入口，页面职责划清后撤掉，文案随之删除。
+  "distraction.hourTick": { en: "{hour}:00", zh: "{hour}时" },
 };

@@ -123,4 +123,6 @@ export default {
   "settings.data.label.notes": { en: "Notes", zh: "随记" },
   "settings.data.label.distractions": { en: "Distractions", zh: "分心" },
   "settings.data.label.chatHistory": { en: "Chat", zh: "聊天" },
+  "settings.data.errParse": { en: "Could not parse the JSON file", zh: "无法解析 JSON 文件" },
+  "settings.data.errFormat": { en: "Invalid file format", zh: "文件格式无效" },
 };

@@ -67,7 +67,15 @@ function loadScenarioOptions() {
     const list = Array.isArray(stored?.[kind]) ? stored[kind] : DEFAULT_SCENARIO_OPTIONS[kind];
     out[kind] = list
       .filter((o) => o && typeof o.id === "string")
-      .map((o) => ({ id: o.id, label: o.label ?? "", ...(o.icon ? { icon: o.icon } : {}) }));
+      .map((o) => ({
+        id: o.id,
+        // 出厂选项只带 labelKey（文案在 i18n 里，跟着语言走），用户自建/改过名的带
+        // label。两个字段都要留住：只留 label 的话出厂选项会变成一排空按钮。
+        // 显示统一走 optionLabel(t, opt)。
+        ...(o.labelKey ? { labelKey: o.labelKey } : {}),
+        label: o.label ?? "",
+        ...(o.icon ? { icon: o.icon } : {}),
+      }));
   }
   return out;
 }
@@ -143,8 +151,12 @@ export function ScenarioProvider({ children }) {
       [kind]: (prev[kind] ?? []).map((o) => {
         if (o.id !== id) return o;
         const icon = patch.icon ?? o.icon;
+        // 改过名就不再跟着语言走了：用户起的名字是他自己的话，不该在切语言时
+        // 被出厂文案顶掉。所以一旦落了 label，labelKey 就丢掉。
+        const renamed = patch.label !== undefined;
         return {
           id: o.id,
+          ...(renamed || !o.labelKey ? {} : { labelKey: o.labelKey }),
           label: patch.label ?? o.label,
           ...(icon ? { icon } : {}),
         };

@@ -1,6 +1,10 @@
 import React from "react";
+import { optionLabel } from "@/utils/task/taskAttrUtils";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function AttrCellMultiSelect({ attrDef, value = [], onChange, onClose }) {
+  const { t } = useLanguage();
+
   const toggle = (id) => {
     const next = value.includes(id)
       ? value.filter(v => v !== id)
@@ -18,12 +22,12 @@ export default function AttrCellMultiSelect({ attrDef, value = [], onChange, onC
           onClick={() => toggle(opt.id)}
         >
           {opt.icon && <span className="opt-icon">{opt.icon}</span>}
-          {opt.label}
+          {optionLabel(t, opt)}
         </button>
       ))}
       {value.length > 0 && (
         <button className="popup-opt clear-opt" onClick={() => { onChange([]); onClose(); }}>
-          清除
+          {t("tasks.clear")}
         </button>
       )}
     </div>

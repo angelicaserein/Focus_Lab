@@ -1,37 +1,44 @@
 import React, { useState } from "react";
 import { useDDL } from "@/context/DDLContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 // 仅开发环境使用的调试面板：用 MOCK 数据预览各种倒计时/卡片/弹窗状态。
 // 由 index.jsx 在 import.meta.env.DEV 下挂载，生产构建会被 tree-shake 掉。
 
-const MOCK_COUNTDOWNS = [
-  { days: -5,  label: "已过期 5 天",  cls: "overdue" },
-  { days: 0,   label: "今天截止",     cls: "overdue" },
-  { days: 1,   label: "明天截止",     cls: "urgent"  },
-  { days: 3,   label: "还有 3 天",    cls: "urgent"  },
-  { days: 14,  label: "还有 14 天",   cls: ""        },
-];
+const MOCK_COUNTDOWNS = [-5, 0, 1, 3, 14].map((days) => ({
+  days,
+  cls: days <= 0 ? "overdue" : days <= 3 ? "urgent" : "",
+}));
 
 const MOCK_TODAY = [
-  { task: "期末论文",  msg: "完成初稿",   days: 2,  cls: "urgent"  },
-  { task: "项目答辩",  msg: "准备 PPT",   days: -1, cls: "overdue" },
-  { task: "课程作业",  msg: "整理文献",   days: 0,  cls: "overdue" },
+  { task: "ddl.mock.thesis",   msg: "ddl.mock.draft",  days: 2,  cls: "urgent"  },
+  { task: "ddl.mock.defense",  msg: "ddl.mock.slides", days: -1, cls: "overdue" },
+  { task: "ddl.mock.homework", msg: "ddl.mock.refs",   days: 0,  cls: "overdue" },
 ];
 
 const MOCK_CHECKPOINTS = [
-  { label: "14天前", msg: "收集文献",     done: true,  due: false },
-  { label: "7天前",  msg: "完成初稿",     done: false, due: true  },
-  { label: "3天前",  msg: "修改润色",     done: false, due: false },
-  { label: "1天前",  msg: "最终校对",     done: false, due: false },
+  { days: 14, msg: "ddl.mock.collect",   done: true,  due: false },
+  { days: 7,  msg: "ddl.mock.draft",     done: false, due: true  },
+  { days: 3,  msg: "ddl.mock.polish",    done: false, due: false },
+  { days: 1,  msg: "ddl.mock.proofread", done: false, due: false },
 ];
 
 const MOCK_CARDS = [
-  { title: "期末论文",  dueStr: "6月30日截止", days: -3,  cls: "overdue", cardCls: "card-overdue" },
-  { title: "项目答辩",  dueStr: "6月23日截止", days: 2,   cls: "urgent",  cardCls: "" },
-  { title: "周报提交",  dueStr: "7月10日截止", days: 19,  cls: "",        cardCls: "" },
+  { title: "ddl.mock.thesis",  due: [6, 30], days: -3, cls: "overdue", cardCls: "card-overdue" },
+  { title: "ddl.mock.defense", due: [6, 23], days: 2,  cls: "urgent",  cardCls: "" },
+  { title: "ddl.mock.weekly",  due: [7, 10], days: 19, cls: "",        cardCls: "" },
 ];
 
+// 倒计时文案与真实卡片同源，别在这儿另写一套。
+const countdown = (t, days) =>
+  days < 0
+    ? t("ddl.countdown.overdue", { days: -days })
+    : days === 0
+      ? t("ddl.countdown.today")
+      : t("ddl.countdown.days", { days });
+
 export default function DDLDebugPanel() {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const { setModalForcedOpen } = useDDL();
 
@@ -39,43 +46,43 @@ export default function DDLDebugPanel() {
     <div className="ddl-debug-wrap">
       {open && (
         <div className="ddl-debug-panel">
-          <div className="ddl-debug-section-label">弹窗</div>
+          <div className="ddl-debug-section-label">{t("ddl.debug.modal")}</div>
           <button
             className="ddl-debug-modal-btn"
             onClick={() => setModalForcedOpen(true)}
           >
-            预览提醒弹窗
+            {t("ddl.debug.previewModal")}
           </button>
 
           <div className="ddl-debug-divider" />
 
-          <div className="ddl-debug-section-label">倒计时标签</div>
+          <div className="ddl-debug-section-label">{t("ddl.debug.countdowns")}</div>
           <div className="ddl-debug-row">
             {MOCK_COUNTDOWNS.map((c) => (
-              <span key={c.days} className={`ddl-countdown ${c.cls}`}>{c.label}</span>
+              <span key={c.days} className={`ddl-countdown ${c.cls}`}>{countdown(t, c.days)}</span>
             ))}
           </div>
 
           <div className="ddl-debug-divider" />
 
-          <div className="ddl-debug-section-label">今日提醒区块</div>
+          <div className="ddl-debug-section-label">{t("ddl.debug.today")}</div>
           <div className="ddl-today ddl-debug-mock-today">
             <div className="ddl-today-hd">
               <span className="ddl-today-icon">⚠</span>
-              <span className="ddl-today-title">今日提醒</span>
-              <span className="ddl-today-count">{MOCK_TODAY.length} 条</span>
+              <span className="ddl-today-title">{t("ddl.today.title")}</span>
+              <span className="ddl-today-count">{t("ddl.today.count", { count: MOCK_TODAY.length })}</span>
             </div>
             <div className="ddl-today-list">
               {MOCK_TODAY.map((item, i) => (
                 <div key={i} className="ddl-today-item">
                   <button className="ddl-today-check">○</button>
                   <div className="ddl-today-content">
-                    <span className="ddl-today-task">{item.task}</span>
+                    <span className="ddl-today-task">{t(item.task)}</span>
                     <span className="ddl-today-sep">→</span>
-                    <span className="ddl-today-msg">{item.msg}</span>
+                    <span className="ddl-today-msg">{t(item.msg)}</span>
                   </div>
                   <span className={`ddl-countdown ${item.cls}`}>
-                    {item.days < 0 ? `已过期 ${-item.days} 天` : item.days === 0 ? "今天截止" : `还有 ${item.days} 天`}
+                    {countdown(t, item.days)}
                   </span>
                 </div>
               ))}
@@ -84,13 +91,13 @@ export default function DDLDebugPanel() {
 
           <div className="ddl-debug-divider" />
 
-          <div className="ddl-debug-section-label">提醒节点状态</div>
+          <div className="ddl-debug-section-label">{t("ddl.debug.checkpoints")}</div>
           <div className="ddl-checkpoints ddl-debug-mock-cps">
             {MOCK_CHECKPOINTS.map((cp, i) => (
               <div key={i} className={`ddl-cp${cp.done ? " done" : ""}${cp.due ? " due" : ""}`}>
                 <button className="ddl-cp-check">{cp.done ? "✓" : "○"}</button>
-                <span className="ddl-cp-days">{cp.label}</span>
-                <span className="ddl-cp-msg">{cp.msg}</span>
+                <span className="ddl-cp-days">{t("ddl.card.daysBefore", { days: cp.days })}</span>
+                <span className="ddl-cp-msg">{t(cp.msg)}</span>
                 <span className="ddl-debug-cp-tag">
                   {cp.done ? "done" : cp.due ? "due ⚡" : "pending"}
                 </span>
@@ -100,16 +107,16 @@ export default function DDLDebugPanel() {
 
           <div className="ddl-debug-divider" />
 
-          <div className="ddl-debug-section-label">任务卡片状态</div>
+          <div className="ddl-debug-section-label">{t("ddl.debug.cards")}</div>
           <div className="ddl-debug-cards">
             {MOCK_CARDS.map((c, i) => (
               <div key={i} className={`ddl-card ddl-debug-mock-card ${c.cardCls}`}>
                 <div className="ddl-card-header">
-                  <span className="ddl-card-title">{c.title}</span>
+                  <span className="ddl-card-title">{t(c.title)}</span>
                   <div className="ddl-card-meta">
-                    <span className="ddl-card-date">{c.dueStr}</span>
+                    <span className="ddl-card-date">{t("ddl.due", { m: c.due[0], d: c.due[1] })}</span>
                     <span className={`ddl-countdown ${c.cls}`}>
-                      {c.days < 0 ? `已过期 ${-c.days} 天` : c.days === 0 ? "今天截止" : `还有 ${c.days} 天`}
+                      {countdown(t, c.days)}
                     </span>
                   </div>
                 </div>
@@ -122,7 +129,7 @@ export default function DDLDebugPanel() {
         className={`ddl-debug-toggle${open ? " active" : ""}`}
         onClick={() => setOpen((v) => !v)}
       >
-        调试
+        {t("ddl.debug.toggle")}
       </button>
     </div>
   );

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import useScenarioAnalytics from "@/hooks/scenario/useScenarioAnalytics";
 import { useLanguage } from "@/context/LanguageContext";
 import { formatDuration, formatRelativeTime } from "@/utils/time";
-import "../History/History.css";
+import "@/components/records/records.css";
 import "./ScenarioStats.css";
 
 export default function ScenarioStatsPage() {

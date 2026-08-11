@@ -15,6 +15,7 @@
 //  三模式的机械件（配置 / hasApiKey / delay / SDK 直连 / 代理请求 / JSON 提取）见 aiClient.js。
 
 import { IS_PROD, hasApiKey, delay, chatComplete, postProxy, extractJson } from "@/utils/ai/aiClient";
+import { attrName, attrUnit, optionLabel } from "@/utils/task/taskAttrUtils";
 
 export { hasApiKey };
 
@@ -25,30 +26,34 @@ const KNOWN_ATTR_IDS = ["priority", "tags", "dueDate", "estimatedMins", "notes"]
 // ── prompt 构建 ──────────────────────────────────────────────
 
 // 描述某个属性列可填的值，供模型参考（select/multiselect 给出合法 option）。
-function describeAttr(attr) {
+// 出厂列与出厂选项的文案在 i18n 里（nameKey / labelKey / unitKey），所以要过 t——
+// 直接读 attr.name 的话，喂给模型的是一串 undefined，它就只能瞎猜列的含义。
+function describeAttr(attr, t) {
+  const name = attrName(t, attr);
   if (attr.type === "select" || attr.type === "multiselect") {
     const opts = (attr.options ?? [])
-      .map((o) => `"${o.id}"(${o.label})`)
+      .map((o) => `"${o.id}"(${optionLabel(t, o)})`)
       .join(" / ");
     const kind = attr.type === "multiselect" ? "字符串数组，取值仅限" : "字符串，取值仅限";
-    return `${attr.id}（${attr.name}）：${kind} ${opts}`;
+    return `${attr.id}（${name}）：${kind} ${opts}`;
   }
-  if (attr.type === "date") return `${attr.id}（${attr.name}）：字符串，格式 YYYY-MM-DD`;
+  if (attr.type === "date") return `${attr.id}（${name}）：字符串，格式 YYYY-MM-DD`;
   if (attr.type === "number") {
-    const unit = attr.unit ? `，单位「${attr.unit}」` : "";
-    return `${attr.id}（${attr.name}）：数字${unit}`;
+    const unit = attrUnit(t, attr);
+    return `${attr.id}（${name}）：数字${unit ? `，单位「${unit}」` : ""}`;
   }
-  return `${attr.id}（${attr.name}）：字符串`;
+  return `${attr.id}（${name}）：字符串`;
 }
 
 // 从目标库的列 schema 生成「可用字段」说明。空库时只剩标题。
 // 仅列出 KNOWN_ATTR_IDS 中、且目标库确实拥有的列，避免让模型给自定义列瞎填。
-export function buildSchemaHint(database) {
+// t 由调用方（hook）传入，默认回退成「key 原样返回」，测试与无语言上下文的调用不至于崩。
+export function buildSchemaHint(database, t = (k) => k) {
   const attrs = (database?.attrs ?? []).filter((a) => KNOWN_ATTR_IDS.includes(a.id));
   if (!attrs.length) {
     return "该任务库只有任务标题，没有其它字段，因此每个任务只需输出 text。";
   }
-  const lines = attrs.map((a) => `- ${describeAttr(a)}`);
+  const lines = attrs.map((a) => `- ${describeAttr(a, t)}`);
   return [
     "每个任务可附带以下可选字段（不确定就省略，不要编造）：",
     ...lines,
@@ -167,11 +172,11 @@ function sampleTasks(database, input = "") {
 
 // 返回候选任务数组 [{ text, attrs }]。attrs 此时仍是「原始」值，
 // 由调用方（hook）在落库时用 sanitizeTaskAttrs 针对目标库再清洗一次。
-export async function extractTasksFromText(text, { database } = {}) {
+export async function extractTasksFromText(text, { database, t } = {}) {
   const input = (text ?? "").trim();
   if (!input) return [];
 
-  const schemaHint = buildSchemaHint(database);
+  const schemaHint = buildSchemaHint(database, t);
 
   // 本地开发且无 key → 示例候选
   if (!hasApiKey()) {

@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { useTodos } from "@/context/TodoContext";
 import { useDatabases } from "@/context/DatabaseContext";
 import { extractTasksFromText, sanitizeTaskAttrs } from "@/utils/ai/aiTasks";
+import { useLanguage } from "@/context/LanguageContext";
 
 // 编排「AI 笔记 → 任务」的一次会话。
 // 状态机：idle → loading → review → (commit) → idle ；出错则 error。
@@ -14,6 +15,7 @@ import { extractTasksFromText, sanitizeTaskAttrs } from "@/utils/ai/aiTasks";
 export default function useTaskExtraction() {
   const { addTodo, setTodoAttr } = useTodos();
   const { activeDatabase, activeDatabaseId } = useDatabases();
+  const { t } = useLanguage();
 
   const [status, setStatus] = useState("idle"); // idle | loading | review | error
   const [candidates, setCandidates] = useState([]);
@@ -28,15 +30,15 @@ export default function useTaskExtraction() {
       setError(null);
       setAddedCount(0);
       try {
-        const tasks = await extractTasksFromText(input, { database: activeDatabase });
+        const tasks = await extractTasksFromText(input, { database: activeDatabase, t });
         setCandidates(tasks);
         setStatus("review");
       } catch (e) {
-        setError(e?.message || "AI 整理失败，请稍后再试");
+        setError(e?.message || t("brainDump.failed"));
         setStatus("error");
       }
     },
-    [status, activeDatabase],
+    [status, activeDatabase, t],
   );
 
   // tasks: 用户在面板里勾选并可能改过标题/属性的 [{ text, attrs }]

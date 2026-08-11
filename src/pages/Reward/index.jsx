@@ -1,6 +1,7 @@
 import React from "react";
 import { useReward, SHOP_ITEMS } from "@/context/RewardContext";
-import { SHOP_CATEGORIES } from "@/utils/shopConfig";
+import { SHOP_CATEGORIES, shopItemName } from "@/utils/shopConfig";
+import { useLanguage } from "@/context/LanguageContext";
 import useToast from "@/hooks/common/useToast";
 import EmojiPicker from "@/components/ui/EmojiPicker";
 import ShopCard from "./ShopCard";
@@ -23,28 +24,32 @@ export default function RewardPage() {
     removeCustomItem,
   } = useReward();
 
+  const { t } = useLanguage();
   const { toast, showToast } = useToast();
   const onPurchased = (item) =>
-    showToast({ message: `${item.name} 兑换成功！`, icon: item.icon });
+    showToast({
+      message: t("reward.purchased", { name: shopItemName(t, item) }),
+      icon: item.icon,
+    });
 
   const { form, setField, editingId, startEdit, cancelEdit, handleSubmit, canSubmit } =
-    useCustomItemForm({ addCustomItem, updateCustomItem, showToast });
+    useCustomItemForm({ addCustomItem, updateCustomItem, showToast, t });
 
-  const debug = useCoinsDebug({ coins, setCoinsTo, showToast });
+  const debug = useCoinsDebug({ coins, setCoinsTo, showToast, t });
 
   return (
     <div className="page-reward">
       <div className="reward-headline">
-        <h1>奖励</h1>
+        <h1>{t("reward.title")}</h1>
         {DEBUG_ENABLED && (
           <button
             type="button"
             className="reward-debug-btn"
-            title="调试：修改金币"
-            aria-label="调试：修改金币"
+            title={t("reward.debug.open")}
+            aria-label={t("reward.debug.open")}
             onClick={debug.openDebug}
           >
-            🛠️ 调试
+            {t("reward.debug.btn")}
           </button>
         )}
       </div>
@@ -60,25 +65,27 @@ export default function RewardPage() {
 
       {/* 资产卡 */}
       <div className="reward-asset-card">
-        <div className="reward-asset-label">我的资产</div>
+        <div className="reward-asset-label">{t("reward.asset.label")}</div>
         <div className="reward-asset-value">
           <span className="reward-coin-icon">🪙</span>
           <span className="reward-coin-num">{coins}</span>
-          <span className="reward-coin-unit">金币</span>
+          <span className="reward-coin-unit">{t("reward.asset.unit")}</span>
         </div>
-        <div className="reward-asset-hint">完成专注任务即可赚取金币（1 秒 = 1 枚）</div>
+        <div className="reward-asset-hint">{t("reward.asset.hint")}</div>
       </div>
 
       {/* 开发者商城 */}
       <div className="reward-section">
         <div className="reward-shop-header">
           <div>
-            <div className="reward-section-title">开发者商城</div>
+            <div className="reward-section-title">{t("reward.shop.title")}</div>
             <div className="reward-shop-header-sub">
-              用金币解锁皮肤，或兑换犒劳自己的小奖励
+              {t("reward.shop.sub")}
             </div>
           </div>
-          <span className="reward-shop-header-count">{SHOP_ITEMS.length} 件好物</span>
+          <span className="reward-shop-header-count">
+            {t("reward.shop.count", { count: SHOP_ITEMS.length })}
+          </span>
         </div>
 
         {SHOP_CATEGORIES.map((cat) => {
@@ -88,7 +95,7 @@ export default function RewardPage() {
             <div key={cat.tag} className="shop-group">
               <div className="shop-group-title">
                 <span className="shop-group-icon">{cat.icon}</span>
-                {cat.label}
+                {t(cat.labelKey)}
               </div>
               <div className="shop-grid">
                 {items.map((item) => (
@@ -103,7 +110,7 @@ export default function RewardPage() {
       {/* 我的自定义 */}
       <div className="reward-section">
         <div className="reward-section-title">
-          {editingId ? "编辑自定义商品" : "我的自定义"}
+          {editingId ? t("reward.custom.editTitle") : t("reward.custom.title")}
         </div>
 
         <form className="reward-custom-form" onSubmit={handleSubmit}>
@@ -111,8 +118,8 @@ export default function RewardPage() {
           <input
             className="reward-custom-input reward-custom-name"
             value={form.name}
-            placeholder="商品名称"
-            aria-label="商品名称"
+            placeholder={t("reward.custom.name")}
+            aria-label={t("reward.custom.name")}
             onChange={(e) => setField({ name: e.target.value })}
           />
           <input
@@ -120,19 +127,19 @@ export default function RewardPage() {
             type="number"
             min="1"
             value={form.price}
-            placeholder="花费"
-            aria-label="花费金币"
+            placeholder={t("reward.custom.price")}
+            aria-label={t("reward.custom.priceAria")}
             onChange={(e) => setField({ price: e.target.value })}
           />
           <input
             className="reward-custom-input reward-custom-desc"
             value={form.desc}
-            placeholder="描述（可选）"
-            aria-label="描述"
+            placeholder={t("reward.custom.desc")}
+            aria-label={t("reward.custom.descAria")}
             onChange={(e) => setField({ desc: e.target.value })}
           />
           <button className="reward-custom-add" type="submit" disabled={!canSubmit}>
-            {editingId ? "保存" : "添加"}
+            {editingId ? t("reward.custom.save") : t("reward.custom.add")}
           </button>
           {editingId && (
             <button
@@ -140,7 +147,7 @@ export default function RewardPage() {
               className="reward-custom-cancel"
               onClick={cancelEdit}
             >
-              取消
+              {t("common.cancel")}
             </button>
           )}
         </form>
@@ -159,7 +166,7 @@ export default function RewardPage() {
           </div>
         ) : (
           <div className="reward-custom-empty">
-            还没有自定义商品，添加一个奖励犒劳自己吧 ✨
+            {t("reward.custom.empty")}
           </div>
         )}
       </div>

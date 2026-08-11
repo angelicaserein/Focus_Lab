@@ -27,7 +27,12 @@ function reducer(state, action) {
     case ADD_DB:
       return [...state, action.payload];
     case RENAME_DB:
-      return state.map(d => d.id === action.payload.id ? { ...d, name: action.payload.name } : d);
+      // 改过名字就不再跟 i18n 走，清掉 nameKey。
+      return state.map(d =>
+        d.id === action.payload.id
+          ? { ...d, name: action.payload.name, nameKey: undefined }
+          : d,
+      );
     case DELETE_DB:
       return state.filter(d => d.id !== action.payload);
     case REORDER_DB: {
@@ -61,7 +66,7 @@ function loadDatabases() {
   const data = loadVersioned(STORAGE_KEYS.DATABASES, WRAPPER_VERSION, null);
   if (Array.isArray(data) && data.length) return data;
   // 全新安装：默认空库（无内置列，符合「默认就是什么都没有」）
-  return [{ id: DEFAULT_DB_ID, name: "任务", order: 0, attrs: [] }];
+  return [{ id: DEFAULT_DB_ID, nameKey: "tasks.db.defaultName", order: 0, attrs: [] }];
 }
 
 function loadActiveDbId(databases) {
@@ -110,7 +115,8 @@ export function DatabaseProvider({ children }) {
       type: ADD_DB,
       payload: {
         id,
-        name: name.trim() || "新建库",
+        // 没填名字就挂 nameKey，跟着语言显示「新建库」。
+        ...(name.trim() ? { name: name.trim() } : { nameKey: "tasks.db.newName" }),
         order: maxOrder + 1,
         attrs: (tpl?.attrs ?? []).map(cloneAttr),
       },

@@ -4,9 +4,9 @@ export const ATTR_COLOR_SWATCHES = [
 ];
 
 export const ATTR_TYPE_OPTIONS = [
-  { id: "select",      label: "单选" },
-  { id: "multiselect", label: "多选" },
-  { id: "text",        label: "文本" },
-  { id: "date",        label: "日期" },
-  { id: "number",      label: "数字" },
+  { id: "select",      labelKey: "tasks.type.select" },
+  { id: "multiselect", labelKey: "tasks.type.multiselect" },
+  { id: "text",        labelKey: "tasks.type.text" },
+  { id: "date",        labelKey: "tasks.type.date" },
+  { id: "number",      labelKey: "tasks.type.number" },
 ];

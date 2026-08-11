@@ -4,7 +4,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { formatTimestamp, formatSessionDate } from "@/utils/time";
 import { buildSessions } from "@/utils/analytics/sessionSummaryUtils";
 
-// 历史页的随记回顾。分心记录不在这里——它有自己的一面：/distraction。
+// 时间轴页的随记回顾。分心记录不在这里——它有自己的一面：/distraction。
 export default function SessionSummary({ notes = [] }) {
   const { t, lang } = useLanguage();
 

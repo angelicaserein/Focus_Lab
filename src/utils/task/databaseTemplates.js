@@ -10,14 +10,14 @@ import { TASK_ATTR_DEFAULTS } from "@/utils/task/taskAttrDefaults";
 export const DATABASE_TEMPLATES = [
   {
     id: "blank",
-    name: "空白",
-    description: "只有任务名，列全部自己搭建",
+    nameKey: "tasks.tpl.blank",
+    descKey: "tasks.tpl.blankDesc",
     attrs: [],
   },
   {
     id: "classic",
-    name: "经典任务",
-    description: "优先级、标签、截止日期、预计时长、备注",
+    nameKey: "tasks.tpl.classic",
+    descKey: "tasks.tpl.classicDesc",
     attrs: TASK_ATTR_DEFAULTS.map(a => ({ ...a, system: false })),
   },
 ];

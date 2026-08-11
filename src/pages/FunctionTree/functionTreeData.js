@@ -44,7 +44,6 @@ export const FUNCTION_BRANCHES = [
     color: "#34d399",
     features: [
       { path: "/calendar",       labelKey: "nav.calendar",      icon: "📆" },
-      { path: "/history",        labelKey: "nav.history",       icon: "🕰️" },
       { path: "/analytics",      labelKey: "nav.analytics",     icon: "📈" },
       { path: "/distraction",    labelKey: "nav.distraction",   icon: "⚡" },
     ],

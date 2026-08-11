@@ -5,9 +5,11 @@ import useResearchRecord from "@/hooks/useResearchRecord";
 import DateNavigation from "@/pages/Research/DateNavigation";
 import ScaleGrid from "@/pages/Research/ScaleGrid";
 import AutoDataCard from "@/pages/Research/AutoDataCard";
+import { useLanguage } from "@/context/LanguageContext";
 import "./Research.css";
 
 export default function ResearchPage() {
+  const { t } = useLanguage();
   const [dateStr, setDateStr] = useState(() => todayDateStr());
   const today = todayDateStr();
   const isToday = dateStr === today;
@@ -27,7 +29,7 @@ export default function ResearchPage() {
   return (
     <div className="page-research">
       <div className="research-headline">
-        <h1>每日研究记录</h1>
+        <h1>{t("research.title")}</h1>
         <DateNavigation
           dateStr={dateStr}
           isToday={isToday}
@@ -38,26 +40,26 @@ export default function ResearchPage() {
 
       {/* 系统记录（自动） */}
       <section className="research-section">
-        <div className="research-section-title">系统记录</div>
-        <p className="research-section-hint">由专注会话自动计算，只读</p>
+        <div className="research-section-title">{t("research.auto.title")}</div>
+        <p className="research-section-hint">{t("research.auto.hint")}</p>
         <AutoDataCard autoData={autoData} isToday={isToday} />
       </section>
 
       {/* 自评量表 */}
       <section className="research-section">
-        <div className="research-section-title">自评量表</div>
-        <p className="research-section-hint">点击选择评分，再次点击可取消</p>
+        <div className="research-section-title">{t("research.scale.title")}</div>
+        <p className="research-section-hint">{t("research.scale.hint")}</p>
         <ScaleGrid scales={draft.scales} onChange={setScale} />
       </section>
 
       {/* 回顾记录（手动数字） */}
       <section className="research-section">
-        <div className="research-section-title">回顾记录</div>
-        <p className="research-section-hint">根据主观感受填写，可与系统记录不同</p>
+        <div className="research-section-title">{t("research.retro.title")}</div>
+        <p className="research-section-hint">{t("research.retro.hint")}</p>
         <div className="research-retro-rows">
           <div className="research-retro-row">
             <label className="research-retro-label" htmlFor="retro-distractions">
-              回顾分心次数
+              {t("research.retro.distractions")}
             </label>
             <input
               id="retro-distractions"
@@ -66,12 +68,12 @@ export default function ResearchPage() {
               className="research-number-input"
               value={draft.retrospective.distractionCount}
               onChange={(e) => setRetro("distractionCount", e.target.value)}
-              placeholder="次"
+              placeholder={t("research.retro.distractionsUnit")}
             />
           </div>
           <div className="research-retro-row">
             <label className="research-retro-label" htmlFor="retro-procrastination">
-              自感拖延时间
+              {t("research.retro.procrastination")}
             </label>
             <input
               id="retro-procrastination"
@@ -80,7 +82,7 @@ export default function ResearchPage() {
               className="research-number-input"
               value={draft.retrospective.procrastinationMins}
               onChange={(e) => setRetro("procrastinationMins", e.target.value)}
-              placeholder="分钟"
+              placeholder={t("research.retro.procrastinationUnit")}
             />
           </div>
         </div>
@@ -88,32 +90,32 @@ export default function ResearchPage() {
 
       {/* 主观感受 */}
       <section className="research-section">
-        <div className="research-section-title">主观感受</div>
-        <p className="research-section-hint">自由记录今天的专注体验</p>
+        <div className="research-section-title">{t("research.experience.title")}</div>
+        <p className="research-section-hint">{t("research.experience.hint")}</p>
         <textarea
           className="research-textarea"
           rows={5}
           value={draft.experience}
           onChange={(e) => setExperience(e.target.value)}
-          placeholder="今天专注时感觉怎么样？有什么想记录的……"
+          placeholder={t("research.experience.placeholder")}
         />
       </section>
 
       {/* 操作栏 */}
       <div className="research-action-bar">
         <button type="button" className="research-save-btn" onClick={handleSave}>
-          {existingRecord ? "更新记录" : "保存记录"}
+          {existingRecord ? t("research.update") : t("research.save")}
         </button>
         <button
           type="button"
           className="research-export-btn"
-          onClick={() => exportResearchCSV(records)}
+          onClick={() => exportResearchCSV(records, t)}
           disabled={records.length === 0}
         >
-          导出 CSV
+          {t("research.export")}
         </button>
         <span className={`research-save-status${savedAnim ? " visible" : ""}`}>
-          已保存 ✓
+          {t("research.savedTick")}
         </span>
       </div>
     </div>

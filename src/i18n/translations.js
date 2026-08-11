@@ -24,6 +24,10 @@ import settings from "./settings";
 import gantt from "./gantt";
 import reminder from "./reminder";
 import tutorial from "./tutorial";
+import reward from "./reward";
+import research from "./research";
+import calendar from "./calendar";
+import scenario from "./scenario";
 
 export const LANGUAGES = [
   { id: "en", label: "English" },
@@ -57,6 +61,10 @@ const MODULES = [
   gantt,
   reminder,
   tutorial,
+  reward,
+  research,
+  calendar,
+  scenario,
 ];
 
 // 把 { key: { en, zh } } 的并置结构，按语言拆平成 { en: {...}, zh: {...} }。

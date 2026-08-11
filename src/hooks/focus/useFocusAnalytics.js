@@ -5,7 +5,6 @@ import {
   hourlyFocusData,
   timeBlockStats,
   sessionDurationBuckets,
-  mergeTaskTable,
 } from "@/utils/analytics/analyticsUtils";
 
 /**
@@ -25,18 +24,13 @@ export default function useFocusAnalytics() {
   // 汇总数字 + 近 7 天：原先长在历史页，现与图表一并归口到数据分析页。
   const stats = useMemo(() => computeFocusStats(focusRecords), [focusRecords]);
 
-  // 任务榜与完成率合成一张表（细节见 mergeTaskTable）
-  const taskTable = useMemo(
-    () => mergeTaskTable(focusRecords, stats.taskBreakdown),
-    [focusRecords, stats.taskBreakdown],
-  );
-
   return {
     focusRecords,
     hourly,
     blocks,
     durationBuckets,
-    taskTable,
+    // 任务榜就是 computeFocusStats 按投入时长排好的那份，不再叠加任何完成率口径
+    taskTable: stats.taskBreakdown,
     stats,
     // 均值 computeFocusStats 已经算过（口径同为「按会话去重」），不再单独算一遍，
     // 改为从 stats 透出，避免两处口径漂移。会话数直接读 stats.sessionCount。

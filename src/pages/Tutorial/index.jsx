@@ -8,7 +8,6 @@ import {
   GanttChartSquare,
   CalendarRange,
   Timer,
-  History,
   BarChart3,
   PieChart,
   Gift,
@@ -44,7 +43,6 @@ const STAGES = [
     links: [
       { to: "/tasks", labelKey: "nav.tasks", Icon: LayoutGrid },
       { to: "/gantt", labelKey: "nav.gantt", Icon: GanttChartSquare },
-      { to: "/calendar", labelKey: "nav.calendar", Icon: CalendarRange },
     ],
   },
   {
@@ -56,7 +54,7 @@ const STAGES = [
     id: "reflect",
     Icon: BarChart3,
     links: [
-      { to: "/history", labelKey: "nav.history", Icon: History },
+      { to: "/calendar", labelKey: "nav.calendar", Icon: CalendarRange },
       { to: "/analytics", labelKey: "nav.analytics", Icon: BarChart3 },
       { to: "/scenario-stats", labelKey: "nav.scenarioStats", Icon: PieChart },
     ],

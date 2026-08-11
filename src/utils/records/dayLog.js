@@ -3,7 +3,7 @@
 //   · 使用记录（没开计时器也发生的）：加 / 完成 / 撤销 / 删，只有时刻没有时长
 //
 // 历史记录页（全部日期）与时间轴页（选中那天）曾各写一套渲染，同一件事显示两遍还长得不一样。
-// 现在两边共用这份数据 + components/records/DayLog：/history 是总记录，/calendar 是哪天的记录。
+// 现在两边共用这份数据 + components/records/DayLog：/calendar 一页两种看法：「全部记录」是总记录，「日历」是哪天的记录。
 import { groupBySession } from "./focusRecords";
 import { clusterActivities } from "./activityLog";
 
@@ -25,8 +25,11 @@ function toSessionEntry(session) {
   let distractionCount = 0;
   let distractionSecs = 0;
   let scenarioTitle;
+  let endedAt = 0;
   for (const r of session.records) {
     coins += r.coinsEarned ?? 0;
+    // 结束时刻取整段最晚的一条；旧记录没有 endedAt 时按开始 + 时长反推
+    endedAt = Math.max(endedAt, r.endedAt ?? r.startedAt + r.durationSecs * 1000);
     // 分心是整段会话的快照、每条记录上都是同一份 → 取最大值而非累加（口径同 totalSecs）
     distractionCount = Math.max(distractionCount, r.distractionCount ?? 0);
     distractionSecs = Math.max(distractionSecs, r.distractionSecs ?? 0);
@@ -37,6 +40,7 @@ function toSessionEntry(session) {
     kind: "session",
     key: session.key,
     ts: session.startedAt,
+    endedAt: Math.max(endedAt, session.startedAt),
     totalSecs: session.totalSecs,
     records: session.records,
     scenarioTitle,

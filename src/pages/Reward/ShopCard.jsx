@@ -1,20 +1,23 @@
 import React from "react";
 import { useReward } from "@/context/RewardContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { shopItemName, shopItemDesc } from "@/utils/shopConfig";
 import { getItemState } from "./rewardUtils";
 
 // 开发者商城的商品卡（干净版：色底图标 + 简洁信息 + 幽灵按钮）。
 // onPurchased(item) 在兑换成功后回调（用于弹出提示）。
 export default function ShopCard({ item, onPurchased }) {
   const { coins, isOwned, getRedeemCount, buyItem } = useReward();
+  const { t } = useLanguage();
   const { owned, count, affordable, disabled } = getItemState(item, {
     coins,
     isOwned,
     getRedeemCount,
   });
 
-  let btnLabel = "兑换";
-  if (owned) btnLabel = "已拥有";
-  else if (!affordable) btnLabel = `差 ${item.price - coins}`;
+  let btnLabel = t("reward.buy");
+  if (owned) btnLabel = t("reward.owned");
+  else if (!affordable) btnLabel = t("reward.short", { count: item.price - coins });
 
   return (
     <div
@@ -25,8 +28,8 @@ export default function ShopCard({ item, onPurchased }) {
         {item.icon}
         {count > 0 && <span className="shop-card-count">{count}</span>}
       </div>
-      <div className="shop-card-name">{item.name}</div>
-      <div className="shop-card-desc">{item.desc}</div>
+      <div className="shop-card-name">{shopItemName(t, item)}</div>
+      <div className="shop-card-desc">{shopItemDesc(t, item)}</div>
       <div className="shop-card-footer">
         <span className="shop-card-price">
           <span className="shop-card-coin">🪙</span>

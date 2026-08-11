@@ -3,7 +3,7 @@ import "./ChatHistory.css";
 import { hasApiKey } from "@/utils/ai/aiChat";
 import { useLanguage } from "@/context/LanguageContext";
 
-// 历史页的 AI 陪伴聊天记录区：展示与 AI 陪伴的全部对话，
+// 时间轴页的 AI 陪伴聊天记录区：展示与 AI 陪伴的全部对话，
 // 与沉浸式左下角对话框共用同一份持久化数据。
 export default function ChatHistory({ messages, onClear }) {
   const { t } = useLanguage();

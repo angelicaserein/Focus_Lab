@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 import "./EmojiPicker.css";
 
 // 一组带关键词的常用 emoji，搜索时按关键词 / 字符匹配。
@@ -55,6 +56,7 @@ const EMOJIS = [
 ];
 
 export default function EmojiPicker({ value, onChange }) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const rootRef = useRef(null);
@@ -85,7 +87,7 @@ export default function EmojiPicker({ value, onChange }) {
       <button
         type="button"
         className="emoji-picker-trigger"
-        aria-label="选择图标"
+        aria-label={t("emoji.pick")}
         onClick={() => setOpen((v) => !v)}
       >
         {value || "🎁"}
@@ -97,7 +99,7 @@ export default function EmojiPicker({ value, onChange }) {
             className="emoji-picker-search"
             autoFocus
             value={query}
-            placeholder="搜索 emoji 或直接粘贴"
+            placeholder={t("emoji.search")}
             onChange={(e) => setQuery(e.target.value)}
           />
           <div className="emoji-picker-grid">

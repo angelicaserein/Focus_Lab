@@ -28,7 +28,6 @@ export default {
   // ── 1. 专注高峰时段 ───────────────────────────────────────────────────────
   "analytics.peak.title": { en: "When you focus best", zh: "专注高峰时段" },
   "analytics.peak.badge": { en: "Most focus in the {block}", zh: "{block}专注最多" },
-  "analytics.peak.completion": { en: "{rate}% completed", zh: "完成率 {rate}%" },
   "analytics.hourTick": { en: "{hour}:00", zh: "{hour}时" },
 
   "analytics.block.earlyMorning": { en: "early morning", zh: "早晨" },
@@ -50,12 +49,10 @@ export default {
   "analytics.bucket.1to2h": { en: "1–2 h", zh: "1–2小时" },
   "analytics.bucket.over2h": { en: "> 2 h", zh: "> 2小时" },
 
-  // ── 3. 任务榜（投入时长 + 完成率合成一张表） ──────────────────────────────
+  // ── 3. 任务榜（只按投入时长） ─────────────────────────────────────────────
   "analytics.tasks.title": { en: "Where your time went", zh: "时间都花在哪儿" },
   "analytics.tasks.badge": { en: "Most time on “{task}”", zh: "{task} 花时间最多" },
   "analytics.tasks.sub": { en: "{duration} · {count}×", zh: "{duration} · {count} 次" },
-  // 完成率只在任务出现 ≥2 次时才有参考价值，不足 2 次这一列直接不显示
-  "analytics.tasks.rate": { en: "{rate}% done", zh: "完成 {rate}%" },
 
   // ── 页尾出口 ──────────────────────────────────────────────────────────────
   // 本页给全局结论；细节各有专页，只放链接，不再往页里塞它们的摘要。

@@ -1,15 +1,17 @@
+import { distractionTagLabel } from "@/pages/Focus/DistractionModal";
 import React from "react";
 import useDistractionAnalytics from "@/hooks/focus/useDistractionAnalytics";
 import { useLanguage } from "@/context/LanguageContext";
 import { UNTAGGED } from "@/utils/analytics/distractionStats";
 import { formatTimestamp, formatSessionDate, formatDuration } from "@/utils/time";
-import "../History/History.css";
-import "../History/SessionSummary.css";
+import "@/components/records/records.css";
+import "@/components/records/SessionSummary.css";
 import "../Analytics/Analytics.css";
 import "./Distraction.css";
 
 // 只在关键刻度显示小时标签（与数据分析页一致）
-const HOUR_TICK = { 0: "0时", 6: "6时", 12: "12时", 18: "18时", 23: "23时" };
+// 横轴刻度：两种语言同形（"0:00" 一类），中文保留「时」以贴合原样。
+const HOUR_TICKS = [0, 6, 12, 18, 23];
 
 function SectionHead({ title, badge }) {
   return (
@@ -43,7 +45,8 @@ export default function DistractionPage() {
   const trendMax = Math.max(...trend.map((d) => d.count), 1);
   const trendTotal = trend.reduce((s, d) => s + d.count, 0);
   const tagMax = tagRanking[0]?.count ?? 1;
-  const tagLabel = (tag) => (tag === UNTAGGED ? t("distraction.reasons.untagged") : tag);
+  const tagLabel = (tag) =>
+    tag === UNTAGGED ? t("distraction.reasons.untagged") : distractionTagLabel(t, tag);
 
   return (
     <div className="page-distraction">
@@ -143,7 +146,7 @@ export default function DistractionPage() {
                   />
                 )}
               </div>
-              <span className="ana-hour-label">{HOUR_TICK[h.hour] ?? ""}</span>
+              <span className="ana-hour-label">{HOUR_TICKS.includes(h.hour) ? t("distraction.hourTick", { hour: h.hour }) : ""}</span>
             </div>
           ))}
         </div>
@@ -154,7 +157,7 @@ export default function DistractionPage() {
         <SectionHead
           title={t("distraction.reasons.title")}
           badge={
-            hourly.topTag ? t("distraction.reasons.badge", { tag: hourly.topTag }) : null
+            hourly.topTag ? t("distraction.reasons.badge", { tag: distractionTagLabel(t, hourly.topTag) }) : null
           }
         />
         <div className="ana-card ana-dur-list">
@@ -241,7 +244,7 @@ export default function DistractionPage() {
                               </span>
                             )}
                             {item.tag && (
-                              <span className="distraction-tag-inline"> · {item.tag}</span>
+                              <span className="distraction-tag-inline"> · {distractionTagLabel(t, item.tag)}</span>
                             )}
                           </>
                         )}

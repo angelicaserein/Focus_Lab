@@ -93,7 +93,7 @@ const MIGRATIONS = [
         : (hadTodos ? TASK_ATTR_DEFAULTS : []);
     const defaultDb = {
       id: "default",
-      name: "任务",
+      nameKey: "tasks.db.defaultName",
       order: 0,
       attrs: existingAttrs.map(a => ({ ...a, system: false })),
     };
@@ -112,7 +112,9 @@ const MIGRATIONS = [
       const keptIds = new Set(kept.map(o => o.id));
       const seeded = TASK_TYPE_OPTIONS
         .filter(o => !keptIds.has(o.id))
-        .map(({ id, label, icon }) => ({ id, label, icon }));
+        // 出厂标签的文案在 i18n 里（labelKey），不是写死的 label——
+        // 这里若原样拷 label，迁移过来的用户会得到一排没有名字的空标签。
+        .map(({ id, labelKey, icon }) => ({ id, labelKey, icon }));
       return { ...a, options: [...kept, ...seeded] };
     });
     return {
@@ -354,12 +356,13 @@ export function exportAllData() {
 export function importAllData(jsonString, mode = "merge") {
   let parsed;
   try { parsed = JSON.parse(jsonString); }
-  catch { return { success: false, error: "无法解析 JSON 文件" }; }
+  // error 回的是 i18n key（调用方用 t() 取文案），不在这一层写死语言。
+  catch { return { success: false, error: "settings.data.errParse" }; }
 
   // 兼容旧导出格式（version: 1）和新格式（schemaVersion: N）
   const fileSchemaVersion = parsed.schemaVersion ?? (parsed.version === 1 ? 1 : null);
   if (!fileSchemaVersion || typeof parsed.data !== "object")
-    return { success: false, error: "文件格式无效" };
+    return { success: false, error: "settings.data.errFormat" };
 
   // 先落闸再写：调用方写完就会 reload，而 reload 的 pagehide 会让所有挂载着的
   // usePersistedWrite 把导入之前的内存值刷回盘上，把这一整次导入悄悄吃掉。

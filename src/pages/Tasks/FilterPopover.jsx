@@ -1,9 +1,11 @@
 import React from "react";
 import Popover from "@/components/ui/Popover";
 import { opsForType, getOp } from "@/pages/Tasks/taskQuery";
+import { attrName, optionLabel } from "@/utils/task/taskAttrUtils";
+import { useLanguage } from "@/context/LanguageContext";
 
 // 单条规则的值输入：按运算符的 input 形态渲染（无 / 文本 / 数字 / 日期 / 选项多选）。
-function RuleValueInput({ field, op, value, onChange }) {
+function RuleValueInput({ field, op, value, onChange, t }) {
   if (!op || op.input === "none") return <span className="query-value-spacer" />;
 
   if (op.input === "options") {
@@ -20,7 +22,7 @@ function RuleValueInput({ field, op, value, onChange }) {
             style={o.color ? { "--pill": o.color } : undefined}
             onClick={() => toggle(o.id)}
           >
-            {o.icon ? `${o.icon} ${o.label}` : o.label}
+            {o.icon ? `${o.icon} ${optionLabel(t, o)}` : optionLabel(t, o)}
           </button>
         ))}
       </div>
@@ -33,7 +35,7 @@ function RuleValueInput({ field, op, value, onChange }) {
       className="query-value-input"
       type={type}
       value={value ?? ""}
-      placeholder={op.input === "text" ? "值…" : undefined}
+      placeholder={op.input === "text" ? t("tasks.filter.valuePlaceholder") : undefined}
       onChange={e => onChange(e.target.value)}
     />
   );
@@ -41,13 +43,14 @@ function RuleValueInput({ field, op, value, onChange }) {
 
 // 筛选弹层：多条规则（字段 + 运算符 + 值）+ 且/或 连接词，对标 Notion。
 export default function FilterPopover({ anchorEl, onClose, fields, filter, actions }) {
+  const { t } = useLanguage();
   const { rules, conjunction } = filter;
   const { addRule, changeRuleField, changeRuleOp, updateRule, removeRule, setConjunction, clearFilter } = actions;
 
   return (
     <Popover anchorEl={anchorEl} onClose={onClose} className="query-popover-layer">
       <div className="query-popover">
-        {rules.length === 0 && <div className="query-empty">没有筛选条件</div>}
+        {rules.length === 0 && <div className="query-empty">{t("tasks.filter.empty")}</div>}
 
         {rules.map((rule, i) => {
           const field = fields.find(f => f.key === rule.field) ?? fields[0];
@@ -56,18 +59,18 @@ export default function FilterPopover({ anchorEl, onClose, fields, filter, actio
             <div className="query-rule" key={rule.id}>
               <span className="query-conj">
                 {i === 0 ? (
-                  "满足"
+                  t("tasks.filter.where")
                 ) : i === 1 ? (
                   <select
                     className="query-conj-select"
                     value={conjunction}
                     onChange={e => setConjunction(e.target.value)}
                   >
-                    <option value="and">且</option>
-                    <option value="or">或</option>
+                    <option value="and">{t("tasks.filter.and")}</option>
+                    <option value="or">{t("tasks.filter.or")}</option>
                   </select>
                 ) : (
-                  conjunction === "or" ? "或" : "且"
+                  conjunction === "or" ? t("tasks.filter.or") : t("tasks.filter.and")
                 )}
               </span>
 
@@ -76,7 +79,7 @@ export default function FilterPopover({ anchorEl, onClose, fields, filter, actio
                 value={rule.field}
                 onChange={e => changeRuleField(rule.id, e.target.value)}
               >
-                {fields.map(f => <option key={f.key} value={f.key}>{f.name}</option>)}
+                {fields.map(f => <option key={f.key} value={f.key}>{attrName(t, f)}</option>)}
               </select>
 
               <select
@@ -84,7 +87,9 @@ export default function FilterPopover({ anchorEl, onClose, fields, filter, actio
                 value={rule.op}
                 onChange={e => changeRuleOp(rule.id, rule.field, e.target.value)}
               >
-                {opsForType(field.type).map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+                {opsForType(field.type).map(o => (
+                  <option key={o.id} value={o.id}>{o.labelKey ? t(o.labelKey) : o.label}</option>
+                ))}
               </select>
 
               <RuleValueInput
@@ -92,17 +97,18 @@ export default function FilterPopover({ anchorEl, onClose, fields, filter, actio
                 op={op}
                 value={rule.value}
                 onChange={v => updateRule(rule.id, { value: v })}
+                t={t}
               />
 
-              <button className="query-rule-remove" title="删除此条" onClick={() => removeRule(rule.id)}>×</button>
+              <button className="query-rule-remove" title={t("tasks.query.removeRule")} onClick={() => removeRule(rule.id)}>×</button>
             </div>
           );
         })}
 
         <div className="query-footer">
-          <button className="query-add-btn" onClick={addRule}>+ 添加筛选</button>
+          <button className="query-add-btn" onClick={addRule}>{t("tasks.filter.addRule")}</button>
           {rules.length > 0 && (
-            <button className="query-clear-btn" onClick={clearFilter}>删除全部</button>
+            <button className="query-clear-btn" onClick={clearFilter}>{t("tasks.query.clearAll")}</button>
           )}
         </div>
       </div>

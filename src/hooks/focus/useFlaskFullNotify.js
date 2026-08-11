@@ -20,7 +20,7 @@ export function shouldFireFlaskFull({ seconds, target, fired, active }) {
   return { fire: true, fired: true };
 }
 
-export default function useFlaskFullNotify({ seconds, targetMins, isRunning, enabled }) {
+export default function useFlaskFullNotify({ seconds, targetMins, isRunning, enabled, t }) {
   const firedRef = useRef(false);
   const target = targetMins * 60;
 
@@ -34,9 +34,9 @@ export default function useFlaskFullNotify({ seconds, targetMins, isRunning, ena
     firedRef.current = fired;
     if (!fire) return;
 
-    showNotification("🧪 烧瓶注满啦！", {
-      body: `专注满 ${targetMins} 分钟啦，起来活动一下、喝口水～`,
+    showNotification(t("focus.flaskFull.title"), {
+      body: t("focus.flaskFull.body", { mins: targetMins }),
       tag: "flask-full",
     });
-  }, [seconds, target, isRunning, enabled, targetMins]);
+  }, [seconds, target, isRunning, enabled, targetMins, t]);
 }

@@ -2,6 +2,7 @@ import React from "react";
 import { useReward, SHOP_ITEMS } from "@/context/RewardContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { shopItemName, shopItemDesc } from "@/utils/shopConfig";
 
 export default function ThemeSection() {
   const { isOwned } = useReward();
@@ -15,7 +16,11 @@ export default function ThemeSection() {
       icon: "🎨",
       desc: t("settings.theme.defaultDesc"),
     },
-    ...SHOP_ITEMS.filter((i) => i.id.startsWith("theme-")),
+    ...SHOP_ITEMS.filter((i) => i.id.startsWith("theme-")).map((i) => ({
+      ...i,
+      name: shopItemName(t, i),
+      desc: shopItemDesc(t, i),
+    })),
   ];
 
   return (

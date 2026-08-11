@@ -4,7 +4,7 @@ import { Shuffle, Check, Timer, Plus, RotateCcw } from "lucide-react";
 import { useTodos } from "@/context/TodoContext";
 import { useFocus } from "@/context/FocusContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { formatDate, formatMins, isDuePast } from "@/utils/task/taskAttrUtils";
+import { formatDate, formatMins, isDuePast, optionLabel } from "@/utils/task/taskAttrUtils";
 import TaskCard from "@/pages/Tasks/TaskCard";
 import {
   activeDue,
@@ -23,13 +23,13 @@ const BUCKET_META = {
 };
 
 // 「现在就做」卡片里那排只读小徽标：优先级 / 截止 / 预计时长，一眼看清份量。
-function HeroChips({ todo, priorityAttr, t }) {
+function HeroChips({ todo, priorityAttr, t, lang }) {
   const chips = [];
   const pOpt = priorityAttr?.options?.find((o) => o.id === todo.attrs?.priority);
   if (pOpt) {
     chips.push(
       <span key="p" className="fc-hero-chip" style={{ "--badge-color": pOpt.color }}>
-        {pOpt.label}
+        {optionLabel(t, pOpt)}
       </span>,
     );
   }
@@ -43,7 +43,7 @@ function HeroChips({ todo, priorityAttr, t }) {
     );
   }
   const est = todo.attrs?.estimatedMins;
-  if (est) chips.push(<span key="e" className="fc-hero-chip">⏱ {formatMins(est)}</span>);
+  if (est) chips.push(<span key="e" className="fc-hero-chip">⏱ {formatMins(est, lang)}</span>);
   return chips.length ? <div className="fc-hero-chips">{chips}</div> : null;
 }
 
@@ -82,7 +82,7 @@ function useStickyBuckets(todos, weightOf, scopeKey) {
 export default function FlowView({ todos, visibleAttrs, priorityAttr, activeDatabaseId, scopeKey }) {
   const { addTodo, toggleTodo, editTodo, setTodoAttr, deleteTodo } = useTodos();
   const { addFocusTodo } = useFocus();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const navigate = useNavigate();
 
   const [soloMode, setSoloMode] = useState(false);          // 「一次只看一件」专注模式
@@ -171,7 +171,7 @@ export default function FlowView({ todos, visibleAttrs, priorityAttr, activeData
         <section className="fc-hero">
           <div className="fc-hero-eyebrow">{t("flow.heroEyebrow")}</div>
           <div className="fc-hero-title">{hero.text}</div>
-          <HeroChips todo={hero} priorityAttr={priorityAttr} t={t} />
+          <HeroChips todo={hero} priorityAttr={priorityAttr} t={t} lang={lang} />
           <div className="fc-hero-actions">
             <button
               type="button"

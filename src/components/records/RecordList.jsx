@@ -4,7 +4,7 @@ import { groupDays } from "@/utils/records/dayLog";
 import DayLog from "@/components/records/DayLog";
 
 // 全部记录区 = 总记录：按天分组，每天交给共用的 DayLog 渲染
-//（/calendar 用同一个组件只渲染选中的那天，两页不再各写一套）。
+//（同页的「日历」视图用同一个组件只渲染选中的那天）。
 export default function RecordList({ records, activities = [], confirmClear, onClear }) {
   const { t, lang } = useLanguage();
   // 天分组的标题是本地化日期串，跟着语言走

@@ -3,6 +3,7 @@ import { useTodos } from "@/context/TodoContext";
 import { useFocus } from "@/context/FocusContext";
 import { useReward } from "@/context/RewardContext";
 import { useScenarios } from "@/context/ScenarioContext";
+import { useLanguage } from "@/context/LanguageContext";
 import useFocusTimer from "@/hooks/focus/useFocusTimer";
 import useFocusChat from "@/hooks/focus/useFocusChat";
 import usePrefs from "@/hooks/common/usePrefs";
@@ -48,6 +49,7 @@ export default function FocusPage() {
   const { focusedTodoIds, addFocusTodo, removeFocusTodo, clearFocusTodos, addFocusRecord, focusRecords } =
     useFocus();
   const { addCoins, coins } = useReward();
+  const { t } = useLanguage();
   const { scenarios, activeScenarioId, activeScenario, setActiveScenario } = useScenarios();
 
   // 当前专注任务列表
@@ -161,7 +163,7 @@ export default function FocusPage() {
   const { activeId: activeFlaskId } = useFlaskShelf();
 
   // 烧瓶注满（倒计时归零）弹系统通知，仅在开启「桌面通知」偏好时生效
-  useFlaskFullNotify({ seconds, targetMins, isRunning, enabled: notifyEnabled });
+  useFlaskFullNotify({ seconds, targetMins, isRunning, enabled: notifyEnabled, t });
 
   // 定格「结算前」快照（会话开始时调用）。
   const captureStartSnapshot = () => {

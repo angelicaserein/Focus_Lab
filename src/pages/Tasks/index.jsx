@@ -109,7 +109,7 @@ export default function Tasks() {
       {showBrainDump && (
         <BrainDumpAssistant
           onClose={() => setShowBrainDump(false)}
-          onAdded={(n) => showToast(`已加入 ${n} 条任务`)}
+          onAdded={(n) => showToast(t("tasks.addedToast", { count: n }))}
         />
       )}
 

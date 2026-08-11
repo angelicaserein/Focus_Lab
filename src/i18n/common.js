@@ -5,4 +5,9 @@ export default {
   "common.cancel": { en: "Cancel", zh: "取消" },
   "common.delete": { en: "Delete", zh: "删除" },
   "common.today": { en: "Today", zh: "今天" },
+  "common.error": { en: "Something went wrong — please refresh", zh: "出错了，请刷新页面" },
+  "common.refresh": { en: "Refresh", zh: "刷新" },
+  "common.loading": { en: "Loading", zh: "加载中" },
+  "common.loadingEllipsis": { en: "Loading…", zh: "加载中…" },
+  "common.close": { en: "Close", zh: "关闭" },
 };

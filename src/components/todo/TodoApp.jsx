@@ -8,13 +8,18 @@ import { useScenarios } from "@/context/ScenarioContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { TASK_TYPE_OPTIONS } from "@/utils/scenario/scenarioConstants";
 
-const typeLabel = Object.fromEntries(TASK_TYPE_OPTIONS.map((o) => [o.id, `${o.icon} ${o.label}`]));
+// 内置任务类型的文案跟语言走，所以在组件里算，不在模块顶层冻住。
+const makeTypeLabel = (t) =>
+  Object.fromEntries(
+    TASK_TYPE_OPTIONS.map((o) => [o.id, `${o.icon} ${t(o.labelKey)}`]),
+  );
 
 export default function TodoApp() {
   const [filter, setFilter] = useState("ALL");
   const { pendingDelete, undoDelete } = useTodos();
   const { activeScenario, clearActiveScenario } = useScenarios();
   const { t } = useLanguage();
+  const typeLabel = makeTypeLabel(t);
 
   const scenarioFilter = useMemo(() => {
     const types = activeScenario?.settings?.taskTypes ?? [];

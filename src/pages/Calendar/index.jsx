@@ -1,13 +1,21 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import {
   ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CalendarDays,
   Clock3, Flame, CalendarCheck,
 } from "lucide-react";
 import { useFocus } from "@/context/FocusContext";
 import { useActivityLog } from "@/context/ActivityContext";
+import { useLanguage } from "@/context/LanguageContext";
+import useLocalStorage from "@/hooks/common/useLocalStorage";
+import useFocusChat from "@/hooks/focus/useFocusChat";
+import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 import { totalFocusSecs } from "@/utils/records/focusRecords";
 import { formatDuration } from "@/utils/time";
 import DayLog from "@/components/records/DayLog";
+import RecordList from "@/components/records/RecordList";
+import SessionSummary from "@/components/records/SessionSummary";
+import ChatHistory from "@/components/records/ChatHistory";
+import "@/components/records/records.css";
 import {
   dayKey,
   groupRecordsByDay,
@@ -19,15 +27,38 @@ import {
 } from "./calendarLayout";
 import "./Calendar.css";
 
-const WEEKDAYS = ["一", "二", "三", "四", "五", "六", "日"];
-const MONTH_NAMES = [
-  "1 月", "2 月", "3 月", "4 月", "5 月", "6 月",
-  "7 月", "8 月", "9 月", "10 月", "11 月", "12 月",
-];
+// 星期与月份只存下标，文案走 i18n（calendar.weekday.<i> / calendar.month.<i>）。
+const WEEKDAY_IDX = [0, 1, 2, 3, 4, 5, 6];
 
+// 时间轴 = 原「时间轴」+「历史记录」两页合一：
+// 上半是日历（按天挑），下半在「日历 / 全部记录」两个视图间切；
+// 随记与 AI 聊天记录跟着流水一起看，所以常驻在页尾。
+// 汇总数字与图表仍然只归 /analytics，这里不重复摆。
 export default function CalendarPage() {
-  const { focusRecords } = useFocus();
+  const { focusRecords, clearFocusRecords } = useFocus();
   const { activities } = useActivityLog();
+  // 随记 / 聊天：与专注页共用同一份持久化数据，这里只读展示。
+  const [notes] = useLocalStorage(STORAGE_KEYS.NOTES, []);
+  const { messages: chatMessages, clearChat } = useFocusChat();
+  const { t, lang } = useLanguage();
+
+  // "calendar"=挑一天看；"all"=一条条原始流水按天铺开
+  const [view, setView] = useState("calendar");
+
+  // 清除记录是二次确认：先变成「确认清除？」，3 秒不点就复原
+  const [confirmClear, setConfirmClear] = useState(false);
+  const confirmTimerRef = useRef(null);
+  useEffect(() => () => clearTimeout(confirmTimerRef.current), []);
+
+  const handleClear = () => {
+    if (confirmClear) {
+      clearFocusRecords();
+      setConfirmClear(false);
+      return;
+    }
+    setConfirmClear(true);
+    confirmTimerRef.current = setTimeout(() => setConfirmClear(false), 3000);
+  };
 
   // 不缓存 today：页面可能整天开着，跨午夜需自然刷新到真实今天。
   const today = new Date();
@@ -107,7 +138,7 @@ export default function CalendarPage() {
     setExpanded((v) => !v);
   };
 
-  const selectedLabel = selectedDay.date.toLocaleDateString("zh-CN", {
+  const selectedLabel = selectedDay.date.toLocaleDateString(lang === "en" ? "en-GB" : "zh-CN", {
     month: "long", day: "numeric", weekday: "long",
   });
   const isTodaySelected = selectedKey === todayKey;
@@ -120,134 +151,171 @@ export default function CalendarPage() {
     <div className="page-calendar">
       {/* ── 页头 ── */}
       <div className="cal-headline">
-        <h1>时间轴</h1>
-        <p>平时只看本周，点「展开整月」铺开月历；每格是当天的专注时长</p>
+        <h1>{t("calendar.title")}</h1>
+        <p>{t("calendar.subtitle")}</p>
       </div>
 
-      {/* ── 月度汇总 ── */}
-      <div className="cal-summary">
-        <div className="cal-summary-card accent">
-          <Clock3 className="cal-summary-icon" size={18} aria-hidden="true" />
-          <div className="cal-summary-value">{formatDuration(monthSummary.totalSecs)}</div>
-          <div className="cal-summary-label">本月专注时长</div>
-        </div>
-        <div className="cal-summary-card">
-          <Flame className="cal-summary-icon" size={18} aria-hidden="true" />
-          <div className="cal-summary-value">{monthSummary.sessionCount}</div>
-          <div className="cal-summary-label">专注次数</div>
-        </div>
-        <div className="cal-summary-card">
-          <CalendarCheck className="cal-summary-icon" size={18} aria-hidden="true" />
-          <div className="cal-summary-value">{monthSummary.activeDays}</div>
-          <div className="cal-summary-label">活跃天数</div>
-        </div>
+      {/* 视图切换：同一份流水的两种看法——挑一天 / 全部铺开 */}
+      <div className="cal-view-switch" role="group" aria-label={t("history.viewSwitchAria")}>
+        {[
+          { id: "calendar", label: t("history.viewCalendar") },
+          { id: "all", label: t("history.allRecords") },
+        ].map((v) => (
+          <button
+            key={v.id}
+            type="button"
+            aria-pressed={view === v.id}
+            className={`cal-view-btn${view === v.id ? " active" : ""}`}
+            onClick={() => setView(v.id)}
+          >
+            {v.label}
+          </button>
+        ))}
       </div>
 
-      <div className="cal-layout">
-        {/* ── 月历卡片 ── */}
-        <section className={`cal-card${expanded ? " expanded" : ""}`}>
-          <div className="cal-nav">
-            <button
-              type="button"
-              className="cal-nav-btn"
-              onClick={() => step(-1)}
-              aria-label={expanded ? "上个月" : "上一周"}
-            >
-              <ChevronLeft size={18} aria-hidden="true" />
-            </button>
-            <div className="cal-nav-title">
-              <span className="cal-nav-year">{cursor.year}</span>
-              <span className="cal-nav-month">{MONTH_NAMES[cursor.month]}</span>
-              {!expanded && <span className="cal-nav-week">{weekLabel}</span>}
+      {view === "all" ? (
+        <RecordList
+          records={focusRecords}
+          activities={activities}
+          confirmClear={confirmClear}
+          onClear={handleClear}
+        />
+      ) : (
+        <>
+          {/* ── 月度汇总 ── */}
+          <div className="cal-summary">
+            <div className="cal-summary-card accent">
+              <Clock3 className="cal-summary-icon" size={18} aria-hidden="true" />
+              <div className="cal-summary-value">{formatDuration(monthSummary.totalSecs)}</div>
+              <div className="cal-summary-label">{t("calendar.monthTotal")}</div>
             </div>
-            <button
-              type="button"
-              className="cal-nav-btn"
-              onClick={() => step(1)}
-              aria-label={expanded ? "下个月" : "下一周"}
-            >
-              <ChevronRight size={18} aria-hidden="true" />
-            </button>
-            <button type="button" className="cal-today-btn" onClick={goToday}>
-              <CalendarDays size={14} aria-hidden="true" />
-              今天
-            </button>
-            <button
-              type="button"
-              className="cal-expand-btn"
-              onClick={toggleExpanded}
-              aria-expanded={expanded}
-            >
-              {expanded ? <ChevronUp size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
-              {expanded ? "收起" : "整月"}
-            </button>
+            <div className="cal-summary-card">
+              <Flame className="cal-summary-icon" size={18} aria-hidden="true" />
+              <div className="cal-summary-value">{monthSummary.sessionCount}</div>
+              <div className="cal-summary-label">{t("calendar.sessionCount")}</div>
+            </div>
+            <div className="cal-summary-card">
+              <CalendarCheck className="cal-summary-icon" size={18} aria-hidden="true" />
+              <div className="cal-summary-value">{monthSummary.activeDays}</div>
+              <div className="cal-summary-label">{t("calendar.activeDays")}</div>
+            </div>
           </div>
 
-          <div className="cal-weekdays">
-            {WEEKDAYS.map((w, i) => (
-              <span key={w} className={`cal-weekday${i >= 5 ? " weekend" : ""}`}>{w}</span>
-            ))}
-          </div>
-
-          <div className={`cal-grid${expanded ? "" : " week"}`}>
-            {(expanded ? cells : weekCells).map((cell) => {
-              const cls = [
-                "cal-cell",
-                cell.inMonth ? "" : "out",
-                cell.isToday ? "today" : "",
-                cell.key === selectedKey ? "selected" : "",
-                cell.isWeekend ? "weekend" : "",
-              ].filter(Boolean).join(" ");
-              return (
+          <div className="cal-layout">
+            {/* ── 月历卡片 ── */}
+            <section className={`cal-card${expanded ? " expanded" : ""}`}>
+              <div className="cal-nav">
                 <button
-                  key={cell.key}
                   type="button"
-                  className={cls}
-                  data-level={cell.level}
-                  onClick={() => setSelectedKey(cell.key)}
-                  title={[
-                    cell.secs > 0 ? formatDuration(cell.secs) : "",
-                    cell.actCount > 0 ? `${cell.actCount} 条使用记录` : "",
-                  ].filter(Boolean).join(" · ")}
+                  className="cal-nav-btn"
+                  onClick={() => step(-1)}
+                  aria-label={expanded ? t("calendar.prevMonth") : t("calendar.prevWeek")}
                 >
-                  <span className="cal-cell-day">{cell.date.getDate()}</span>
-                  {cell.actCount > 0 && <span className="cal-cell-act" />}
-                  <span className="cal-cell-secs">{formatCellDuration(cell.secs)}</span>
+                  <ChevronLeft size={18} aria-hidden="true" />
                 </button>
-              );
-            })}
-          </div>
+                <div className="cal-nav-title">
+                  <span className="cal-nav-year">{cursor.year}</span>
+                  <span className="cal-nav-month">{t(`calendar.month.${cursor.month}`)}</span>
+                  {!expanded && <span className="cal-nav-week">{weekLabel}</span>}
+                </div>
+                <button
+                  type="button"
+                  className="cal-nav-btn"
+                  onClick={() => step(1)}
+                  aria-label={expanded ? t("calendar.nextMonth") : t("calendar.nextWeek")}
+                >
+                  <ChevronRight size={18} aria-hidden="true" />
+                </button>
+                <button type="button" className="cal-today-btn" onClick={goToday}>
+                  <CalendarDays size={14} aria-hidden="true" />
+                  {t("common.today")}
+                </button>
+                <button
+                  type="button"
+                  className="cal-expand-btn"
+                  onClick={toggleExpanded}
+                  aria-expanded={expanded}
+                >
+                  {expanded ? <ChevronUp size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
+                  {expanded ? t("calendar.collapse") : t("calendar.wholeMonth")}
+                </button>
+              </div>
 
-          {expanded ? (
-            <div className="cal-legend">
-              <span className="cal-legend-label">少</span>
-              {[0, 1, 2, 3, 4].map((l) => (
-                <span key={l} className="cal-legend-cell" data-level={l} />
-              ))}
-              <span className="cal-legend-label">多</span>
+              <div className="cal-weekdays">
+                {WEEKDAY_IDX.map((i) => (
+                  <span key={i} className={`cal-weekday${i >= 5 ? " weekend" : ""}`}>
+                    {t(`calendar.weekday.${i}`)}
+                  </span>
+                ))}
+              </div>
+
+              <div className={`cal-grid${expanded ? "" : " week"}`}>
+                {(expanded ? cells : weekCells).map((cell) => {
+                  const cls = [
+                    "cal-cell",
+                    cell.inMonth ? "" : "out",
+                    cell.isToday ? "today" : "",
+                    cell.key === selectedKey ? "selected" : "",
+                    cell.isWeekend ? "weekend" : "",
+                  ].filter(Boolean).join(" ");
+                  return (
+                    <button
+                      key={cell.key}
+                      type="button"
+                      className={cls}
+                      data-level={cell.level}
+                      onClick={() => setSelectedKey(cell.key)}
+                      title={[
+                        cell.secs > 0 ? formatDuration(cell.secs) : "",
+                        cell.actCount > 0 ? t("calendar.actCount", { count: cell.actCount }) : "",
+                      ].filter(Boolean).join(" · ")}
+                    >
+                      <span className="cal-cell-day">{cell.date.getDate()}</span>
+                      {cell.actCount > 0 && <span className="cal-cell-act" />}
+                      <span className="cal-cell-secs">{formatCellDuration(cell.secs)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {expanded ? (
+                <div className="cal-legend">
+                  <span className="cal-legend-label">{t("calendar.legendLow")}</span>
+                  {[0, 1, 2, 3, 4].map((l) => (
+                    <span key={l} className="cal-legend-cell" data-level={l} />
+                  ))}
+                  <span className="cal-legend-label">{t("calendar.legendHigh")}</span>
+                </div>
+              ) : (
+                <button type="button" className="cal-expand-bar" onClick={toggleExpanded}>
+                  <ChevronDown size={14} aria-hidden="true" />
+                  {t("calendar.expandMonth")}
+                </button>
+              )}
+            </section>
+
+            {/* ── 当日时刻轨道 ── */}
+            <section className="cal-day">
+              <div className="cal-day-hd">
+                <span className="cal-day-title">{selectedLabel}</span>
+                {isTodaySelected && <span className="cal-day-today">{t("common.today")}</span>}
+                {selectedDay.totalSecs > 0 && (
+                  <span className="cal-day-badge">
+                    {t("calendar.dayTotal", { duration: formatDuration(selectedDay.totalSecs) })}
+                  </span>
+                )}
+              </div>
+
+              {/* 当日流水：会话卡与使用记录混排，与「全部记录」视图共用同一套渲染 */}
+              <DayLog records={selectedDay.records} activities={selectedDay.activities} />
+            </section>
             </div>
-          ) : (
-            <button type="button" className="cal-expand-bar" onClick={toggleExpanded}>
-              <ChevronDown size={14} aria-hidden="true" />
-              展开整月
-            </button>
-          )}
-        </section>
+        </>
+      )}
 
-        {/* ── 当日时刻轨道 ── */}
-        <section className="cal-day">
-          <div className="cal-day-hd">
-            <span className="cal-day-title">{selectedLabel}</span>
-            {isTodaySelected && <span className="cal-day-today">今天</span>}
-            {selectedDay.totalSecs > 0 && (
-              <span className="cal-day-badge">共 {formatDuration(selectedDay.totalSecs)}</span>
-            )}
-          </div>
-
-          {/* 当日流水：会话卡与使用记录混排，与 /history 共用同一套渲染 */}
-          <DayLog records={selectedDay.records} activities={selectedDay.activities} />
-        </section>
-      </div>
+      {/* 随记与聊天不分视图，两种看法下都在页尾 */}
+      <SessionSummary notes={notes} />
+      <ChatHistory messages={chatMessages} onClear={clearChat} />
     </div>
   );
 }
