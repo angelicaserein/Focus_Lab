@@ -22,7 +22,7 @@ function SectionHead({ title, badge }) {
 
 export default function DistractionPage() {
   const { overview, hourly, tagRanking, trend, sessions } = useDistractionAnalytics();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
 
   if (overview.total === 0) {
     return (
@@ -188,7 +188,7 @@ export default function DistractionPage() {
               <div key={session.firstTs} className="session-summary-group">
                 <div className="session-summary-group-hd">
                   <span className="session-summary-date">
-                    {formatSessionDate(session.firstTs)}
+                    {formatSessionDate(session.firstTs, lang)}
                   </span>
                   <span className="session-stat distraction">⚡ {session.items.length}</span>
                 </div>

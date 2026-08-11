@@ -174,11 +174,12 @@ describe("last7DaysData", () => {
   });
   afterEach(() => vi.useRealTimers());
 
-  it("返回 7 天，今天在最右且标签为「今天」", () => {
+  // label 不含语言相关文案，「今天」由 isToday 交给页面翻译
+  it("返回 7 天，今天在最右且带 isToday", () => {
     const days = last7DaysData([]);
     expect(days).toHaveLength(7);
-    expect(days[6].label).toBe("今天");
-    expect(days[0].label).toBe("6/8");
+    expect(days[6]).toMatchObject({ label: "6/14", isToday: true });
+    expect(days[0]).toMatchObject({ label: "6/8", isToday: false });
   });
 
   it("按自然日归拢时长", () => {

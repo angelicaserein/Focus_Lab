@@ -58,10 +58,12 @@ export function buildFocusRecord(todo, outcome, {
 }
 
 // 结果徽章元信息（History 渲染用）
+// labelKey 是 i18n key（见 i18n/history.js）——这层是纯函数，不知道当前语言，
+// 显示时由页面 t(meta.labelKey) 出文案。
 export const OUTCOME_META = {
-  completed: { label: "完成", cls: "completed" },
-  removed: { label: "移除", cls: "removed" },
-  ended: { label: "结束", cls: "ended" },
+  completed: { labelKey: "history.outcome.completed", cls: "completed" },
+  removed: { labelKey: "history.outcome.removed", cls: "removed" },
+  ended: { labelKey: "history.outcome.ended", cls: "ended" },
 };
 
 // 构建 sessionKey → 墙钟时长 映射。
@@ -87,10 +89,10 @@ export function totalFocusSecs(records) {
 
 // 按自然日分组，返回 [dayLabel, records][]
 /** @param {FocusRecord[]} records */
-export function groupByDay(records) {
+export function groupByDay(records, lang = "zh") {
   const groups = {};
   for (const r of records) {
-    const key = new Date(r.startedAt).toLocaleDateString("zh-CN", {
+    const key = new Date(r.startedAt).toLocaleDateString(lang === "en" ? "en-US" : "zh-CN", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -134,11 +136,13 @@ export function last7DaysData(records) {
     d.setHours(0, 0, 0, 0);
     const nextD = new Date(d);
     nextD.setDate(nextD.getDate() + 1);
-    const label = i === 0 ? "今天" : `${d.getMonth() + 1}/${d.getDate()}`;
+    // label 一律是 "M/D" 这种与语言无关的形式；末位那天额外挂 isToday，
+    // 由页面 t("common.today") 决定显示成「今天」还是 "Today"。
+    const label = `${d.getMonth() + 1}/${d.getDate()}`;
     const totalSecs = totalFocusSecs(
       records.filter((r) => r.startedAt >= d.getTime() && r.startedAt < nextD.getTime()),
     );
-    days.push({ label, totalSecs });
+    days.push({ label, totalSecs, isToday: i === 0 });
   }
   return days;
 }

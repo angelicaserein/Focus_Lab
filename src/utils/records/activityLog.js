@@ -4,12 +4,13 @@
 
 export const ACTIVITY_TYPES = ["add", "complete", "uncomplete", "delete"];
 
-// 展示元信息（时间轴渲染用）
+// 展示元信息（DayLog 渲染用）。labelKey 是 i18n key（见 i18n/history.js）——
+// 这层是纯函数、不知道当前语言，显示时由组件 t(meta.labelKey) 出文案。
 export const ACTIVITY_META = {
-  add:        { label: "添加", cls: "add" },
-  complete:   { label: "完成", cls: "complete" },
-  uncomplete: { label: "撤销完成", cls: "uncomplete" },
-  delete:     { label: "删除", cls: "delete" },
+  add:        { labelKey: "history.activity.add", cls: "add" },
+  complete:   { labelKey: "history.activity.complete", cls: "complete" },
+  uncomplete: { labelKey: "history.activity.uncomplete", cls: "uncomplete" },
+  delete:     { labelKey: "history.activity.delete", cls: "delete" },
 };
 
 // 保留窗口：只留近 90 天且至多 800 条，避免 localStorage 无上限增长。

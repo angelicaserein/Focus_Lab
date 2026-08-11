@@ -1,22 +1,20 @@
 import React, { useMemo, useState } from "react";
 import {
-  ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CalendarDays, Coins, Zap,
-  Clock3, Flame, CalendarCheck, Plus, Check, Trash2, RotateCcw,
+  ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CalendarDays,
+  Clock3, Flame, CalendarCheck,
 } from "lucide-react";
 import { useFocus } from "@/context/FocusContext";
 import { useActivityLog } from "@/context/ActivityContext";
-import { totalFocusSecs, OUTCOME_META } from "@/utils/records/focusRecords";
-import { ACTIVITY_META } from "@/utils/records/activityLog";
+import { useLanguage } from "@/context/LanguageContext";
+import { totalFocusSecs } from "@/utils/records/focusRecords";
 import { formatDuration } from "@/utils/time";
+import DayLog from "@/components/records/DayLog";
 import {
-  HOUR_PX,
   dayKey,
   groupRecordsByDay,
   groupActivitiesByDay,
   buildMonthGrid,
   buildWeekRow,
-  buildDayView,
-  formatTime,
   formatCellDuration,
   startOfWeek,
 } from "./calendarLayout";
@@ -28,18 +26,10 @@ const MONTH_NAMES = [
   "7 月", "8 月", "9 月", "10 月", "11 月", "12 月",
 ];
 
-// 使用记录的图标，与 ACTIVITY_META 的四种动作一一对应
-const ACTIVITY_ICONS = {
-  add: Plus,
-  complete: Check,
-  uncomplete: RotateCcw,
-  delete: Trash2,
-};
-const ACTIVITY_ORDER = ["complete", "add", "delete", "uncomplete"];
-
 export default function CalendarPage() {
   const { focusRecords } = useFocus();
   const { activities } = useActivityLog();
+  const { t } = useLanguage();
 
   // 不缓存 today：页面可能整天开着，跨午夜需自然刷新到真实今天。
   const today = new Date();
@@ -83,9 +73,10 @@ export default function CalendarPage() {
     return {
       date: new Date(sy, sm - 1, sd),
       totalSecs: totalFocusSecs(recs),
-      view: buildDayView(recs, selectedKey === todayKey, acts),
+      records: recs,
+      activities: acts,
     };
-  }, [dayMap, actMap, selectedKey, todayKey]);
+  }, [dayMap, actMap, selectedKey]);
 
   const stepMonth = (delta) =>
     setCursor((c) => {
@@ -126,7 +117,6 @@ export default function CalendarPage() {
     const end = weekCells[6].date;
     return `${weekStart.getMonth() + 1}/${weekStart.getDate()} – ${end.getMonth() + 1}/${end.getDate()}`;
   })();
-  const { view } = selectedDay;
 
   return (
     <div className="page-calendar">
@@ -264,7 +254,7 @@ export default function CalendarPage() {
                 return (
                   <span key={type} className={`cal-count-chip ${ACTIVITY_META[type].cls}`}>
                     <Icon size={12} aria-hidden="true" />
-                    {ACTIVITY_META[type].label} {view.counts[type]}
+                    {t(ACTIVITY_META[type].labelKey)} {view.counts[type]}
                   </span>
                 );
               })}
@@ -326,12 +316,14 @@ export default function CalendarPage() {
 
                     <div className="cal-block-tasks">
                       {s.tasks.slice(0, compact ? 1 : 3).map((task, i) => {
-                        const meta = OUTCOME_META[task.outcome] ?? { label: task.outcome, cls: "ended" };
+                        const meta = OUTCOME_META[task.outcome];
                         return (
                           <div key={i} className="cal-block-task">
                             <span className="cal-block-task-name">{task.text}</span>
                             {!compact && (
-                              <span className={`cal-block-outcome ${meta.cls}`}>{meta.label}</span>
+                              <span className={`cal-block-outcome ${meta?.cls ?? "ended"}`}>
+                                {meta ? t(meta.labelKey) : task.outcome}
+                              </span>
                             )}
                           </div>
                         );
@@ -361,7 +353,8 @@ export default function CalendarPage() {
 
               {/* 使用记录：没开计时器也发生过的事，点在轨道右侧 */}
               {view.marks.map((m) => {
-                const meta = ACTIVITY_META[m.type] ?? { label: m.type, cls: "add" };
+                const meta = ACTIVITY_META[m.type];
+                const markLabel = meta ? t(meta.labelKey) : m.type;
                 const Icon = ACTIVITY_ICONS[m.type] ?? Check;
                 return (
                   <div
@@ -374,8 +367,12 @@ export default function CalendarPage() {
                     <span className="cal-mark-time">{formatTime(m.ts)}</span>
                     <Icon className="cal-mark-icon" size={12} aria-hidden="true" />
                     <span className="cal-mark-text">
-                      {m.text || meta.label}
-                      {m.count > 1 && <span className="cal-mark-count"> 等 {m.count} 项</span>}
+                      {m.text || markLabel}
+                      {m.count > 1 && (
+                        <span className="cal-mark-count">
+                          {t("history.activityMore", { count: m.count })}
+                        </span>
+                      )}
                     </span>
                   </div>
                 );

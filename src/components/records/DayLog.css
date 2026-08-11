@@ -1,0 +1,273 @@
+/* 一天的流水：会话卡 + 使用记录行。
+   /history 与 /calendar 共用这一套样式，两页的记录长得一模一样。 */
+
+.daylog {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.daylog-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── 当日动作小结 ── */
+.daylog-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.daylog-count-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent-mid);
+}
+
+.daylog-count-chip.complete   { color: #15803d; background: color-mix(in srgb, #22c55e 14%, transparent); }
+.daylog-count-chip.delete     { color: #b45309; background: color-mix(in srgb, #f59e0b 14%, transparent); }
+.daylog-count-chip.uncomplete { color: var(--text-muted); background: var(--accent-bg-dim); }
+
+/* ── 一次专注会话（可能含多任务）归组卡 ── */
+.daylog-session {
+  padding: 16px 20px;
+  border-radius: 18px;
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  box-shadow: 0 1px 6px var(--shadow-xs);
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+
+.daylog-session:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--shadow-sm);
+}
+
+.daylog-session-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border-card);
+}
+
+/* 时刻（会话卡与使用记录行同款，两列对得齐） */
+.daylog-time {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.daylog-scenario {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent-mid);
+  background: var(--accent-bg);
+  border: 1px solid var(--border-accent);
+  padding: 2px 8px;
+  border-radius: 8px;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daylog-taskcount {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg, rgba(0, 0, 0, 0.04));
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+/* 金币 / 分心小徽章 */
+.daylog-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+  color: var(--accent-mid);
+  background: var(--accent-bg);
+}
+
+.daylog-chip.warn {
+  color: var(--text-muted);
+  background: var(--accent-bg-dim);
+}
+
+/* 专注质量标签 */
+.daylog-quality {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.daylog-quality.deep      { color: var(--accent); background: var(--accent-bg); }
+.daylog-quality.good      { color: var(--accent-mid); background: var(--accent-bg-dim); }
+.daylog-quality.scattered { color: var(--text-muted); background: var(--accent-hover); }
+
+/* 净专注时间（扣除主动分心时长） */
+.daylog-net {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 8px;
+  color: #b45309;
+  background: rgba(251, 191, 36, 0.15);
+}
+
+.daylog-total {
+  margin-left: auto;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.daylog-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.daylog-task {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.daylog-task-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+.daylog-task-dur {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 单任务结果徽章 */
+.daylog-outcome {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+  line-height: 1.5;
+}
+
+.daylog-outcome.completed { color: var(--accent); background: var(--accent-bg); }
+.daylog-outcome.removed   { color: var(--accent-mid); background: var(--accent-bg-dim); }
+.daylog-outcome.ended     { color: var(--text-faint); background: var(--accent-hover); }
+
+/* ── 使用记录行：没开计时器也发生过的事 ── */
+.daylog-mark {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 16px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1.5px solid var(--border-card);
+  box-shadow: 0 1px 4px var(--shadow-xs);
+  min-width: 0;
+}
+
+.daylog-mark.complete   { border-color: color-mix(in srgb, #22c55e 34%, var(--border-card)); }
+.daylog-mark.add        { border-color: var(--border-accent); }
+.daylog-mark.delete     { border-color: color-mix(in srgb, #f59e0b 34%, var(--border-card)); }
+
+.daylog-mark-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: var(--accent-bg);
+  color: var(--accent-mid);
+}
+
+.daylog-mark.complete .daylog-mark-label   { color: #15803d; background: color-mix(in srgb, #22c55e 14%, transparent); }
+.daylog-mark.delete .daylog-mark-label     { color: #b45309; background: color-mix(in srgb, #f59e0b 14%, transparent); }
+.daylog-mark.uncomplete .daylog-mark-label { color: var(--text-muted); background: var(--accent-bg-dim); }
+
+.daylog-mark-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.daylog-mark.delete .daylog-mark-text,
+.daylog-mark.uncomplete .daylog-mark-text {
+  color: var(--text-muted);
+}
+
+.daylog-mark-count {
+  color: var(--text-faint);
+  font-weight: 700;
+}
+
+/* ── 空态 ── */
+.daylog-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 220px;
+  color: var(--text-faint);
+  font-size: 0.88rem;
+  background: var(--card);
+  border: 1.5px dashed var(--border-dashed);
+  border-radius: 20px;
+}
+
+@media (max-width: 560px) {
+  .daylog-session {
+    padding: 14px 15px;
+  }
+
+  .daylog-mark {
+    padding: 7px 12px;
+  }
+}

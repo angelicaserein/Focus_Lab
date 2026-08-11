@@ -27,5 +27,5 @@ export default {
   "distraction.reasons.badge": { en: "Mostly {tag}", zh: "多为 {tag}" },
   "distraction.reasons.untagged": { en: "Untagged", zh: "未标注" },
   "distraction.sessions.title": { en: "Session by session", zh: "按会话明细" },
-  "distraction.fromHistory": { en: "Distraction stats →", zh: "分心统计 →" },
+  // 历史页/分析页曾各挂一个「分心统计 →」入口，页面职责划清后撤掉，文案随之删除。
 };

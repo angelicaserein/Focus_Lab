@@ -38,6 +38,13 @@
   background: linear-gradient(180deg, var(--accent), var(--accent-deep));
 }
 
+/* 24 小时分心柱。壳与列布局复用 Analytics.css 的 .ana-hourly-wrap / .ana-hour-*，
+   但颜色是分心页自己的事，所以规则住在这边，不再占着分析页的样式表。 */
+.ana-hour-bar.distraction {
+  opacity: 1;
+  background: linear-gradient(180deg, var(--accent), var(--accent-deep));
+}
+
 .dst-trend-chart {
   height: 150px;
 }
