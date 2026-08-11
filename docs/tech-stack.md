@@ -73,7 +73,7 @@ LanguageProvider → ThemeProvider → RewardProvider → FocusProvider → Acti
 
 核心页（始终可达）：`/`（Home）、`/settings`、`/functiontree`、`/tutorial`。
 其余为可开关功能，例如 `/focus`、`/tasks`、`/gantt`、`/character`、`/reward`、
-`/scenario`、`/history`、`/research` 等——被功能树关掉时直接访问会弹回主页。
+`/scenario`、`/calendar`、`/research` 等——被功能树关掉时直接访问会弹回主页。
 
 ## 工具链
 
