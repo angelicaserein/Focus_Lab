@@ -24,6 +24,29 @@ import { TASK_TYPE_OPTIONS } from "@/utils/scenario/scenarioConstants";
 
 export const SCHEMA_VERSION = 8;
 
+// ── 写入闸门 ────────────────────────────────────────────────────
+// localStorage 有两类写入方，它们对「什么是最新的数据」有各自的看法：
+//   1. 每个挂载着的 usePersistedWrite —— 它写的是组件里那份内存值的镜像，
+//      挂载时写一次、值一变再写一次、页面卸载（pagehide）时还要 flush 一次。
+//   2. 这里的整库覆写（导入 / 清空历史）—— 它直接改盘上的字节，绕过所有 React 状态。
+//
+// 第二类写完必然要 reload 才能让页面读到新数据，而 reload 会触发 pagehide，
+// 于是第一类把 reload 之前的旧值原样刷回去 —— 刚导入的数据就这么被自己的应用吃掉了，
+// 界面上还显示着「导入成功」。（清空历史同理：记录删了，pagehide 又给写回来。）
+//
+// 所以整库覆写之前先关掉闸门：从这一刻起到页面真正卸载为止，谁都不许再写。
+// 反正紧接着就要 reload，这段时间里的任何写入都只可能是「用旧数据盖新数据」。
+let writesFrozen = false;
+
+/** 冻结所有经 usePersistedWrite 的写入。只进不出——解冻靠 reload。 */
+export function freezeWrites() {
+  writesFrozen = true;
+}
+
+export function writesAreFrozen() {
+  return writesFrozen;
+}
+
 // v7 时期的出厂默认标签 id。v8 迁移把它们换成新的 TASK_TYPE_OPTIONS。
 const LEGACY_TAG_IDS = ["deep_work", "admin", "creative", "communication", "reading"];
 const SCHEMA_META_KEY = "__focuslab_schema";
@@ -337,6 +360,10 @@ export function importAllData(jsonString, mode = "merge") {
   const fileSchemaVersion = parsed.schemaVersion ?? (parsed.version === 1 ? 1 : null);
   if (!fileSchemaVersion || typeof parsed.data !== "object")
     return { success: false, error: "文件格式无效" };
+
+  // 先落闸再写：调用方写完就会 reload，而 reload 的 pagehide 会让所有挂载着的
+  // usePersistedWrite 把导入之前的内存值刷回盘上，把这一整次导入悄悄吃掉。
+  freezeWrites();
 
   // 对导入数据执行迁移（文件来自旧版本时）
   const incoming = applyMigrations(parsed.data, fileSchemaVersion);

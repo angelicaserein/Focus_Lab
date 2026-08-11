@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { wrapVersioned } from "@/utils/storage/storage";
+import { wrapVersioned, writesAreFrozen } from "@/utils/storage/storage";
 
 // 把 value 持久化到 localStorage[key]，写入有去抖以减少 I/O 压力。
 // 在页面隐藏/关闭时立即 flush，防止 debounce 窗口内关闭标签页丢失数据。
@@ -16,6 +16,10 @@ export default function usePersistedWrite(key, value) {
 
   useEffect(() => {
     const write = () => {
+      // 导入 / 清空历史这类整库覆写已经把盘上的数据换掉了，正等着 reload 生效。
+      // 这时候我们手里这份内存值是「覆写之前」的，写回去就是把新数据盖没
+      // ——而且最后那一下发生在 pagehide，用户看到的是「导入成功」然后什么都没变。
+      if (writesAreFrozen()) return;
       try {
         localStorage.setItem(key, JSON.stringify(wrapVersioned(latestRef.current)));
       } catch (e) {

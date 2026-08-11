@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { exportAllData, importAllData, KEY_MAP } from "@/utils/storage/storage";
+import { exportAllData, importAllData, freezeWrites, KEY_MAP } from "@/utils/storage/storage";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -56,6 +56,9 @@ export default function DataSection() {
 
   const handleClearHistory = () => {
     if (confirmClearHistory) {
+      // 先落闸：不然 reload 的 pagehide 会让 FocusContext 把刚删掉的记录写回来，
+      // 页面刷完历史还在（见 storage.js 的「写入闸门」）。
+      freezeWrites();
       localStorage.removeItem(STORAGE_KEYS.FOCUS_RECORDS);
       window.location.reload();
     } else {
@@ -65,6 +68,7 @@ export default function DataSection() {
 
   const handleClearChat = () => {
     if (confirmClearChat) {
+      freezeWrites(); // 同上：不落闸的话，聊天记录会在 reload 时被内存里那份写回来
       localStorage.removeItem(STORAGE_KEYS.CHAT);
       window.location.reload();
     } else {
