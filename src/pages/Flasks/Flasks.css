@@ -111,7 +111,43 @@
   filter: brightness(1.08);
 }
 
-/* —— 架子 —— */
+/* —— 架子：两个板块 ——
+   上「架上」是操作台，下「注满的」是收藏。之间留一道明显的空隙 + 一条细线，
+   让人一眼看出这是两类东西，而不是同一片网格换了行。 */
+.fk-section + .fk-section {
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border-card);
+}
+.fk-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.fk-section-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-heading);
+}
+.fk-section-count {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.fk-section-note {
+  margin: 4px 0 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+/* 一只满瓶都还没有：标题仍留着（好知道注满了会掉到哪儿），下面就一句话，
+   不做成空状态卡——那会让「还没有」显得比「已有的」更重。 */
+.fk-filled-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
 /* 一只烧瓶一张小卡、并排铺满整行：卡宽自适应，右侧不再留下大片空白。 */
 .fk-grid {
   list-style: none;
@@ -231,7 +267,7 @@
   display: block;
 }
 /* —— 攒下的满瓶 ——
-   一只满瓶一张卡，摆在它那只「正在接的」旁边。是收藏品不是操作项：
+   一只满瓶一张卡，全都摆在下面那个板块里。是收藏品不是操作项：
    卡面安静一档（底色微微带一点 accent、不描边不高亮），鼠标扫过也没有反应。 */
 .fk-card.filled {
   background: color-mix(in srgb, var(--accent) 6%, var(--card));
@@ -367,8 +403,8 @@
 .fk-specimen {
   position: absolute;
   left: 50%;
-  /* 瓶肚子的中心：瓶身 svg 高 140，肚子鼓在下段，故明显偏下 */
-  top: 66%;
+  /* 沉在瓶肚子底部：瓶身 svg 高 140，肚子鼓在下段，标本沉底更像被封住的那一只 */
+  top: 78%;
   transform: translate(-50%, -50%);
   display: flex;
   pointer-events: none;

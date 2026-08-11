@@ -42,6 +42,24 @@ export default {
   "flasks.agoWeeks": { en: "{n}w ago", zh: "{n} 周前" },
   "flasks.agoLong": { en: "a while back", zh: "很久以前" },
   "flasks.shelfCount": { en: "{n} on the shelf", zh: "架上 {n} 只" },
+  // —— 两个板块的标题 ——
+  // 上面那层是操作台（随时会变），下面那层是收藏（只增不减）。
+  "flasks.sectionShelf": { en: "On the shelf", zh: "架上" },
+  "flasks.sectionShelfCount": { en: "{n} shapes", zh: "{n} 只" },
+  "flasks.sectionShelfNote": {
+    en: "Each saved shape gets a flask. Pick the one you're pouring into.",
+    zh: "每个存下来的形状一只瓶子。挑一只作为现在往里注水的那只。",
+  },
+  "flasks.sectionFilled": { en: "Filled up", zh: "注满的" },
+  "flasks.sectionFilledCount": { en: "{n} bottles", zh: "{n} 只" },
+  "flasks.sectionFilledNote": {
+    en: "One hour of focus each, kept as they are.",
+    zh: "每只都是一小时专注，就这么摆着。",
+  },
+  "flasks.filledEmpty": {
+    en: "None yet — the first one lands here once a flask above fills up.",
+    zh: "还没有。上面哪只注满了，第一只就会落在这里。",
+  },
   // 排法：只是看的顺序，不动架子本身
   "flasks.sortBy": { en: "Order", zh: "排法" },
   "flasks.sort.saved": { en: "As saved", zh: "存入顺序" },

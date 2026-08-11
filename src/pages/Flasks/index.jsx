@@ -34,9 +34,14 @@ import "./Flasks.css";
 // 烧瓶架：把设置页调好的形状一只只存下来，挑一只作为「现在往里注水」的瓶子。
 // 一小时专注注满一只；接满了不停手，多出来的直接流进下一只同样形状的瓶子。
 //
-// 排版：一只瓶子一张小卡、网格并排。注满一只就多一张卡——攒下的满瓶实实在在
-// 摆在架上，而不是缩成瓶身上一枚 ×N 角标（数字要数，瓶子一眼就看得见有多少）。
-// 满瓶卡是纯展示：名字、选中、移出、封标本这些还归「正在接的那只」那张卡管。
+// 排版：分上下两个板块。
+//   上：架上（正在接的）——每个存下来的形状一张卡，能改名、能挑一只接水、能移出。
+//       这一层是「操作台」，回答的是「现在往哪只里注」。
+//   下：注满的（图鉴）——攒下的满瓶一只一张卡平铺，纯展示的收藏品。
+//       注满一只就多一张卡，而不是缩成瓶身上一枚 ×N 角标
+//       （数字要数，瓶子一眼就看得见有多少）。
+// 两层分开是因为它们的性质不同：上面那层随时会变（换形状、换选中），
+// 下面那层只增不减——攒下的东西不该跟操作项混在一格里被扫过去。
 //
 // 注满进度不在这儿存档，是从专注记录（record.flaskId）现算的，见 flaskShelf.js。
 //
@@ -116,12 +121,29 @@ export default function FlasksPage() {
   // 正在为哪只瓶子挑标本（null＝没在挑）
   const [sealFor, setSealFor] = useState(null);
 
+  // 攒下的满瓶摊平成一张张卡：按上面那层的排法逐个形状展开。
+  // 封着的标本归各形状的第一只满瓶（和以前一样），故在这儿一并算好，
+  // 下面渲染时只管照着摆。
+  const filled = useMemo(() => {
+    const list = [];
+    for (const it of shown) {
+      const { full } = bottlesOf(fills[it.id] ?? 0);
+      const specimen = sealed[it.id] ?? null;
+      for (let i = 0; i < full; i += 1) {
+        list.push({
+          key: `${it.id}#${i}`,
+          flask: it,
+          specimen: i === 0 ? specimen : null,
+          canSeal: i === 0 && !specimen && hasReady,
+        });
+      }
+    }
+    return list;
+  }, [shown, fills, sealed, hasReady]);
+
   // 架上一共几只瓶子：存下的形状数 + 各自攒下的满瓶数。
-  // 满瓶各占一张卡，这个数就是网格里能数到的卡片数——报的和看见的对得上。
-  const bottleCount = useMemo(
-    () => items.reduce((n, it) => n + bottlesOf(fills[it.id] ?? 0).full + 1, 0),
-    [items, fills],
-  );
+  // 满瓶各占一张卡，这个数就是两个板块里能数到的卡片数总和——报的和看见的对得上。
+  const bottleCount = items.length + filled.length;
 
   const handleRemove = useCallback(
     (id) => {
@@ -189,53 +211,84 @@ export default function FlasksPage() {
           </Link>
         </div>
       ) : (
-        <ul className="fk-grid">
-          {shown.map((it) => {
-            const secs = fills[it.id] ?? 0;
-            const { full } = bottlesOf(secs);
-            const specimen = sealed[it.id] ?? null;
-            return (
-              // 一格形状 = 「正在接的那只」+ 它攒下的几只满瓶，挨着摆。
-              <React.Fragment key={it.id}>
-                <ShelfCard
-                  flask={it}
-                  secs={secs}
-                  stat={stats[it.id]}
-                  active={it.id === activeId}
-                  confirming={confirmId === it.id}
-                  specimen={specimen}
-                  // 封着的那只画在第一只满瓶里（标本本来就封在注满的瓶中）；
-                  // 一只满瓶都没有时（调试改水位等）才退回来画在正在接的这只上，免得凭空消失。
-                  glyph={full === 0}
-                  hasReady={hasReady}
-                  t={t}
-                  onSelect={() => {
-                    setConfirmId(null);
-                    setActiveFlask(it.id);
-                  }}
-                  onRename={(name) => renameFlask(it.id, name)}
-                  onAskRemove={() => setConfirmId(it.id)}
-                  onCancelRemove={() => setConfirmId(null)}
-                  onRemove={() => handleRemove(it.id)}
-                  onUnseal={() => unseal(specimen?.uid)}
-                />
-                {Array.from({ length: full }, (_, i) => (
-                  <FullCard
-                    key={`${it.id}#${i}`}
+        <>
+          {/* —— 上：架上正在接的 —— */}
+          <section className="fk-section">
+            <header className="fk-section-head">
+              <h2 className="fk-section-title">{t("flasks.sectionShelf")}</h2>
+              <span className="fk-section-count">
+                {t("flasks.sectionShelfCount", { n: items.length })}
+              </span>
+            </header>
+            <p className="fk-section-note">{t("flasks.sectionShelfNote")}</p>
+            <ul className="fk-grid">
+              {shown.map((it) => {
+                const secs = fills[it.id] ?? 0;
+                const { full } = bottlesOf(secs);
+                const specimen = sealed[it.id] ?? null;
+                return (
+                  <ShelfCard
+                    key={it.id}
                     flask={it}
-                    specimen={i === 0 ? specimen : null}
-                    // 封存的入口归第一只满瓶：标本本来就封在注满的那只里，
-                    // 按钮和它作用的那只瓶子摆在同一张卡上。
-                    canSeal={i === 0 && !specimen && hasReady}
+                    secs={secs}
+                    stat={stats[it.id]}
+                    active={it.id === activeId}
+                    confirming={confirmId === it.id}
+                    specimen={specimen}
+                    // 封着的那只画在下面那层的第一只满瓶里（标本本来就封在注满的瓶中）；
+                    // 一只满瓶都没有时（调试改水位等）才退回来画在正在接的这只上，免得凭空消失。
+                    glyph={full === 0}
+                    hasReady={hasReady}
                     t={t}
-                    onAskSeal={() => setSealFor(it.id)}
+                    onSelect={() => {
+                      setConfirmId(null);
+                      setActiveFlask(it.id);
+                    }}
+                    onRename={(name) => renameFlask(it.id, name)}
+                    onAskRemove={() => setConfirmId(it.id)}
+                    onCancelRemove={() => setConfirmId(null)}
+                    onRemove={() => handleRemove(it.id)}
                     onUnseal={() => unseal(specimen?.uid)}
                   />
+                );
+              })}
+            </ul>
+          </section>
+
+          {/* —— 下：注满的（图鉴）——
+              一只满瓶一张卡，只增不减。一只都还没有时也留着这个板块的标题，
+              让人知道上面注满了会掉到哪儿去，而不是等它凭空冒出来。 */}
+          <section className="fk-section fk-section-filled">
+            <header className="fk-section-head">
+              <h2 className="fk-section-title">{t("flasks.sectionFilled")}</h2>
+              {filled.length > 0 && (
+                <span className="fk-section-count">
+                  {t("flasks.sectionFilledCount", { n: filled.length })}
+                </span>
+              )}
+            </header>
+            <p className="fk-section-note">{t("flasks.sectionFilledNote")}</p>
+            {filled.length === 0 ? (
+              <p className="fk-filled-empty">{t("flasks.filledEmpty")}</p>
+            ) : (
+              <ul className="fk-grid">
+                {filled.map((b) => (
+                  <FullCard
+                    key={b.key}
+                    flask={b.flask}
+                    specimen={b.specimen}
+                    // 封存的入口归第一只满瓶：标本本来就封在注满的那只里，
+                    // 按钮和它作用的那只瓶子摆在同一张卡上。
+                    canSeal={b.canSeal}
+                    t={t}
+                    onAskSeal={() => setSealFor(b.flask.id)}
+                    onUnseal={() => unseal(b.specimen?.uid)}
+                  />
                 ))}
-              </React.Fragment>
-            );
-          })}
-        </ul>
+              </ul>
+            )}
+          </section>
+        </>
       )}
 
       {sealFor && (
