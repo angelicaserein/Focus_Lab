@@ -15,7 +15,8 @@ function buildScenarioStats(records, scenarioId) {
 
   const taskMap = {};
   for (const r of recs) {
-    const key = r.taskText || "(未命名)";
+    // 无名任务归一到空串，显示文案交给页面 t()，免得这层塞死中文
+    const key = r.taskText || "";
     if (!taskMap[key]) taskMap[key] = { text: key, totalSecs: 0, count: 0 };
     taskMap[key].totalSecs += r.durationSecs;
     taskMap[key].count += 1;
@@ -47,7 +48,12 @@ export default function useScenarioAnalytics() {
     }
     const unclassified = buildScenarioStats(focusRecords, null);
     if (unclassified) {
-      result.push({ id: "__unclassified__", title: "(未分类)", ...unclassified });
+      // titleKey 走 i18n；其余行的 title 是用户自己起的情景名，原样显示
+      result.push({
+        id: "__unclassified__",
+        titleKey: "scenarioStats.unclassified",
+        ...unclassified,
+      });
     }
     return result.sort((a, b) => b.secs - a.secs);
   }, [scenarios, focusRecords]);

@@ -1,11 +1,18 @@
-/* ── Analytics page layout ── */
+/* 数据分析页。
+   配色纪律（从前这页乱就乱在没有纪律）：
+   1. 主色实底整页只出现一次 —— 顶部 .ana-hero。它是视觉落点，其余一律让位。
+   2. 其余卡片统一白底细边（.ana-card 一种壳，不再有第二种圆角/边框）。
+   3. 图表条形一律 var(--accent) 单色，不用渐变、不换色相；
+      唯一的例外是「完成率偏低」的警示色，走 --danger，不写死十六进制。
+   4. 数字用 --text-heading，标签用 --text-muted，说明用 --text-faint，三级到顶。 */
+
 .page-analytics {
   width: min(860px, 100%);
   margin: 0 auto;
   padding: 8px 0 64px;
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 36px;
 }
 
 /* ── 页头 ── */
@@ -30,11 +37,72 @@
   line-height: var(--page-sub-lh);
 }
 
-/* ── Section ── */
+/* ── 结论卡：全页唯一的主色实底 ── */
+.ana-hero {
+  background: var(--accent-solid);
+  border-radius: 24px;
+  box-shadow: 0 8px 28px var(--accent-glow);
+  padding: 26px 28px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ana-hero-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--on-accent-dim);
+}
+
+.ana-hero-value {
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--on-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.ana-hero-sessions {
+  font-size: 0.85rem;
+  color: var(--on-accent-dim);
+}
+
+/* 副指标：三个并排的小数字，靠一条淡分隔线与主数字拉开层次 */
+.ana-hero-subs {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--on-accent-dim);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.ana-hero-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ana-hero-sub-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--on-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.ana-hero-sub-label {
+  font-size: 0.7rem;
+  color: var(--on-accent-dim);
+}
+
+/* ── 小节 ── */
 .ana-section {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .ana-section-hd {
@@ -49,6 +117,7 @@
   color: var(--text-heading);
 }
 
+/* 一句话结论。淡底描边，不用实底 —— 实底留给 hero */
 .ana-insight-badge {
   font-size: 0.72rem;
   font-weight: 700;
@@ -60,26 +129,83 @@
   white-space: nowrap;
 }
 
-/* ── Generic card ── */
-.ana-card {
+/* ── 统一卡壳：全页图表共用这一种 ── */
+.ana-card,
+.ana-chart-card,
+.ana-hourly-wrap {
   background: var(--card);
   border: 1.5px solid var(--border-card);
-  border-radius: 24px;
+  border-radius: 20px;
   box-shadow: 0 2px 12px var(--shadow-sm);
   padding: 20px 24px;
 }
 
-/* ── 24-hour bar chart ── */
+/* ── 近 7 天：与 24 小时图同高、同色、同圆角，读起来是同一种图 ── */
+.ana-chart-card {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 168px;
+}
+
+.ana-day-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+}
+
+.ana-day-value {
+  font-size: 0.62rem;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  height: 14px;
+  white-space: nowrap;
+}
+
+.ana-day-bar-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.ana-day-bar {
+  width: 100%;
+  min-height: 3px;
+  border-radius: 6px 6px 3px 3px;
+  background: var(--accent);
+  opacity: 0.55;
+  transition:
+    height 400ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity var(--dur-fast) var(--ease);
+}
+
+/* 今天是这张图里唯一需要一眼找到的一根，用不透明度区分而不是换颜色 */
+.ana-day-col.today .ana-day-bar {
+  opacity: 1;
+}
+
+.ana-day-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.ana-day-col.today .ana-day-label {
+  color: var(--accent-mid);
+  font-weight: 700;
+}
+
+/* ── 24 小时图 ── */
 .ana-hourly-wrap {
-  background: var(--card);
-  border: 1.5px solid var(--border-card);
-  border-radius: 24px;
-  box-shadow: 0 2px 12px var(--shadow-sm);
   display: flex;
   align-items: flex-end;
   gap: 2px;
-  height: 120px;
-  padding: 14px 20px 10px;
+  height: 140px;
+  padding: 16px 20px 12px;
 }
 
 .ana-hour-col {
@@ -103,12 +229,8 @@
   min-height: 3px;
   border-radius: 3px 3px 2px 2px;
   background: var(--accent);
+  opacity: 0.75;
   transition: height 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* 分心高峰柱同样跟随主题色（与近 7 天趋势柱一致，自下而上渐变） */
-.ana-hour-bar.distraction {
-  background: linear-gradient(180deg, var(--accent), var(--accent-deep));
 }
 
 .ana-hour-label {
@@ -119,7 +241,7 @@
   line-height: 13px;
 }
 
-/* ── Time blocks row ── */
+/* ── 时段卡 ── */
 .ana-blocks-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -127,56 +249,47 @@
 }
 
 .ana-block-card {
-  padding: 16px 14px;
-  border-radius: 18px;
+  padding: 14px 14px;
+  border-radius: 20px;
   background: var(--card);
   border: 1.5px solid var(--border-card);
   box-shadow: 0 1px 6px var(--shadow-xs);
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 
+/* 最佳时段：淡底 + 主色描边即可点出重点，实底会跟 hero 抢 */
 .ana-block-card.best {
-  background: var(--accent-solid);
-  border-color: transparent;
-  box-shadow: 0 6px 20px var(--accent-glow);
+  background: var(--accent-bg);
+  border-color: var(--accent);
 }
 
 .ana-block-name {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
 }
 
 .ana-block-card.best .ana-block-name {
-  color: var(--on-accent-dim);
+  color: var(--accent-mid);
 }
 
 .ana-block-secs {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: var(--text-heading);
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 
-.ana-block-card.best .ana-block-secs {
-  color: var(--on-accent);
-}
-
 .ana-block-rate {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--text-faint);
 }
 
-.ana-block-card.best .ana-block-rate {
-  color: var(--on-accent-dim);
-}
-
-/* ── Duration distribution ── */
+/* ── 时长分布 ── */
 .ana-dur-list {
   display: flex;
   flex-direction: column;
@@ -216,18 +329,18 @@
 .ana-dur-count {
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
-  width: 32px;
+  width: 36px;
   text-align: right;
   flex-shrink: 0;
 }
 
-/* ── Task difficulty ── */
+/* ── 任务榜（投入时长 + 完成率合成的一张表） ── */
 .ana-task-list {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 
 .ana-task-row {
@@ -248,6 +361,7 @@
   color: var(--text-faint);
   width: 22px;
   flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .ana-task-name {
@@ -262,14 +376,16 @@
 }
 
 .ana-task-rate {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--text-muted);
   flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
 }
 
+/* 完成率低于一半：整页唯一一处非主色的着色，且跟随主题的 --danger */
 .ana-task-rate.hard {
-  color: #b45309;
+  color: var(--danger);
 }
 
 .ana-task-track {
@@ -287,45 +403,55 @@
 }
 
 .ana-task-fill.hard {
-  background: linear-gradient(90deg, #f59e0b, #ef4444);
+  background: var(--danger);
 }
 
 .ana-task-sub {
   font-size: 0.7rem;
   color: var(--text-faint);
   padding-left: 30px;
+  font-variant-numeric: tabular-nums;
 }
 
-/* ── Insight row (distraction tag) ── */
-.ana-insight-row {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  padding: 10px 18px;
-  background: var(--accent-bg);
-  border: 1px solid var(--border-accent);
-  border-radius: 14px;
+/* ── 页尾出口 ── */
+.ana-more {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 4px;
 }
 
-/* 同一行样式作为跳转链接用（如「看分心统计 →」） */
-.ana-crosslink {
-  display: block;
-  text-decoration: none;
-  transition: filter var(--dur-fast) var(--ease);
+.ana-more-label {
+  font-size: 0.78rem;
+  color: var(--text-faint);
 }
 
-.ana-crosslink:hover {
-  filter: brightness(1.04);
+.ana-more-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.ana-insight-row strong {
+.ana-more-link {
+  font-size: 0.78rem;
+  font-weight: 600;
   color: var(--accent-mid);
-  font-weight: 700;
+  text-decoration: none;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-accent);
+  transition: background var(--dur-fast) var(--ease);
 }
 
-/* ── Empty tip ── */
-.ana-empty-tip {
-  font-size: 0.9rem;
-  line-height: 1.6;
+.ana-more-link:hover {
+  background: var(--accent-bg);
+}
+
+/* ── 空状态 ── */
+.ana-empty {
+  font-size: 0.92rem;
+  line-height: 1.7;
   color: var(--text-muted);
   text-align: center;
   padding: var(--empty-pad);
@@ -340,15 +466,23 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .ana-hourly-wrap {
-    height: 90px;
-    gap: 1px;
-    padding: 10px 12px 8px;
+  .ana-hero-value {
+    font-size: 2rem;
   }
-}
 
-@media (max-width: 400px) {
-  .ana-blocks-row {
-    grid-template-columns: 1fr 1fr;
+  .ana-chart-card {
+    height: 140px;
+    gap: 5px;
+    padding: 16px 14px;
+  }
+
+  .ana-day-value {
+    font-size: 0.55rem;
+  }
+
+  .ana-hourly-wrap {
+    height: 104px;
+    gap: 1px;
+    padding: 12px 12px 8px;
   }
 }

@@ -6,21 +6,24 @@ import MemoItem from "@/pages/Memo/MemoItem";
 import useMemoAiOrganize from "@/pages/Memo/useMemoAiOrganize";
 import { collectTags, itemHasTag } from "@/pages/Memo/memoTags";
 import { useDatabases } from "@/context/DatabaseContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { formatSessionDate } from "@/utils/time";
 import "./Memo.css";
 
+// labelKey 交给页面 t()，别在这层写死中文
 const FILTERS = [
-  { key: "all", label: "全部" },
-  { key: "memo", label: "手动" },
-  { key: "focus", label: "专注随记" },
+  { key: "all", labelKey: "memo.filter.all" },
+  { key: "memo", labelKey: "memo.filter.memo" },
+  { key: "focus", labelKey: "memo.filter.focus" },
 ];
 
 // 按自然日分组，返回 [dayLabel, items][]（items 已按时间倒序）
-function groupByDay(items) {
+// 分组标题就是本地化后的日期串，故 lang 要一路传进来
+function groupByDay(items, lang) {
   const groups = [];
   const index = new Map();
   for (const item of items) {
-    const label = formatSessionDate(item.ts);
+    const label = formatSessionDate(item.ts, lang);
     if (!index.has(label)) {
       index.set(label, groups.length);
       groups.push([label, []]);
@@ -33,8 +36,9 @@ function groupByDay(items) {
 export default function MemoPage() {
   const { timeline, counts, addMemo, updateMemo, removeMemo, setMemoTags } = useMemos();
   const { activeDatabase } = useDatabases();
+  const { t, lang } = useLanguage();
   const ai = useTaskExtraction();
-  const organize = useMemoAiOrganize({ timeline, ai, activeDatabase });
+  const organize = useMemoAiOrganize({ timeline, ai, activeDatabase, t });
 
   const [draft, setDraft] = useState("");
   const [filter, setFilter] = useState("all");
@@ -47,7 +51,7 @@ export default function MemoPage() {
     if (activeTag) list = list.filter((i) => itemHasTag(i, activeTag));
     return list;
   }, [timeline, filter, activeTag]);
-  const groups = useMemo(() => groupByDay(filtered), [filtered]);
+  const groups = useMemo(() => groupByDay(filtered, lang), [filtered, lang]);
 
   // 点击某标签：再次点击同一标签则取消筛选。
   const toggleTag = (tag) => setActiveTag((cur) => (cur === tag ? null : tag));
@@ -70,8 +74,8 @@ export default function MemoPage() {
   return (
     <div className="page-memo">
       <div className="memo-headline">
-        <h1>备忘录</h1>
-        <p className="memo-subtitle">随时记下想法，专注时的随记也会汇总到这里</p>
+        <h1>{t("memo.title")}</h1>
+        <p className="memo-subtitle">{t("memo.subtitle")}</p>
       </div>
 
       {/* 新建备忘 */}
@@ -82,7 +86,7 @@ export default function MemoPage() {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleDraftKeyDown}
-          placeholder="写点什么…（Enter 添加，Shift+Enter 换行）"
+          placeholder={t("memo.composePlaceholder")}
         />
         <button
           type="button"
@@ -90,20 +94,20 @@ export default function MemoPage() {
           onClick={handleAdd}
           disabled={!draft.trim()}
         >
-          添加
+          {t("memo.add")}
         </button>
       </div>
 
       {/* 筛选 */}
       <div className="memo-filters">
-        {FILTERS.map(({ key, label }) => (
+        {FILTERS.map(({ key, labelKey }) => (
           <button
             key={key}
             type="button"
             className={`memo-filter-chip${filter === key ? " active" : ""}`}
             onClick={() => setFilter(key)}
           >
-            {label}
+            {t(labelKey)}
             <span className="memo-filter-count">{counts[key]}</span>
           </button>
         ))}
@@ -129,7 +133,7 @@ export default function MemoPage() {
               className="memo-tagbar-clear"
               onClick={() => setActiveTag(null)}
             >
-              清除标签筛选
+              {t("memo.clearTagFilter")}
             </button>
           )}
         </div>
@@ -138,9 +142,7 @@ export default function MemoPage() {
       {/* 时间线 */}
       {filtered.length === 0 ? (
         <div className="memo-empty">
-          {filter === "focus"
-            ? "还没有专注随记，去沉浸式专注里记录一条吧"
-            : "还没有备忘，写下你的第一条想法"}
+          {filter === "focus" ? t("memo.emptyFocus") : t("memo.empty")}
         </div>
       ) : (
         <div className="memo-timeline">
@@ -170,13 +172,15 @@ export default function MemoPage() {
       {/* 选中条目 → 整理成任务 浮动操作条 */}
       {organize.selected.size > 0 && (
         <div className="memo-actionbar">
-          <span className="memo-actionbar-text">已选 {organize.selected.size} 条</span>
+          <span className="memo-actionbar-text">
+            {t("memo.selectedCount", { count: organize.selected.size })}
+          </span>
           <button
             type="button"
             className="memo-actionbar-clear"
             onClick={organize.clearSelection}
           >
-            清空
+            {t("memo.clearSelection")}
           </button>
           <button
             type="button"
@@ -184,7 +188,7 @@ export default function MemoPage() {
             onClick={organize.requestFromSelected}
             disabled={ai.status === "loading"}
           >
-            整理成任务
+            {t("memo.organize")}
           </button>
         </div>
       )}

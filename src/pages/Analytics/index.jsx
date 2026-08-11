@@ -2,11 +2,21 @@ import React from "react";
 import { Link } from "react-router-dom";
 import useFocusAnalytics from "@/hooks/focus/useFocusAnalytics";
 import { useFeatures } from "@/context/FeatureContext";
-import { formatDurationChinese as fmt } from "@/utils/time";
+import { useLanguage } from "@/context/LanguageContext";
+import { formatDurationChinese, formatDuration } from "@/utils/time";
+import FocusSummary from "./FocusSummary";
 import "./Analytics.css";
 
 // 只在关键刻度显示小时标签
-const HOUR_TICK = { 0: "0时", 6: "6时", 12: "12时", 18: "18时", 23: "23时" };
+const HOUR_TICKS = [0, 6, 12, 18, 23];
+
+// 页尾出口：本页给全局结论，更细的东西各有专页。
+const MORE_PAGES = [
+  { to: "/history", labelKey: "nav.history" },
+  { to: "/distraction", labelKey: "nav.distraction" },
+  { to: "/scenario-stats", labelKey: "nav.scenarioStats" },
+  { to: "/calendar", labelKey: "nav.calendar" },
+];
 
 function SectionHead({ title, badge }) {
   return (
@@ -18,7 +28,7 @@ function SectionHead({ title, badge }) {
 }
 
 // 24 小时条形图：专注高峰与分心高峰两处共用，仅取值/标题/条形样式不同。
-function HourlyBars({ data, getValue, max, barClassName, formatTitle }) {
+function HourlyBars({ data, getValue, max, barClassName, formatTitle, hourLabel }) {
   return (
     <div className="ana-hourly-wrap">
       {data.map((d) => {
@@ -34,7 +44,9 @@ function HourlyBars({ data, getValue, max, barClassName, formatTitle }) {
                 />
               )}
             </div>
-            <span className="ana-hour-label">{HOUR_TICK[d.hour] ?? ""}</span>
+            <span className="ana-hour-label">
+              {HOUR_TICKS.includes(d.hour) ? hourLabel(d.hour) : ""}
+            </span>
           </div>
         );
       })}
@@ -42,39 +54,43 @@ function HourlyBars({ data, getValue, max, barClassName, formatTitle }) {
   );
 }
 
+// 数据分析 = 全部汇总数字与图表的唯一去处。
+// 记录原文在 /history，分心细节在 /distraction，这里都不再摆一份摘要。
 export default function AnalyticsPage() {
   const {
     focusRecords,
     hourly,
     blocks,
     durationBuckets,
-    difficulty,
-    distData,
-    sessionCount,
+    taskTable,
+    stats,
     avgSessionSecs,
   } = useFocusAnalytics();
   const { isEnabled } = useFeatures();
+  const { t, lang } = useLanguage();
+
+  const fmt = (secs) => formatDurationChinese(secs, lang);
+  const hourLabel = (hour) => t("analytics.hourTick", { hour });
+  const moreLinks = MORE_PAGES.filter((p) => isEnabled(p.to));
 
   // ── 衍生值 ───────────────────────────────────────────────────────────────
   const hourlyMax = Math.max(...hourly.map((h) => h.totalSecs), 1);
   const durationMax = Math.max(...durationBuckets.map((b) => b.count), 1);
   const bestBlock = blocks[0];
-  const peakDistHour = distData.hourly.reduce(
-    (best, h) => (h.count > best.count ? h : best),
-    { hour: -1, count: 0 },
-  );
+  const taskMax = taskTable[0]?.totalSecs ?? 1;
+  const taskName = (text) => text || t("analytics.untitled");
 
   // ── 空状态 ────────────────────────────────────────────────────────────────
   if (focusRecords.length === 0) {
     return (
       <div className="page-analytics">
         <div className="ana-headline">
-          <h1>数据分析</h1>
+          <h1>{t("analytics.title")}</h1>
         </div>
-        <div className="hist-empty">
-          还没有专注记录。
+        <div className="ana-empty">
+          {t("analytics.empty")}
           <br />
-          先去完成几次专注，这里就会出现洞察！
+          {t("analytics.emptyHint")}
         </div>
       </div>
     );
@@ -84,17 +100,22 @@ export default function AnalyticsPage() {
     <div className="page-analytics">
       {/* ── 页头 ─────────────────────────────────────────────────────────── */}
       <div className="ana-headline">
-        <h1>数据分析</h1>
-        <p>
-          共 {sessionCount} 次专注，平均每次 {fmt(avgSessionSecs)}
-        </p>
+        <h1>{t("analytics.title")}</h1>
+        <p>{t("analytics.subtitle")}</p>
       </div>
+
+      {/* ── 0. 结论区：一张主卡 + 近 7 天趋势 ─────────────────────────────── */}
+      <FocusSummary stats={stats} />
 
       {/* ── 1. 专注高峰时段 ───────────────────────────────────────────────── */}
       <section className="ana-section">
         <SectionHead
-          title="专注高峰时段"
-          badge={bestBlock ? `${bestBlock.label}专注最多` : null}
+          title={t("analytics.peak.title")}
+          badge={
+            bestBlock
+              ? t("analytics.peak.badge", { block: t(bestBlock.labelKey) })
+              : null
+          }
         />
 
         {/* 24 小时条形图 */}
@@ -104,17 +125,20 @@ export default function AnalyticsPage() {
           max={hourlyMax}
           barClassName="ana-hour-bar"
           formatTitle={(h) => `${h.hour}:00 — ${fmt(h.totalSecs)}`}
+          hourLabel={hourLabel}
         />
 
         {/* 时间段卡片（最多 4 个，按时长排序） */}
         {blocks.length > 0 && (
           <div className="ana-blocks-row">
             {blocks.slice(0, 4).map((b, i) => (
-              <div key={b.label} className={`ana-block-card${i === 0 ? " best" : ""}`}>
-                <div className="ana-block-name">{b.label}</div>
+              <div key={b.labelKey} className={`ana-block-card${i === 0 ? " best" : ""}`}>
+                <div className="ana-block-name">{t(b.labelKey)}</div>
                 <div className="ana-block-secs">{fmt(b.totalSecs)}</div>
                 <div className="ana-block-rate">
-                  完成率 {Math.round(b.completionRate * 100)}%
+                  {t("analytics.peak.completion", {
+                    rate: Math.round(b.completionRate * 100),
+                  })}
                 </div>
               </div>
             ))}
@@ -125,14 +149,14 @@ export default function AnalyticsPage() {
       {/* ── 2. 专注时长分布 ───────────────────────────────────────────────── */}
       <section className="ana-section">
         <SectionHead
-          title="每次专注多久"
-          badge={`平均 ${fmt(avgSessionSecs)}`}
+          title={t("analytics.duration.title")}
+          badge={t("analytics.duration.badge", { avg: fmt(avgSessionSecs) })}
         />
 
         <div className="ana-card ana-dur-list">
           {durationBuckets.map((b, i) => (
             <div key={i} className="ana-dur-row">
-              <span className="ana-dur-label">{b.label}</span>
+              <span className="ana-dur-label">{t(b.labelKey)}</span>
               <div className="ana-dur-track">
                 {b.count > 0 && (
                   <div
@@ -141,70 +165,75 @@ export default function AnalyticsPage() {
                   />
                 )}
               </div>
-              <span className="ana-dur-count">{b.count} 次</span>
+              <span className="ana-dur-count">
+                {t("analytics.duration.count", { count: b.count })}
+              </span>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── 3. 任务难度 ───────────────────────────────────────────────────── */}
-      <section className="ana-section">
-        <SectionHead
-          title="哪些任务最难坚持"
-          badge={
-            difficulty.length > 0
-              ? `${difficulty[0].text.length > 8 ? difficulty[0].text.slice(0, 8) + "…" : difficulty[0].text} 最难`
-              : null
-          }
-        />
+      {/* ── 3. 任务：投入时长与完成率合成一张表 ───────────────────────────── */}
+      {taskTable.length > 0 && (
+        <section className="ana-section">
+          <SectionHead
+            title={t("analytics.tasks.title")}
+            badge={t("analytics.tasks.badge", {
+              task: (() => {
+                const name = taskName(taskTable[0].text);
+                return name.length > 8 ? name.slice(0, 8) + "…" : name;
+              })(),
+            })}
+          />
 
-        {difficulty.length === 0 ? (
-          <div className="ana-empty-tip">
-            同一任务出现 2 次以上才会统计
-          </div>
-        ) : (
           <div className="ana-card ana-task-list">
-            {difficulty.map((t, i) => (
-              <div key={t.text} className="ana-task-row">
+            {taskTable.map((task, i) => (
+              <div key={task.text} className="ana-task-row">
                 <div className="ana-task-top">
                   <span className="ana-task-rank">#{i + 1}</span>
-                  <span className="ana-task-name">{t.text}</span>
-                  <span className={`ana-task-rate${t.failRate > 0.5 ? " hard" : ""}`}>
-                    完成 {Math.round((1 - t.failRate) * 100)}%
-                  </span>
+                  <span className="ana-task-name">{taskName(task.text)}</span>
+                  {/* 完成率只在任务出现 ≥2 次时给出，一次性任务恒为 100% 没有参考价值 */}
+                  {task.completionRate !== null && (
+                    <span className={`ana-task-rate${task.hard ? " hard" : ""}`}>
+                      {t("analytics.tasks.rate", {
+                        rate: Math.round(task.completionRate * 100),
+                      })}
+                    </span>
+                  )}
                 </div>
+                {/* 条形长度看的是投入时长（表的排序依据），不是完成率 */}
                 <div className="ana-task-track">
                   <div
-                    className={`ana-task-fill${t.failRate > 0.5 ? " hard" : ""}`}
-                    style={{ width: `${Math.max((1 - t.failRate) * 100, 4)}%` }}
+                    className={`ana-task-fill${task.hard ? " hard" : ""}`}
+                    style={{ width: `${Math.max((task.totalSecs / taskMax) * 100, 4)}%` }}
                   />
                 </div>
                 <div className="ana-task-sub">
-                  共 {t.total} 次 · 完成 {t.completed} 次
+                  {t("analytics.tasks.sub", {
+                    duration: formatDuration(task.totalSecs),
+                    count: task.sessions,
+                  })}
                 </div>
               </div>
             ))}
           </div>
-        )}
-      </section>
-
-      {/* ── 4. 分心 —— 详细统计在 /distraction，这里只留一句概览 + 入口 ────── */}
-      {isEnabled("/distraction") && distData.total > 0 && (
-        <section className="ana-section">
-          <SectionHead
-            title="分心"
-            badge={peakDistHour.count > 0 ? `${peakDistHour.hour}时最易分心` : null}
-          />
-          <Link to="/distraction" className="ana-insight-row ana-crosslink">
-            共记录 <strong>{distData.total}</strong> 次分心
-            {distData.topTag && (
-              <>
-                {" "}· 最常见原因 <strong>{distData.topTag}</strong>
-              </>
-            )}
-            {" "}· 看分心统计 →
-          </Link>
         </section>
+      )}
+
+      {/* ── 页尾：去更细的地方 ─────────────────────────────────────────────
+          这里是全局分析，细节各有专页。摘要不再往本页塞（那正是从前乱的原因），
+          只留一排出口；被功能树关掉的页不出现。 */}
+      {moreLinks.length > 0 && (
+        <nav className="ana-more">
+          <span className="ana-more-label">{t("analytics.more")}</span>
+          <div className="ana-more-links">
+            {moreLinks.map(({ to, labelKey }) => (
+              <Link key={to} to={to} className="ana-more-link">
+                {t(labelKey)}
+              </Link>
+            ))}
+          </div>
+        </nav>
       )}
     </div>
   );

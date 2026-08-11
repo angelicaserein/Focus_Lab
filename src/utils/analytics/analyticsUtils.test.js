@@ -3,7 +3,7 @@ import {
   hourlyFocusData,
   timeBlockStats,
   sessionDurationBuckets,
-  taskDifficultyRanking,
+  mergeTaskTable,
   distractionByHour,
   TIME_BLOCKS,
   DURATION_BUCKETS,
@@ -76,7 +76,10 @@ describe("timeBlockStats", () => {
     Object.assign(data[9], { sessionCount: 1, totalSecs: 100, completedCount: 1, totalCount: 2 }); // 上午
     Object.assign(data[20], { sessionCount: 1, totalSecs: 300, completedCount: 0, totalCount: 1 }); // 晚上
     const out = timeBlockStats(data);
-    expect(out.map((b) => b.label)).toEqual(["晚上", "上午"]);
+    expect(out.map((b) => b.labelKey)).toEqual([
+      "analytics.block.evening",
+      "analytics.block.morning",
+    ]);
     expect(out[0].totalSecs).toBe(300);
   });
 
@@ -89,7 +92,7 @@ describe("timeBlockStats", () => {
     // 早晨 range [6,9) → 小时 6,7,8
     const data = blank();
     Object.assign(data[7], { sessionCount: 1, totalSecs: 60, completedCount: 3, totalCount: 4 });
-    const morning = timeBlockStats(data).find((b) => b.label === "早晨");
+    const morning = timeBlockStats(data).find((b) => b.labelKey === "analytics.block.earlyMorning");
     expect(morning.completionRate).toBe(0.75);
   });
 });
@@ -104,45 +107,58 @@ describe("sessionDurationBuckets", () => {
       rec("c", 1800), // 30–60分
       rec("d", 7200), // > 2小时（上界 Infinity）
     ]);
-    const byLabel = Object.fromEntries(out.map((b) => [b.label, b.count]));
-    expect(byLabel["< 15分钟"]).toBe(1);
-    expect(byLabel["15–30分"]).toBe(1);
-    expect(byLabel["30–60分"]).toBe(1);
-    expect(byLabel["> 2小时"]).toBe(1);
+    const byKey = Object.fromEntries(out.map((b) => [b.labelKey, b.count]));
+    expect(byKey["analytics.bucket.under15"]).toBe(1);
+    expect(byKey["analytics.bucket.15to30"]).toBe(1);
+    expect(byKey["analytics.bucket.30to60"]).toBe(1);
+    expect(byKey["analytics.bucket.over2h"]).toBe(1);
   });
 
   it("同会话多条记录按 max 去重后再落桶", () => {
     const out = sessionDurationBuckets([rec("a", 1000), rec("a", 5000)]);
     // max=5000 → 1–2小时，那一桶计 1，其它为 0
-    const oneToTwo = out.find((b) => b.label === "1–2小时");
+    const oneToTwo = out.find((b) => b.labelKey === "analytics.bucket.1to2h");
     expect(oneToTwo.count).toBe(1);
     expect(out.reduce((s, b) => s + b.count, 0)).toBe(1);
   });
 });
 
-describe("taskDifficultyRanking", () => {
+describe("mergeTaskTable", () => {
   const rec = (taskText, outcome) => ({ taskText, outcome });
+  const row = (text, totalSecs) => ({ text, totalSecs, sessions: 1 });
 
-  it("按未完成率降序，且过滤掉出现次数 < minN 的任务", () => {
-    const out = taskDifficultyRanking(
+  it("保持 taskBreakdown 的时长排序，并给每行补完成率", () => {
+    const out = mergeTaskTable(
       [
         rec("难", "ended"),
         rec("难", "ended"),
-        rec("难", "completed"), // 难：3 次完成 1 → failRate 2/3
+        rec("难", "completed"), // 3 次完成 1 → 1/3
         rec("易", "completed"),
-        rec("易", "completed"), // 易：2 次全完成 → failRate 0
-        rec("偶尔", "ended"), // 只 1 次 → 被过滤
+        rec("易", "completed"), // 2 次全完成 → 1
       ],
-      2,
+      [row("易", 100), row("难", 50)],
     );
-    expect(out.map((t) => t.text)).toEqual(["难", "易"]);
-    expect(out[0].failRate).toBeCloseTo(2 / 3);
-    expect(out[1].failRate).toBe(0);
+    expect(out.map((t) => t.text)).toEqual(["易", "难"]);
+    expect(out[0].completionRate).toBe(1);
+    expect(out[1].completionRate).toBeCloseTo(1 / 3);
+    expect(out[1].hard).toBe(true); // 完成率 < 50%
+    expect(out[0].hard).toBe(false);
   });
 
-  it("无 taskText 归为「(未命名)」", () => {
-    const out = taskDifficultyRanking([rec(undefined, "ended"), rec(undefined, "ended")], 2);
-    expect(out[0].text).toBe("(未命名)");
+  it("出现不足 2 次的任务不给完成率（一次性任务恒为 0/100%，没有参考价值）", () => {
+    const out = mergeTaskTable([rec("偶尔", "ended")], [row("偶尔", 10)]);
+    expect(out[0].completionRate).toBeNull();
+    expect(out[0].hard).toBe(false);
+  });
+
+  // 无名任务归一到空串，显示文案由页面 t("analytics.untitled") 补，
+  // 免得纯函数层塞死中文、切英文时冒出一条中文行。
+  it("无 taskText 归一为空串后仍能对上", () => {
+    const out = mergeTaskTable(
+      [rec(undefined, "ended"), rec(undefined, "completed")],
+      [row(undefined, 30)],
+    );
+    expect(out[0].completionRate).toBe(0.5);
   });
 });
 

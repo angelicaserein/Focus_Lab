@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { sanitizeTaskAttrs } from "@/utils/ai/aiTasks";
+import { useLanguage } from "@/context/LanguageContext";
 import "./AiTaskModal.css";
 
 // 把已清洗的 attrs 渲染成只读 chips（优先级带色点、标签、截止、时长、备注）。
-function attrChips(attrs, database) {
+// t 从组件传进来：chip 里有「截止 / 备注」这类要翻译的固定词。
+function attrChips(attrs, database, t) {
   const byId = new Map((database?.attrs ?? []).map((a) => [a.id, a]));
   const chips = [];
 
@@ -18,16 +20,19 @@ function attrChips(attrs, database) {
       .filter(Boolean);
     if (labels.length) chips.push({ key: "tags", label: labels.join(" · ") });
   }
-  if (attrs.dueDate) chips.push({ key: "dueDate", label: `截止 ${attrs.dueDate}` });
+  if (attrs.dueDate) {
+    chips.push({ key: "dueDate", label: t("memo.ai.chipDue", { date: attrs.dueDate }) });
+  }
   if (attrs.estimatedMins != null) {
-    const unit = byId.get("estimatedMins")?.unit || "分钟";
+    const unit = byId.get("estimatedMins")?.unit || t("memo.ai.minutesUnit");
     chips.push({ key: "estimatedMins", label: `${attrs.estimatedMins}${unit}` });
   }
-  if (attrs.notes) chips.push({ key: "notes", label: "备注" });
+  if (attrs.notes) chips.push({ key: "notes", label: t("memo.ai.chipNotes") });
   return chips;
 }
 
 export default function AiTaskModal({ status, candidates, error, database, onCommit, onClose }) {
+  const { t } = useLanguage();
   // 本地可编辑副本：候选变化时重新播种（标题可改、勾选可切换）。
   const [rows, setRows] = useState([]);
 
@@ -77,8 +82,8 @@ export default function AiTaskModal({ status, candidates, error, database, onCom
     <div className="ait-backdrop" onClick={onClose}>
       <div className="ait-modal" onClick={(e) => e.stopPropagation()}>
         <div className="ait-head">
-          <h2 className="ait-title">AI 整理成任务</h2>
-          <button type="button" className="ait-close" onClick={onClose} aria-label="关闭">
+          <h2 className="ait-title">{t("memo.ai.title")}</h2>
+          <button type="button" className="ait-close" onClick={onClose} aria-label={t("memo.ai.close")}>
             ✕
           </button>
         </div>
@@ -86,35 +91,35 @@ export default function AiTaskModal({ status, candidates, error, database, onCom
         {status === "loading" && (
           <div className="ait-state">
             <span className="ait-spinner" />
-            <p>AI 正在帮你整理…</p>
+            <p>{t("memo.ai.loading")}</p>
           </div>
         )}
 
         {status === "error" && (
           <div className="ait-state">
-            <p className="ait-error">{error || "整理失败，请稍后再试"}</p>
+            <p className="ait-error">{error || t("memo.ai.error")}</p>
             <button type="button" className="ait-btn-ghost" onClick={onClose}>
-              关闭
+              {t("memo.ai.close")}
             </button>
           </div>
         )}
 
         {status === "review" && rows.length === 0 && (
           <div className="ait-state">
-            <p>没有识别到可执行的任务，换一段话试试？</p>
+            <p>{t("memo.ai.noTasks")}</p>
             <button type="button" className="ait-btn-ghost" onClick={onClose}>
-              关闭
+              {t("memo.ai.close")}
             </button>
           </div>
         )}
 
         {status === "review" && rows.length > 0 && (
           <>
-            <p className="ait-hint">勾选要加入的任务，可直接修改标题。确认后加入当前任务库。</p>
+            <p className="ait-hint">{t("memo.ai.hint")}</p>
 
             <ul className="ait-list">
               {rows.map((r, i) => {
-                const chips = attrChips(perRow[i], database);
+                const chips = attrChips(perRow[i], database, t);
                 return (
                   <li key={r.key} className={`ait-row${r.selected ? "" : " off"}`}>
                     <label className="ait-check">
@@ -129,7 +134,7 @@ export default function AiTaskModal({ status, candidates, error, database, onCom
                         className="ait-row-input"
                         value={r.text}
                         onChange={(e) => editText(r.key, e.target.value)}
-                        placeholder="任务标题"
+                        placeholder={t("memo.ai.taskPlaceholder")}
                       />
                       {chips.length > 0 && (
                         <div className="ait-chips">
@@ -151,14 +156,13 @@ export default function AiTaskModal({ status, candidates, error, database, onCom
 
             {droppedAll.length > 0 && (
               <p className="ait-dropped">
-                当前任务库没有「{droppedAll.join("、")}」列，这些字段不会保存。
-                可在任务页为当前库添加这些列后再整理。
+                {t("memo.ai.dropped", { names: droppedAll.join(t("memo.ai.listSep")) })}
               </p>
             )}
 
             <div className="ait-actions">
               <button type="button" className="ait-btn-ghost" onClick={onClose}>
-                取消
+                {t("memo.ai.cancel")}
               </button>
               <button
                 type="button"
@@ -166,7 +170,7 @@ export default function AiTaskModal({ status, candidates, error, database, onCom
                 onClick={handleCommit}
                 disabled={selectedCount === 0}
               >
-                加入 {selectedCount} 条任务
+                {t("memo.ai.commit", { count: selectedCount })}
               </button>
             </div>
           </>

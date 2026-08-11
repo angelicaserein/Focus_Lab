@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import useEditMode from "@/hooks/common/useEditMode";
+import { useLanguage } from "@/context/LanguageContext";
 import { addTag, removeTag } from "@/pages/Memo/memoTags";
 import { formatTimestamp } from "@/utils/time";
 
@@ -17,6 +18,7 @@ export default function MemoItem({
   onTagClick,
   activeTag,
 }) {
+  const { t } = useLanguage();
   const isFocus = item.source === "focus";
   const edit = useEditMode(item.text);
   const tags = item.tags || [];
@@ -65,23 +67,23 @@ export default function MemoItem({
           className="memo-select-check"
           checked={selected}
           onChange={() => onToggleSelect(item.id)}
-          title="选中以整理成任务"
+          title={t("memo.item.selectHint")}
         />
         <span className={`memo-badge${isFocus ? " focus" : ""}`}>
-          {isFocus ? "⛯ 专注随记" : "✎ 手动"}
+          {isFocus ? t("memo.item.badgeFocus") : t("memo.item.badgeManual")}
         </span>
         <span className="memo-item-time">{formatTimestamp(item.ts)}</span>
         {!edit.editing && (
           <span className="memo-item-actions">
             <button type="button" className="memo-item-btn" onClick={edit.startEdit}>
-              编辑
+              {t("memo.item.edit")}
             </button>
             <button
               type="button"
               className="memo-item-btn danger"
               onClick={() => onRemove(item.id, item.source)}
             >
-              删除
+              {t("memo.item.delete")}
             </button>
           </span>
         )}
@@ -104,10 +106,10 @@ export default function MemoItem({
               onClick={save}
               disabled={!edit.draft.trim()}
             >
-              保存
+              {t("memo.item.save")}
             </button>
             <button type="button" className="memo-edit-cancel" onClick={edit.cancelEdit}>
-              取消
+              {t("memo.item.cancel")}
             </button>
           </div>
         </div>
@@ -127,7 +129,7 @@ export default function MemoItem({
                 type="button"
                 className="memo-tag-label"
                 onClick={() => onTagClick?.(tag)}
-                title="按此标签筛选"
+                title={t("memo.tag.filterBy")}
               >
                 #{tag}
               </button>
@@ -135,7 +137,7 @@ export default function MemoItem({
                 type="button"
                 className="memo-tag-remove"
                 onClick={() => dropTag(tag)}
-                title="移除标签"
+                title={t("memo.tag.remove")}
               >
                 ×
               </button>
@@ -148,7 +150,7 @@ export default function MemoItem({
               value={tagDraft}
               autoFocus
               maxLength={20}
-              placeholder="标签名，回车确认"
+              placeholder={t("memo.tag.placeholder")}
               onChange={(e) => setTagDraft(e.target.value)}
               onKeyDown={handleTagKeyDown}
               onBlur={commitTag}
@@ -159,7 +161,7 @@ export default function MemoItem({
               className="memo-tag-add"
               onClick={() => setAddingTag(true)}
             >
-              ＋ 标签
+              {t("memo.tag.add")}
             </button>
           )}
         </div>

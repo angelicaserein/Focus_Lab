@@ -36,14 +36,16 @@ export function hourlyFocusData(records) {
 }
 
 // ── 2. 时间段定义与聚合 ────────────────────────────────────────────────────
+// labelKey 是 i18n key（见 i18n/analytics.js），不是可直接显示的文案——
+// 这里是纯函数层，不该知道当前语言，交给页面 t() 出来。
 export const TIME_BLOCKS = [
-  { label: "早晨", range: [6, 9] },
-  { label: "上午", range: [9, 12] },
-  { label: "午后", range: [12, 15] },
-  { label: "下午", range: [15, 18] },
-  { label: "晚上", range: [18, 21] },
-  { label: "深夜", range: [21, 24] },
-  { label: "凌晨", range: [0, 6] },
+  { labelKey: "analytics.block.earlyMorning", range: [6, 9] },
+  { labelKey: "analytics.block.morning",      range: [9, 12] },
+  { labelKey: "analytics.block.noon",         range: [12, 15] },
+  { labelKey: "analytics.block.afternoon",    range: [15, 18] },
+  { labelKey: "analytics.block.evening",      range: [18, 21] },
+  { labelKey: "analytics.block.lateNight",    range: [21, 24] },
+  { labelKey: "analytics.block.dawn",         range: [0, 6] },
 ];
 
 // 返回有数据的时间段，按 totalSecs 降序
@@ -68,11 +70,11 @@ export function timeBlockStats(hourlyData) {
 
 // ── 3. 专注时长分布（按会话去重） ─────────────────────────────────────────
 export const DURATION_BUCKETS = [
-  { label: "< 15分钟", min: 0,    max: 900 },
-  { label: "15–30分",  min: 900,  max: 1800 },
-  { label: "30–60分",  min: 1800, max: 3600 },
-  { label: "1–2小时",  min: 3600, max: 7200 },
-  { label: "> 2小时",  min: 7200, max: Infinity },
+  { labelKey: "analytics.bucket.under15", min: 0,    max: 900 },
+  { labelKey: "analytics.bucket.15to30",  min: 900,  max: 1800 },
+  { labelKey: "analytics.bucket.30to60",  min: 1800, max: 3600 },
+  { labelKey: "analytics.bucket.1to2h",   min: 3600, max: 7200 },
+  { labelKey: "analytics.bucket.over2h",  min: 7200, max: Infinity },
 ];
 
 /** @param {FocusRecord[]} records */
@@ -85,24 +87,36 @@ export function sessionDurationBuckets(records) {
   return DURATION_BUCKETS.map((b, i) => ({ ...b, count: counts[i] }));
 }
 
-// ── 4. 任务难度排行（按未完成率从高到低，≥ minN 次才统计） ─────────────────
-const MAX_DIFFICULTY_TASKS = 10;
+// ── 4. 任务榜：投入时长 + 完成率合成一张表 ────────────────────────────────
+// 从前这里是两张表：历史页按时长排的「任务专注排行」、分析页按未完成率排的「难度榜」，
+// 同一批任务被并排列两遍。现在合成一张，按投入时长排，完成率只作为同一行的一列。
 
-/** @param {FocusRecord[]} records @param {number} [minN] */
-export function taskDifficultyRanking(records, minN = 2) {
-  const map = {};
+// 完成率至少要这么多次出现才给出：只做过一次的任务恒为 0% 或 100%，没有参考价值。
+const MIN_RATE_SAMPLES = 2;
+
+/**
+ * @param {FocusRecord[]} records 全部原始记录，用来数完成次数
+ * @param {{text:string,totalSecs:number,sessions:number}[]} taskBreakdown
+ *   computeFocusStats 已按时长排好序的任务榜，本函数只往每行补完成率
+ */
+export function mergeTaskTable(records, taskBreakdown) {
+  const tally = new Map();
   for (const r of records) {
-    const key = r.taskText || "(未命名)";
-    if (!map[key]) map[key] = { text: key, total: 0, completed: 0 };
-    map[key].total++;
-    if (r.outcome === "completed") map[key].completed++;
+    // 无名任务统一归一到空串，显示时由页面 t("analytics.untitled") 补；
+    // 这里塞中文字面量的话，切英文就会冒出一条中文行。
+    const key = r.taskText || "";
+    const hit = tally.get(key) ?? { total: 0, completed: 0 };
+    hit.total += 1;
+    if (r.outcome === "completed") hit.completed += 1;
+    tally.set(key, hit);
   }
 
-  return Object.values(map)
-    .filter((t) => t.total >= minN)
-    .map((t) => ({ ...t, failRate: 1 - t.completed / t.total }))
-    .sort((a, b) => b.failRate - a.failRate)
-    .slice(0, MAX_DIFFICULTY_TASKS);
+  return taskBreakdown.map((task) => {
+    const hit = tally.get(task.text || "");
+    const rate =
+      hit && hit.total >= MIN_RATE_SAMPLES ? hit.completed / hit.total : null;
+    return { ...task, completionRate: rate, hard: rate !== null && rate < 0.5 };
+  });
 }
 
 // ── 5. 分心高峰（按小时） ─────────────────────────────────────────────────
