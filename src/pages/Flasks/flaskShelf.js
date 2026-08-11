@@ -11,7 +11,8 @@ import { sessionKey } from "@/utils/records/focusRecords";
 import { FLASK_PRESETS, DEFAULT_FLASK_PRESET } from "@/pages/Focus/flaskShapes";
 
 export const FLASK_FULL_SECS = 3600; // 一只烧瓶注满 = 1 小时专注
-export const MAX_SHELF = 12; // 架子容量：再多就成了瓶子墙，找不着自己在专注哪只
+// 架子不设容量上限：想存多少只存多少只。瓶子多了靠排序找（见 sortShelf），
+// 而不是靠拦着不让存。
 
 // 存一只烧瓶：把当下的参数拷贝一份定格下来（之后在设置页继续调形状，
 // 不会改到已经存下来的这只——存的是「那一刻的它」）。
@@ -88,8 +89,48 @@ export function shelfFillSecs(records) {
   return fillsOf(shelfStats(records));
 }
 
+// —— 架子排序 ——
+// 架子不设上限，瓶子攒多了就得能挑着看。默认仍是「存入顺序」：
+// 位置不动，眼睛记得住哪只在哪儿；换成别的排法是当下想找东西时的临时视角。
+export const SHELF_SORTS = ["saved", "fullest", "recent", "name"];
+export const DEFAULT_SHELF_SORT = "saved";
+
+export function normalizeSort(value) {
+  return SHELF_SORTS.includes(value) ? value : DEFAULT_SHELF_SORT;
+}
+
+// 排出一份新数组（不改入参）。同分的一律退回存入顺序，
+// 免得每次进页面顺序都不一样——一模一样的两只瓶子应该待在一模一样的位置。
+export function sortShelf(items, stats, mode) {
+  const idx = new Map(items.map((it, i) => [it.id, i]));
+  const stat = (id) => stats?.[id] ?? { secs: 0, sessions: 0, lastAt: 0 };
+  const bySaved = (a, b) => idx.get(a.id) - idx.get(b.id);
+
+  const sorted = [...items];
+  switch (normalizeSort(mode)) {
+    case "fullest": // 注得最多的在前
+      sorted.sort((a, b) => stat(b.id).secs - stat(a.id).secs || bySaved(a, b));
+      break;
+    case "recent": // 最近用过的在前；从没用过的沉底
+      sorted.sort((a, b) => stat(b.id).lastAt - stat(a.id).lastAt || bySaved(a, b));
+      break;
+    case "name": // 按名字；没起名的（显示的是预设名）沉底，免得空名字占着开头
+      sorted.sort(
+        (a, b) =>
+          Number(!a.name) - Number(!b.name) ||
+          // numeric：「瓶 2」排在「瓶 10」前面，别按字符串比成 10 < 2
+          a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }) ||
+          bySaved(a, b),
+      );
+      break;
+    default: // saved：存入顺序，原样不动
+      break;
+  }
+  return sorted;
+}
+
 // 累计秒数 → 这只烧瓶攒到哪儿了。
-// full＝已注满几只（页面上是瓶身旁的 ×N）；partial＝正在接的那只到了几成（0~1）；
+// full＝已注满几只（页面上一只一张卡）；partial＝正在接的那只到了几成（0~1）；
 // total＝含正在接的那只在内一共几只。
 export function bottlesOf(totalSecs) {
   const secs = Math.max(0, totalSecs || 0);

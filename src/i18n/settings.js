@@ -38,7 +38,6 @@ export default {
   "settings.prefs.flaskRestore": { en: "Restore default shape", zh: "恢复默认形状" },
   "settings.prefs.flaskSave": { en: "Save to shelf", zh: "存进烧瓶架" },
   "settings.prefs.flaskSaved": { en: "On the shelf ✓", zh: "已存进架子 ✓" },
-  "settings.prefs.flaskShelfFull": { en: "Shelf is full ({n} max)", zh: "架子满了（最多 {n} 只）" },
   "settings.prefs.anim": { en: "3D animation", zh: "3D 动画" },
   "settings.prefs.ritual": { en: "Launch ritual", zh: "启动仪式" },
   "settings.prefs.ritualHint": { en: "Play a short reveal before entering focus.", zh: "开始专注前先播一段揭晓过渡。" },

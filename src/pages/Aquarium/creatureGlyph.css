@@ -1,0 +1,23 @@
+/* —— 生物图形（FishGlyph）：部件按角色从 currentColor 派生，
+      与缸里 canvas 的那套配色一一对应（body/deep/fin/mark/eye）。
+   由 FishGlyph.jsx 自己 import：这只图形不止画在生态缸一页（烧瓶架的标本也是它），
+   配色跟着组件走，才不会换个页面就掉回 svg 默认的纯黑。 */
+.cg-body { fill: currentColor; stroke: currentColor; }
+.cg-deep {
+  fill: color-mix(in srgb, currentColor 78%, #000);
+  stroke: color-mix(in srgb, currentColor 78%, #000);
+}
+.cg-fin {
+  fill: color-mix(in srgb, currentColor 72%, #fff);
+  stroke: color-mix(in srgb, currentColor 72%, #fff);
+}
+.cg-mark {
+  fill: color-mix(in srgb, currentColor 34%, #fff);
+  stroke: color-mix(in srgb, currentColor 34%, #fff);
+}
+.cg-eye {
+  fill: color-mix(in srgb, currentColor 30%, #17121b);
+  stroke: none;
+}
+/* 颜色由调用方那一格给（都是 --accent-mid）：这套派生色是相对 currentColor 的，
+   放在这里写死反而挡了将来按稀有度换色的路。 */

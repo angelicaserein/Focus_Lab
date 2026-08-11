@@ -46,6 +46,9 @@ export const STORAGE_KEYS = {
   // 烧瓶架：把设置页调好的形状存成一只只烧瓶，{ items: [{id,name,preset,params,savedAt}], activeId }。
   // 注满进度不存在这里——它由专注记录里的 flaskId 现算（见 pages/Flasks/flaskShelf）。
   FLASK_SHELF: "flask_shelf_v1",
+  // 烧瓶架的排法：saved（存入顺序，默认）| fullest | recent | name。
+  // 只是看的顺序，不动架子本身的存档。
+  FLASK_SHELF_SORT: "flask_shelf_sort_v1",
   // 烧瓶水位的调试覆盖表（仅开发环境用得到）：{ [flaskId]: secs }。
   // 只盖住烧瓶架页显示的水位，不动专注记录，见 pages/Flasks/flaskDebug。
   FLASK_DEBUG_FILL: "flask_debug_fill_v1",

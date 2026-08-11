@@ -5,6 +5,7 @@ import {
   normalizeShelf,
   shelfFillSecs,
   shelfStats,
+  sortShelf,
 } from "@/pages/Flasks/flaskShelf";
 
 const rec = (o) => ({ id: crypto.randomUUID(), durationSecs: 0, ...o });
@@ -86,6 +87,41 @@ describe("bottlesOf", () => {
   it("整点注满时，满瓶数进位、新的一只从零开始", () => {
     const b = bottlesOf(FLASK_FULL_SECS * 3);
     expect(b).toMatchObject({ full: 3, partial: 0, total: 4 });
+  });
+});
+
+describe("sortShelf", () => {
+  const shelf = [
+    { id: "a", name: "瓶 10" },
+    { id: "b", name: "" },
+    { id: "c", name: "瓶 2" },
+  ];
+  const stats = {
+    a: { secs: 600, sessions: 1, lastAt: 100 },
+    c: { secs: 7200, sessions: 4, lastAt: 50 },
+  };
+  const ids = (mode) => sortShelf(shelf, stats, mode).map((it) => it.id);
+
+  it("默认按存入顺序，原样不动", () => {
+    expect(ids("saved")).toEqual(["a", "b", "c"]);
+    expect(ids("八字排开")).toEqual(["a", "b", "c"]); // 认不出的排法退回默认
+  });
+
+  it("注得最多：没注过的沉底", () => {
+    expect(ids("fullest")).toEqual(["c", "a", "b"]);
+  });
+
+  it("最近用过：从没用过的沉底", () => {
+    expect(ids("recent")).toEqual(["a", "c", "b"]);
+  });
+
+  it("按名字：数字按大小比（瓶 2 在瓶 10 前），没起名的排在最后", () => {
+    expect(ids("name")).toEqual(["c", "a", "b"]);
+  });
+
+  it("不改入参", () => {
+    sortShelf(shelf, stats, "fullest");
+    expect(shelf.map((it) => it.id)).toEqual(["a", "b", "c"]);
   });
 });
 

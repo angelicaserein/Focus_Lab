@@ -58,9 +58,12 @@ export function newResident(id, born = Date.now()) {
   return { uid: `${id}#${born}#${Math.random().toString(36).slice(2, 8)}`, id, born };
 }
 
-// 存档 → { uid, id, born }[]。兼容老格式（纯 id 字符串）与脏数据。
+// 存档 → { uid, id, born, sealedIn, sealedAt }[]。兼容老格式（纯 id 字符串）与脏数据。
 // 缺 uid 的老条目按「物种#入缸时刻#位置」补一个确定值——不能用随机数，否则每次
 // normalize 出来的 uid 都不一样，React 的 key 一变列表就整片重挂。
+//
+// sealedIn：这一只被做成标本封进了哪只烧瓶（见 data/specimen）。封起来的仍留在收集里——
+// 图鉴照旧算它一份（收集是无损的），只是不再在缸里游。没封的是 null。
 export function normalizeCollection(raw) {
   if (!Array.isArray(raw)) return [];
   return raw
@@ -69,7 +72,13 @@ export function normalizeCollection(raw) {
       if (!src || typeof src.id !== "string") return null;
       const born = Number(src.born) || 0;
       const uid = typeof src.uid === "string" ? src.uid : `${src.id}#${born}#${i}`;
-      return { uid, id: src.id, born };
+      return {
+        uid,
+        id: src.id,
+        born,
+        sealedIn: typeof src.sealedIn === "string" ? src.sealedIn : null,
+        sealedAt: Number(src.sealedAt) || 0,
+      };
     })
     .filter(Boolean);
 }

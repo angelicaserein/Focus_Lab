@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { Coins, Egg, Fish } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useReward } from "@/context/RewardContext";
-import useLocalStorage from "@/hooks/common/useLocalStorage";
-import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
+import useResidents from "@/hooks/aquarium/useResidents";
+import useFlaskShelf from "@/hooks/flask/useFlaskShelf";
+import { splitResidents } from "@/data/specimen";
 import {
   FISH_SPECIES,
   FISH_COST,
@@ -41,17 +43,21 @@ function remainLabel(ms, t) {
 export default function AquariumPage() {
   const { t } = useLanguage();
   const { coins, spendCoins } = useReward();
-  const [collection, setCollection] = useLocalStorage(
-    STORAGE_KEYS.AQUARIUM_COLLECTION,
-    [],
-  );
   // 存档兼容：老版本存的是纯 id 字符串数组，视作 born=0（早就住进来的，直接是成体）。
   // entries 是「每一只」，同一物种可以有多条，各自一条成长线。
-  const entries = useMemo(() => normalizeCollection(collection), [collection]);
+  const { entries, setCollection } = useResidents();
+  // 被做成标本封进烧瓶的那些不在缸里游了（见 data/specimen）；瓶子被移出架子就自动回来，
+  // 故这里要拿架上真实存在的瓶子 id 去判定。
+  const { items: flasks } = useFlaskShelf();
+  const flaskIds = useMemo(() => flasks.map((f) => f.id), [flasks]);
+  const { sealed, swimming } = useMemo(
+    () => splitResidents(entries, flaskIds),
+    [entries, flaskIds],
+  );
 
   const tankRef = useRef(null);
   // 挂载那一刻的住客，交给 canvas 播种（只读一次，之后靠 drop 增量加入）。
-  const initial = useRef(entries).current;
+  const initial = useRef(swimming).current;
 
   const [busy, setBusy] = useState(false);
   const [card, setCard] = useState(null); // 收集卡：{ id } | null
@@ -73,8 +79,8 @@ export default function AquariumPage() {
   // 图鉴里的成长是随时间走的，得有人推着重渲染。全长大了就不再跑这个表。
   const [now, setNow] = useState(() => Date.now());
   const growing = useMemo(
-    () => entries.some((e) => growthOf(e.born, now).stage !== STAGE.ADULT),
-    [entries, now],
+    () => swimming.some((e) => growthOf(e.born, now).stage !== STAGE.ADULT),
+    [swimming, now],
   );
   useEffect(() => {
     if (!growing) return undefined;
@@ -248,8 +254,12 @@ export default function AquariumPage() {
         </div>
       </section>
 
-      {/* 生长情况：缸里这些住客各自养到哪一步了 */}
-      <GrowthBoard entries={entries} now={now} t={t} />
+      {/* 生长情况：缸里这些住客各自养到哪一步了（封成标本的已不在缸里，见下面那节） */}
+      <GrowthBoard entries={swimming} now={now} t={t} />
+
+      {/* 封存的标本：养成的那几只现在待在烧瓶里。放在生长情况之后——
+          先看还在长的，再看已经收好的。 */}
+      <SpecimenBoard sealed={sealed} flasks={flasks} t={t} />
 
       {/* 收集卡 */}
       {card && <CollectCard id={card.id} t={t} onCollect={collect} />}
@@ -333,6 +343,40 @@ function GrowthBoard({ entries, now, t }) {
             </li>
           );
         })}
+      </ul>
+    </section>
+  );
+}
+
+// 封存的标本：哪一只、封在哪只瓶子里。缸里少了一只总得有个交代——
+// 不然只会以为鱼没了。取出放回缸里在烧瓶架那边（标本是瓶子的一部分，操作跟着瓶子走）。
+function SpecimenBoard({ sealed, flasks, t }) {
+  const rows = Object.entries(sealed);
+  if (!rows.length) return null;
+  const nameOf = (id) => {
+    const f = flasks.find((it) => it.id === id);
+    return f?.name || t(`settings.prefs.flaskShape.${f?.preset}`);
+  };
+  return (
+    <section className="aq-growth">
+      <div className="aq-dex-head">
+        <h2>{t("aquarium.sealedTitle")}</h2>
+        <span className="aq-dex-count">{t("aquarium.sealedCount", { n: rows.length })}</span>
+      </div>
+      <ul className="aq-grow-list">
+        {rows.map(([flaskId, e]) => (
+          <li key={e.uid} className="aq-grow-row done">
+            <span className="aq-grow-icon">
+              <FishGlyph glyph={e.id} size={26} />
+            </span>
+            <span className="aq-grow-name">{t(`aquarium.species.${e.id}.name`)}</span>
+            <span className="aq-grow-meta">
+              <Link className="aq-sealed-link" to="/flasks">
+                {t("aquarium.sealedIn", { v: nameOf(flaskId) })}
+              </Link>
+            </span>
+          </li>
+        ))}
       </ul>
     </section>
   );

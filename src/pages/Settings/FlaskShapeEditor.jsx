@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import FocusFlask from "@/pages/Focus/FocusFlask";
 import useFlaskShelf from "@/hooks/flask/useFlaskShelf";
-import { MAX_SHELF } from "@/pages/Flasks/flaskShelf";
 import {
   FLASK_PRESETS,
   FLASK_PRESET_ORDER,
@@ -16,12 +15,11 @@ import {
 export default function FlaskShapeEditor({ flaskShape, setFlaskShape }) {
   const { t } = useLanguage();
   const { preset: active, presets } = flaskShape;
-  const { saveFlask, isFull } = useFlaskShelf();
+  const { saveFlask } = useFlaskShelf();
   // 刚存过的那个预设：按钮上给一句「已存进架子」的回执，两秒后复原
   const [justSaved, setJustSaved] = useState(null);
 
   const saveToShelf = (key) => {
-    if (isFull) return;
     saveFlask({
       name: t(`settings.prefs.flaskShape.${key}`),
       preset: key,
@@ -111,8 +109,6 @@ export default function FlaskShapeEditor({ flaskShape, setFlaskShape }) {
                   type="button"
                   className={`settings-flask-save${justSaved === key ? " saved" : ""}`}
                   onClick={() => saveToShelf(key)}
-                  disabled={isFull}
-                  title={isFull ? t("settings.prefs.flaskShelfFull", { n: MAX_SHELF }) : undefined}
                 >
                   {justSaved === key
                     ? t("settings.prefs.flaskSaved")

@@ -3,6 +3,7 @@ import { shapeOf } from "@/data/aquarium/creatureShapes";
 import { speciesById } from "@/data/aquarium/aquariumData";
 import { speciesShift } from "@/data/aquarium/creaturePalette";
 import { STAGE } from "@/data/aquarium/growth";
+import "./creatureGlyph.css";
 
 // 图鉴/收集卡里的生物图形。造型与缸里是同一份数据（creatureShapes），这里渲染成 SVG DOM。
 //

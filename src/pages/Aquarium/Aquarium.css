@@ -361,6 +361,15 @@
   background: var(--card);
   opacity: 0.75;
 }
+/* 标本那行右侧：封在哪只瓶子里，点过去就是烧瓶架 */
+.aq-sealed-link {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dashed color-mix(in srgb, currentColor 45%, transparent);
+}
+.aq-sealed-link:hover {
+  color: var(--accent);
+}
 .aq-grow-bar i {
   display: block;
   height: 100%;
@@ -369,26 +378,8 @@
   transition: width 0.6s var(--ease, ease);
 }
 
-/* —— 生物图形（FishGlyph）：部件按角色从 currentColor 派生，
-      与缸里 canvas 的那套配色一一对应（body/deep/fin/mark/eye）。 —— */
-.cg-body { fill: currentColor; stroke: currentColor; }
-.cg-deep {
-  fill: color-mix(in srgb, currentColor 78%, #000);
-  stroke: color-mix(in srgb, currentColor 78%, #000);
-}
-.cg-fin {
-  fill: color-mix(in srgb, currentColor 72%, #fff);
-  stroke: color-mix(in srgb, currentColor 72%, #fff);
-}
-.cg-mark {
-  fill: color-mix(in srgb, currentColor 34%, #fff);
-  stroke: color-mix(in srgb, currentColor 34%, #fff);
-}
-.cg-eye {
-  fill: color-mix(in srgb, currentColor 30%, #17121b);
-  stroke: none;
-}
-/* 未入住的格子里不画生物（显示问号），故这套色只在 owned 时用得上 */
+/* 生物图形（FishGlyph）那套 .cg-* 配色搬去了 creatureGlyph.css，由组件自己带着——
+   它现在也画在烧瓶架的标本里，颜色不能只在生态缸这一页成立。 */
 
 /* 稀有度：常见=中性，稀有=主色，史诗=暖金（语义色，不夺主色） */
 .rarity-1 { --r: var(--text-faint); }

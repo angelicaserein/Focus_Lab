@@ -850,7 +850,7 @@ const AquariumTank = forwardRef(function AquariumTank(
         // 速度掉干净、姿态也回正了，才把它交给住客系统（位置完全承接，不跳）
         if ((F.vy < 0.12 * q.S && Math.abs(F.rot) < 0.05) || F.age > 150) {
           F.done = true;
-          spawnResident(F.id, F.x, F.y, F.born);
+          spawnResident(F.id, F.x, F.y, F.born, F.uid);
           F.onLand?.();
         }
       });

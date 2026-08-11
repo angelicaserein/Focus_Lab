@@ -19,6 +19,7 @@ export function FlaskGraphic({ progress = 0, params, hitLayer = false, drainToNe
   const clipId = `${uid}-clip`;
   const liquidId = `${uid}-liquid`;
   const glassId = `${uid}-glass`;
+  const meniscusId = `${uid}-meniscus`;
 
   const p = Math.min(Math.max(progress, 0), 1);
   // 液柱整体做成一块固定的矩形，靠 translateY 推上来。
@@ -32,7 +33,10 @@ export function FlaskGraphic({ progress = 0, params, hitLayer = false, drainToNe
   const dir = drainToNeck ? -1 : 1;
   const drop = BASE_Y * (1 - p) * dir;
   // 液面永远在液柱「靠空气」的那一头：正着是顶边，倒过来是底边
-  const meniscusY = drainToNeck ? BASE_Y - 2.2 : 0;
+  const GLOW = 9; // 弯液面高光往液体里晕开的厚度
+  // 细线往液体里缩半个线宽，免得一半描在液柱外面显得虚
+  const surfaceY = drainToNeck ? BASE_Y - 0.45 : 0.45;
+  const glowY = drainToNeck ? BASE_Y - GLOW : 0;
 
   return (
     <div className="immersive-flask">
@@ -41,10 +45,20 @@ export function FlaskGraphic({ progress = 0, params, hitLayer = false, drainToNe
           <clipPath id={clipId}>
             <path d={path} />
           </clipPath>
-          {/* 液体：底部稍深、靠近液面稍亮，纯色块会显得很死 */}
+          {/* 液体：底部稍深、靠近液面稍亮，纯色块会显得很死。
+              整体调浅（主色兑白）——满瓶的实底主色太重，一排瓶子摆在架上像一堵墙，
+              而且瓶里封着的标本会被压得看不清。两个色标都可被外部 CSS 变量覆盖。 */}
           <linearGradient id={liquidId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="var(--accent)" stopOpacity="1" />
-            <stop offset="1" stopColor="var(--accent)" stopOpacity="0.86" />
+            <stop
+              offset="0"
+              stopColor="var(--flask-liquid-top, color-mix(in srgb, var(--accent) 52%, #fff))"
+              stopOpacity="1"
+            />
+            <stop
+              offset="1"
+              stopColor="var(--flask-liquid-bot, color-mix(in srgb, var(--accent) 72%, #fff))"
+              stopOpacity="0.86"
+            />
           </linearGradient>
           {/* 玻璃：左上受光、右下留一点厚度感。
               三个色标都可被外部 CSS 变量覆盖——应用内是深色卡片，用浅色玻璃；
@@ -53,6 +67,17 @@ export function FlaskGraphic({ progress = 0, params, hitLayer = false, drainToNe
             <stop offset="0" stopColor="var(--flask-glass-top, rgba(255,255,255,0.14))" />
             <stop offset="0.55" stopColor="var(--flask-glass-mid, rgba(255,255,255,0.04))" />
             <stop offset="1" stopColor="var(--flask-glass-bot, rgba(255,255,255,0.10))" />
+          </linearGradient>
+          {/* 弯液面的高光：连续渐变，不是叠两条硬边的白条——
+              硬边在液体上会读成一道「条纹」，而水面只该是一层渐隐的亮。
+              倒瓶时液面在下边，渐变方向也跟着翻。 */}
+          <linearGradient
+            id={meniscusId} x1="0" x2="0"
+            y1={drainToNeck ? "1" : "0"} y2={drainToNeck ? "0" : "1"}
+          >
+            <stop offset="0" stopColor="#fff" stopOpacity="0.34" />
+            <stop offset="0.35" stopColor="#fff" stopOpacity="0.1" />
+            <stop offset="1" stopColor="#fff" stopOpacity="0" />
           </linearGradient>
         </defs>
 
@@ -65,14 +90,13 @@ export function FlaskGraphic({ progress = 0, params, hitLayer = false, drainToNe
         <g clipPath={`url(#${clipId})`}>
           <g className="flask-liquid" style={{ transform: `translateY(${drop}px)` }}>
             <rect x="0" y="0" width="80" height={BASE_Y} fill={`url(#${liquidId})`} />
-            {/* 液面：一道亮线当弯液面，让「涨到哪儿了」有个明确的边 */}
+            {/* 液面：一层渐隐的高光 + 贴边的一根细线，让「涨到哪儿了」有个明确的边 */}
             {p > 0.004 && (
               <>
-                <rect x="0" y={meniscusY} width="80" height="2.2" fill="#fff" fillOpacity="0.5" />
-                {/* 亮线往液体那一侧晕开的一层，所以倒过来时它要挪到线的另一边 */}
-                <rect
-                  x="0" y={drainToNeck ? meniscusY - 5 : 2.2}
-                  width="80" height="5" fill="#fff" fillOpacity="0.12"
+                <rect x="0" y={glowY} width="80" height={GLOW} fill={`url(#${meniscusId})`} />
+                <line
+                  x1="0" x2="80" y1={surfaceY} y2={surfaceY}
+                  stroke="#fff" strokeOpacity="0.4" strokeWidth="0.9"
                 />
               </>
             )}

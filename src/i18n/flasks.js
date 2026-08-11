@@ -28,7 +28,8 @@ export default {
   "flasks.confirmNo": { en: "Keep it", zh: "留着" },
   "flasks.namePlaceholder": { en: "Name this flask", zh: "给这只起个名" },
   "flasks.total": { en: "{v} poured in", zh: "已注入 {v}" },
-  "flasks.fullCount": { en: "{n} filled", zh: "{n} 只已注满" },
+  // 注满的瓶子各自成卡，卡上就这一句
+  "flasks.filled": { en: "Filled", zh: "已注满" },
   "flasks.nextIn": { en: "{v} to go on the one in progress", zh: "正在接的这只还差 {v}" },
   "flasks.justStarted": { en: "Nothing poured in yet", zh: "还没往里注过" },
   // 这只瓶子的来历：几次专注注出来的、最近一次是什么时候
@@ -40,7 +41,32 @@ export default {
   "flasks.agoDays": { en: "{n}d ago", zh: "{n} 天前" },
   "flasks.agoWeeks": { en: "{n}w ago", zh: "{n} 周前" },
   "flasks.agoLong": { en: "a while back", zh: "很久以前" },
-  "flasks.shelfCount": { en: "{n} / {total} on the shelf", zh: "架上 {n} / {total} 只" },
+  "flasks.shelfCount": { en: "{n} on the shelf", zh: "架上 {n} 只" },
+  // 排法：只是看的顺序，不动架子本身
+  "flasks.sortBy": { en: "Order", zh: "排法" },
+  "flasks.sort.saved": { en: "As saved", zh: "存入顺序" },
+  "flasks.sort.fullest": { en: "Most poured", zh: "注得最多" },
+  "flasks.sort.recent": { en: "Recently used", zh: "最近用过" },
+  "flasks.sort.name": { en: "By name", zh: "按名字" },
+  // —— 标本（烧瓶架 × 生态缸，见 data/specimen）——
+  // 注满一小时的瓶子可以封一只养成的鱼进去。文案只在真有得封的时候才露出来。
+  "flasks.sealBtn": { en: "Seal a specimen", zh: "封一只标本" },
+  "flasks.sealTitle": { en: "Pick one to seal", zh: "挑一只做成标本" },
+  "flasks.sealNote": {
+    en: "Only fully grown ones can be sealed. It leaves the tank and keeps its place in the log — you can take it out again any time.",
+    zh: "只有长成的才能封。它会离开水缸住进瓶里，图鉴照旧算它一份，随时可以再取出来。",
+  },
+  "flasks.sealNone": {
+    en: "Nothing in the tank has finished growing yet.",
+    zh: "缸里还没有长成的。",
+  },
+  "flasks.sealCancel": { en: "Not now", zh: "先不封" },
+  "flasks.sealLocked": {
+    en: "{v} more to go before this one can hold a specimen",
+    zh: "再注 {v} 就能往这只里封标本",
+  },
+  "flasks.sealedOf": { en: "{v} sealed inside", zh: "里面封着 {v}" },
+  "flasks.unseal": { en: "Back to the tank", zh: "放回缸里" },
   // 时长：小时/分钟并置，避免两套语言各写一套格式化
   "flasks.hm": { en: "{h}h {m}m", zh: "{h} 小时 {m} 分" },
   "flasks.h": { en: "{h}h", zh: "{h} 小时" },

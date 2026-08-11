@@ -43,6 +43,11 @@ export default {
     zh: "放进缸里的是一颗卵，过一阵子才会长成这个样子。",
   },
 
+  // —— 标本（封进烧瓶保存，见 data/specimen）——
+  "aquarium.sealedTitle": { en: "Sealed in flasks", zh: "封存的标本" },
+  "aquarium.sealedCount": { en: "{n} sealed", zh: "封了 {n} 只" },
+  "aquarium.sealedIn": { en: "in “{v}”", zh: "在「{v}」里" },
+
   "aquarium.rarity.1": { en: "Common", zh: "常见" },
   "aquarium.rarity.2": { en: "Rare", zh: "稀有" },
   "aquarium.rarity.3": { en: "Epic", zh: "史诗" },

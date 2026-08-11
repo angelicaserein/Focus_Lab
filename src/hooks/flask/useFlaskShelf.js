@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import useLocalStorage from "@/hooks/common/useLocalStorage";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
-import { makeShelfFlask, normalizeShelf, MAX_SHELF } from "@/pages/Flasks/flaskShelf";
+import { makeShelfFlask, normalizeShelf } from "@/pages/Flasks/flaskShelf";
 
 // 烧瓶架的读写。专注页只用得上 activeId（结算时写进记录），
 // 烧瓶架页用全套；两处共用同一份 localStorage，改完即时同步。
@@ -16,7 +16,6 @@ export default function useFlaskShelf() {
       const flask = makeShelfFlask({ name, preset, params });
       setRaw((prev) => {
         const cur = normalizeShelf(prev);
-        if (cur.items.length >= MAX_SHELF) return cur;
         return {
           items: [...cur.items, flask],
           activeId: cur.activeId ?? flask.id,
@@ -64,7 +63,6 @@ export default function useFlaskShelf() {
     items: shelf.items,
     activeId: shelf.activeId,
     activeParams,
-    isFull: shelf.items.length >= MAX_SHELF,
     saveFlask,
     removeFlask,
     renameFlask,
