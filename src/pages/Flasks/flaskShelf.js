@@ -44,29 +44,48 @@ export function normalizeShelf(value) {
   return { items, activeId };
 }
 
-// 各烧瓶累计接到的秒数：{ [flaskId]: secs }。
+// 各烧瓶的账：{ [flaskId]: { secs, sessions, lastAt } }。
+// secs＝累计接到的秒数，sessions＝往里注过几次专注，lastAt＝最近一次的时间戳。
+//
 // 一次会话里每个任务各写一条记录、durationSecs 是会话到那一刻的累计值，
 // 所以按会话取 max 而非求和（与 sessionMaxSecsMap 同一口径），
-// 否则一次三任务的专注会被算成三倍。
-export function shelfFillSecs(records) {
-  // sessionKey → { flaskId, secs }
+// 否则一次三任务的专注会被算成三倍——次数同理，一次会话只算一次。
+export function shelfStats(records) {
+  // sessionKey → { flaskId, secs, at }
   const bySession = new Map();
   for (const r of records) {
     if (!r?.flaskId) continue; // 没有归属的（旧记录 / 架子空着时的专注）不入账
     const key = sessionKey(r);
+    const at = r.endedAt || r.startedAt || 0;
     const cur = bySession.get(key);
     if (!cur) {
-      bySession.set(key, { flaskId: r.flaskId, secs: r.durationSecs || 0 });
+      bySession.set(key, { flaskId: r.flaskId, secs: r.durationSecs || 0, at });
     } else {
       // 一次会话中途换瓶的情况：认最先记下的那只，整段时长不拆分
       cur.secs = Math.max(cur.secs, r.durationSecs || 0);
+      cur.at = Math.max(cur.at, at);
     }
   }
-  const totals = {};
-  for (const { flaskId, secs } of bySession.values()) {
-    totals[flaskId] = (totals[flaskId] ?? 0) + secs;
+  const stats = {};
+  for (const { flaskId, secs, at } of bySession.values()) {
+    const cur = stats[flaskId] ?? (stats[flaskId] = { secs: 0, sessions: 0, lastAt: 0 });
+    cur.secs += secs;
+    cur.sessions += 1;
+    cur.lastAt = Math.max(cur.lastAt, at);
   }
+  return stats;
+}
+
+// 账 → 只要水位的那一层：{ [flaskId]: secs }（调试覆盖表也按这个形状合并）
+export function fillsOf(stats) {
+  const totals = {};
+  for (const [id, s] of Object.entries(stats)) totals[id] = s.secs;
   return totals;
+}
+
+// 记录 → 各烧瓶累计接到的秒数。页面已经算过 stats 的话直接用 fillsOf，别算两遍。
+export function shelfFillSecs(records) {
+  return fillsOf(shelfStats(records));
 }
 
 // 累计秒数 → 这只烧瓶攒到哪儿了。

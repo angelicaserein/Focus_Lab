@@ -162,6 +162,68 @@ function applyMigrations(data, fromVersion) {
   return current;
 }
 
+// 读出当前 localStorage 里的全部已知 key（解包后的 JS 值），形状同 exportAllData 的 data。
+function readAllVersioned() {
+  const data = {};
+  for (const [name, { key }] of Object.entries(KEY_MAP)) {
+    const raw = localStorage.getItem(key);
+    if (raw === null) continue;
+    try { data[name] = unwrapVersioned(JSON.parse(raw)); }
+    catch { /* 跳过损坏键 */ }
+  }
+  return data;
+}
+
+// 条目的稳定身份：有 id 用 id，日记类用 date，其余整条内容比对。
+// 用于导入合并时判断「这条已经有了」，避免重复导入同一份备份把数据翻倍。
+function itemIdentity(item) {
+  if (item === null || typeof item !== "object") return `v:${JSON.stringify(item)}`;
+  if (typeof item.id === "string" || typeof item.id === "number") return `id:${item.id}`;
+  if (typeof item.date === "string") return `date:${item.date}`;
+  return `raw:${JSON.stringify(item)}`;
+}
+
+// 合并两个数组：保留本地条目（含其后续编辑），只追加本地没有的导入条目。
+function mergeArrays(local, incoming) {
+  const seen = new Set(local.map(itemIdentity));
+  const added = incoming.filter((item) => !seen.has(itemIdentity(item)));
+  return [...local, ...added];
+}
+
+/**
+ * 逐键合并导入数据与本地数据，本地优先：
+ *   数组   → 按条目身份去重后追加（本地在前）
+ *   数字   → 取较大值（金币这类累计量，重复导入不会翻倍）
+ *   对象   → 递归合并（scenarioOptions 的分组数组、redeemCounts 的计数）
+ *   其余   → 本地有值就保留本地（activeTheme 这类单选项）
+ */
+function mergeValue(local, incoming) {
+  if (local === undefined) return incoming;
+  if (incoming === undefined) return local;
+  if (Array.isArray(local) && Array.isArray(incoming)) return mergeArrays(local, incoming);
+  if (typeof local === "number" && typeof incoming === "number") return Math.max(local, incoming);
+  if (
+    local && incoming &&
+    typeof local === "object" && typeof incoming === "object" &&
+    !Array.isArray(local) && !Array.isArray(incoming)
+  ) {
+    const out = { ...local };
+    for (const [k, v] of Object.entries(incoming)) out[k] = mergeValue(local[k], v);
+    return out;
+  }
+  return local;
+}
+
+// 只返回文件里出现过的 key（其余本地键无需重写），值为合并结果。
+function mergeAllData(local, incoming) {
+  const out = {};
+  for (const name of Object.keys(KEY_MAP)) {
+    if (!(name in incoming)) continue;
+    out[name] = mergeValue(local[name], incoming[name]);
+  }
+  return out;
+}
+
 // 将 data 中每个已知 key 以 versioned 格式写回 localStorage，返回成功写入的 key 列表。
 function writeAllVersioned(data) {
   const writtenKeys = [];
@@ -260,7 +322,13 @@ export function exportAllData() {
   URL.revokeObjectURL(a.href);
 }
 
-export function importAllData(jsonString) {
+/**
+ * 导入备份文件。
+ * mode="merge"（默认）：把文件里的条目并进现有数据，本地已有的条目原样保留，
+ *   只追加本地没有的；同一份备份重复导入不会产生重复条目。
+ * mode="replace"：用文件内容覆盖同名 key（旧行为）。
+ */
+export function importAllData(jsonString, mode = "merge") {
   let parsed;
   try { parsed = JSON.parse(jsonString); }
   catch { return { success: false, error: "无法解析 JSON 文件" }; }
@@ -271,7 +339,8 @@ export function importAllData(jsonString) {
     return { success: false, error: "文件格式无效" };
 
   // 对导入数据执行迁移（文件来自旧版本时）
-  const data = applyMigrations(parsed.data, fileSchemaVersion);
+  const incoming = applyMigrations(parsed.data, fileSchemaVersion);
+  const data = mode === "replace" ? incoming : mergeAllData(readAllVersioned(), incoming);
   const writtenKeys = writeAllVersioned(data);
 
   localStorage.setItem(SCHEMA_META_KEY, String(SCHEMA_VERSION));

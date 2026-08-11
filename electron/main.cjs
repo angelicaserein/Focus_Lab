@@ -18,6 +18,7 @@ const path = require("node:path");
 const fs = require("node:fs");
 const { pathToFileURL } = require("node:url");
 const { AppWatcher, SUPPORTED: WATCH_SUPPORTED } = require("./appWatch.cjs");
+const { formatTrayTooltip } = require("./trayTooltip.cjs");
 
 const DEV_SERVER = process.env.VITE_DEV_SERVER_URL || "";
 const IS_DEV = !!DEV_SERVER;
@@ -589,16 +590,7 @@ let lastTooltip = "";
 
 function updateTrayTooltip() {
   if (!tray || tray.isDestroyed()) return;
-  const f = lastState?.focus;
-  const en = lastState?.app?.lang === "en";
-  let tip = "Focus Lab";
-  if (f && (f.isRunning || f.seconds > 0)) {
-    const total = Math.max(0, Math.round(f.seconds || 0));
-    const mm = String(Math.floor(total / 60)).padStart(2, "0");
-    const ss = String(total % 60).padStart(2, "0");
-    const label = f.isRunning ? (en ? "Focusing" : "专注中") : (en ? "Paused" : "已暂停");
-    tip = `Focus Lab — ${label} ${mm}:${ss}`;
-  }
+  const tip = formatTrayTooltip(lastState);
   // 计时每秒推一次状态，同一句话没必要反复过一遍原生调用
   if (tip === lastTooltip) return;
   lastTooltip = tip;

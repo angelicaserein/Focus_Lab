@@ -203,12 +203,17 @@
   --accent-mid:  #c3bce0;
   --accent-deep: #9a90c6;
 
-  /* 冷白 / 银灰文字，不带紫，保持冷淡 */
-  --text-heading: #e6e6ea;
-  --text-body:    #c4c4cc;
-  --text-muted:   #8a8a94;
-  --text-faint:   #55555f;
-  --text-placeholder: #46464f;
+  /* 淡紫文字 —— 全套跟主色同色相（252°），和标签、次级按钮那支紫是一家人。
+     这里以前是"冷白 / 银灰，不带紫，保持冷淡"，2026-08-11 改成带紫：
+     原来正文银灰、标签淡紫，同一屏里两个色系各说各话。别照旧注释改回去。
+     配方：色相锁 252° 对齐 --accent-mid，明度阶梯原样保留（所以对比度不掉，
+     标题 15.6:1 / 正文 10.8:1 / 次要 5.1:1），只按层级给饱和度——
+     越淡的层级给足才看得出紫，越暗的压住免得发脏。 */
+  --text-heading: #e5e3ed;
+  --text-body:    #c1bdd3;
+  --text-muted:   #847da1;
+  --text-faint:   #524d67;
+  --text-placeholder: #454154;
 
   /* 主色背景上的淡字 */
   --on-accent-light: #e8e6f2;

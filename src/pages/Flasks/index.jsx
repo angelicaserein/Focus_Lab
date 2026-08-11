@@ -1,4 +1,6 @@
-import { useCallback, useMemo, useState } from "react";
+// React 必须显式引入：本项目没装 @vitejs/plugin-react，JSX 走 esbuild 的经典
+// 转换（编译成 React.createElement），少了这个默认导入整页会 React is not defined。
+import React, { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, Trash2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -11,7 +13,8 @@ import {
   FLASK_FULL_SECS,
   MAX_SHELF,
   bottlesOf,
-  shelfFillSecs,
+  fillsOf,
+  shelfStats,
 } from "./flaskShelf";
 import {
   clearDebugFill,
@@ -41,6 +44,18 @@ function dur(secs, t) {
   return t("flasks.m", { m });
 }
 
+// 时间戳 → 「今天 / 昨天 / N 天前 / N 周前 / 很久以前」。
+// 卡片上只是交代「这只最近有没有在用」，粒度到天就够，不必精确到分钟。
+function ago(ts, t) {
+  if (!ts) return null;
+  const days = Math.floor((Date.now() - ts) / 86_400_000);
+  if (days <= 0) return t("flasks.agoToday");
+  if (days === 1) return t("flasks.agoYesterday");
+  if (days < 7) return t("flasks.agoDays", { n: days });
+  if (days < 30) return t("flasks.agoWeeks", { n: Math.floor(days / 7) });
+  return t("flasks.agoLong");
+}
+
 // 水位调试按钮同奖励页：只在开发环境露出，发布给参与者时自动消失。
 const DEBUG_ENABLED = import.meta.env.DEV;
 
@@ -49,7 +64,9 @@ export default function FlasksPage() {
   const { focusRecords } = useFocus();
   const { items, activeId, removeFlask, renameFlask, setActiveFlask } = useFlaskShelf();
 
-  const realFills = useMemo(() => shelfFillSecs(focusRecords), [focusRecords]);
+  // 每只瓶子的账：水量、注过几次、最近一次什么时候
+  const stats = useMemo(() => shelfStats(focusRecords), [focusRecords]);
+  const realFills = useMemo(() => fillsOf(stats), [stats]);
 
   // 调试覆盖：只有开发环境读得到，正式构建里 fills 就是现算值本身
   const [rawDebug, setRawDebug] = useLocalStorage(STORAGE_KEYS.FLASK_DEBUG_FILL, null);
@@ -128,6 +145,7 @@ export default function FlasksPage() {
               key={it.id}
               flask={it}
               secs={fills[it.id] ?? 0}
+              stat={stats[it.id]}
               active={it.id === activeId}
               confirming={confirmId === it.id}
               t={t}
@@ -158,6 +176,7 @@ export default function FlasksPage() {
 function ShelfCard({
   flask,
   secs,
+  stat,
   active,
   confirming,
   t,
@@ -170,6 +189,7 @@ function ShelfCard({
   const { full, partial } = bottlesOf(secs);
   const presetName = t(`settings.prefs.flaskShape.${flask.preset}`);
   const remain = FLASK_FULL_SECS - (secs % FLASK_FULL_SECS);
+  const lastAgo = ago(stat?.lastAt, t);
 
   return (
     <li className={`fk-card${active ? " active" : ""}`}>
@@ -219,6 +239,27 @@ function ShelfCard({
             <span className="fk-meta-total">{t("flasks.justStarted")}</span>
           )}
         </p>
+
+        {/* 这只瓶子的来历：几次专注注出来的、最近一次什么时候。
+            水是一次次注进去的，只报总量会让这只瓶子看起来像凭空满的。
+            没注过的瓶子不显示这行——上面那句「还没往里注过」已经说完了。 */}
+        {stat?.sessions > 0 && (
+          <p className="fk-history">
+            <span>
+              {stat.sessions === 1
+                ? t("flasks.sessions_one")
+                : t("flasks.sessions", { n: stat.sessions })}
+            </span>
+            {lastAgo && (
+              <>
+                <span className="fk-history-dot" aria-hidden="true">
+                  ·
+                </span>
+                <span>{t("flasks.lastPour", { v: lastAgo })}</span>
+              </>
+            )}
+          </p>
+        )}
 
         {active ? (
           <span className="fk-badge">

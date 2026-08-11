@@ -50,8 +50,9 @@ EOF
 | `expand` | 点烧瓶轮廓展开面板 |
 | `focus main\|pet` | 让某个窗口拿到焦点（验「失焦自动收起」只能这么触发） |
 | `hide-pet` / `show-pet` | 藏 / 显示桌宠（验「藏起来不推状态、show 时补一份」） |
+| `quick-capture` | 发 `Ctrl+Shift+Space` 那条 IPC（系统级快捷键在自动化里按不出来） |
 | `ss [名字]` | 截图 |
-| `fill <sel> <文本>` / `press <键>` | 输入 |
+| `fill <sel> \| <文本>` / `press <键>` | 输入（分隔符是 ` \| `，选择器常常自带空格） |
 | `text [sel]` / `eval <js>` | 读页面 |
 | `storage <key>` | 读主窗口的 localStorage（自动拆 `{version,data}` 包装） |
 | `watch <进程名,…>` | 开着分心水位并设白名单（走真实 IPC，见下） |
@@ -121,6 +122,10 @@ npm run desktop:dev     # vite + electron，改代码热更新
 - **一次 `evaluate` 只点一下**。React 是异步 re-render 的，在同一个 evaluate 里同步
   循环「找元素→点删除」，DOM 根本不会更新，你会对着同一条按二十下。
 - 主窗口点 X 不退出（托盘常驻），驱动的 `quit` 走的是 `app.close()`。
+- **托盘 tooltip 这个驱动验不了**：`Tray` 没有 `getToolTip`，装进 app 之后那句话
+  只有人眼能看见。所以它的文案被抽成了纯函数 `electron/trayTooltip.cjs`，
+  形态全在 `electron/trayTooltip.test.js` 里锁着 —— 改托盘文案时改测试，别指望驱动。
+  这里能验的只是「连推多次状态后 app 没崩」，那说明 `updateTrayTooltip` 这条路没抛。
 
 ## 排查
 

@@ -31,6 +31,15 @@ export default {
   "flasks.fullCount": { en: "{n} filled", zh: "{n} 只已注满" },
   "flasks.nextIn": { en: "{v} to go on the one in progress", zh: "正在接的这只还差 {v}" },
   "flasks.justStarted": { en: "Nothing poured in yet", zh: "还没往里注过" },
+  // 这只瓶子的来历：几次专注注出来的、最近一次是什么时候
+  "flasks.sessions": { en: "{n} sessions", zh: "{n} 次专注" },
+  "flasks.sessions_one": { en: "1 session", zh: "1 次专注" },
+  "flasks.lastPour": { en: "last {v}", zh: "最近 {v}" },
+  "flasks.agoToday": { en: "today", zh: "今天" },
+  "flasks.agoYesterday": { en: "yesterday", zh: "昨天" },
+  "flasks.agoDays": { en: "{n}d ago", zh: "{n} 天前" },
+  "flasks.agoWeeks": { en: "{n}w ago", zh: "{n} 周前" },
+  "flasks.agoLong": { en: "a while back", zh: "很久以前" },
   "flasks.shelfCount": { en: "{n} / {total} on the shelf", zh: "架上 {n} / {total} 只" },
   // 时长：小时/分钟并置，避免两套语言各写一套格式化
   "flasks.hm": { en: "{h}h {m}m", zh: "{h} 小时 {m} 分" },

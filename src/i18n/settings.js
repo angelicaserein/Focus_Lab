@@ -102,6 +102,15 @@ export default {
   "settings.data.count": { en: "{label} ({count})", zh: "{label}（{count}条）" },
   "settings.data.export": { en: "Export data", zh: "导出数据" },
   "settings.data.import": { en: "Import data", zh: "导入数据" },
+  "settings.data.importReplace": { en: "Overwrite existing data on import", zh: "导入时覆盖现有数据" },
+  "settings.data.importMergeHint": {
+    en: "Imported entries are added to your existing data; entries you already have are kept as they are.",
+    zh: "导入的条目会追加到现有数据里；已经有的条目保持原样，重复导入同一份备份不会产生重复。",
+  },
+  "settings.data.importReplaceHint": {
+    en: "Data in the file will replace what you have now. Export a backup first.",
+    zh: "文件里的数据会替换掉当前的同名数据，请先导出一份备份。",
+  },
   "settings.data.importSuccess": { en: "Imported {count} data items, reloading…", zh: "已成功导入 {count} 项数据，即将重新加载…" },
   "settings.data.importError": { en: "Import failed: {error}", zh: "导入失败：{error}" },
   "settings.data.dangerTitle": { en: "Danger zone", zh: "危险操作" },

@@ -40,7 +40,9 @@ export default defineConfig({
     // 现有测试均为纯函数单测，跑在 node 环境即可。若要测组件/带 DOM 的 hook，
     // 在该测试文件顶部加 `// @vitest-environment jsdom` 并 `npm i -D jsdom`。
     environment: 'node',
-    include: ['src/**/*.{test,spec}.{js,jsx}'],
+    // electron/ 里也收：主进程有极少数纯逻辑（比如托盘 tooltip 的文案）在
+    // 跑起来之后根本读不出来（Tray 没有 getToolTip），只能靠单测锁住。
+    include: ['src/**/*.{test,spec}.{js,jsx}', 'electron/**/*.{test,spec}.{js,cjs}'],
     coverage: {
       provider: 'v8',
       reporter: ['text-summary', 'html', 'json-summary'],

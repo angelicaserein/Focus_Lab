@@ -794,6 +794,38 @@
   z-index: 200 !important;
 }
 
+/* ── 暗夜皮肤：任务卡改扁平风 ──────────────────────────────
+   亮色皮肤靠白色内高光 + 顶部反光渐变做出「浮起的玻璃卡」；同一套白色叠在
+   近黑底上会变成一道扎眼的亮边，卡片像在发光。这里整体去掉高光/反光，
+   换成实心卡底 + 细描边的哑光扁平卡。 */
+:root[data-theme="night"] .matrix-tag {
+  /* 实心卡底：不再让底下的热力渐变透上来，也就不需要模糊 */
+  background: var(--card);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+}
+
+:root[data-theme="night"] .matrix-tag::before {
+  content: none;
+}
+
+:root[data-theme="night"] .matrix-tag:hover {
+  box-shadow: none;
+}
+
+/* 展开态只留强调色描边 + 薄环，去掉内高光那一条 */
+:root[data-theme="night"] .matrix-tag.expanded {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 42%, transparent);
+}
+
+/* 已加入本次专注：同样填实底，靠主色区分，不做磨砂 */
+:root[data-theme="night"] .matrix-tag.focused {
+  background: var(--accent-solid);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 /* 窄屏：标签文字进一步收窄 */
 @media (max-width: 480px) {
   .matrix-tag-text {

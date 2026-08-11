@@ -150,15 +150,34 @@ const COMMANDS = {
     console.log("foreground:", (out.stdout || "").trim());
   },
 
+  // 全局快捷键 Ctrl+Shift+Space 那一路。快捷键本身是系统级的，自动化按不出来，
+  // 这条命令直接发主进程发的同一条 IPC，渲染层走的是完全一样的路径。
+  async 'quick-capture'() {
+    await app.evaluate(({ BrowserWindow }) => {
+      const p = BrowserWindow.getAllWindows().find((w) => w.webContents.getURL().includes("pet.html"));
+      p?.show();
+      p?.focus();
+      p?.webContents.send("desktop:pet-quick-capture");
+    });
+    await sleep(600);
+    console.log("quick-capture sent");
+  },
+
   async ss(name) {
     const f = path.join(SHOT_DIR, (name || `ss-${Date.now()}`) + ".png");
     await page.screenshot({ path: f });
     console.log("screenshot:", f);
   },
 
+  // fill <选择器> | <文本>
+  // 分隔符是 " | " 而不是空格：选择器本身常常带空格（`.pet-note input`），
+  // 按第一个空格切会把选择器切成两半，报的还是「元素不是 input」这种指不到病根的错。
+  // 不带 | 时退回按第一个空格切，简单选择器照旧能用。
   async fill(arg) {
-    const [sel, ...rest] = arg.split(" ");
-    await page.fill(sel, rest.join(" "));
+    const [sel, text] = arg.includes(" | ")
+      ? [arg.slice(0, arg.indexOf(" | ")).trim(), arg.slice(arg.indexOf(" | ") + 3)]
+      : [arg.slice(0, arg.indexOf(" ")), arg.slice(arg.indexOf(" ") + 1)];
+    await page.fill(sel, text);
     console.log("filled", sel);
   },
 

@@ -4,6 +4,7 @@ import {
   bottlesOf,
   normalizeShelf,
   shelfFillSecs,
+  shelfStats,
 } from "@/pages/Flasks/flaskShelf";
 
 const rec = (o) => ({ id: crypto.randomUUID(), durationSecs: 0, ...o });
@@ -36,6 +37,31 @@ describe("shelfFillSecs", () => {
       rec({ flaskId: "a", durationSecs: 200 }),
     ]);
     expect(secs).toEqual({ a: 300 });
+  });
+});
+
+describe("shelfStats", () => {
+  it("一次会话只算一次专注，取会话里最晚的时间当「最近一次」", () => {
+    const stats = shelfStats([
+      rec({ sessionId: "s1", flaskId: "a", durationSecs: 600, endedAt: 100 }),
+      rec({ sessionId: "s1", flaskId: "a", durationSecs: 900, endedAt: 300 }),
+    ]);
+    expect(stats.a).toEqual({ secs: 900, sessions: 1, lastAt: 300 });
+  });
+
+  it("多次会话：次数累加，最近一次取最晚的那次", () => {
+    const stats = shelfStats([
+      rec({ sessionId: "s1", flaskId: "a", durationSecs: 900, endedAt: 100 }),
+      rec({ sessionId: "s2", flaskId: "a", durationSecs: 300, endedAt: 900 }),
+      rec({ sessionId: "s3", flaskId: "b", durationSecs: 60, endedAt: 500 }),
+    ]);
+    expect(stats.a).toEqual({ secs: 1200, sessions: 2, lastAt: 900 });
+    expect(stats.b).toEqual({ secs: 60, sessions: 1, lastAt: 500 });
+  });
+
+  it("没有 endedAt 的旧记录退到 startedAt", () => {
+    const stats = shelfStats([rec({ sessionId: "s1", flaskId: "a", startedAt: 42 })]);
+    expect(stats.a.lastAt).toBe(42);
   });
 });
 

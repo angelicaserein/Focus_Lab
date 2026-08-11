@@ -314,6 +314,22 @@
   font-size: 13px;
 }
 
+/* 来历那行：比进度更轻一档，是背景信息不是主角 */
+.fk-history {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  margin: -2px 0 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+.fk-history-dot {
+  opacity: 0.6;
+}
+
 @media (max-width: 560px) {
   .fk-grid {
     grid-template-columns: repeat(auto-fill, minmax(146px, 1fr));

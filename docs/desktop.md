@@ -79,6 +79,10 @@ npm run desktop:build   # 打成安装包 release/*.exe
 - **托盘 + 全局快捷键**：托盘右键可开关桌宠 / 开机自启 / 退出；
   `Ctrl+Shift+Space` 随时唤起桌宠并把光标放进「记一条」输入框（写进备忘录）。
   托盘 tooltip 跟着专注状态走（`Focus Lab — 专注中 12:34`），鼠标扫过任务栏就能看见进度。
+  时间口径跟桌宠面板上的时钟一致：正计时显示已过，倒计时显示剩余、超时显示 `+超出多久`。
+  这句话的计算在 [`electron/trayTooltip.cjs`](../electron/trayTooltip.cjs) 里，是纯函数 ——
+  `Tray` 没有 `getToolTip`，跑起来之后它在自动化里一个字都读不出来，只能靠单测锁住
+  （`electron/trayTooltip.test.js`，vitest 的 include 为此多收了 `electron/**`）。
 
 ### 开销上的三个约定
 

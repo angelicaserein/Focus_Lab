@@ -29,6 +29,7 @@ export default function DataSection() {
   const { t } = useLanguage();
   const fileInputRef = useRef(null);
   const [importMsg, setImportMsg] = useState(null);
+  const [replaceOnImport, setReplaceOnImport] = useState(false);
   const [confirmClearHistory, setConfirmClearHistory] = useState(false);
   const [confirmClearChat, setConfirmClearChat] = useState(false);
 
@@ -41,7 +42,7 @@ export default function DataSection() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (evt) => {
-      const result = importAllData(evt.target.result);
+      const result = importAllData(evt.target.result, replaceOnImport ? "replace" : "merge");
       if (result.success) {
         setImportMsg({ type: "success", text: t("settings.data.importSuccess", { count: result.keys.length }) });
         setTimeout(() => window.location.reload(), 1500);
@@ -107,6 +108,18 @@ export default function DataSection() {
           onChange={handleFileChange}
         />
       </div>
+
+      <label className="settings-import-mode">
+        <input
+          type="checkbox"
+          checked={replaceOnImport}
+          onChange={(e) => setReplaceOnImport(e.target.checked)}
+        />
+        <span>{t("settings.data.importReplace")}</span>
+      </label>
+      <p className="settings-section-hint">
+        {t(replaceOnImport ? "settings.data.importReplaceHint" : "settings.data.importMergeHint")}
+      </p>
 
       {importMsg && (
         <div className={`settings-import-msg ${importMsg.type}`}>
