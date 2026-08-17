@@ -4,6 +4,7 @@ export default {
   "settings.title": { en: "Settings", zh: "设置" },
   "settings.tab.appearance": { en: "Appearance", zh: "外观" },
   "settings.tab.timing": { en: "Timing", zh: "计时" },
+  "settings.tab.tasks": { en: "Splitting", zh: "任务拆分" },
   "settings.tab.tone": { en: "Tone", zh: "语气" },
   "settings.tab.language": { en: "Language", zh: "语言" },
   "settings.tab.data": { en: "Data", zh: "数据" },
@@ -76,6 +77,48 @@ export default {
   "settings.watch.denyRemove": { en: "Remove", zh: "删除" },
   "settings.prefs.notifyEnabledTitle": { en: "🔔 Notifications enabled", zh: "🔔 通知已开启" },
   "settings.prefs.notifyEnabledBody": { en: "Flask-full alerts and deadline reminders will show up here.", zh: "烧瓶注满与 DDL 提醒会在这里提醒你。" },
+  // 任务拆分：倒脑子怎么把一段话拆成任务，长期生效
+  "settings.split.title": { en: "How brain dump splits tasks", zh: "倒脑子怎么拆任务" },
+  "settings.split.hint": {
+    en: "These apply every time you use Brain dump. AI follows them instead of deciding on its own.",
+    zh: "每次用「倒脑子」都按这里来。AI 照这些规矩拆，而不是自己拿主意。",
+  },
+  "settings.split.granularity": { en: "How fine", zh: "拆多细" },
+  "settings.split.granularity.coarse": { en: "Coarse", zh: "粗" },
+  "settings.split.granularity.balanced": { en: "Balanced", zh: "适中" },
+  "settings.split.granularity.fine": { en: "Fine", zh: "细" },
+  "settings.split.granularityHint.coarse": {
+    en: "One thing you mentioned = one task. No steps.",
+    zh: "你提到一件事就是一条任务，不往下拆步骤。",
+  },
+  "settings.split.granularityHint.balanced": {
+    en: "One task per thing, unless it clearly takes several sittings — then 2–4 steps.",
+    zh: "一件事一条；明显要好几步或跨天才做得完的，拆成 2–4 步。",
+  },
+  "settings.split.granularityHint.fine": {
+    en: "Everything gets broken down to 3–6 steps you can start without thinking.",
+    zh: "每件事都拆到 3–6 条、不用再想就能动手的程度。",
+  },
+  "settings.split.askFirst": { en: "Ask me first", zh: "先反问我" },
+  "settings.split.askFirstHint": {
+    en: "Before splitting, AI asks 1–3 quick questions about your notes. You can always skip them.",
+    zh: "拆之前，AI 针对你写的内容问 1–3 个小问题。随时可以跳过。",
+  },
+  "settings.split.guessDates": { en: "Guess due dates", zh: "推测截止日期" },
+  "settings.split.guessDatesHint": {
+    en: "When no deadline is written, let AI infer one from wording like “soon” or “this week”.",
+    zh: "原文没写死期时，允许 AI 从「尽快」「这周内」这类说法推一个日期。",
+  },
+  "settings.split.custom": { en: "Your own rules", zh: "你自己的规矩" },
+  "settings.split.customPlaceholder": {
+    en: "e.g. always put coursework first; never split errands; keep task titles under ten words",
+    zh: "例如：课业类优先排；跑腿的事别拆；任务标题别超过十个字",
+  },
+  "settings.split.customHint": {
+    en: "Written in plain words, passed to AI as-is. These win over the setting above.",
+    zh: "用大白话写就行，会原样交给 AI。它们比上面的粒度设置优先。",
+  },
+  "settings.split.reset": { en: "Reset to defaults", zh: "恢复默认" },
   "settings.tone.title": { en: "Character voice", zh: "角色语气" },
   "settings.tone.hint": { en: "The character card and session card use gentle, non-numeric words. Describe a voice and let AI rewrite them all — stage names, growth lines, momentum, and celebrations. Focus time and coins stay as-is.", zh: "角色卡与结算卡用的是温柔、无数字的措辞。写一段你想要的语气，让 AI 把整套文案重写一遍——阶段名、成长措辞、势头词、庆祝语。专注时长与金币不变。" },
   "settings.tone.placeholder": { en: "e.g. a warm, playful RPG narrator who cheers you on like a close friend", zh: "例如：像一位温暖俏皮的 RPG 旁白，像好朋友一样为你打气" },

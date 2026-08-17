@@ -1,42 +1,101 @@
 import { useCallback, useState } from "react";
 import { useTodos } from "@/context/TodoContext";
 import { useDatabases } from "@/context/DatabaseContext";
-import { extractTasksFromText, sanitizeTaskAttrs } from "@/utils/ai/aiTasks";
+import {
+  askClarifyingQuestions,
+  extractTasksFromText,
+  refineTask,
+  sanitizeTaskAttrs,
+} from "@/utils/ai/aiTasks";
+import useTaskSplitPrefs from "@/hooks/task/useTaskSplitPrefs";
 import { useLanguage } from "@/context/LanguageContext";
 
 // 编排「AI 笔记 → 任务」的一次会话。
-// 状态机：idle → loading → review → (commit) → idle ；出错则 error。
-//   · request(text)  发起抽取，进入 review 持有候选
-//   · commit(tasks)  把用户审核后的任务落到当前激活的任务库
-//   · close()        关闭面板，回到 idle
+// 状态机：idle → (asking →) loading → review → (commit) → idle ；出错则 error。
+//   · request(text)   发起。若设置页开了「先反问」且模型确实有要问的，
+//                     先进 asking 持有问题；否则直接进 loading 抽取
+//   · answer(answers) 带着反问答案继续抽取（跳过 = 传 []）
+//   · commit(tasks)   把用户审核后的任务落到当前激活的任务库
+//   · refine(task)    把某一条再拆细，返回新任务数组（不改状态机，评审面板自己就地替换）
+//   · close()         关闭面板，回到 idle
 //
 // 候选 attrs 在 request 时为「原始值」，落库时再用 sanitizeTaskAttrs
 // 针对当前库清洗（只保留库里存在且合法的列）。
 export default function useTaskExtraction() {
   const { addTodo, setTodoAttr } = useTodos();
   const { activeDatabase, activeDatabaseId } = useDatabases();
+  const { prefs } = useTaskSplitPrefs();
   const { t } = useLanguage();
 
-  const [status, setStatus] = useState("idle"); // idle | loading | review | error
+  const [status, setStatus] = useState("idle"); // idle | asking | loading | review | error
   const [candidates, setCandidates] = useState([]);
+  const [questions, setQuestions] = useState([]);
+  const [pendingText, setPendingText] = useState("");
   const [error, setError] = useState(null);
 
-  const request = useCallback(
-    async (text) => {
-      const input = (text ?? "").trim();
-      if (!input || status === "loading") return;
+  // 真正去抽取。answers = [{ question, answer }]，没有反问环节时为 []。
+  const extract = useCallback(
+    async (input, answers) => {
       setStatus("loading");
       setError(null);
       try {
-        const tasks = await extractTasksFromText(input, { database: activeDatabase, t });
+        const tasks = await extractTasksFromText(input, {
+          database: activeDatabase,
+          t,
+          prefs,
+          answers,
+        });
         setCandidates(tasks);
+        setQuestions([]);
         setStatus("review");
       } catch (e) {
         setError(e?.message || t("brainDump.failed"));
         setStatus("error");
       }
     },
-    [status, activeDatabase, t],
+    [activeDatabase, t, prefs],
+  );
+
+  const request = useCallback(
+    async (text) => {
+      const input = (text ?? "").trim();
+      if (!input || status === "loading") return;
+      setPendingText(input);
+
+      if (!prefs.askFirst) {
+        await extract(input, []);
+        return;
+      }
+
+      // 反问只是锦上添花：问不出来（或这一步失败）就当没问过，直接往下拆。
+      setStatus("loading");
+      setError(null);
+      let qs = [];
+      try {
+        qs = await askClarifyingQuestions(input, { prefs });
+      } catch {
+        qs = [];
+      }
+      if (qs.length) {
+        setQuestions(qs);
+        setStatus("asking");
+      } else {
+        await extract(input, []);
+      }
+    },
+    [status, prefs, extract],
+  );
+
+  // answers: [{ question, answer }]；跳过就传 []（等于全用默认，不额外约束模型）
+  const answer = useCallback(
+    (answers) => extract(pendingText, answers),
+    [extract, pendingText],
+  );
+
+  // 把一条候选再拆细。抛错交给调用方（评审面板就地提示，不打断整个会话）。
+  const refine = useCallback(
+    (task) => refineTask(task, { database: activeDatabase, t, prefs }),
+    [activeDatabase, t, prefs],
   );
 
   // tasks: 用户在面板里勾选并可能改过标题/属性的 [{ text, attrs }]
@@ -65,10 +124,11 @@ export default function useTaskExtraction() {
   const close = useCallback(() => {
     setStatus("idle");
     setCandidates([]);
+    setQuestions([]);
     setError(null);
   }, []);
 
-  const isOpen = status === "loading" || status === "review" || status === "error";
+  const isOpen = status !== "idle";
 
-  return { status, isOpen, candidates, error, request, commit, close };
+  return { status, isOpen, candidates, questions, error, request, answer, refine, commit, close };
 }

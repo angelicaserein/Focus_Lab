@@ -504,7 +504,9 @@
   gap: 8px;
 }
 
-.settings-tone-input {
+/* 语气 prompt 与「任务拆分」的自定义规矩共用同一副外观 */
+.settings-tone-input,
+.settings-split-input {
   width: 100%;
   resize: vertical;
   min-height: 68px;
@@ -518,7 +520,8 @@
   font-family: inherit;
   transition: border-color var(--dur-fast) var(--ease);
 }
-.settings-tone-input:focus {
+.settings-tone-input:focus,
+.settings-split-input:focus {
   outline: none;
   border-color: var(--accent);
 }

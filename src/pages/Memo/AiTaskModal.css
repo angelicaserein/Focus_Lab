@@ -192,6 +192,43 @@
   flex-shrink: 0;
 }
 
+/* ── 逐条「再细化」（仅倒脑子传 onRefine 时出现）── */
+.ait-refine {
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 4px 11px;
+  border-radius: 99px;
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--var(--ease)), color var(--dur-fast) var(--var(--ease));
+}
+
+.ait-refine:hover:not(:disabled) {
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.ait-refine:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ait-refine-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 0.78rem;
+}
+
 .ait-dropped {
   margin: 12px 2px 0;
   font-size: 0.78rem;

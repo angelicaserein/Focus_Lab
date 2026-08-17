@@ -66,6 +66,15 @@ export default {
     zh: "勾选要加入的任务，可直接修改标题。确认后加入当前任务库。",
   },
   "memo.ai.taskPlaceholder": { en: "Task title", zh: "任务标题" },
+  // 逐条「再细化」：把一行原地换成它拆出来的几条（只有倒脑子给了 onRefine 才出现）
+  "memo.ai.refine": { en: "Break down", zh: "再细化" },
+  "memo.ai.refining": { en: "Breaking down…", zh: "拆解中…" },
+  "memo.ai.refineNone": {
+    en: "That one's already small enough to start.",
+    zh: "这条已经够小了，可以直接上手。",
+  },
+  "memo.ai.refineFailed": { en: "Couldn't break that down — try again", zh: "拆解失败，再试一次" },
+  "memo.ai.refineUndo": { en: "Undo break down", zh: "撤回细化" },
   "memo.ai.cancel": { en: "Cancel", zh: "取消" },
   "memo.ai.commit": { en: "Add {count} tasks", zh: "加入 {count} 条任务" },
   "memo.ai.dropped": {

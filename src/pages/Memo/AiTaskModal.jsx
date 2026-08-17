@@ -35,10 +35,19 @@ function attrChips(attrs, database, t) {
   return chips;
 }
 
-export default function AiTaskModal({ status, candidates, error, database, onCommit, onClose }) {
+// 细化出来的行要有稳定且不重复的 key —— 用原索引拼标题会跟新拆出来的撞上。
+let refineSeq = 0;
+
+// onRefine?: (task) => Promise<[{text, attrs}]>，给了才显示每行的「再细化」。
+// 目前只有倒脑子传它；备忘录/截止日期助手不传，那两处行为原样不变。
+export default function AiTaskModal({ status, candidates, error, database, onRefine, onCommit, onClose }) {
   const { t } = useLanguage();
   // 本地可编辑副本：候选变化时重新播种（标题可改、勾选可切换）。
   const [rows, setRows] = useState([]);
+  // 细化中的那一行 key、细化报错、以及可回退的历史快照（每次细化压一层）
+  const [refining, setRefining] = useState(null);
+  const [refineError, setRefineError] = useState(null);
+  const [history, setHistory] = useState([]);
 
   useEffect(() => {
     setRows(
@@ -49,7 +58,48 @@ export default function AiTaskModal({ status, candidates, error, database, onCom
         selected: true,
       })),
     );
+    setHistory([]);
+    setRefineError(null);
   }, [candidates]);
+
+  // 把某一行原地换成它拆出来的几条。拆不动（返回空）就提示一句、保持原样。
+  const handleRefine = async (row) => {
+    if (refining) return;
+    setRefining(row.key);
+    setRefineError(null);
+    try {
+      const parts = await onRefine({ text: row.text, attrs: row.attrs });
+      if (!parts?.length) {
+        setRefineError(t("memo.ai.refineNone"));
+        return;
+      }
+      setHistory((prev) => [...prev, rows]);
+      setRows((prev) => {
+        const at = prev.findIndex((r) => r.key === row.key);
+        if (at === -1) return prev;
+        const made = parts.map((p) => ({
+          key: `r${refineSeq++}`,
+          text: p.text,
+          attrs: p.attrs || {},
+          selected: row.selected,
+        }));
+        return [...prev.slice(0, at), ...made, ...prev.slice(at + 1)];
+      });
+    } catch {
+      setRefineError(t("memo.ai.refineFailed"));
+    } finally {
+      setRefining(null);
+    }
+  };
+
+  const undoRefine = () => {
+    setRefineError(null);
+    setHistory((prev) => {
+      if (!prev.length) return prev;
+      setRows(prev[prev.length - 1]);
+      return prev.slice(0, -1);
+    });
+  };
 
   // Esc 关闭
   useEffect(() => {
@@ -153,10 +203,32 @@ export default function AiTaskModal({ status, candidates, error, database, onCom
                         </div>
                       )}
                     </div>
+                    {onRefine && (
+                      <button
+                        type="button"
+                        className="ait-refine"
+                        onClick={() => handleRefine(r)}
+                        disabled={Boolean(refining) || !r.text.trim()}
+                        title={t("memo.ai.refine")}
+                      >
+                        {refining === r.key ? t("memo.ai.refining") : t("memo.ai.refine")}
+                      </button>
+                    )}
                   </li>
                 );
               })}
             </ul>
+
+            {(refineError || history.length > 0) && (
+              <div className="ait-refine-bar">
+                {refineError && <span className="ait-error">{refineError}</span>}
+                {history.length > 0 && (
+                  <button type="button" className="ait-btn-ghost" onClick={undoRefine}>
+                    {t("memo.ai.refineUndo")}
+                  </button>
+                )}
+              </div>
+            )}
 
             {droppedAll.length > 0 && (
               <p className="ait-dropped">

@@ -516,11 +516,20 @@
   box-shadow: none;
 }
 
+/* 标题最多折两行：一行放不下就换行显示，两行还放不下才省略号。
+   窄到 140px 就换行，不再单行硬截。 */
 .matrix-tag-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
   max-width: 140px;
+  /* 中文按字断行、长英文单词也允许中间断，避免一个长词把卡片撑爆 */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.3;
 }
 
 /* 「分一下」按钮：仅未分类托盘里出现 */

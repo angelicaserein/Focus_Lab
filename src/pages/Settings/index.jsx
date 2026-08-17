@@ -5,10 +5,11 @@ import ThemeSection from "@/pages/Settings/ThemeSection";
 import PrefsSection from "@/pages/Settings/PrefsSection";
 import AppWatchSection from "@/pages/Settings/AppWatchSection";
 import ToneSection from "@/pages/Settings/ToneSection";
+import TaskSplitSection from "@/pages/Settings/TaskSplitSection";
 import DataSection from "@/pages/Settings/DataSection";
 import "./Settings.css";
 
-const TABS = ["appearance", "timing", "tone", "language", "data"];
+const TABS = ["appearance", "timing", "tasks", "tone", "language", "data"];
 
 export default function SettingsPage() {
   const { t } = useLanguage();
@@ -50,6 +51,7 @@ export default function SettingsPage() {
             <AppWatchSection />
           </>
         )}
+        {tab === "tasks" && <TaskSplitSection />}
         {tab === "tone" && <ToneSection />}
         {tab === "language" && <LanguageSection />}
         {tab === "data" && <DataSection />}

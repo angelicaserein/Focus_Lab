@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { parseTasksJson, sanitizeTaskAttrs, buildSchemaHint, buildSystemPrompt, todayHint } from "@/utils/ai/aiTasks";
+import {
+  parseTasksJson,
+  parseQuestionsJson,
+  sanitizeTaskAttrs,
+  buildSchemaHint,
+  buildSystemPrompt,
+  todayHint,
+} from "@/utils/ai/aiTasks";
 import { TASK_ATTR_DEFAULTS } from "@/utils/task/taskAttrDefaults";
 
 // 一个含全部约定列的「经典」库
@@ -109,5 +116,51 @@ describe("buildSystemPrompt", () => {
     const p = buildSystemPrompt("每个任务只需输出 text。", { date: "2026-08-14", weekday: "五" });
     expect(p).toContain("今天是 2026-08-14（星期五）");
     expect(p).toContain("每个任务只需输出 text。");
+  });
+});
+
+describe("buildSystemPrompt 与拆分偏好", () => {
+  const today = { date: "2026-08-14", weekday: "五" };
+
+  it("没给 rulesHint 时用内置的默认粒度段", () => {
+    const p = buildSystemPrompt("", today);
+    expect(p).toContain("粒度规则：");
+    expect(p).toContain("拆成 2–4 条");
+  });
+
+  it("给了 rulesHint 就整段换掉，不再残留默认粒度", () => {
+    const p = buildSystemPrompt("", today, "粒度规则：\n- 拆到最细。");
+    expect(p).toContain("- 拆到最细。");
+    expect(p).not.toContain("拆成 2–4 条");
+  });
+
+  it("不再含「宁可少拆」这类保守指令——拆多拆少由用户偏好说了算", () => {
+    expect(buildSystemPrompt("", today)).not.toContain("宁可少拆");
+    expect(buildSystemPrompt("", today, "粒度规则：\n- 拆到最细。")).not.toContain("宁可少拆");
+  });
+});
+
+describe("parseQuestionsJson", () => {
+  it("解析选择题，并保留合法的默认答案", () => {
+    const raw = '[{"question":"要拆步骤吗？","options":["不拆","拆成几步"],"default":"拆成几步"}]';
+    expect(parseQuestionsJson(raw)).toEqual([
+      { question: "要拆步骤吗？", options: ["不拆", "拆成几步"], default: "拆成几步" },
+    ]);
+  });
+
+  it("default 不在 options 里就退回第一项", () => {
+    const raw = '[{"question":"要拆吗？","options":["A","B"],"default":"C"}]';
+    expect(parseQuestionsJson(raw)[0].default).toBe("A");
+  });
+
+  it("丢掉选项不足两个、或没有题干的条目", () => {
+    const raw = '[{"question":"只有一个选项","options":["A"]},{"options":["A","B"]}]';
+    expect(parseQuestionsJson(raw)).toEqual([]);
+  });
+
+  it("最多留 3 题，非法输入兜底为空数组", () => {
+    const one = '{"question":"q","options":["A","B"]}';
+    expect(parseQuestionsJson(`[${Array(5).fill(one).join(",")}]`)).toHaveLength(3);
+    expect(parseQuestionsJson("not json")).toEqual([]);
   });
 });

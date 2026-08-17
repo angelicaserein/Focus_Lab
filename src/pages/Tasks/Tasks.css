@@ -128,6 +128,55 @@
   box-shadow: 0 0 0 3px var(--accent-bg);
 }
 
+/* ── 倒脑子的「反问」一屏：AI 出的选择题 ── */
+.bd-q-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bd-q-text {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text-body);
+}
+
+.bd-q-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bd-q-opt {
+  padding: 6px 14px;
+  border-radius: 99px;
+  border: 1.5px solid var(--border-card);
+  background: var(--card);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--var(--ease)), color var(--dur-fast) var(--var(--ease)),
+    background var(--dur-fast) var(--var(--ease));
+}
+
+.bd-q-opt:hover {
+  border-color: var(--accent-border);
+}
+
+.bd-q-opt.on {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
 /* 「已加入 N 条任务 · 撤回」自动消失提示 */
 .tasks-saved {
   display: flex;

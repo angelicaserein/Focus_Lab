@@ -81,7 +81,8 @@ function TaskTag({
         />
       ) : (
         <>
-          <span className="matrix-tag-text">{todo.text}</span>
+          {/* 卡片文字最多两行，超长的极少数情况仍会省略——title 兜底给出全文 */}
+          <span className="matrix-tag-text" title={todo.text}>{todo.text}</span>
           {onSort && (
             <button
               type="button"

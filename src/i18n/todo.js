@@ -47,6 +47,14 @@ export default {
   "brainDump.submit": { en: "Sort it with AI", zh: "AI 整理成任务" },
   "brainDump.undo": { en: "Undo", zh: "撤回" },
   "brainDump.undone": { en: "Undone — those tasks are gone", zh: "已撤回，那批任务已移除" },
+  // 拆分前的反问一屏（设置页「任务拆分」里可以整个关掉）
+  "brainDump.clarify.title": { en: "A couple of things first", zh: "动手前先问两句" },
+  "brainDump.clarify.hint": {
+    en: "Tell me how you want these split, or skip and I'll just go with your saved preferences.",
+    zh: "告诉我这几处想怎么拆；不想选就跳过，我按你设置里的偏好来。",
+  },
+  "brainDump.clarify.skip": { en: "Skip, just split it", zh: "跳过，直接拆" },
+  "brainDump.clarify.submit": { en: "Split it this way", zh: "按这些拆" },
 
   // 任务库页头 + 双视图切换
   "tasks.title": { en: "Task library", zh: "任务库" },
