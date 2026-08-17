@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import { createHandler, raw, BadRequest } from "./_shared.mjs";
 
 // 优先级矩阵自动分配代理：浏览器把未分类任务发来，API key 留在服务器侧。
 // 返回 { result }（模型原始文本，前端再 parse/兜底）。
@@ -37,36 +37,21 @@ function buildUserPayload(tasks) {
   ].join("\n");
 }
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return res.status(503).json({ error: "AI not configured" });
-  }
-
-  const { tasks } = req.body || {};
-  if (!Array.isArray(tasks) || !tasks.length) {
-    return res.status(400).json({ error: "Invalid tasks" });
-  }
-
-  try {
-    const client = new OpenAI({ apiKey });
-    const resp = await client.chat.completions.create({
-      model: "gpt-5.5",
+export default createHandler({
+  name: "assign-matrix",
+  build: ({ tasks }) => {
+    if (!Array.isArray(tasks) || !tasks.length) {
+      throw new BadRequest("Invalid tasks");
+    }
+    return {
       // gpt-5.5 推理模型：token 预算推理与正文共用，矩阵需为每条任务吐一项
       // JSON，任务多了 512 会被截断成空。按任务数动态留足余量。
-      max_completion_tokens: Math.min(4096, 256 + tasks.length * 48),
+      maxTokens: Math.min(4096, 256 + tasks.length * 48),
       messages: [
         { role: "system", content: buildSystemPrompt() },
         { role: "user", content: buildUserPayload(tasks) },
       ],
-    });
-    return res.json({ result: resp.choices[0]?.message?.content ?? "" });
-  } catch (e) {
-    console.error("[api/assign-matrix]", e.message);
-    return res.status(500).json({ error: "AI request failed" });
-  }
-}
+    };
+  },
+  format: raw("result"),
+});

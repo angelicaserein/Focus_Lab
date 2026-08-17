@@ -19,6 +19,8 @@ const fs = require("node:fs");
 const { pathToFileURL } = require("node:url");
 const { AppWatcher, SUPPORTED: WATCH_SUPPORTED } = require("./appWatch.cjs");
 const { formatTrayTooltip } = require("./trayTooltip.cjs");
+const { checkOnStartup, checkNow } = require("./updater.cjs");
+const { trayBitmap, iconKey } = require("./trayIcon.cjs");
 
 const DEV_SERVER = process.env.VITE_DEV_SERVER_URL || "";
 const IS_DEV = !!DEV_SERVER;
@@ -207,7 +209,7 @@ function createMainWindow() {
     focusStamp = 0;
     syncClockTimer();
     pushPetState();
-    updateTrayTooltip();
+    updateTray();
     reevaluateWatch();
     // 崩之前是藏着的（托盘常驻用法），重建后也不该突然弹到用户脸上
     startHidden = !wasVisible;
@@ -317,11 +319,11 @@ function viewState() {
 }
 
 // 只在「有一次正在跑的专注」时开着。里面两件事都很便宜：桌宠藏起来时
-// pushPetState 直接返回，tooltip 文案没变时 updateTrayTooltip 也不过原生调用。
+// pushPetState 直接返回，tooltip 文案 / 图标没变时 updateTray 也不过原生调用。
 function syncClockTimer() {
   const need = !!lastState?.focus?.isRunning;
   if (need && !clockTimer) {
-    clockTimer = setInterval(() => { pushPetState(); updateTrayTooltip(); }, 1000);
+    clockTimer = setInterval(() => { pushPetState(); updateTray(); }, 1000);
   } else if (!need && clockTimer) {
     clearInterval(clockTimer);
     clockTimer = null;
@@ -704,7 +706,36 @@ function trayIcon() {
 // 不用把主窗口或桌宠翻出来。会话没开始时退回单纯的应用名。
 let lastTooltip = "";
 
-function updateTrayTooltip() {
+// 图标本身也跟着进度走：tooltip 要把鼠标停上去才看得见，而任务栏那一格
+// 一直在视野边缘。空会话时退回应用图标。
+let lastIconKey = "";
+
+function updateTrayIcon() {
+  if (!tray || tray.isDestroyed()) return;
+  const f = viewState()?.focus;
+  const secs = Number(f?.seconds);
+  const live = f && (f.isRunning || (Number.isFinite(secs) && secs > 0));
+  if (!live) {
+    if (lastIconKey === "app") return;
+    lastIconKey = "app";
+    tray.setImage(trayIcon());
+    return;
+  }
+  const mins = Number(f.targetMins);
+  const targetSecs = (Number.isFinite(mins) && mins > 0 ? mins : 25) * 60;
+  // 口径跟桌宠的瓶子一致：正/倒计时都是「已过 / 目标」，从空到满（见 PetApp）
+  const ratio = secs / targetSecs;
+  const key = iconKey(ratio, !!f.isRunning);
+  if (key === lastIconKey) return;
+  lastIconKey = key;
+  const bmp = trayBitmap(ratio, !!f.isRunning);
+  tray.setImage(nativeImage.createFromBitmap(bmp.buffer, {
+    width: bmp.width, height: bmp.height, scaleFactor: bmp.scaleFactor,
+  }));
+}
+
+function updateTray() {
+  updateTrayIcon();
   if (!tray || tray.isDestroyed()) return;
   const tip = formatTrayTooltip(viewState());
   // 计时每秒推一次状态，同一句话没必要反复过一遍原生调用
@@ -729,6 +760,7 @@ function buildTrayMenu() {
       },
     },
     { type: "separator" },
+    { label: "检查更新", click: () => { checkNow(); } },
     { label: "退出", click: () => { quitting = true; app.quit(); } },
   ]);
 }
@@ -739,6 +771,21 @@ function createTray() {
   // 菜单每次弹出时重建：里面的两个 checkbox 状态是活的。
   tray.on("right-click", () => tray.popUpContextMenu(buildTrayMenu()));
   tray.on("click", () => showMainWindow());
+}
+
+// 一条操作指令的统一出口。桌宠点按钮走这里，全局快捷键也走这里——
+// 「开始专注」要先把窗口切到 /focus、计时类指令要留一份给页面认领，
+// 这些前置动作两条路都要做，不该各写一遍。
+function dispatchCommand(raw) {
+  if (raw?.type === "open-main") { showMainWindow(raw.hash); return; }
+  // 注意：id 是这条「指令」的流水号，会盖掉 raw 里同名的字段。
+  // 所以指令的载荷不能叫 id——要带任务 id 就叫 taskId（见 select-task）。
+  const cmd = { ...raw, id: `cmd-${++commandSeq}` };
+  // 「开始专注」必须先把主窗口切到 /focus：计时状态活在 Focus 页面组件里，
+  // 页面没挂载就没人接这条指令（详见 useDesktopFocusSync 的注释）。
+  if (cmd.type === "start") showMainWindow("#/focus");
+  if (TIMER_COMMANDS.has(cmd.type)) pendingCommand = { cmd, ts: Date.now() };
+  sendToMain("desktop:command", cmd);
 }
 
 // ── IPC ─────────────────────────────────────────────────────────
@@ -763,7 +810,7 @@ function registerIpc() {
     if (patch && "focus" in patch) focusStamp = Date.now();
     syncClockTimer();
     pushPetState();
-    updateTrayTooltip();
+    updateTray();
     // 分心探测只在专注跑起来的时候工作，所以「开始/暂停/结束/离开专注页」
     // 都要重新过一遍闸门。比的是闸门本身而不是 isRunning：被我们自动暂停的
     // 会话 isRunning 是 false，但闸门要继续开着（见 watchGateOpen）。
@@ -785,17 +832,7 @@ function registerIpc() {
   });
 
   // 桌宠 → 主窗口：操作指令。部分指令主进程自己也要顺手做点事（比如唤起主窗口）。
-  ipcMain.on("desktop:command", (_e, raw) => {
-    if (raw?.type === "open-main") { showMainWindow(raw.hash); return; }
-    // 注意：id 是这条「指令」的流水号，会盖掉 raw 里同名的字段。
-    // 所以指令的载荷不能叫 id——要带任务 id 就叫 taskId（见 select-task）。
-    const cmd = { ...raw, id: `cmd-${++commandSeq}` };
-    // 「开始专注」必须先把主窗口切到 /focus：计时状态活在 Focus 页面组件里，
-    // 页面没挂载就没人接这条指令（详见 useDesktopFocusSync 的注释）。
-    if (cmd.type === "start") showMainWindow("#/focus");
-    if (TIMER_COMMANDS.has(cmd.type)) pendingCommand = { cmd, ts: Date.now() };
-    sendToMain("desktop:command", cmd);
-  });
+  ipcMain.on("desktop:command", (_e, raw) => dispatchCommand(raw));
 
   // Focus 页挂载时来认领一条「刚发出但当时没人接」的计时指令。
   // 认领即出队；过期的直接丢弃。
@@ -842,6 +879,13 @@ function registerIpc() {
   // BrowserWindow 是没用的（点 X 只是藏起来），只有主进程能把它请回来。
   ipcMain.on("desktop:show-main", (_e, hash) => showMainWindow(hash));
 
+  // 拖进来的文件：用系统默认程序打开。
+  // shell.openPath 成功返回空串，失败返回一句原因（文件被移走 / 删了 / 没有关联程序）。
+  ipcMain.handle("desktop:open-path", async (_e, p) => {
+    if (typeof p !== "string" || !p) return "bad path";
+    return shell.openPath(p);
+  });
+
   ipcMain.on("desktop:pet-hide", () => {
     if (petWindow && !petWindow.isDestroyed()) petWindow.hide();
   });
@@ -865,6 +909,9 @@ if (!app.requestSingleInstanceLock()) {
     createPetWindow();
     createTray();
     registerPowerHooks();
+    // 开机自启时也别一上来就抢网：等窗口都起来了、用户已经在用了再说。
+    // 静默，查不到就算了（见 updater.cjs）。
+    setTimeout(checkOnStartup, 10_000);
 
     // 全局快捷键：无论在哪个 app 里，一键把桌宠叫出来并展开到「记一条」。
     // 注册失败（被别的软件占了）不致命，静默跳过。
@@ -873,6 +920,16 @@ if (!app.requestSingleInstanceLock()) {
       petWindow.show();
       petWindow.focus();
       sendToPet("desktop:pet-quick-capture");
+    });
+
+    // 开始 / 暂停：不用把任何窗口翻出来，在别的软件里也能按。
+    // 一个键管两件事——有正在跑的会话就暂停/继续，没有就开一次新的。
+    // 这是「专注」这件事本身最该有的那个键：想开始的那一刻手不用离开当前的活。
+    globalShortcut.register("CommandOrControl+Shift+F", () => {
+      const f = lastState?.focus;
+      // seconds > 0 表示会话还在（只是暂停着），这时候按键是「继续」而不是重开
+      const alive = !!f && (f.isRunning || Number(f.seconds) > 0);
+      dispatchCommand({ type: alive ? "toggle-pause" : "start" });
     });
 
     // 积水窗是按主显示器的尺寸一次性摆好的。分辨率变了 / 拔了外接屏之后

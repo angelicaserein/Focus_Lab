@@ -140,11 +140,11 @@
 }
 
 .ddl-pin.overdue .ddl-pin-days {
-  color: #ef4444;
+  color: var(--danger);
 }
 .ddl-pin.overdue .ddl-pin-flag {
-  border-color: color-mix(in srgb, #ef4444 62%, var(--border-input));
-  background: color-mix(in srgb, #ef4444 10%, var(--card));
+  border-color: color-mix(in srgb, var(--danger) 62%, var(--border-input));
+  background: color-mix(in srgb, var(--danger) 10%, var(--card));
   animation: ddl-pin-pulse 1.8s ease-in-out infinite;
 }
 

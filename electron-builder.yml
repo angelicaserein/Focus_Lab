@@ -8,13 +8,38 @@ directories:
   output: release
   buildResources: build
 
-# 只打三样东西：前端产物、主进程/preload、package.json。
-# node_modules 不需要显式列——主进程除 electron 内置模块外没有运行时依赖，
-# 前端依赖已经在 vite build 时打进 dist/ 了。
+# 只打这几样：前端产物、主进程/preload、package.json。
+# 前端依赖已经在 vite build 时打进 dist/ 了，不必再带一份源码。
+# electron-updater 是例外：它是主进程在运行时 require 的，必须真的进包，
+# 连它自己的依赖一起（builder-util-runtime / js-yaml / lodash.escaperegexp …）。
 files:
   - dist/**
   - electron/**
   - package.json
+  - node_modules/electron-updater/**
+  - node_modules/builder-util-runtime/**
+  - node_modules/lazy-val/**
+  - node_modules/js-yaml/**
+  - node_modules/argparse/**
+  - node_modules/lodash.escaperegexp/**
+  - node_modules/lodash.isequal/**
+  - node_modules/semver/**
+  - node_modules/tiny-typed-emitter/**
+  - node_modules/fs-extra/**
+  - node_modules/graceful-fs/**
+  - node_modules/jsonfile/**
+  - node_modules/universalify/**
+  - node_modules/debug/**
+  - node_modules/ms/**
+  - node_modules/sax/**
+
+# 更新从哪儿取。electron-builder 打包时按这里生成 app-update.yml（塞进包里，
+# 运行时 electron-updater 读它）和 latest.yml（要跟安装包一起传到 Release 上，
+# 少传这个文件的话客户端永远发现不了新版本）。
+publish:
+  - provider: github
+    owner: angelicaserein
+    repo: Focus_Lab
 
 asar: true
 

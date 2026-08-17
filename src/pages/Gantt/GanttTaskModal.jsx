@@ -51,7 +51,7 @@ export default function GanttTaskModal({ draft, project, onSave, onDelete, onClo
   const spanDays = diffDays(form.start, form.end) + 1;
 
   return (
-    <div className="gantt-modal-backdrop" onClick={onClose}>
+    <div className="gantt-modal-backdrop" role="presentation" onClick={onClose}>
       <form className="gantt-modal" onClick={(e) => e.stopPropagation()} onSubmit={submit}>
         <div className="gantt-modal-head">
           <h2>{t(isEdit ? "gantt.edit.editTitle" : "gantt.edit.addTitle")}</h2>

@@ -332,6 +332,30 @@
   white-space: nowrap;
 }
 
+/* 📎 拖进来的文件：点一下用系统默认程序打开（只有桌面版会有这个字段）。
+   做得比标签还轻——它是这条任务的附属物，不该比任务本身还显眼。 */
+.todo-file-open {
+  margin-top: 4px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-faint);
+  border: 1px dashed var(--accent-border);
+  cursor: pointer;
+  /* 路径可能很长，按钮不能被撑成一整行 */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.todo-file-open:hover {
+  color: var(--accent-deep);
+  background: var(--accent-bg);
+  border-style: solid;
+}
+
 /* 🏷 tag picker toggle button */
 .tag-item-btn {
   background: transparent;

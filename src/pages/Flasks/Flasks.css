@@ -251,8 +251,8 @@
   opacity: 1;
 }
 .fk-remove:hover {
-  background: color-mix(in srgb, #ef4444 14%, transparent);
-  color: #ef4444;
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  color: var(--danger);
 }
 
 /* —— 卡里的那只瓶子 —— */
@@ -356,11 +356,11 @@
 }
 .fk-confirm-yes {
   border: 1px solid transparent;
-  background: color-mix(in srgb, #ef4444 14%, transparent);
-  color: #ef4444;
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  color: var(--danger);
 }
 .fk-confirm-yes:hover {
-  background: #ef4444;
+  background: var(--danger);
   color: #fff;
 }
 .fk-confirm-row button:focus-visible {

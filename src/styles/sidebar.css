@@ -290,7 +290,7 @@
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  background: #ef4444;
+  background: var(--danger);
   color: #fff;
   font-size: 0.7rem;
   font-weight: 700;

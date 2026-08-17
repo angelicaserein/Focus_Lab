@@ -27,6 +27,10 @@ export const desktop = {
   onNavigate: bridge ? (cb) => bridge.onNavigate(cb) : noopSub,
   // 把主窗口请回前台。网页版下 window.focus() 就够了，所以这里是 no-op
   showMain: bridge ? (hash) => bridge.showMain(hash) : noop,
+  // 拖进来的文件在硬盘上的真实路径 / 用系统默认程序打开它。
+  // 网页版拿不到路径，也没有「打开」这回事：前者返回空数组，后者是 no-op。
+  pathsOf: bridge ? (files) => bridge.pathsOf(files) : () => [],
+  openPath: bridge ? (p) => bridge.openPath(p) : async () => "not desktop",
 
   // ── 分心水位 ──
   // 白名单配置：真值在主窗口的 localStorage 里，这里只是同步给主进程做判定

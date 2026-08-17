@@ -133,7 +133,7 @@ export default function AiTaskModal({ status, candidates, error, database, onRef
   };
 
   return (
-    <div className="ait-backdrop" onClick={onClose}>
+    <div className="ait-backdrop" role="presentation" onClick={onClose}>
       <div className="ait-modal" onClick={(e) => e.stopPropagation()}>
         <div className="ait-head">
           <h2 className="ait-title">{t("memo.ai.title")}</h2>

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useMemo } from "react";
 import useLocalStorage from "@/hooks/common/useLocalStorage";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 
@@ -17,11 +17,11 @@ export function ThemeProvider({ children }) {
     }
   }, [activeTheme]);
 
-  return (
-    <ThemeContext.Provider value={{ activeTheme, setTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  // 这是 Provider 树最外层，重渲会一路刷到底：value 必须 memo，
+  // 否则内联对象字面量每次都是新引用，全部 useTheme() 消费者跟着白重渲一遍。
+  const value = useMemo(() => ({ activeTheme, setTheme }), [activeTheme, setTheme]);
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme() {

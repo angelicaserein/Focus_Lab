@@ -418,7 +418,7 @@
   border-radius: 6px;
 }
 .settings-option-edit .option-remove:hover {
-  color: #ef4444;
+  color: var(--danger);
   background: var(--card);
 }
 

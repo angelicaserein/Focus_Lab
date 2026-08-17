@@ -148,7 +148,9 @@ export function TodoProvider({ children }) {
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const addTodo = (text, { recurringDays = null, databaseId = "default" } = {}) => {
+  // filePath：桌面版把文件拖到窗口上建的任务，记着它对应硬盘上的哪个文件，
+  // 卡片上点一下就用系统默认程序打开（见 useDesktopFileDrop）。网页版永远没有这个字段。
+  const addTodo = (text, { recurringDays = null, databaseId = "default", filePath = null } = {}) => {
     const t = text.trim();
     if (!t) return;
     const today = getTodayStr();
@@ -158,6 +160,7 @@ export function TodoProvider({ children }) {
       completed: false,
       createdAt: Date.now(),
       databaseId,
+      ...(filePath && { filePath }),
       ...(recurringDays?.length && { recurringDays, lastResetDate: today }),
     };
     dispatch({ type: ADD, payload: item });

@@ -98,7 +98,7 @@
   cursor: pointer;
 }
 .db-menu-item:hover { background: var(--bg); }
-.db-menu-item.danger { color: #ef4444; }
+.db-menu-item.danger { color: var(--danger); }
 .db-menu-item:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* ── 新建对话框 ── */

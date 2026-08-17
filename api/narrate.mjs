@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import { createHandler, raw } from "./_shared.mjs";
 
 // 游戏主持人「旅程旁白」代理：浏览器把角色状态摘要发来，API key 留在服务器侧。
 // 返回 { result }（模型原始文本，前端直接展示 / 失败兜底本地模板）。
@@ -113,32 +113,18 @@ const PERSONA = {
   journey: { system: buildSystemPrompt, payload: buildUserPayload, maxTokens: 320 },
 };
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return res.status(503).json({ error: "AI not configured" });
-  }
-
-  const { context, lang, persona } = req.body || {};
-  const p = PERSONA[persona] ?? PERSONA.journey;
-
-  try {
-    const client = new OpenAI({ apiKey });
-    const resp = await client.chat.completions.create({
-      model: "gpt-5.5",
-      max_completion_tokens: p.maxTokens,
+export default createHandler({
+  name: "narrate",
+  // 认不出的 persona 一律退回 journey，所以这一支没有会失败的校验。
+  build: ({ context, lang, persona }) => {
+    const p = PERSONA[persona] ?? PERSONA.journey;
+    return {
+      maxTokens: p.maxTokens,
       messages: [
         { role: "system", content: p.system(lang) },
         { role: "user", content: p.payload(context, lang) },
       ],
-    });
-    return res.json({ result: resp.choices[0]?.message?.content ?? "" });
-  } catch (e) {
-    console.error("[api/narrate]", e.message);
-    return res.status(500).json({ error: "AI request failed" });
-  }
-}
+    };
+  },
+  format: raw("result"),
+});

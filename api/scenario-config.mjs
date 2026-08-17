@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import { createHandler, raw, BadRequest } from "./_shared.mjs";
 
 // 情境配置助手代理：浏览器把用户的自然语言描述 + 现有选项清单发来，
 // API key 留在服务器侧。返回 { result }（模型原始文本，前端再 parse/兜底）。
@@ -33,34 +33,19 @@ function buildUserPayload(prompt, options) {
   ].join("\n");
 }
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return res.status(503).json({ error: "AI not configured" });
-  }
-
-  const { prompt, options } = req.body || {};
-  if (typeof prompt !== "string" || !prompt.trim()) {
-    return res.status(400).json({ error: "Invalid prompt" });
-  }
-
-  try {
-    const client = new OpenAI({ apiKey });
-    const resp = await client.chat.completions.create({
-      model: "gpt-5.5",
-      max_completion_tokens: 300,
+export default createHandler({
+  name: "scenario-config",
+  maxTokens: 300,
+  build: ({ prompt, options }) => {
+    if (typeof prompt !== "string" || !prompt.trim()) {
+      throw new BadRequest("Invalid prompt");
+    }
+    return {
       messages: [
         { role: "system", content: buildSystemPrompt() },
         { role: "user", content: buildUserPayload(prompt, options) },
       ],
-    });
-    return res.json({ result: resp.choices[0]?.message?.content ?? "" });
-  } catch (e) {
-    console.error("[api/scenario-config]", e.message);
-    return res.status(500).json({ error: "AI request failed" });
-  }
-}
+    };
+  },
+  format: raw("result"),
+});

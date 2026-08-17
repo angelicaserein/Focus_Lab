@@ -41,7 +41,7 @@ export default function DueDateAssistant({ candidates, onAssign, onClose }) {
   };
 
   return (
-    <div className="ait-backdrop" onClick={onClose}>
+    <div className="ait-backdrop" role="presentation" onClick={onClose}>
       <div className="ait-modal" onClick={(e) => e.stopPropagation()}>
         <div className="ait-head">
           <h2 className="ait-title">{t("tasks.due.title")}</h2>

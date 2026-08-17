@@ -634,12 +634,12 @@
 }
 
 .matrix-tag-act.del {
-  color: var(--danger, #e5484d);
-  background: color-mix(in srgb, var(--danger, #e5484d) 12%, transparent);
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
 }
 
 .matrix-tag-act.del:hover {
-  background: var(--danger, #e5484d);
+  background: var(--danger);
   color: #fff;
 }
 

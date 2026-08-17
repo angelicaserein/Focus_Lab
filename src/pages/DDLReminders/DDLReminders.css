@@ -175,7 +175,7 @@
 }
 
 .ddl-card.card-overdue {
-  border-color: color-mix(in srgb, #ef4444 40%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
 }
 
 .ddl-card-header {
@@ -222,8 +222,8 @@
 }
 
 .ddl-countdown.overdue {
-  background: color-mix(in srgb, #ef4444 12%, transparent);
-  color: #ef4444;
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
   font-weight: 700;
 }
 
@@ -316,7 +316,7 @@
 }
 
 .ddl-cp-del:hover {
-  color: #ef4444;
+  color: var(--danger);
 }
 
 /* ── 添加节点按钮 ────────────────────────────────────────────────────────────── */

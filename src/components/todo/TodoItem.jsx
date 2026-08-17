@@ -8,6 +8,7 @@ import useOutsideClick from "@/hooks/common/useOutsideClick";
 import useEditMode from "@/hooks/common/useEditMode";
 import TodoItemActions from "@/components/todo/TodoItemActions";
 import TodoItemDisplay from "@/components/todo/TodoItemDisplay";
+import { onActivateKey } from "@/utils/a11y";
 
 export default function TodoItem({ todo, isOtherDay = false }) {
   const { toggleTodo, deleteTodo, editTodo, toggleRecurring, setTodoAttr } = useTodos();
@@ -56,6 +57,7 @@ export default function TodoItem({ todo, isOtherDay = false }) {
     <div
       className={`todo-item-wrap${showDayPicker ? ' picker-open' : ''}${showTagPicker ? ' tags-open' : ''}${isOtherDay ? ' other-day' : ''}`}
       ref={wrapRef}
+      role="listitem"
     >
       <div
         className={`todo-item ${isNew ? "new" : ""} ${
@@ -63,9 +65,18 @@ export default function TodoItem({ todo, isOtherDay = false }) {
         } ${editing ? "editing" : ""} ${
           isFocused(todo.id) ? "selected" : ""
         } ${recurringDays.length > 0 ? "recurring" : ""}`}
-        role="listitem"
+        // 行本身是个开关（选入/移出专注清单），所以是 button 不是 listitem——
+        // aria-pressed 只在 button 上有意义。listitem 交给外层 wrap 承担。
+        role="button"
         aria-label={todo.text}
+        aria-pressed={isFocused(todo.id)}
+        // 整行可点 = 加入/移出专注清单。行里嵌着复选框和按钮，做不成 <button>，
+        // 只能自己补 tabIndex + 键盘激活，否则这个操作纯键盘用户够不着。
+        tabIndex={editing ? -1 : 0}
         onClick={handleRowClick}
+        onKeyDown={onActivateKey(() => {
+          if (!editing) toggleFocusTodo(todo.id);
+        })}
       >
         {editing ? (
           <input

@@ -30,7 +30,7 @@ export default function ClarifyPanel({ questions, onSubmit, onSkip, onClose }) {
     );
 
   return (
-    <div className="ait-backdrop" onClick={onClose}>
+    <div className="ait-backdrop" role="presentation" onClick={onClose}>
       <div
         className="ait-modal"
         onClick={(e) => e.stopPropagation()}

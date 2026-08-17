@@ -1,0 +1,49 @@
+/* 拖文件进来时盖在整个窗口上的提示层。
+   只在桌面版、只在真的有文件悬着时存在（见 useDesktopFileDrop）。
+
+   pointer-events: none 是必须的：这层要是能接鼠标，它自己就成了 dragleave 的
+   触发源——盖上来的那一瞬间等于「离开了原来的元素」，提示会疯狂闪。
+   真正接住 drop 的是 window 上的监听，这层纯粹是画给人看的。 */
+.desktop-drop {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--bg, #1a1620) 62%, transparent);
+  backdrop-filter: blur(2px);
+  animation: desktop-drop-in 120ms ease-out;
+}
+
+.desktop-drop-card {
+  padding: 28px 40px;
+  border-radius: 18px;
+  text-align: center;
+  /* 虚线框是「这里是个坑，往里放」的通用说法，不必再写一句话解释 */
+  border: 2px dashed var(--accent, #8ab4ff);
+  background: color-mix(in srgb, var(--card, #241f2e) 88%, transparent);
+  box-shadow: 0 18px 48px rgb(0 0 0 / 32%);
+}
+
+.desktop-drop-hint {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text, #eee);
+}
+
+.desktop-drop-sub {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: var(--text-muted, #aaa);
+}
+
+@keyframes desktop-drop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 拖拽本来就是个持续几百毫秒的动作，这里的淡入对减动偏好的人只是多余的闪。 */
+@media (prefers-reduced-motion: reduce) {
+  .desktop-drop { animation: none; }
+}

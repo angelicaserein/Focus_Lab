@@ -67,7 +67,7 @@
 
 .immersive-util-btn.proactive:not(:disabled):hover {
   background: rgba(251, 191, 36, 0.15);
-  border-color: #f59e0b;
+  border-color: var(--warn-fill);
   color: #d97706;
   opacity: 1;
 }
@@ -96,7 +96,7 @@
 .immersive-distraction-label {
   font-size: 0.78rem;
   font-weight: 600;
-  color: #b45309;
+  color: var(--warn-text);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -112,7 +112,7 @@
 .immersive-return-btn {
   padding: 8px 20px;
   border-radius: 999px;
-  border: 1.5px solid #f59e0b;
+  border: 1.5px solid var(--warn-fill);
   background: rgba(245, 158, 11, 0.2);
   color: #92400e;
   font: inherit;

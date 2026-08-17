@@ -24,12 +24,16 @@ export default function AquariumDebugPanel({ entries, sealedUids, flasks, onRemo
   return (
     <div
       className="aq-debug-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("aquarium.debug.aria")}
+      role="presentation"
       onClick={onClose}
     >
-      <div className="aq-debug-panel" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="aq-debug-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("aquarium.debug.aria")}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="aq-debug-title">{t("aquarium.debug.title")}</div>
         <p className="aq-debug-note">{t("aquarium.debug.note")}</p>
 

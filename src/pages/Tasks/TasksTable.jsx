@@ -6,6 +6,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import useConfirm from "@/hooks/common/useConfirm";
 import AttrHeaderEditor from "@/pages/Tasks/AttrHeaderEditor";
 import TodoRow from "@/pages/Tasks/TodoRow";
+import { onActivateKey } from "@/utils/a11y";
 
 const TYPE_COL_WIDTHS = {
   select:      "80px",
@@ -149,8 +150,11 @@ export default function TasksTable({ todos, visibleAttrs, activeDatabaseId, isDb
                 >
                   <div
                     className="th-inner th-attr-edit"
+                    role="button"
+                    tabIndex={0}
                     title={t("tasks.editAttr")}
                     onClick={e => openAttrEditor(attr.id, e.currentTarget.closest("th"))}
+                    onKeyDown={onActivateKey(e => openAttrEditor(attr.id, e.currentTarget.closest("th")))}
                   >
                     <span className="th-name">{attrName(t, attr)}</span>
                   </div>

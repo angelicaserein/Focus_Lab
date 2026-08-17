@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Check, ChevronDown, ChevronRight, X } from "lucide-react";
 import AttrCell from "@/pages/Tasks/cells/AttrCell";
 import { useLanguage } from "@/context/LanguageContext";
+import { onActivateKey } from "@/utils/a11y";
 
 // 判断某属性在这条任务上是否已有值——空的属性折叠时不显示，避免一排「—」造成视觉噪音。
 function hasValue(todo, attr) {
@@ -52,7 +53,14 @@ function TaskCard({ todo, visibleAttrs, onToggle, onEditText, onSaveAttr, onDele
               onKeyDown={onKey}
             />
           ) : (
-            <span className="fc-title" onClick={startEdit} title={t("tasks.clickToEdit")}>
+            <span
+              className="fc-title"
+              role="button"
+              tabIndex={0}
+              onClick={startEdit}
+              onKeyDown={onActivateKey(startEdit)}
+              title={t("tasks.clickToEdit")}
+            >
               {todo.text}
               {todo.recurringDays?.length > 0 && <span className="fc-recur" title={t("tasks.recurring")}>↺</span>}
             </span>

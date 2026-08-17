@@ -4,6 +4,7 @@ import { useScenarios } from "@/context/ScenarioContext";
 import { useLanguage } from "@/context/LanguageContext";
 import useEditMode from "@/hooks/common/useEditMode";
 import { hasScenarioSettings } from "@/utils/scenario/scenarioConstants";
+import { onActivateKey } from "@/utils/a11y";
 
 export default function ScenarioItem({ scenario, settingsOpen, onToggleSettings }) {
   const { deleteScenario, editScenario, activeScenarioId, setActiveScenario } =
@@ -72,10 +73,17 @@ export default function ScenarioItem({ scenario, settingsOpen, onToggleSettings 
       } ${editing ? "editing" : ""} ${
         activeScenarioId === scenario.id ? "selected" : ""
       }`}
-      role="listitem"
+      // 整块是个「切换当前情景」的开关：role 用 button，aria-pressed 才生效
+      // （listitem 不认这个属性）。里面嵌着按钮，做不成原生 <button>，
+      // 于是 tabIndex + 键盘激活都得自己补。
+      role="button"
       aria-label={scenario.title}
       aria-pressed={activeScenarioId === scenario.id}
+      tabIndex={editing ? -1 : 0}
       onClick={handleRowClick}
+      onKeyDown={onActivateKey(() => {
+        if (!editing) setActiveScenario(activeScenarioId === scenario.id ? null : scenario.id);
+      })}
     >
       {editing ? (
         <div className="scenario-edit">

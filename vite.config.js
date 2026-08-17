@@ -1,8 +1,47 @@
 import { defineConfig } from 'vite'
 import { fileURLToPath } from 'node:url'
+import fs from 'node:fs'
+import path from 'node:path'
+
+// 把「本次构建产出了哪些文件」写进 dist/sw.js，替换掉 public/sw.js 里的
+// __SW_BUILD_MANIFEST__ 占位符。Service Worker 拿它在 activate 时清掉不再存在的
+// 旧 hash 产物——否则每发一版都往同一个 cache 里堆一份新 bundle + .glb，只涨不清。
+// 走 closeBundle 而不是 writeBundle：要等 public/ 拷贝完，清单才包含图标、draco 解码器。
+function swBuildManifest() {
+  return {
+    name: 'sw-build-manifest',
+    apply: 'build',
+    enforce: 'post',
+    closeBundle() {
+      const outDir = fileURLToPath(new URL('./dist', import.meta.url))
+      const swPath = path.join(outDir, 'sw.js')
+      if (!fs.existsSync(swPath)) return
+
+      const files = []
+      const walk = (dir) => {
+        for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+          const full = path.join(dir, entry.name)
+          if (entry.isDirectory()) walk(full)
+          // sw.js 自己不进清单：它由浏览器按 SW 更新机制管理，不走 cache。
+          else if (full !== swPath) files.push('./' + path.relative(outDir, full).split(path.sep).join('/'))
+        }
+      }
+      walk(outDir)
+
+      const src = fs.readFileSync(swPath, 'utf8')
+      const next = src.replace('"__SW_BUILD_MANIFEST__"', JSON.stringify(files.sort()))
+      if (next === src) {
+        // 占位符没了说明 sw.js 被改过名/改过写法，静默失效会让缓存重新变成只涨不清。
+        this.error('sw.js 里找不到 __SW_BUILD_MANIFEST__ 占位符，构建清单没注入成功')
+      }
+      fs.writeFileSync(swPath, next)
+    },
+  }
+}
 
 export default defineConfig({
   base: './',
+  plugins: [swBuildManifest()],
   build: {
     rollupOptions: {
       // 三个入口：index.html 是完整应用（网页版 / Electron 主窗口），
@@ -42,7 +81,13 @@ export default defineConfig({
     environment: 'node',
     // electron/ 里也收：主进程有极少数纯逻辑（比如托盘 tooltip 的文案）在
     // 跑起来之后根本读不出来（Tray 没有 getToolTip），只能靠单测锁住。
-    include: ['src/**/*.{test,spec}.{js,jsx}', 'electron/**/*.{test,spec}.{js,cjs}'],
+    // api/ 也收：9 个 AI 代理端点的公共外壳（_shared.mjs）管着 405/503/400/500
+    // 这些只有部署后才走得到的分支，只能靠单测锁。
+    include: [
+      'src/**/*.{test,spec}.{js,jsx}',
+      'electron/**/*.{test,spec}.{js,cjs}',
+      'api/**/*.{test,spec}.mjs',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text-summary', 'html', 'json-summary'],
@@ -50,14 +95,17 @@ export default defineConfig({
       // 想测某个 hook 的逻辑时，照既有范式把纯函数抽出去（见 docs/TDD.md）。
       include: ['src/utils/**'],
       exclude: ['**/*.{test,spec}.*', '**/index.{js,jsx}'],
-      // 只涨不跌的地板线（当前 utils≈65%；time/ddl/matrixGeometry/focusRecords
-      // 已补测，analytics/character 100%）。补了测试、覆盖率上去后，把这几个数字
-      // 往上调，锁住成果、防止回退。留几个点余量，避免无关改动误伤红灯。
+      // 只涨不跌的地板线（当前 utils≈71%；analytics/character 100%，
+      // time/ddl/matrixGeometry/focusRecords/dayLog/researchRecords/tonePack 已补测）。
+      // 补了测试、覆盖率上去后，把这几个数字往上调，锁住成果、防止回退。
+      // 留几个点余量，避免无关改动误伤红灯。
+      // 还没测的大头：storage.js、utils/ai 里几支走网络的（aiChat/aiRecommend/
+      // aiScenarioConfig/aiMatrixAssign）、desktopBridge。下一轮从 storage.js 起。
       thresholds: {
-        statements: 63,
-        branches: 55,
-        functions: 59,
-        lines: 63,
+        statements: 68,
+        branches: 59,
+        functions: 61,
+        lines: 68,
       },
     },
   },

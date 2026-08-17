@@ -8,13 +8,14 @@ export default function RewardDebugPanel({ value, setValue, onClose, onApply }) 
   return (
     <div
       className="reward-debug-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("reward.debug.panel")}
+      role="presentation"
       onClick={onClose}
     >
       <form
         className="reward-debug-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("reward.debug.panel")}
         onClick={(e) => e.stopPropagation()}
         onSubmit={onApply}
       >

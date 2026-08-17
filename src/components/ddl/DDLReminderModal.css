@@ -151,8 +151,8 @@
 }
 
 .ddl-modal-tag.overdue {
-  background: color-mix(in srgb, #ef4444 12%, transparent);
-  color: #ef4444;
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
   font-weight: 700;
 }
 

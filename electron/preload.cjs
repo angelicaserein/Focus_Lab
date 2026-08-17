@@ -6,7 +6,7 @@
 // 积水窗只用得上一个 onFloodLevel。
 // 用不到的方法在对应窗口里也存在，无害，省得写三份 preload。
 
-const { contextBridge, ipcRenderer } = require("electron");
+const { contextBridge, ipcRenderer, webUtils } = require("electron");
 
 const roleArg = process.argv.find((a) => a.startsWith("--focuslab-role="));
 const role = roleArg ? roleArg.split("=")[1] : "main";
@@ -35,6 +35,22 @@ contextBridge.exposeInMainWorld("focusDesktop", {
   onDistraction: (cb) => on("desktop:distraction", cb),
   // 把主窗口请回前台（藏起来的窗口 window.focus() 叫不动）。可带 "#/focus" 之类的路由
   showMain: (hash) => ipcRenderer.send("desktop:show-main", hash),
+
+  // 拖进来的文件在硬盘上的真实路径。浏览器给的 File 对象里没有这个东西
+  // （能拿到内容，拿不到位置，更不可能回头把它打开），是桌面版独有的一件事。
+  // Electron 32 起 File.path 被移除了，只能走 webUtils。
+  pathsOf: (files) => {
+    const out = [];
+    for (const f of files ?? []) {
+      try {
+        const p = webUtils.getPathForFile(f);
+        if (p) out.push(p);
+      } catch { /* 不是真文件（拖的是浏览器里的图片之类）：跳过 */ }
+    }
+    return out;
+  },
+  // 用系统默认程序打开。成功返回 ""，失败返回原因（文件被移走 / 删了）。
+  openPath: (p) => ipcRenderer.invoke("desktop:open-path", p),
 
   // 分心水位：设置页发白名单，积水窗收水位
   setWatchConfig: (cfg) => ipcRenderer.send("desktop:watch-config", cfg),

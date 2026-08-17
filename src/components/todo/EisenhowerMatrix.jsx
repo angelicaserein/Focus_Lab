@@ -5,6 +5,7 @@ import { useFocus } from "@/context/FocusContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { assignMatrixPositions } from "@/utils/ai/aiMatrixAssign";
 import { useMatrixDrag } from "@/hooks/task/useMatrixDrag";
+import { onActivateKey } from "@/utils/a11y";
 import {
   clamp,
   scaleForPriority,
@@ -55,13 +56,9 @@ function TaskTag({
       onPointerDown={(e) => onPointerDown(e, todo)}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => {
-        if (editing) return;
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onToggleExpand(todo.id);
-        }
-      }}
+      onKeyDown={onActivateKey(() => {
+        if (!editing) onToggleExpand(todo.id);
+      })}
       title={todo.text}
     >
       {editing ? (

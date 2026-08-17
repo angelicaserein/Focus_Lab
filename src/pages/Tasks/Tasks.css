@@ -240,7 +240,7 @@
   cursor: pointer;
   padding: 0 4px;
 }
-.dda-clear:hover { color: #ef4444; }
+.dda-clear:hover { color: var(--danger); }
 
 /* ── Toolbar ── */
 .tasks-toolbar {
@@ -626,7 +626,7 @@
   transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 .tbb-btn:hover { border-color: var(--accent-border); color: var(--accent); }
-.tbb-btn.danger:hover { border-color: #ef4444; color: #ef4444; }
+.tbb-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
 .tbb-clear {
   margin-left: auto;
   border: none;
@@ -911,7 +911,7 @@
   text-align: left;
 }
 
-.date-clear-btn:hover { color: #ef4444; }
+.date-clear-btn:hover { color: var(--danger); }
 
 .est-input-wrap {
   display: flex;
@@ -990,7 +990,7 @@
   font-weight: 500;
 }
 .due-badge.overdue {
-  color: #ef4444;
+  color: var(--danger);
   font-weight: 700;
 }
 /* 关掉截止开关：日期只作普通信息，淡化展示 */
@@ -1017,7 +1017,7 @@
 }
 .ddl-toggle:hover { opacity: 1; }
 .ddl-toggle.active {
-  color: #ef4444;
+  color: var(--danger);
   opacity: 0.95;
 }
 

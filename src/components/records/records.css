@@ -441,7 +441,7 @@
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 8px;
-  color: #b45309;
+  color: var(--warn-text);
   background: rgba(251, 191, 36, 0.15);
 }
 

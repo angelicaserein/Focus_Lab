@@ -1,16 +1,7 @@
-import OpenAI from "openai";
+import { createHandler, raw, normalizeToday, BadRequest } from "./_shared.mjs";
 
 // 「再细化」代理：浏览器把某一条任务发来，模型把它拆成 2–5 条能立刻开始的小任务。
 // 返回 { tasks }（模型原始输出，前端再 parse/清洗）。
-
-// 「今天」由浏览器按本地时区算好发过来；缺了才退回服务器时间（UTC，可能差一天）。
-function normalizeToday(today) {
-  const date = /^\d{4}-\d{2}-\d{2}$/.test(today?.date) ? today.date : new Date().toISOString().slice(0, 10);
-  const weekday = "日一二三四五六".includes(today?.weekday)
-    ? today.weekday
-    : "日一二三四五六"[new Date(`${date}T00:00:00Z`).getUTCDay()];
-  return { date, weekday };
-}
 
 // 与 src/utils/ai/aiTasks.js 里的 buildRefineSystemPrompt 逐字一致，改一处要改两处。
 function buildSystemPrompt(schemaHint, today, rulesHint) {
@@ -38,27 +29,15 @@ function buildSystemPrompt(schemaHint, today, rulesHint) {
   ].join("\n");
 }
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return res.status(503).json({ error: "AI not configured" });
-  }
-
-  const { task, schemaHint, today, rulesHint } = req.body || {};
-  const text = typeof task?.text === "string" ? task.text.trim() : "";
-  if (!text) {
-    return res.status(400).json({ error: "Invalid task" });
-  }
-
-  try {
-    const client = new OpenAI({ apiKey });
-    const resp = await client.chat.completions.create({
-      model: "gpt-5.5",
-      max_completion_tokens: 768,
+export default createHandler({
+  name: "refine-task",
+  maxTokens: 768,
+  build: ({ task, schemaHint, today, rulesHint }) => {
+    const text = typeof task?.text === "string" ? task.text.trim() : "";
+    if (!text) {
+      throw new BadRequest("Invalid task");
+    }
+    return {
       messages: [
         {
           role: "system",
@@ -66,10 +45,7 @@ export default async function handler(req, res) {
         },
         { role: "user", content: JSON.stringify({ text, attrs: task?.attrs || {} }) },
       ],
-    });
-    return res.json({ tasks: resp.choices[0]?.message?.content ?? "" });
-  } catch (e) {
-    console.error("[api/refine-task]", e.message);
-    return res.status(500).json({ error: "AI request failed" });
-  }
-}
+    };
+  },
+  format: raw("tasks"),
+});

@@ -9,6 +9,8 @@ import usePrefs from "@/hooks/common/usePrefs";
 import useFlaskShelf from "@/hooks/flask/useFlaskShelf";
 import useMemos from "@/hooks/useMemos";
 import desktop, { isDesktop } from "@/utils/desktop/desktopBridge";
+import useDesktopFileDrop from "@/hooks/desktop/useDesktopFileDrop";
+import "@/components/desktop/DesktopHost.css";
 
 // 主窗口里常驻的桌宠对接层。挂在 App 根部（路由内，因为要用 useNavigate）。
 // 网页版下 isDesktop 为 false，所有订阅都是空实现，这个组件等于不存在。
@@ -29,7 +31,7 @@ export default function DesktopHost() {
   const { todos } = useTodos();
   const { focusedTodoIds, toggleFocusTodo } = useFocus();
   const { activeScenario } = useScenarios();
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
   const { activeTheme } = useTheme();
   const { flaskShape, timerMode, appWatch, setAppWatch } = usePrefs();
   // 桌宠画的瓶子跟着烧瓶架上选中的那只走，与专注页保持同一只（架子空着时用设置页的形状）
@@ -40,6 +42,9 @@ export default function DesktopHost() {
   // 用 ref 存最新的一份，订阅里读 ref。
   const handlers = useRef({});
   handlers.current = { addMemo, toggleFocusTodo };
+
+  // 拖文件进窗口建任务。返回「此刻有文件悬在窗口上方」，用来画下面那层提示。
+  const draggingFile = useDesktopFileDrop();
 
   useEffect(() => {
     if (!isDesktop) return undefined;
@@ -115,5 +120,14 @@ export default function DesktopHost() {
     desktop.publishState({ app });
   }, [todos, focusedTodoIds, activeScenario, lang, activeTheme, timerMode, flaskShape, activeParams]);
 
-  return null;
+  // 从系统里拖文件进来 → 建成任务（网页版拿不到文件路径，这条只在桌面版活着）
+  if (!draggingFile) return null;
+  return (
+    <div className="desktop-drop" aria-hidden="true">
+      <div className="desktop-drop-card">
+        <div className="desktop-drop-hint">{t("todo.drop.hint")}</div>
+        <div className="desktop-drop-sub">{t("todo.drop.sub")}</div>
+      </div>
+    </div>
+  );
 }

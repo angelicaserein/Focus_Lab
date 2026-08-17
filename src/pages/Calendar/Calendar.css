@@ -516,7 +516,7 @@
   left: var(--rail);
   right: 14px;
   height: 2px;
-  background: #ef4444;
+  background: var(--danger);
   z-index: 3;
   border-radius: 2px;
 }
@@ -528,7 +528,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #ef4444;
+  background: var(--danger);
 }
 
 /* 会话块 —— 按时刻定位，高度随时长 */
@@ -571,8 +571,8 @@
 }
 
 .cal-block.tone-removed {
-  background: color-mix(in srgb, #f59e0b 12%, var(--card));
-  border-left-color: #f59e0b;
+  background: color-mix(in srgb, var(--warn-fill) 12%, var(--card));
+  border-left-color: var(--warn-fill);
 }
 
 .cal-block-head {
@@ -647,9 +647,9 @@
   border-radius: 999px;
 }
 
-.cal-block-outcome.completed { color: #15803d; background: color-mix(in srgb, #22c55e 16%, transparent); }
+.cal-block-outcome.completed { color: var(--ok-text); background: color-mix(in srgb, var(--ok-fill) 16%, transparent); }
 .cal-block-outcome.ended { color: var(--text-muted); background: var(--accent-bg); }
-.cal-block-outcome.removed { color: #b45309; background: color-mix(in srgb, #f59e0b 16%, transparent); }
+.cal-block-outcome.removed { color: var(--warn-text); background: color-mix(in srgb, var(--warn-fill) 16%, transparent); }
 
 .cal-block-more {
   font-size: 0.68rem;
@@ -678,8 +678,8 @@
 }
 
 .cal-block-chip.warn {
-  color: #b45309;
-  background: color-mix(in srgb, #f59e0b 14%, transparent);
+  color: var(--warn-text);
+  background: color-mix(in srgb, var(--warn-fill) 14%, transparent);
 }
 
 /* ── 使用记录：轨道右侧的时刻点（加 / 完成 / 删，都没开计时器） ── */
@@ -718,9 +718,9 @@
   background: currentColor;
 }
 
-.cal-mark.complete   { color: #16a34a; border-color: color-mix(in srgb, #22c55e 40%, var(--border-card)); }
+.cal-mark.complete   { color: var(--ok-text); border-color: color-mix(in srgb, var(--ok-fill) 40%, var(--border-card)); }
 .cal-mark.add        { color: var(--accent-mid); border-color: var(--border-accent); }
-.cal-mark.delete     { color: #b45309; border-color: color-mix(in srgb, #f59e0b 40%, var(--border-card)); }
+.cal-mark.delete     { color: var(--warn-text); border-color: color-mix(in srgb, var(--warn-fill) 40%, var(--border-card)); }
 .cal-mark.uncomplete { color: var(--text-faint); }
 
 .cal-mark-time {
@@ -776,8 +776,8 @@
   color: var(--accent-mid);
 }
 
-.cal-count-chip.complete   { color: #15803d; background: color-mix(in srgb, #22c55e 14%, transparent); }
-.cal-count-chip.delete     { color: #b45309; background: color-mix(in srgb, #f59e0b 14%, transparent); }
+.cal-count-chip.complete   { color: var(--ok-text); background: color-mix(in srgb, var(--ok-fill) 14%, transparent); }
+.cal-count-chip.delete     { color: var(--warn-text); background: color-mix(in srgb, var(--warn-fill) 14%, transparent); }
 .cal-count-chip.uncomplete { color: var(--text-muted); background: var(--accent-bg-dim); }
 
 /* 月历格：有动作没专注的日子也留个小点 */
