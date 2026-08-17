@@ -42,6 +42,5 @@ paper_debug_excerpt.txt
 /*.jpg
 /*.jpeg
 
-# 迭代截图存档：图很大（近 100MB），只把索引 README 纳入版本管理
-docs/screenshots/**/*.png
-docs/screenshots/**/_shots.json
+# 迭代截图存档：论文用的历史版本截图，近 100MB，整个目录都不进版本库
+docs/screenshots/
