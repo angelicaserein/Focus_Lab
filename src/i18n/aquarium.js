@@ -16,6 +16,23 @@ export default {
     en: "Tap the surface to scatter food; tap deeper and a ripple spreads, nudging whoever it passes aside. Press and hold one to pick it up. Go slowly and they follow your finger; swipe fast and they scatter.",
     zh: "点水面撒点饵；点水里则荡开一圈水波，扫到谁就把谁轻轻推开。按住一只可以把它拎起来。手慢慢挪，它们会跟过来；划得快，就都散开了。",
   },
+  // 调试面板（仅开发环境）：删掉缸里的某一只。收集是无损的，故删除只存在于这里。
+  "aquarium.debug.btn": { en: "🛠️ Debug", zh: "🛠️ 调试" },
+  "aquarium.debug.open": { en: "Debug: remove residents", zh: "调试：删除住客" },
+  "aquarium.debug.aria": { en: "Debug: remove residents", zh: "调试：删除住客" },
+  "aquarium.debug.title": { en: "🛠️ Debug: remove residents", zh: "🛠️ 调试：删除住客" },
+  "aquarium.debug.note": {
+    en: "Deleting removes that one from the save for good — the tank, the dex and the growth board all follow. Dev only.",
+    zh: "删掉的是存档里那一条，删了就没了——缸里、图鉴、生长情况都跟着变。仅开发环境可见。",
+  },
+  "aquarium.debug.empty": { en: "Nobody lives here yet.", zh: "缸里还没有住客。" },
+  "aquarium.debug.remove": { en: "Delete", zh: "删除" },
+  "aquarium.debug.removeAria": { en: "Delete {name}", zh: "删除 {name}" },
+  "aquarium.debug.removeAll": { en: "Delete all", zh: "全部删除" },
+  "aquarium.debug.sealed": { en: "sealed in {v}", zh: "封在 {v}" },
+  "aquarium.debug.unknown": { en: "Unknown species ({id})", zh: "未知物种（{id}）" },
+  "aquarium.debug.close": { en: "Close", zh: "关闭" },
+
   "aquarium.dexTitle": { en: "Residents", zh: "已入住" },
   "aquarium.dexCount": { en: "{n} / {total} kinds", zh: "{n} / {total} 种" },
   "aquarium.unmet": { en: "Not yet met", zh: "尚未相遇" },
@@ -47,6 +64,8 @@ export default {
   "aquarium.sealedTitle": { en: "Sealed in flasks", zh: "封存的标本" },
   "aquarium.sealedCount": { en: "{n} sealed", zh: "封了 {n} 只" },
   "aquarium.sealedIn": { en: "in “{v}”", zh: "在「{v}」里" },
+  // 同一形状注满好几只时，报是第几只
+  "aquarium.sealedInNth": { en: "in “{v}” #{n}", zh: "在「{v}」第 {n} 只里" },
 
   "aquarium.rarity.1": { en: "Common", zh: "常见" },
   "aquarium.rarity.2": { en: "Rare", zh: "稀有" },

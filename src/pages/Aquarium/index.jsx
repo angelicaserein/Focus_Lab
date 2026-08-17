@@ -5,7 +5,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useReward } from "@/context/RewardContext";
 import useResidents from "@/hooks/aquarium/useResidents";
 import useFlaskShelf from "@/hooks/flask/useFlaskShelf";
-import { splitResidents } from "@/data/specimen";
+import useFlaskFills from "@/hooks/flask/useFlaskFills";
+import { flaskSlots, slotLabel, splitResidents } from "@/data/specimen";
 import {
   FISH_SPECIES,
   FISH_COST,
@@ -20,11 +21,16 @@ import {
   feedResident,
   newResident,
   normalizeCollection,
+  numberResidents,
   ownedSpecies,
 } from "@/data/aquarium/growth";
 import AquariumTank from "./AquariumTank";
+import AquariumDebugPanel from "./AquariumDebugPanel";
 import FishGlyph from "./FishGlyph";
 import "./Aquarium.css";
+
+// 调试面板（删鱼）只在开发环境存在：收集是无损的，正式构建里不该有「删掉一只」这条路
+const DEBUG_ENABLED = import.meta.env.DEV;
 
 // 生态缸：金币换鱼的收集页。花金币必出一件「还没入住」的新物种（无损、无重复挫败，
 // 沿用祈愿页的收集观）——弹一张收集卡揭晓是谁，收下后落进缸里，从此是常驻住客。
@@ -46,18 +52,33 @@ export default function AquariumPage() {
   // 存档兼容：老版本存的是纯 id 字符串数组，视作 born=0（早就住进来的，直接是成体）。
   // entries 是「每一只」，同一物种可以有多条，各自一条成长线。
   const { entries, setCollection } = useResidents();
-  // 被做成标本封进烧瓶的那些不在缸里游了（见 data/specimen）；瓶子被移出架子就自动回来，
-  // 故这里要拿架上真实存在的瓶子 id 去判定。
+  // 被做成标本封进烧瓶的那些不在缸里游了（见 data/specimen）；那只瓶子不在了就自动回来，
+  // 故这里要拿架上当下真实存在的槽位（＝每个形状注满了几只）去判定。水位走和烧瓶架页
+  // 同一个 hook——各算各的话（比如这边漏掉调试覆盖）就会两页打架：那边封得进去，
+  // 这边认为槽位不存在，于是刚封好的那只又回缸里游。
   const { items: flasks } = useFlaskShelf();
-  const flaskIds = useMemo(() => flasks.map((f) => f.id), [flasks]);
+  const { fills } = useFlaskFills();
+  const slots = useMemo(() => flaskSlots(flasks, fills), [flasks, fills]);
   const { sealed, swimming } = useMemo(
-    () => splitResidents(entries, flaskIds),
-    [entries, flaskIds],
+    () => splitResidents(entries, slots),
+    [entries, slots],
   );
 
   const tankRef = useRef(null);
   // 挂载那一刻的住客，交给 canvas 播种（只读一次，之后靠 drop 增量加入）。
   const initial = useRef(swimming).current;
+
+  // 缸里那批是播种 + drop 增量维护的，不跟着 swimming 走；故「不该在缸里了」得在这儿补一刀，
+  // 否则封进瓶子的那只要等下次重进页面才消失（这一刻它明明已经在烧瓶里了）。
+  // 只管减不管加：进缸永远是 drop（要走那段入水动画），从别处凭空出现的没有。
+  const shownRef = useRef(new Set(initial.map((e) => e.uid)));
+  useEffect(() => {
+    const alive = new Set(swimming.map((e) => e.uid));
+    shownRef.current.forEach((uid) => {
+      if (!alive.has(uid)) tankRef.current?.remove(uid);
+    });
+    shownRef.current = alive;
+  }, [swimming]);
 
   const [busy, setBusy] = useState(false);
   const [card, setCard] = useState(null); // 收集卡：{ id } | null
@@ -125,6 +146,22 @@ export default function AquariumPage() {
     settle(id);
   };
 
+  // 调试：删掉某一只。存档删一条，缸里那只随即消失——两边都得动，只删存档的话
+  // 页面不重挂就还在游（缸的住客是挂载时播种、之后靠 drop 增量维护的）。
+  const [debugOpen, setDebugOpen] = useState(false);
+  const sealedUids = useMemo(
+    () => new Set(Object.values(sealed).map((e) => e.uid)),
+    [sealed],
+  );
+  const removeResident = (uid) => {
+    setCollection((prev) => normalizeCollection(prev).filter((e) => e.uid !== uid));
+    tankRef.current?.remove(uid);
+  };
+  const removeAllResidents = () => {
+    entries.forEach((e) => tankRef.current?.remove(e.uid));
+    setCollection([]);
+  };
+
   const collect = () => {
     if (!card) return;
     const { id } = card;
@@ -151,11 +188,35 @@ export default function AquariumPage() {
             </span>
           </span>
         </h1>
-        <div className="aq-coins">
-          <Coins size={16} aria-hidden="true" />
-          <span className="aq-coins-val">{coins}</span>
+        <div className="aq-head-right">
+          {DEBUG_ENABLED && (
+            <button
+              type="button"
+              className="aq-debug-btn"
+              title={t("aquarium.debug.open")}
+              aria-label={t("aquarium.debug.open")}
+              onClick={() => setDebugOpen(true)}
+            >
+              {t("aquarium.debug.btn")}
+            </button>
+          )}
+          <div className="aq-coins">
+            <Coins size={16} aria-hidden="true" />
+            <span className="aq-coins-val">{coins}</span>
+          </div>
         </div>
       </header>
+
+      {DEBUG_ENABLED && debugOpen && (
+        <AquariumDebugPanel
+          entries={entries}
+          sealedUids={sealedUids}
+          flasks={flasks}
+          onRemove={removeResident}
+          onRemoveAll={removeAllResidents}
+          onClose={() => setDebugOpen(false)}
+        />
+      )}
 
       {/* 缸 + 买鱼按钮 */}
       <div className="aq-stage">
@@ -272,32 +333,26 @@ export default function AquariumPage() {
 // 还在长的排前面（快到下一阶段的最靠前），已长成的沉底只留一行素净的交代——
 // 每次打开最该看见的是「快好了」的那几只，而不是从头数一遍全员。
 function GrowthBoard({ entries, now, t }) {
-  const rows = useMemo(() => {
-    // 同一物种养了好几只时给个序号（小鱼 ②、③…），不然一列同名的行分不清谁是谁。
-    // 序号按入缸先后给，故先来的永远是 ①，不会因为排序换位置而改号。
-    const seen = new Map();
-    return entries
-      .slice()
-      .sort((a, b) => a.born - b.born)
-      .map((e) => {
-        const n = (seen.get(e.id) ?? 0) + 1;
-        seen.set(e.id, n);
-        return { ...e, nth: n, sp: speciesById(e.id), gr: growthOf(e.born, now) };
-      })
-      .filter((r) => r.sp)
-      .sort((a, b) => {
-        const da = a.gr.stage === STAGE.ADULT ? 1 : 0;
-        const db = b.gr.stage === STAGE.ADULT ? 1 : 0;
-        return da - db || a.gr.remain - b.gr.remain;
-      });
+  // 序号（②、③…）与「哪些物种不止一只」的口径见 numberResidents，与调试面板共用。
+  // 这里在其上再按「还在长的排前面、快到下一阶段的最靠前」排一次——
+  // 每次打开最该看见的是「快好了」的那几只，而不是从头数一遍全员。
+  const { rows, many } = useMemo(() => {
+    const { rows: numbered, many: dup } = numberResidents(entries);
+    return {
+      many: dup,
+      rows: numbered
+        .map((e) => ({ ...e, sp: speciesById(e.id), gr: growthOf(e.born, now) }))
+        .filter((r) => r.sp)
+        .sort((a, b) => {
+          const da = a.gr.stage === STAGE.ADULT ? 1 : 0;
+          const db = b.gr.stage === STAGE.ADULT ? 1 : 0;
+          return da - db || a.gr.remain - b.gr.remain;
+        }),
+    };
   }, [entries, now]);
 
   if (!rows.length) return null;
   const growing = rows.filter((r) => r.gr.stage !== STAGE.ADULT).length;
-  // 只有养了不止一只的物种才需要显示序号
-  const many = new Set(
-    rows.filter((r, _i, all) => all.filter((o) => o.id === r.id).length > 1).map((r) => r.id),
-  );
 
   return (
     <section className="aq-growth">
@@ -353,10 +408,6 @@ function GrowthBoard({ entries, now, t }) {
 function SpecimenBoard({ sealed, flasks, t }) {
   const rows = Object.entries(sealed);
   if (!rows.length) return null;
-  const nameOf = (id) => {
-    const f = flasks.find((it) => it.id === id);
-    return f?.name || t(`settings.prefs.flaskShape.${f?.preset}`);
-  };
   return (
     <section className="aq-growth">
       <div className="aq-dex-head">
@@ -364,7 +415,7 @@ function SpecimenBoard({ sealed, flasks, t }) {
         <span className="aq-dex-count">{t("aquarium.sealedCount", { n: rows.length })}</span>
       </div>
       <ul className="aq-grow-list">
-        {rows.map(([flaskId, e]) => (
+        {rows.map(([slot, e]) => (
           <li key={e.uid} className="aq-grow-row done">
             <span className="aq-grow-icon">
               <FishGlyph glyph={e.id} size={26} />
@@ -372,7 +423,7 @@ function SpecimenBoard({ sealed, flasks, t }) {
             <span className="aq-grow-name">{t(`aquarium.species.${e.id}.name`)}</span>
             <span className="aq-grow-meta">
               <Link className="aq-sealed-link" to="/flasks">
-                {t("aquarium.sealedIn", { v: nameOf(flaskId) })}
+                {slotLabel(slot, flasks, t)}
               </Link>
             </span>
           </li>

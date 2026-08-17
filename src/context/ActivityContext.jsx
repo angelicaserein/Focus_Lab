@@ -18,17 +18,32 @@ export function ActivityProvider({ children }) {
     return entry.id;
   }, [setActivities]);
 
+  // 同类动作一次记多条（批量删除、批量完成）。逐条 logActivity 会把整个日志
+  // 复制 + 裁剪 N 遍；这里合并成一次追加、一次裁剪。
+  const logActivities = useCallback((type, payloads) => {
+    if (!payloads?.length) return;
+    const entries = payloads.map((p) => makeActivity(type, p));
+    setActivities((prev) => pruneActivities([...prev, ...entries]));
+  }, [setActivities]);
+
   // 撤销删除时抹掉那条「删除」记录 —— 没发生过的事不该留在时间轴上
   const dropActivity = useCallback((id) => {
     if (!id) return;
     setActivities((prev) => prev.filter((a) => a.id !== id));
   }, [setActivities]);
 
+  // 撤回一批新建时用（如「倒脑子」撤回）：把这些任务的某类记录整批抹掉
+  const dropActivitiesForTasks = useCallback((taskIds, type) => {
+    const ids = new Set(taskIds ?? []);
+    if (!ids.size) return;
+    setActivities((prev) => prev.filter((a) => !(a.type === type && ids.has(a.taskId))));
+  }, [setActivities]);
+
   const clearActivities = useCallback(() => setActivities([]), [setActivities]);
 
   const value = useMemo(
-    () => ({ activities, logActivity, dropActivity, clearActivities }),
-    [activities, logActivity, dropActivity, clearActivities],
+    () => ({ activities, logActivity, logActivities, dropActivity, dropActivitiesForTasks, clearActivities }),
+    [activities, logActivity, logActivities, dropActivity, dropActivitiesForTasks, clearActivities],
   );
 
   return <ActivityContext.Provider value={value}>{children}</ActivityContext.Provider>;

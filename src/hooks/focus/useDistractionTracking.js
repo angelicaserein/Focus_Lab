@@ -36,7 +36,7 @@ export function reducer(state, action) {
   }
 }
 
-export default function useDistractionTracking({ getSession, focusedTodoIds, isRunning, togglePause }) {
+export default function useDistractionTracking({ getSession, focusedTodoIds, isRunning, isRunningNow, togglePause }) {
   const [distractions, setDistractions] = useLocalStorage(STORAGE_KEYS.DISTRACTIONS, []);
   const [phaseState, dispatch] = useReducer(reducer, initialPhaseState);
 
@@ -112,7 +112,7 @@ export default function useDistractionTracking({ getSession, focusedTodoIds, isR
   // 那时再读 getSession() 只会拿到 null，这条记录就无家可归了。
   const awaySessionRef = useRef(null);
   const liveRef = useRef({});
-  liveRef.current = { isRunning, getSession, focusedTodoIds, togglePause };
+  liveRef.current = { isRunningNow, getSession, focusedTodoIds, togglePause };
 
   useEffect(() => {
     if (!isDesktop) return undefined;
@@ -120,9 +120,11 @@ export default function useDistractionTracking({ getSession, focusedTodoIds, isR
       const live = liveRef.current;
       if (evt?.type === "enter") {
         awaySessionRef.current = live.getSession().sessionId;
-        if (live.isRunning) {
+        if (live.isRunningNow()) {
           autoPausedRef.current = true;
-          live.togglePause();
+          // 按主进程判定的那一刻暂停，不是消息到达的这一刻：机器睡着时这条消息
+          // 可能到第二天醒来才被处理，按到达时刻停就把一整夜算进专注了。
+          live.togglePause(evt.ts);
         }
         return;
       }
@@ -134,7 +136,12 @@ export default function useDistractionTracking({ getSession, focusedTodoIds, isR
         autoPausedRef.current = false;
         // 会话可能在切走期间就被结束了，那就没有可恢复的计时器——
         // 此时 togglePause 会凭空把一次已结束的会话又跑起来。
-        if (!live.isRunning && live.getSession().sessionId) live.togglePause();
+        //
+        // 「在不在跑」必须实时读（isRunningNow），不能读 isRunning 那个 state：
+        // 合上盖子的场景里 enter 与 leave 是醒来时一前一后连着送达的，中间来不及
+        // 重渲染一次，读 state 会读到「还在跑」，于是这一句被跳过——睡醒后计时器
+        // 停在那儿再也不动，正是要修的那个 bug。
+        if (!live.isRunningNow() && live.getSession().sessionId) live.togglePause();
         return;
       }
       if (evt?.type !== "segment") return;

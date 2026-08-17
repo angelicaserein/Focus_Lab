@@ -83,6 +83,24 @@ export function normalizeCollection(raw) {
     .filter(Boolean);
 }
 
+// 同一物种养了好几只时给个序号（小鱼 ②、③…），不然一列同名的行分不清谁是谁。
+// 序号按入缸先后给，故先来的永远是 ①，不会因为列表换排序而改号。
+// many＝养了不止一只的那些物种 id，只有它们需要显示序号。
+// 生长情况卡与调试面板共用这一份，两处的序号才是同一个口径。
+export function numberResidents(list) {
+  const seen = new Map();
+  const rows = normalizeCollection(list)
+    .slice()
+    .sort((a, b) => a.born - b.born)
+    .map((e) => {
+      const n = (seen.get(e.id) ?? 0) + 1;
+      seen.set(e.id, n);
+      return { ...e, nth: n };
+    });
+  const many = new Set([...seen].filter(([, n]) => n > 1).map(([id]) => id));
+  return { rows, many };
+}
+
 // 已入住的物种（去重）。图鉴与「是否收集满」看的是物种，不是只数。
 export const ownedSpecies = (list) =>
   new Set(normalizeCollection(list).map((e) => e.id));

@@ -11,6 +11,8 @@ import { getTodayStr } from "@/utils/time";
 const ADD = "ADD";
 const TOGGLE = "TOGGLE";
 const DELETE = "DELETE";
+const DELETE_MANY = "DELETE_MANY";
+const SET_DONE_MANY = "SET_DONE_MANY";
 const DELETE_BY_DB = "DELETE_BY_DB";
 const EDIT = "EDIT";
 const RESTORE = "RESTORE";
@@ -31,6 +33,17 @@ function reducer(state, action) {
     }
     case DELETE: {
       return state.filter((t) => t.id !== action.payload);
+    }
+    case DELETE_MANY: {
+      const ids = new Set(action.payload);
+      return state.filter((t) => !ids.has(t.id));
+    }
+    case SET_DONE_MANY: {
+      const { ids, done } = action.payload;
+      const set = new Set(ids);
+      return state.map((t) =>
+        set.has(t.id) && t.completed !== done ? { ...t, completed: done } : t,
+      );
     }
     case DELETE_BY_DB: {
       return state.filter((t) => (t.databaseId ?? "default") !== action.payload);
@@ -99,7 +112,7 @@ export function TodoProvider({ children }) {
   usePersistedWrite(STORAGE_KEYS.TODOS, todos);
 
   // 使用记录：任务的增 / 删 / 完成都记一笔时刻，时间轴才看得到没专注的那些事
-  const { logActivity, dropActivity } = useActivityLog();
+  const { logActivity, logActivities, dropActivity, dropActivitiesForTasks } = useActivityLog();
 
   // 保持 todosRef 指向最新 todos，供 visibilitychange 回调读取（避免 stale closure）
   const todosRef = useRef(todos);
@@ -189,6 +202,38 @@ export function TodoProvider({ children }) {
     onRestore: (_item, meta) => dropActivity(meta),
   });
 
+  /**
+   * 批量删除（表格视图全选后一次删掉、倒脑子撤回）。一次 dispatch 删完，
+   * 不走 useUndoDelete —— 那个只记得住最后一条。
+   * undoAdd:true 表示「当作没发生过」：不记删除，反而把这些任务的新增记录
+   * 一并抹掉，时间轴上不留痕。
+   */
+  const deleteTodos = (ids, { undoAdd = false } = {}) => {
+    const set = new Set(ids ?? []);
+    const hit = todos.filter((t) => set.has(t.id));
+    if (!hit.length) return 0;
+    dispatch({ type: DELETE_MANY, payload: [...set] });
+    if (undoAdd) {
+      dropActivitiesForTasks(hit.map((t) => t.id), "add");
+    } else {
+      logActivities("delete", hit.map((t) => ({ taskId: t.id, text: t.text })));
+    }
+    return hit.length;
+  };
+
+  /**
+   * 批量勾选 / 取消勾选（表格视图的批量条）。一次 dispatch + 一次记录写入，
+   * 而不是逐条 toggleTodo —— 那样每条都要重建一遍整个任务数组和整条时间轴。
+   */
+  const setTodosDone = (ids, done) => {
+    const set = new Set(ids ?? []);
+    const hit = todos.filter((t) => set.has(t.id) && t.completed !== done);
+    if (!hit.length) return 0;
+    dispatch({ type: SET_DONE_MANY, payload: { ids: [...set], done } });
+    logActivities(done ? "complete" : "uncomplete", hit.map((t) => ({ taskId: t.id, text: t.text })));
+    return hit.length;
+  };
+
   const value = {
     todos,
     addTodo,
@@ -198,6 +243,8 @@ export function TodoProvider({ children }) {
     updateTodoProps,
     setTodoAttr,
     deleteTodo,
+    deleteTodos,
+    setTodosDone,
     deleteTodosByDatabase,
     pendingDelete,
     undoDelete,

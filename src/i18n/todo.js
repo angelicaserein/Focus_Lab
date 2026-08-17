@@ -45,6 +45,8 @@ export default {
   },
   "brainDump.cancel": { en: "Cancel", zh: "取消" },
   "brainDump.submit": { en: "Sort it with AI", zh: "AI 整理成任务" },
+  "brainDump.undo": { en: "Undo", zh: "撤回" },
+  "brainDump.undone": { en: "Undone — those tasks are gone", zh: "已撤回，那批任务已移除" },
 
   // 任务库页头 + 双视图切换
   "tasks.title": { en: "Task library", zh: "任务库" },
@@ -81,6 +83,24 @@ export default {
   "tasks.newTask": { en: "+ New task", zh: "+ 新建任务" },
   "tasks.emptyNoTasks": { en: "No tasks yet — hit “+ New task” below to start", zh: "还没有任务，点击下方「+ 新建任务」开始吧" },
   "tasks.emptyNoMatch": { en: "No tasks match these filters", zh: "没有符合条件的任务" },
+
+  // 表格视图：勾选 + 批量操作
+  "tasks.selectAll": { en: "Select all tasks shown", zh: "全选当前任务" },
+  "tasks.selectRowAria": { en: "Select {text}", zh: "选中 {text}" },
+  "tasks.batch.aria": { en: "Bulk actions", zh: "批量操作" },
+  "tasks.batch.selected": { en: "{count} selected", zh: "已选 {count} 个" },
+  "tasks.batch.complete": { en: "Mark done", zh: "标记完成" },
+  "tasks.batch.uncomplete": { en: "Mark not done", zh: "标记未完成" },
+  "tasks.batch.delete": { en: "Delete", zh: "删除" },
+  "tasks.batch.clear": { en: "Clear selection", zh: "取消选择" },
+  "tasks.batch.confirmDelete": {
+    en: "Delete {count} tasks?",
+    zh: "删除这 {count} 个任务？",
+  },
+  "tasks.batch.confirmDeleteDetail": {
+    en: "They'll be removed from this database. This cannot be undone.",
+    zh: "它们会从这个库里移除，此操作不可撤销。",
+  },
 
   // 数据库（任务库分库）标签条
   "tasks.db.options": { en: "Database options", zh: "库选项" },

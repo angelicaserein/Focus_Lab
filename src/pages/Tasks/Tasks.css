@@ -128,8 +128,11 @@
   box-shadow: 0 0 0 3px var(--accent-bg);
 }
 
-/* 「已加入 N 条任务」自动消失提示 */
+/* 「已加入 N 条任务 · 撤回」自动消失提示 */
 .tasks-saved {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   position: fixed;
   left: 50%;
   bottom: 28px;
@@ -144,6 +147,20 @@
   box-shadow: 0 8px 24px var(--accent-glow);
   animation: tasks-saved-in 220ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
+.tasks-saved-undo {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--on-accent);
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  opacity: 0.9;
+}
+.tasks-saved-undo:hover { opacity: 1; }
+
 @keyframes tasks-saved-in {
   from { opacity: 0; transform: translate(-50%, 12px); }
   to   { opacity: 1; transform: translate(-50%, 0); }
@@ -531,6 +548,47 @@
   overflow: hidden;
 }
 
+/* ── 批量操作条：勾选了任务才出现，压在表格上方 ── */
+.tasks-batch-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1.5px solid var(--border-input);
+  background: var(--accent-bg);
+}
+.tbb-count {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-right: 2px;
+}
+.tbb-btn {
+  padding: 5px 12px;
+  border-radius: 99px;
+  border: 1.5px solid var(--border-input);
+  background: var(--card);
+  color: var(--text-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.tbb-btn:hover { border-color: var(--accent-border); color: var(--accent); }
+.tbb-btn.danger:hover { border-color: #ef4444; color: #ef4444; }
+.tbb-clear {
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+.tbb-clear:hover { color: var(--accent); }
+
 /* Horizontal scroll lives here so many columns scroll inside the card
    instead of overflowing it. Popups are portaled to <body>, so this
    container clipping its overflow no longer hides them. */
@@ -546,6 +604,8 @@
 }
 
 /* Column widths */
+.tasks-table .th-select,
+.tasks-table .td-select { width: 40px; text-align: center; }
 .tasks-table .th-check,
 .tasks-table .td-check { width: 44px; }
 .tasks-table .th-text,
@@ -556,26 +616,40 @@
 .tasks-table .th-del,
 .tasks-table .td-del { width: 40px; }
 
-/* ── Frozen left columns (checkbox + task name) ── */
+/* ── Frozen left columns (select + done checkbox + task name) ── */
+.tasks-table .th-select,
+.tasks-table .td-select {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
 .tasks-table .th-check,
 .tasks-table .td-check {
   position: sticky;
-  left: 0;
+  left: 40px;
   z-index: 2;
 }
 .tasks-table .th-text,
 .tasks-table .td-text {
   position: sticky;
-  left: 44px;
+  left: 84px;
   z-index: 2;
   border-right: 1.5px solid var(--border-input);
 }
 /* Frozen body cells need an opaque background to cover scrolled content */
+.tasks-table .td-select,
 .tasks-table .td-check,
 .tasks-table .td-text { background: var(--card); }
+.tasks-row:hover .td-select,
 .tasks-row:hover .td-check,
 .tasks-row:hover .td-text { background: var(--accent-hover); }
+/* Selected rows stay tinted, frozen cells included */
+.tasks-row.selected,
+.tasks-row.selected .td-select,
+.tasks-row.selected .td-check,
+.tasks-row.selected .td-text { background: var(--accent-bg); }
 /* Header frozen cells sit above body frozen cells */
+.tasks-table thead .th-select,
 .tasks-table thead .th-check,
 .tasks-table thead .th-text { z-index: 3; }
 

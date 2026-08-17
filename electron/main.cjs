@@ -12,7 +12,7 @@
 
 const {
   app, BrowserWindow, ipcMain, Tray, Menu, globalShortcut,
-  screen, protocol, net, nativeImage, shell,
+  screen, protocol, net, nativeImage, shell, powerMonitor,
 } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
@@ -650,6 +650,36 @@ function rememberApp(a) {
   sendToMain("desktop:apps-seen", [...recentApps.values()].sort((x, y) => y.seenAt - x.seenAt));
 }
 
+// ── 睡眠 ────────────────────────────────────────────────────────
+// 合上盖子的那一刻计时器不会自己停：秒数是拿时间戳差值算的（见 useFocusTimer），
+// 睡一夜第二天打开，这一整夜会原样算进这次专注。
+//
+// 借「切走别的软件」那条现成的通路把计时按下暂停，但不发 segment——
+// 睡觉不是分心，明细里不该留一条账。
+// enter 带上 ts 是关键：机器多半在渲染层处理完这条消息之前就已经睡死了，
+// 带上判定时刻，它醒来后会把暂停补记在「睡着的那一刻」（见 togglePause 的 at）。
+//
+// 锁屏（lock-screen）没有一并接进来：那是「人还在不在」的判断，
+// 跟这里「机器停了多久」不是一回事，要不要算暂停得先有个产品口径。
+let sleepPaused = false;
+
+function registerPowerHooks() {
+  powerMonitor.on("suspend", () => {
+    // 已经因为切走被暂停了就别再叠一层：那边有自己的 away 记账，
+    // 我们再发一次 enter/leave 会把它的恢复时机搞乱。
+    if (away || sleepPaused) return;
+    if (!lastState?.focus?.isRunning) return;
+    sleepPaused = true;
+    sendToMain("desktop:distraction", { type: "enter", ts: Date.now() });
+  });
+
+  powerMonitor.on("resume", () => {
+    if (!sleepPaused) return;
+    sleepPaused = false;
+    sendToMain("desktop:distraction", { type: "leave", ts: Date.now() });
+  });
+}
+
 // ── 托盘 ────────────────────────────────────────────────────────
 function trayIcon() {
   // 打包后 icon 在 dist/ 里（public/ 的内容会原样拷过去）；dev 时读 public/。
@@ -824,6 +854,7 @@ if (!app.requestSingleInstanceLock()) {
     createMainWindow();
     createPetWindow();
     createTray();
+    registerPowerHooks();
 
     // 全局快捷键：无论在哪个 app 里，一键把桌宠叫出来并展开到「记一条」。
     // 注册失败（被别的软件占了）不致命，静默跳过。

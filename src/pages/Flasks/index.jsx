@@ -4,12 +4,12 @@ import React, { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, FlaskConical, Trash2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { useFocus } from "@/context/FocusContext";
 import useFlaskShelf from "@/hooks/flask/useFlaskShelf";
+import useFlaskFills from "@/hooks/flask/useFlaskFills";
 import useResidents from "@/hooks/aquarium/useResidents";
 import useLocalStorage from "@/hooks/common/useLocalStorage";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
-import { flaskReady, sealable, splitResidents } from "@/data/specimen";
+import { flaskSlots, sealable, slotId, splitResidents } from "@/data/specimen";
 import FishGlyph from "@/pages/Aquarium/FishGlyph";
 import { FlaskGraphic } from "@/pages/Focus/FocusFlask";
 import {
@@ -17,17 +17,10 @@ import {
   FLASK_FULL_SECS,
   SHELF_SORTS,
   bottlesOf,
-  fillsOf,
   normalizeSort,
-  shelfStats,
   sortShelf,
 } from "./flaskShelf";
-import {
-  clearDebugFill,
-  mergeDebugFills,
-  normalizeDebugFills,
-  setDebugFill,
-} from "./flaskDebug";
+import { clearDebugFill, setDebugFill } from "./flaskDebug";
 import FlaskDebugPanel from "./FlaskDebugPanel";
 import "./Flasks.css";
 
@@ -46,7 +39,8 @@ import "./Flasks.css";
 // 注满进度不在这儿存档，是从专注记录（record.flaskId）现算的，见 flaskShelf.js。
 //
 // 注满一小时的瓶子还能干一件事：把生态缸里养成的一只封进去做成标本（见 data/specimen）。
-// 封存写在生态缸那条住客记录上，故这里只读不存——瓶子被移出架子，里面那只自动回缸里游。
+// 每只注满的瓶子各能封一只——下面那层里一张卡就是一只瓶子，各自一个槽位。
+// 封存写在生态缸那条住客记录上，故这里只读不存——瓶子不在了，里面那只自动回缸里游。
 
 // 秒数 → 「1 小时 20 分」。整点不带零头，不足一小时只说分钟。
 function dur(secs, t) {
@@ -75,24 +69,12 @@ const DEBUG_ENABLED = import.meta.env.DEV;
 
 export default function FlasksPage() {
   const { t } = useLanguage();
-  const { focusRecords } = useFocus();
   const { items, activeId, removeFlask, renameFlask, setActiveFlask } = useFlaskShelf();
 
-  // 每只瓶子的账：水量、注过几次、最近一次什么时候
-  const stats = useMemo(() => shelfStats(focusRecords), [focusRecords]);
-  const realFills = useMemo(() => fillsOf(stats), [stats]);
-
-  // 调试覆盖：只有开发环境读得到，正式构建里 fills 就是现算值本身
-  const [rawDebug, setRawDebug] = useLocalStorage(STORAGE_KEYS.FLASK_DEBUG_FILL, null);
-  const debugFills = useMemo(
-    () => (DEBUG_ENABLED ? normalizeDebugFills(rawDebug) : {}),
-    [rawDebug],
-  );
+  // 每只瓶子的账：水量（含调试覆盖）、注过几次、最近一次什么时候。
+  // 水位那份和生态缸页共用一个 hook——两页对「有几只满瓶」必须是同一个看法。
+  const { stats, fills, realFills, debugFills, setRawDebug } = useFlaskFills();
   const [debugOpen, setDebugOpen] = useState(false);
-  const fills = useMemo(
-    () => (DEBUG_ENABLED ? mergeDebugFills(realFills, debugFills) : realFills),
-    [realFills, debugFills],
-  );
 
   // 架子的排法。存的是「怎么看」而不是架子本身，所以单独一个 key，
   // 换排法不动 FLASK_SHELF 的存档顺序——切回「存入顺序」永远能回到原样。
@@ -108,38 +90,42 @@ export default function FlasksPage() {
   const [confirmId, setConfirmId] = useState(null);
 
   // —— 标本 ——
-  // 架上每只瓶子里封着谁（sealed），以及缸里有没有长成、可以被封的（ready）。
-  // ready 只用来决定「要不要露出封存的入口」；真正挑的那一刻由 SealPicker 重算一次，
-  // 故在这一页上开着不动、期间某只刚好长成，也不会挑到一只算漏的。
+  // 每只注满的瓶子是一个槽位，各能封一只（见 data/specimen）。
+  // sealed 按槽位归档；ready 只用来决定「要不要露出封存的入口」，
+  // 真正挑的那一刻由 SealPicker 重算一次，故在这一页上开着不动、
+  // 期间某只刚好长成，也不会挑到一只算漏的。
   const { entries, seal, unseal } = useResidents();
-  const flaskIds = useMemo(() => items.map((it) => it.id), [items]);
-  const sealed = useMemo(() => splitResidents(entries, flaskIds).sealed, [entries, flaskIds]);
-  const hasReady = useMemo(
-    () => sealable(entries, flaskIds).length > 0,
-    [entries, flaskIds],
-  );
-  // 正在为哪只瓶子挑标本（null＝没在挑）
+  const slots = useMemo(() => flaskSlots(items, fills), [items, fills]);
+  const sealed = useMemo(() => splitResidents(entries, slots).sealed, [entries, slots]);
+  const hasReady = useMemo(() => sealable(entries, slots).length > 0, [entries, slots]);
+  // 正在为哪只瓶子挑标本（null＝没在挑；否则是那只瓶子的槽位 id）
   const [sealFor, setSealFor] = useState(null);
 
   // 攒下的满瓶摊平成一张张卡：按上面那层的排法逐个形状展开。
-  // 封着的标本归各形状的第一只满瓶（和以前一样），故在这儿一并算好，
-  // 下面渲染时只管照着摆。
+  // 一张卡＝一个槽位，里面封着谁在这儿一并查好，下面渲染时只管照着摆。
   const filled = useMemo(() => {
     const list = [];
     for (const it of shown) {
       const { full } = bottlesOf(fills[it.id] ?? 0);
-      const specimen = sealed[it.id] ?? null;
       for (let i = 0; i < full; i += 1) {
+        const slot = slotId(it.id, i);
+        const specimen = sealed[slot] ?? null;
         list.push({
-          key: `${it.id}#${i}`,
+          slot,
           flask: it,
-          specimen: i === 0 ? specimen : null,
-          canSeal: i === 0 && !specimen && hasReady,
+          specimen,
+          canSeal: !specimen && hasReady,
         });
       }
     }
     return list;
   }, [shown, fills, sealed, hasReady]);
+
+  // 哪些形状眼下已经没有空着的满瓶了——上面那层据此说「再注多久能再封一只」。
+  const noFreeBottle = useMemo(() => {
+    const free = new Set(filled.filter((b) => !b.specimen).map((b) => b.flask.id));
+    return (id) => !free.has(id);
+  }, [filled]);
 
   // 架上一共几只瓶子：存下的形状数 + 各自攒下的满瓶数。
   // 满瓶各占一张卡，这个数就是两个板块里能数到的卡片数总和——报的和看见的对得上。
@@ -224,8 +210,6 @@ export default function FlasksPage() {
             <ul className="fk-grid">
               {shown.map((it) => {
                 const secs = fills[it.id] ?? 0;
-                const { full } = bottlesOf(secs);
-                const specimen = sealed[it.id] ?? null;
                 return (
                   <ShelfCard
                     key={it.id}
@@ -234,11 +218,9 @@ export default function FlasksPage() {
                     stat={stats[it.id]}
                     active={it.id === activeId}
                     confirming={confirmId === it.id}
-                    specimen={specimen}
-                    // 封着的那只画在下面那层的第一只满瓶里（标本本来就封在注满的瓶中）；
-                    // 一只满瓶都没有时（调试改水位等）才退回来画在正在接的这只上，免得凭空消失。
-                    glyph={full === 0}
-                    hasReady={hasReady}
+                    // 标本都封在满瓶里，故这张卡上一只都不画（见下面那层）；
+                    // 这儿只剩「再注多久能再封一只」这句话，且缸里真有长成的才说。
+                    sealLocked={hasReady && noFreeBottle(it.id)}
                     t={t}
                     onSelect={() => {
                       setConfirmId(null);
@@ -248,7 +230,6 @@ export default function FlasksPage() {
                     onAskRemove={() => setConfirmId(it.id)}
                     onCancelRemove={() => setConfirmId(null)}
                     onRemove={() => handleRemove(it.id)}
-                    onUnseal={() => unseal(specimen?.uid)}
                   />
                 );
               })}
@@ -274,14 +255,13 @@ export default function FlasksPage() {
               <ul className="fk-grid">
                 {filled.map((b) => (
                   <FullCard
-                    key={b.key}
+                    key={b.slot}
                     flask={b.flask}
                     specimen={b.specimen}
-                    // 封存的入口归第一只满瓶：标本本来就封在注满的那只里，
-                    // 按钮和它作用的那只瓶子摆在同一张卡上。
+                    // 每只满瓶都能封一只：按钮和它作用的那只瓶子摆在同一张卡上。
                     canSeal={b.canSeal}
                     t={t}
-                    onAskSeal={() => setSealFor(b.flask.id)}
+                    onAskSeal={() => setSealFor(b.slot)}
                     onUnseal={() => unseal(b.specimen?.uid)}
                   />
                 ))}
@@ -294,7 +274,7 @@ export default function FlasksPage() {
       {sealFor && (
         <SealPicker
           entries={entries}
-          flaskIds={flaskIds}
+          slots={slots}
           t={t}
           onPick={(uid) => {
             seal(uid, sealFor);
@@ -309,8 +289,8 @@ export default function FlasksPage() {
 
 // 挑一只做成标本。候选在打开这一刻现算（不是页面渲染时那份），
 // 故盯着这一页等某只长成、随手一点，挑得到的就是它。
-function SealPicker({ entries, flaskIds, t, onPick, onClose }) {
-  const list = useMemo(() => sealable(entries, flaskIds), [entries, flaskIds]);
+function SealPicker({ entries, slots, t, onPick, onClose }) {
+  const list = useMemo(() => sealable(entries, slots), [entries, slots]);
   return (
     <div className="fk-seal-veil" role="dialog" aria-modal="true" onClick={onClose}>
       <div className="fk-seal" onClick={(e) => e.stopPropagation()}>
@@ -399,22 +379,15 @@ function ShelfCard({
   stat,
   active,
   confirming,
-  specimen,
-  glyph,
-  hasReady,
+  sealLocked,
   t,
   onSelect,
   onRename,
   onAskRemove,
   onCancelRemove,
   onRemove,
-  onUnseal,
 }) {
   const { partial } = bottlesOf(secs);
-  // 够格封标本的是「注满的那只」，故封存的按钮在满瓶卡上（见 FullCard）。
-  // 这张卡上只剩「还差多久才能封」这句话——缸里真有长成的那一刻才说，
-  // 没养过鱼的人不该看见一条够不着的规则。
-  const sealLocked = !specimen && hasReady && !flaskReady(secs);
   const presetName = t(`settings.prefs.flaskShape.${flask.preset}`);
   const remain = FLASK_FULL_SECS - (secs % FLASK_FULL_SECS);
 
@@ -450,17 +423,6 @@ function ShelfCard({
             它是「想起来才查」的背景信息，摆在卡面上只会和进度抢眼睛。 */}
         <div className="fk-figure" title={history || undefined}>
           <FlaskGraphic progress={partial} params={flask.params} />
-          {/* 标本浮在瓶肚子里：略偏灰、微微一晃都没有——它是被封住的那一只，不是还在游的 */}
-          {specimen && glyph && (
-            <span
-              className="fk-specimen"
-              title={t("flasks.sealedOf", {
-                v: t(`aquarium.species.${specimen.id}.name`),
-              })}
-            >
-              <FishGlyph glyph={specimen.id} size={40} />
-            </span>
-          )}
         </div>
 
         <input
@@ -486,31 +448,12 @@ function ShelfCard({
         </p>
 
         {/* —— 标本 ——
-            差一点：一句话交代还差什么，不做成灰按钮——
-            灰按钮只说「不能点」，这句话说的是「还差多久」。
-            封着的那只画在满瓶卡上；只有一只满瓶都没有（调试改水位等）时才落到这张卡，
-            连带把「取出」的退路一起带过来，免得取不出来。 */}
-        {specimen && glyph ? (
-          <p className="fk-sealed">
-            <span className="fk-sealed-name">
-              {t("flasks.sealedOf", { v: t(`aquarium.species.${specimen.id}.name`) })}
-            </span>
-            <button
-              type="button"
-              className="fk-unseal"
-              onClick={(e) => {
-                e.stopPropagation();
-                onUnseal();
-              }}
-            >
-              {t("flasks.unseal")}
-            </button>
-          </p>
-        ) : sealLocked ? (
-          <p className="fk-seal-locked">
-            {t("flasks.sealLocked", { v: dur(FLASK_FULL_SECS - secs, t) })}
-          </p>
-        ) : null}
+            封着的那几只都画在满瓶卡上（见 FullCard）。这儿只剩一句话：
+            这个形状眼下没有空着的满瓶了，再注多久才又能封一只。
+            不做成灰按钮——灰按钮只说「不能点」，这句话说的是「还差多久」。 */}
+        {sealLocked && (
+          <p className="fk-seal-locked">{t("flasks.sealLocked", { v: dur(remain, t) })}</p>
+        )}
 
         {active ? (
           <span className="fk-badge">

@@ -3,8 +3,11 @@ import { ADULT_MS } from "@/data/aquarium/growth";
 import {
   SPECIMEN_MIN_SECS,
   flaskReady,
+  flaskSlots,
+  parseSlot,
   sealFish,
   sealable,
+  slotId,
   splitResidents,
   unsealFish,
 } from "@/data/specimen";
@@ -26,7 +29,8 @@ describe("flaskReady", () => {
 describe("sealFish", () => {
   it("长成的那只封进瓶子里", () => {
     const next = sealFish([adult("a")], "a", "F1", NOW);
-    expect(next[0].sealedIn).toBe("F1");
+    // 老写法（纯形状 id）进来也归一成槽位：没写第几只就是第 0 只
+    expect(next[0].sealedIn).toBe("F1#0");
     expect(next[0].sealedAt).toBe(NOW);
   });
 
@@ -50,7 +54,7 @@ describe("splitResidents", () => {
   it("封起来的不在缸里游，按瓶子归档", () => {
     const list = [adult("a", "fish", { sealedIn: "F1", sealedAt: NOW }), adult("b", "koi")];
     const { sealed, swimming } = splitResidents(list, ["F1"]);
-    expect(sealed.F1.uid).toBe("a");
+    expect(sealed["F1#0"].uid).toBe("a");
     expect(swimming.map((e) => e.uid)).toEqual(["b"]);
   });
 
@@ -67,7 +71,7 @@ describe("splitResidents", () => {
       adult("b", "koi", { sealedIn: "F1", sealedAt: NOW - 1000 }),
     ];
     const { sealed, swimming } = splitResidents(list, ["F1"]);
-    expect(sealed.F1.uid).toBe("b");
+    expect(sealed["F1#0"].uid).toBe("b");
     expect(swimming.map((e) => e.uid)).toEqual(["a"]);
   });
 });

@@ -80,7 +80,7 @@ export default function FocusPage() {
   usePruneDeletedFocus(todos, focusedTodoIds, removeFocusTodo);
 
   const { logEvent, resetEvents, getSnapshot } = useSessionEvents();
-  const { seconds, isRunning, start, togglePause, resetTimer, clearSession, getSession, jumpSeconds } =
+  const { seconds, isRunning, isRunningNow, start, togglePause, resetTimer, clearSession, getSession, jumpSeconds } =
     useFocusTimer();
   const { messages, sending, sendUserMessage } = useFocusChat();
   const [isImmersive, setIsImmersive] = useState(false);
@@ -110,7 +110,7 @@ export default function FocusPage() {
     skipDistractionTag,
     removeDistraction,
     flushProactiveDistraction,
-  } = useDistractionTracking({ getSession, focusedTodoIds, isRunning, togglePause });
+  } = useDistractionTracking({ getSession, focusedTodoIds, isRunning, isRunningNow, togglePause });
 
   // 分心存档后的撤回 toast：{ id, blank }。id 供撤回删除，blank 决定文案。
   const [distractionUndo, setDistractionUndo] = useState(null);

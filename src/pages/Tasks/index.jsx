@@ -21,10 +21,17 @@ import "./Tasks.css";
  * 两个视图看到的任务集合永远一致。
  */
 export default function Tasks() {
-  const { setTodoAttr } = useTodos();
+  const { setTodoAttr, deleteTodos } = useTodos();
   const { taskAttrs } = useTaskAttrs();
   const { t } = useLanguage();
-  const { toast: savedMsg, showToast } = useToast(3200);
+  // 倒脑子落库后的提示：AI 拆出来的东西未必都想要，给一段时间反悔。
+  // payload: { ids } 刚加入的一批 ｜ { undone: true } 已撤回
+  const { toast: added, showToast } = useToast(6000);
+
+  const undoBrainDump = () => {
+    deleteTodos(added?.ids, { undoAdd: true });
+    showToast({ undone: true });
+  };
 
   const {
     filtered, visibleAttrs, fields, query, undatedTodos, scenario, isDbEmpty, activeDatabaseId,
@@ -109,11 +116,24 @@ export default function Tasks() {
       {showBrainDump && (
         <BrainDumpAssistant
           onClose={() => setShowBrainDump(false)}
-          onAdded={(n) => showToast(t("tasks.addedToast", { count: n }))}
+          onAdded={(ids) => showToast({ ids })}
         />
       )}
 
-      {savedMsg && <div className="tasks-saved" role="status">{savedMsg}</div>}
+      {added && (
+        <div className="tasks-saved" role="status">
+          <span>
+            {added.undone
+              ? t("brainDump.undone")
+              : t("tasks.addedToast", { count: added.ids.length })}
+          </span>
+          {!added.undone && (
+            <button type="button" className="tasks-saved-undo" onClick={undoBrainDump}>
+              {t("brainDump.undo")}
+            </button>
+          )}
+        </div>
+      )}
 
       {showDueAssist && (
         <DueDateAssistant

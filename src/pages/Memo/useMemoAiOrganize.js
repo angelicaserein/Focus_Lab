@@ -32,12 +32,12 @@ export default function useMemoAiOrganize({ timeline, ai, activeDatabase, t }) {
   };
 
   const commit = (tasks) => {
-    const n = ai.commit(tasks);
+    const ids = ai.commit(tasks);
     clearSelection();
-    if (n > 0) {
+    if (ids.length > 0) {
       showToast(
         t("memo.savedToDatabase", {
-          count: n,
+          count: ids.length,
           name: activeDatabase?.name ?? t("memo.defaultDatabase"),
         }),
       );

@@ -20,7 +20,6 @@ export default function useTaskExtraction() {
   const [status, setStatus] = useState("idle"); // idle | loading | review | error
   const [candidates, setCandidates] = useState([]);
   const [error, setError] = useState(null);
-  const [addedCount, setAddedCount] = useState(0);
 
   const request = useCallback(
     async (text) => {
@@ -28,7 +27,6 @@ export default function useTaskExtraction() {
       if (!input || status === "loading") return;
       setStatus("loading");
       setError(null);
-      setAddedCount(0);
       try {
         const tasks = await extractTasksFromText(input, { database: activeDatabase, t });
         setCandidates(tasks);
@@ -42,9 +40,10 @@ export default function useTaskExtraction() {
   );
 
   // tasks: 用户在面板里勾选并可能改过标题/属性的 [{ text, attrs }]
+  // 返回这批新任务的 id —— 调用方拿它做「撤回」（见 deleteTodos）
   const commit = useCallback(
     (tasks) => {
-      let n = 0;
+      const ids = [];
       for (const task of tasks) {
         const text = (task.text ?? "").trim();
         if (!text) continue;
@@ -54,12 +53,11 @@ export default function useTaskExtraction() {
         for (const [attrId, value] of Object.entries(attrs)) {
           setTodoAttr(todo.id, attrId, value);
         }
-        n += 1;
+        ids.push(todo.id);
       }
-      setAddedCount(n);
       setStatus("idle");
       setCandidates([]);
-      return n;
+      return ids;
     },
     [addTodo, setTodoAttr, activeDatabase, activeDatabaseId],
   );
@@ -72,5 +70,5 @@ export default function useTaskExtraction() {
 
   const isOpen = status === "loading" || status === "review" || status === "error";
 
-  return { status, isOpen, candidates, error, addedCount, request, commit, close };
+  return { status, isOpen, candidates, error, request, commit, close };
 }

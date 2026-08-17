@@ -6,6 +6,16 @@ export function calcSeconds(accSecs, runStart, now = Date.now()) {
   return runStart == null ? accSecs : accSecs + Math.floor((now - runStart) / 1000);
 }
 
+// 暂停落在哪一刻（纯函数，便于单测）。
+// at 为空 / 不是有限数字时就是「现在」——togglePause 也有直接当事件回调用的地方，
+// 那里传进来的是事件对象，不能当时间戳使。
+// 有值时夹在 [本段起点, 现在] 之间：超出这个范围的只可能是坏值，
+// 放进去会让秒数倒退或凭空暴涨。
+export function clampPauseAt(at, runStart, now = Date.now()) {
+  if (!Number.isFinite(at)) return now;
+  return Math.min(Math.max(at, runStart), now);
+}
+
 // 封装一次专注会话的计时逻辑：累计秒数、运行/暂停、以及会话标识
 // （开始时间 + sessionId，供结算成历史记录用）。
 //
@@ -30,6 +40,11 @@ export default function useFocusTimer() {
     [],
   );
 
+  // 「此刻在不在跑」的实时读数。isRunning 那个 state 要等一次重渲染才更新，
+  // 在 IPC 回调里读到的可能还是上一拍的值（见 useDistractionTracking 的 enter/leave）；
+  // runStartRef 是 togglePause 当场就改的，故这里才是唯一不会错拍的真相。
+  const isRunningNow = useCallback(() => runStartRef.current != null, []);
+
   useEffect(() => {
     if (!isRunning) return undefined;
     // setInterval 仅作"刷新显示"驱动，实际秒数从时间戳差值算出
@@ -47,19 +62,29 @@ export default function useFocusTimer() {
     setIsRunning(true);
   }, []);
 
-  const togglePause = useCallback(() => {
-    setIsRunning((r) => {
-      if (r) {
-        // 暂停：把当前已跑的秒数存入 acc，清除运行起点
-        accSecsRef.current = readSeconds();
-        runStartRef.current = null;
-      } else {
-        // 恢复：记录新一段的起点
-        runStartRef.current = Date.now();
-      }
-      return !r;
-    });
-  }, [readSeconds]);
+  // at（可选）：把这次暂停补记在过去的某一刻，而不是「现在」。
+  // 给桌面版用：机器睡着 / 切去别的软件的那一下是主进程判定的，消息到达渲染层
+  // 可能已经晚了很多（合上盖子那条消息甚至要等到第二天醒来才被处理），
+  // 按到达时刻暂停就会把中间那一整段算进专注。带上判定时刻才是准的。
+  // 只认有限数字：togglePause 也有直接当事件回调用的地方，那里传进来的是事件对象。
+  const togglePause = useCallback((at) => {
+    // 用 runStartRef 而不是 isRunning state 判断当前状态：同一个 tick 里连着调用
+    // 也不会错拍，而且下面要 setSeconds，不适合塞在 setState 的更新函数里。
+    const runStart = runStartRef.current;
+    if (runStart != null) {
+      // 暂停：把当前已跑的秒数存入 acc，清除运行起点
+      accSecsRef.current = calcSeconds(accSecsRef.current, runStart, clampPauseAt(at, runStart));
+      runStartRef.current = null;
+      // 显示的秒数是 500ms 刷一次的，暂停这一下要立刻对齐到落定的值；
+      // 补记尤其需要——睡醒时那个数还停在睡前，不刷就一直挂着。
+      setSeconds(accSecsRef.current);
+      setIsRunning(false);
+    } else {
+      // 恢复：记录新一段的起点
+      runStartRef.current = Date.now();
+      setIsRunning(true);
+    }
+  }, []);
 
   // 重置计时（停留在同一次会话内，仅把秒数归零并暂停）。
   //
@@ -105,5 +130,5 @@ export default function useFocusTimer() {
     setSeconds(readSeconds());
   }, [readSeconds]);
 
-  return { seconds, isRunning, start, togglePause, resetTimer, clearSession, getSession, jumpSeconds };
+  return { seconds, isRunning, isRunningNow, start, togglePause, resetTimer, clearSession, getSession, jumpSeconds };
 }

@@ -4,6 +4,7 @@ import React, {
   useImperativeHandle,
   useRef,
 } from "react";
+import { createPortal } from "react-dom";
 import { speciesById } from "@/data/aquarium/aquariumData";
 import { shapeOf } from "@/data/aquarium/creatureShapes";
 import { creaturePalette } from "@/data/aquarium/creaturePalette";
@@ -43,6 +44,7 @@ import { STAGE, feedBorn, growthOf, normalizeCollection } from "@/data/aquarium/
 // ref API:
 //   drop(rec, onLand)         一颗卵（rec = {uid,id,born}）从上方落入缸中，
 //                             下潜稳住后成为常驻住客并回调 onLand()
+//   remove(uid)               把这一只从缸里抹掉（调试面板删除用；缸不碰存档，删档由父页做）
 
 // —— 画布几何全部由「当前显示尺寸」实时推导（单位＝CSS px）。
 //    以前是写死的 820×580 再靠 CSS 缩放，手机上缸被压得又扁又小、生物细如芝麻；
@@ -91,6 +93,8 @@ const sizeFactor = (sp) => (sp.rarity === 3 ? 1.15 : sp.rarity === 2 ? 1 : 0.9);
 //   点水面   → 撒下几粒饵，闻到的游过来吃掉（吃完那一下弹一下、吐个泡）
 //   点水里   → 那一点荡开一圈水波，波前扫过谁就把谁轻轻推开一点
 //   按住一只 → 拎起来跟着手走；松手按手速甩出去，举出水面松手它会掉回水里、溅一次水花
+//              缸是敞口的：从缸口提上来就能拎到页面任何地方（见 dragged / 手上那层画布），
+//              在缸外松手它自己蹦回缸里。整个过程点不到别的东西——指针被缸捕获着（见 onPointerDown）
 //   指针在水里 → 慢慢挪，好奇的跟过来；划得快，就是搅了水，四散躲开
 // 几者共用同一个手势（按下-移动-松开），分岔只看「按下时手底下有没有东西」「点得深不深」
 // 和「手有多快」——不需要工具栏、不需要模式切换，手上的力度和落点就是语义。
@@ -140,6 +144,9 @@ const AquariumTank = forwardRef(function AquariumTank(
   ref,
 ) {
   const canvasRef = useRef(null);
+  // 手上那层：一张铺满视口、完全穿透（pointer-events:none）的画布，专画「已经不在缸里的东西」——
+  // 被拎出去的那只、它滴的水、以及往回蹦的那条弧线。缸自己的画布画不到缸外，故另起一层。
+  const handRef = useRef(null);
   const reduceRef = useRef(false);
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
@@ -152,6 +159,7 @@ const AquariumTank = forwardRef(function AquariumTank(
     residents: [],
     fallers: [],
     drops: [],
+    odrops: [],    // 拎到缸外时滴的水：画在手上那层（满屏）画布，故不会被缸的边界切掉
     bubbles: [],
     food: [],
     ripples: [],   // 点在水里荡开的那几圈波（见 rippleAt）
@@ -308,9 +316,13 @@ const AquariumTank = forwardRef(function AquariumTank(
       s.ptr.gy = hit.y - p.y;
       s.ptr.x = p.x; s.ptr.y = p.y; s.ptr.on = true; s.ptr.idle = 0;
       hit.air = false;
+      hit.ret = null;   // 半路被接住：那条回缸的弧线就此作废，从手上重新算
       hit.chase = 0;
-      canvasRef.current.setPointerCapture?.(e.pointerId); // 拖出画布也不脱手
+      // 指针捕获：拖出画布不脱手，且这一串事件（含最后的 click）全部只发给缸——
+      // 所以拎着鱼从别的按钮上面划过去，按不到、也不会点到任何东西。
+      canvasRef.current.setPointerCapture?.(e.pointerId);
       canvasRef.current.classList.add("aq-dragging");
+      document.body.classList.add("aq-grabbing"); // 缸外那段也要是「攥着」的手势
       return;
     }
 
@@ -344,15 +356,16 @@ const AquariumTank = forwardRef(function AquariumTank(
     if (pausedRef.current) return;
     const s = w.current, q = g.current;
     const p = toLocal(e);
-    // 手里拎着一只时，划出缸外也要继续记位置（位置在 dragged 里夹回缸内）——
-    // 否则一拖到边上鱼就脱手停住了
-    if (!inTank(p, q) && !s.ptr.grab) { s.ptr.on = false; return; }
+    // 手里拎着一只时，划出缸外也要继续记位置——否则一拖到边上鱼就脱手停住了
+    const inside = inTank(p, q);
+    if (!inside && !s.ptr.grab) { s.ptr.on = false; return; }
     const d = Math.hypot(p.x - s.ptr.x, p.y - s.ptr.y);
     // 速度取「这一动的位移」，再和上一帧混一下：单帧抖动不至于被读成搅水
     s.ptr.v = s.ptr.on ? s.ptr.v * 0.6 + d * 0.4 : 0;
     s.ptr.x = p.x;
     s.ptr.y = p.y;
-    s.ptr.on = true;
+    // 手已经在缸外了就不再牵动缸里的住客：隔着页面把鱼吸过来说不通
+    s.ptr.on = inside;
     s.ptr.idle = 0;
   }
 
@@ -363,6 +376,7 @@ const AquariumTank = forwardRef(function AquariumTank(
     const s = w.current, q = g.current;
     const r = s.ptr.grab;
     canvasRef.current?.classList.remove("aq-dragging");
+    document.body.classList.remove("aq-grabbing");
     releaseCapture(e);
     if (!r) return;
     s.ptr.grab = null;
@@ -370,6 +384,27 @@ const AquariumTank = forwardRef(function AquariumTank(
     const sp = Math.hypot(r.vx, r.vy);
     if (sp > cap) { r.vx = (r.vx / sp) * cap; r.vy = (r.vy / sp) * cap; }
     r.chase = 70;
+    // 在缸外松手：给它一条回缸的弧线（见 returnHome）。落点在缸中段随机，
+    // 免得每次都从同一个点掉回去。减少动效时不演这段，直接放回水里。
+    if (!inTank(r, q)) {
+      const x1 = q.JX + q.JW * (0.3 + Math.random() * 0.4);
+      if (reduceRef.current) {
+        r.x = x1;
+        r.y = surfaceAt(x1, s, q) + 18 * q.S;
+        r.vx = 0; r.vy = 0;
+        return;
+      }
+      const dist = Math.hypot(x1 - r.x, q.RIM - r.y);
+      r.ret = {
+        x0: r.x, y0: r.y, x1, y1: q.RIM,
+        p: 0,
+        dur: Math.min(64, Math.max(26, dist / 13)),
+        arc: Math.min(140, 40 + dist * 0.18) * q.S,
+      };
+      r.vx = x1 > r.x ? 1 : -1; // 朝着去处的方向（绘制时的朝向看的就是 vx 的正负）
+      r.air = false;
+      return;
+    }
     if (r.y < surfaceAt(r.x, s, q)) {
       // 减少动效时不演这段自由落体，直接把它放回水里
       if (reduceRef.current) r.y = surfaceAt(r.x, s, q) + 26 * q.S;
@@ -428,11 +463,39 @@ const AquariumTank = forwardRef(function AquariumTank(
         onLand,
       });
     },
+    // 删掉某一只：住客、正在落下的那颗卵都算。留一串气泡当作「它不在了」的交代，
+    // 不然缸里会有一只凭空消失。手里正拎着的那只被删了要先脱手，否则帧循环还在拖一个幽灵。
+    remove(uid) {
+      const s = w.current, q = g.current;
+      if (!uid) return;
+      const gone = s.residents.find((r) => r.uid === uid);
+      if (gone) {
+        for (let i = 0; i < 8; i++) {
+          s.bubbles.push({
+            x: gone.x + (Math.random() - 0.5) * 16 * q.S,
+            y: gone.y - Math.random() * 6 * q.S,
+            vy: -(0.4 + Math.random() * 0.8) * q.S,
+            r: (0.7 + Math.random() * 1.6) * q.S,
+            life: 26 + Math.random() * 24,
+          });
+        }
+      }
+      if (s.ptr.grab?.uid === uid) s.ptr.grab = null;
+      s.residents = s.residents.filter((r) => r.uid !== uid);
+      // 还在半空/下潜的那颗：标记完成并放掉 onLand，免得父页的 busy 永远解不开
+      s.fallers.forEach((F) => {
+        if (F.uid !== uid || F.done) return;
+        F.done = true;
+        F.onLand?.();
+      });
+      s.fallers = s.fallers.filter((F) => !F.done);
+    },
   }));
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
+    const hctx = handRef.current?.getContext("2d") || null;
     // 从 canvas 自身读 CSS 变量：水色等派生 token 定义在页面根（.page-aquarium）上，
     // 自定义属性会继承下来，故从元素读能取到页面级 token，也自动跟随主题/皮肤切换。
     //
@@ -474,12 +537,22 @@ const AquariumTank = forwardRef(function AquariumTank(
     const onMq = (e) => (reduceRef.current = e.matches);
     mq.addEventListener?.("change", onMq);
 
+    // 缸在视口里的位置与像素比。「手上那层」每帧都要用它把自己对齐到缸上，
+    // 但这几个数只在布局 / 滚动 / 缩放时才变——每帧现读 getBoundingClientRect
+    // 等于每帧强制同步一次布局，偏偏拖拽那一下最吃帧。故量好存着，变了再更新。
+    const view = { left: 0, top: 0, vw: 0, vh: 0, dpr: 1 };
+
     // backing store 跟随显示尺寸 × devicePixelRatio：高清屏不糊，缩放窗口也不拉伸。
     function resize() {
       const rect = canvas.getBoundingClientRect();
       const q = geometry(rect.width, rect.height);
       g.current = q;
       const dpr = Math.min(2.5, window.devicePixelRatio || 1);
+      view.left = rect.left;
+      view.top = rect.top;
+      view.vw = window.innerWidth;
+      view.vh = window.innerHeight;
+      view.dpr = dpr;
       const bw = Math.round(q.W * dpr), bh = Math.round(q.H * dpr);
       if (canvas.width !== bw || canvas.height !== bh) {
         canvas.width = bw;
@@ -498,6 +571,8 @@ const AquariumTank = forwardRef(function AquariumTank(
 
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
+    // ResizeObserver 只管尺寸；滚动时缸的尺寸没变、位置变了，手上那层同样要跟着挪。
+    window.addEventListener("scroll", resize, { passive: true, capture: true });
 
     let raf = 0;
 
@@ -513,56 +588,104 @@ const AquariumTank = forwardRef(function AquariumTank(
 
     const surfaceY = (x) => surfaceAt(x, w.current, g.current);
 
+    // 水滴的一帧：缸里那些画在缸的画布上，缸外那些画在手上那层——同一套物理，
+    // 只有「落回水面算融进去」的判定差一点：缸外的还得真落在缸的横向范围内才算，
+    // 否则在半空中就凭空消失了。返回还活着的那些。
+    function stepDrops(list, c, q, needOverTank) {
+      c.fillStyle = pal.accent;
+      list.forEach((d) => {
+        d.vy += 0.45 * q.S; d.x += d.vx; d.y += d.vy; d.life--;
+        const overTank = !needOverTank || (d.x > q.JX && d.x < q.JX + q.JW);
+        if (d.vy > 0 && overTank && d.y >= surfaceY(d.x)) d.life = 0;
+        c.globalAlpha = Math.max(0, d.life / 40);
+        c.beginPath(); c.arc(d.x, d.y, d.r, 0, 7); c.fill();
+      });
+      c.globalAlpha = 1;
+      return list.filter((d) => d.life > 0);
+    }
+
     // 把 24×24 的部件画到缸里：scale 里的 /24 把造型坐标换算成「这只生物在缸中的像素大小」。
-    function drawCreature(id, glyph, x, y, rot, scale, flip) {
+    // 目标上下文由调用方给：缸里那些画进 ctx，被拎出去的那只画进手上那层 hctx（坐标系同一套）。
+    function drawCreature(cx, id, glyph, x, y, rot, scale, flip) {
       const c = tintOf(id);
       const k = scale / 24;
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(rot);
-      ctx.scale(flip ? -k : k, k);
-      ctx.translate(-12, -12);
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
+      cx.save();
+      cx.translate(x, y);
+      cx.rotate(rot);
+      cx.scale(flip ? -k : k, k);
+      cx.translate(-12, -12);
+      cx.lineCap = "round";
+      cx.lineJoin = "round";
       for (const p of compiled(glyph)) {
         const color = c[p.role] ?? c.body;
-        if (p.op != null) ctx.globalAlpha = p.op;
+        if (p.op != null) cx.globalAlpha = p.op;
         if (p.s) {
-          ctx.strokeStyle = color;
-          ctx.lineWidth = p.s;
-          ctx.stroke(p.path);
+          cx.strokeStyle = color;
+          cx.lineWidth = p.s;
+          cx.stroke(p.path);
         } else {
-          ctx.fillStyle = color;
-          ctx.fill(p.path);
+          cx.fillStyle = color;
+          cx.fill(p.path);
         }
-        if (p.op != null) ctx.globalAlpha = 1;
+        if (p.op != null) cx.globalAlpha = 1;
       }
-      ctx.restore();
+      cx.restore();
     }
 
     // 被拎在手里的那一只：跟手，但留一点滞后——像拎着一条会挣的鱼，而不是拖一个图标。
-    // 位置夹在缸内（拖出画布也不会跟丢），每帧的实际位移记进 vx/vy，松手时甩出去的就是它。
+    // 每帧的实际位移记进 vx/vy，松手时甩出去的就是它。
+    //
+    // 缸是敞口的：四面是玻璃，上面没有盖。还在缸里的那只被玻璃挡着（x 夹在两壁之间、
+    // 不越缸底）；一旦被提过缸口（y < JY），它就不再受任何约束，能拎到页面任何地方——
+    // 故「拿出来」是一个有出口的动作（从上面提），而不是随便一拖就穿墙漏出去。
+    // 约束只看它上一帧在哪，不看手在哪，所以进出缸口时位置是连续的，不会突然被吸回缸里。
     function dragged(r, q, s) {
       const m = 10 * q.S;
-      const tx = Math.min(q.JX + q.JW - m, Math.max(q.JX + m, s.ptr.x + s.ptr.gx));
-      const ty = Math.min(q.SW_B, Math.max(q.JY + 8 * q.S, s.ptr.y + s.ptr.gy));
+      let tx = s.ptr.x + s.ptr.gx;
+      let ty = s.ptr.y + s.ptr.gy;
+      if (inTank(r, q)) {
+        tx = Math.min(q.JX + q.JW - m, Math.max(q.JX + m, tx));
+        ty = Math.min(q.SW_B, ty);
+      }
       const nx = r.x + (tx - r.x) * 0.35;
       const ny = r.y + (ty - r.y) * 0.35;
       r.vx = nx - r.x;
       r.vy = ny - r.y;
       r.x = nx;
       r.y = ny;
-      // 被举出水面的那只往下滴水：这是「它离开水了」唯一看得见的证据
+      // 被举出水面的那只往下滴水：这是「它离开水了」唯一看得见的证据。
+      // 拎到缸外时水滴也得跟出去，故这几滴走手上那层画布（见 outside/hand）。
       if (!reduceRef.current && r.y < surfaceY(r.x) && Math.random() < 0.22) {
-        s.drops.push({
+        const drop = {
           x: r.x + (Math.random() - 0.5) * 10 * q.S,
           y: r.y + 4 * q.S,
           vx: (Math.random() - 0.5) * 0.5 * q.S,
           vy: 0.7 * q.S,
           r: (1 + Math.random() * 1.3) * q.S,
           life: 40,
-        });
+        };
+        (inTank(r, q) ? s.drops : s.odrops).push(drop);
       }
+    }
+
+    // 在缸外松手：它自己顺着一条弧线蹦回缸里，落水溅一朵花。
+    // 不管你把它放到页面哪个角落，结局都一样——「拎出去」是个可逆的动作，不会把谁弄丢，
+    // 也不会在缸外留下任何东西。（不做自由落体：从屏幕下半页松手的话，它会一路掉出视野。）
+    function returnHome(r, q, s) {
+      const k = r.ret;
+      k.p = Math.min(1, k.p + 1 / k.dur);
+      const e = k.p;
+      r.x = k.x0 + (k.x1 - k.x0) * e;
+      r.y = k.y0 + (k.y1 - k.y0) * e - k.arc * Math.sin(Math.PI * e);
+      if (k.p < 1) return;
+      r.ret = null;
+      const sy = surfaceY(r.x);
+      r.x = k.x1;
+      r.y = sy + 18 * q.S;
+      r.vx = 0;
+      r.vy = 0;
+      r.chase = 40; // 回来之后先自己冲一小段，再收敛回巡游：不是「啪」地归位
+      splashAt(r.x, sy, 0.8);
     }
 
     // 在水面之上松手之后：自由落体，落回水面时按当下速度溅一次水花，然后回到住客的活法。
@@ -711,13 +834,43 @@ const AquariumTank = forwardRef(function AquariumTank(
       }
     }
 
+    // —— 手上那层 ——
+    // 平时它是空的（一张全透明、不吃事件的画布），只有手里拎着东西、或者有谁正往回蹦时才画。
+    // 坐标系跟缸的画布完全一致：这一层按 canvas 在视口里的位置整体平移，故 r.x/r.y 不用换算，
+    // 一只生物从缸里被提到缸外，中间没有任何一次坐标跳变。
+    let handOn = false;
+    function openHand() {
+      const hc = handRef.current;
+      if (!hc || !hctx) return null;
+      const { left, top, vw, vh, dpr } = view;
+      const bw = Math.round(vw * dpr), bh = Math.round(vh * dpr);
+      if (hc.width !== bw || hc.height !== bh) { hc.width = bw; hc.height = bh; }
+      hctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      hctx.clearRect(0, 0, vw, vh);
+      hctx.translate(left, top);
+      handOn = true;
+      return hctx;
+    }
+    // 收手：只在「上一帧还画着东西」时清一次，平时这层完全不动（不占每帧开销）
+    function closeHand() {
+      if (!handOn) return;
+      hctx?.setTransform(1, 0, 0, 1, 0, 0);
+      hctx?.clearRect(0, 0, handRef.current?.width || 0, handRef.current?.height || 0);
+      handOn = false;
+    }
+
     function frame() {
       raf = requestAnimationFrame(frame);
       // 收集卡盖在缸上时整个画布停画：卡片上面还压着一层满屏 backdrop-filter 模糊，
       // 底下每帧重绘会逼合成器每帧重新模糊一次背景，正是弹卡那一下最贵的开销。
-      if (pausedRef.current) return;
+      if (pausedRef.current) { closeHand(); return; }
 
       const s = w.current, q = g.current;
+      // 这一帧有没有东西在缸外：拎着的那只、往回蹦的那些、还在滴的水
+      const hand =
+        s.ptr.grab || s.odrops.length || s.residents.some((r) => r.ret)
+          ? openHand()
+          : (closeHand(), null);
       s.t += reduceRef.current ? 0 : 0.016;
       s.splash = Math.max(0, s.splash - 0.013);
       ctx.clearRect(0, 0, q.W, q.H);
@@ -787,9 +940,10 @@ const AquariumTank = forwardRef(function AquariumTank(
           if (r.stage === STAGE.EGG) hatch(r); // 破膜那一下：冒一串气泡 + 弹一下
           r.stage = gr.stage;
         }
-        // 手里那只、掉回水里那只、和过自己日子的那只，三种走法互斥
+        // 手里那只、正蹦回缸的那只、掉回水里那只、和过自己日子的那只，四种走法互斥
         const held = r === s.ptr.grab;
         if (held) dragged(r, q, s);
+        else if (r.ret) returnHome(r, q, s);
         else if (r.air) fallBack(r, q, s);
         else if (!reduceRef.current) {
           // 先被水波推一把，再走这一帧：推力进的是 vx/vy，故 seek 收敛的就是被推之后的速度
@@ -798,8 +952,9 @@ const AquariumTank = forwardRef(function AquariumTank(
         }
         const egg = gr.stage === STAGE.EGG;
         // 离了水就扑腾得凶（频率高、幅度大），在水里被拎着只是别扭地扭两下
-        const outOfWater = (held || r.air) && r.y < surfaceY(r.x);
-        const rot = held || r.air
+        const airborne = held || r.air || !!r.ret;
+        const outOfWater = airborne && r.y < surfaceY(r.x);
+        const rot = airborne
           ? egg
             ? Math.sin(s.t * 2 + r.ph) * 0.2                      // 卵不会挣，只是被拎着晃
             : Math.sin(s.t * (outOfWater ? 24 : 11) + r.ph) * (outOfWater ? 0.4 : 0.16)
@@ -814,7 +969,10 @@ const AquariumTank = forwardRef(function AquariumTank(
         const size =
           26 * r.size * gr.scale * (1 + (r.pop || 0) * 0.3) * (held ? 1.12 : 1) * q.S;
         r.dsize = size; // 命中判定用的就是这个（见 grabAt）
+        // 拎着的和正蹦回来的走手上那层：缸的画布画不出缸外，画在这儿它才能跑到页面上去。
+        // 顺带也就不受水的裁剪，故举到缸口之上时不会被缸壁切掉半截。
         drawCreature(
+          (held || r.ret) && hand ? hand : ctx,
           r.id,
           egg ? "egg" : r.glyph,
           r.x,
@@ -846,7 +1004,7 @@ const AquariumTank = forwardRef(function AquariumTank(
             life: 26 + Math.random() * 24,
           });
         }
-        drawCreature(F.id, F.glyph, F.x, F.y, F.rot, F.size);
+        drawCreature(ctx, F.id, F.glyph, F.x, F.y, F.rot, F.size);
         // 速度掉干净、姿态也回正了，才把它交给住客系统（位置完全承接，不跳）
         if ((F.vy < 0.12 * q.S && Math.abs(F.rot) < 0.05) || F.age > 150) {
           F.done = true;
@@ -873,18 +1031,14 @@ const AquariumTank = forwardRef(function AquariumTank(
       }
       ctx.restore();
 
-      // 浪花
-      if (s.drops.length) {
-        ctx.fillStyle = pal.accent;
-        s.drops.forEach((d) => {
-          d.vy += 0.45 * q.S; d.x += d.vx; d.y += d.vy; d.life--;
-          // 落回水面就算融进去了——以前是穿过水面继续往下飞到寿命结束
-          if (d.vy > 0 && d.y >= surfaceY(d.x)) d.life = 0;
-          ctx.globalAlpha = Math.max(0, d.life / 40);
-          ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, 7); ctx.fill();
-        });
-        ctx.globalAlpha = 1;
-        s.drops = s.drops.filter((d) => d.life > 0);
+      // 浪花（落回水面就算融进去了——以前是穿过水面继续往下飞到寿命结束）
+      if (s.drops.length) s.drops = stepDrops(s.drops, ctx, q, false);
+
+      // 缸外滴的水：画在手上那层，故能一路滴到页面上；没落在缸口上的在半路淡掉，缸外不留痕迹。
+      if (s.odrops.length && hand) {
+        s.odrops = stepDrops(s.odrops, hand, q, true);
+      } else if (s.odrops.length) {
+        s.odrops = []; // 没有手上那层可画（理论上不会发生），也不能让它们越积越多
       }
 
       // 下落入水：p² 让它越掉越快（重力感），姿态从随手一扔的倾斜转到入水前的头朝下。
@@ -900,7 +1054,7 @@ const AquariumTank = forwardRef(function AquariumTank(
           const prevY = F.y;
           F.y = F.y0 + (sy - F.y0) * e * e;
           F.rot = F.r0 + (Math.PI / 2 - F.r0) * e;
-          drawCreature(F.id, F.glyph, F.x, F.y, F.rot, F.size);
+          drawCreature(ctx, F.id, F.glyph, F.x, F.y, F.rot, F.size);
           if (F.y >= sy) {
             const vy = Math.max(2.5 * q.S, F.y - prevY);
             F.phase = "dive";
@@ -922,24 +1076,34 @@ const AquariumTank = forwardRef(function AquariumTank(
 
     return () => {
       cancelAnimationFrame(raf);
+      document.body.classList.remove("aq-grabbing"); // 拎着东西时被卸载，别把手势留在 body 上
       ro.disconnect();
+      window.removeEventListener("scroll", resize, { capture: true });
       themeMo.disconnect();
       mq.removeEventListener?.("change", onMq);
     };
   }, []);
 
   // 事件挂在 canvas 上，处理函数只写 ref 里的画布世界——不触发任何一次 React 重渲染。
+  // 手上那层挂到 body 上（portal）：缸在卡片里，卡片有圆角和 overflow，留在原地会被裁掉；
+  // 它 pointer-events:none，故只是一层画，接不到任何事件、也挡不住任何按钮。
   return (
-    <canvas
-      ref={canvasRef}
-      className="aq-canvas"
-      aria-label={label}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerLeave={onPointerLeave}
-      onPointerCancel={onPointerCancel}
-    />
+    <>
+      <canvas
+        ref={canvasRef}
+        className="aq-canvas"
+        aria-label={label}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerLeave={onPointerLeave}
+        onPointerCancel={onPointerCancel}
+      />
+      {createPortal(
+        <canvas ref={handRef} className="aq-hand" aria-hidden="true" />,
+        document.body,
+      )}
+    </>
   );
 });
 

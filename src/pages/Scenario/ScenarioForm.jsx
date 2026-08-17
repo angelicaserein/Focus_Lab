@@ -1,16 +1,18 @@
 import React, { useState } from "react";
 import { useScenarios } from "@/context/ScenarioContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function ScenarioForm() {
   const { addScenario } = useScenarios();
+  const { t } = useLanguage();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
   const submit = (e) => {
     e.preventDefault();
-    const t = title.trim();
-    if (!t) return;
-    addScenario(t, description);
+    const name = title.trim();
+    if (!name) return;
+    addScenario(name, description);
     setTitle("");
     setDescription("");
   };
@@ -20,21 +22,21 @@ export default function ScenarioForm() {
       <div className="scenario-form-fields">
         <input
           className="scenario-input"
-          placeholder="情景名称，如「深度工作」"
+          placeholder={t("scenario.form.titlePlaceholder")}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          aria-label="新增情景名称"
+          aria-label={t("scenario.form.titleAria")}
         />
         <input
           className="scenario-input"
-          placeholder="描述（选填）"
+          placeholder={t("scenario.form.descPlaceholder")}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          aria-label="新增情景描述"
+          aria-label={t("scenario.form.descAria")}
         />
       </div>
-      <button type="submit" className="add-btn" aria-label="添加情景按钮">
-        添加
+      <button type="submit" className="add-btn" aria-label={t("scenario.form.addAria")}>
+        {t("scenario.form.add")}
       </button>
     </form>
   );

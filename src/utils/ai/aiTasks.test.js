@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseTasksJson, sanitizeTaskAttrs, buildSchemaHint } from "@/utils/ai/aiTasks";
+import { parseTasksJson, sanitizeTaskAttrs, buildSchemaHint, buildSystemPrompt, todayHint } from "@/utils/ai/aiTasks";
 import { TASK_ATTR_DEFAULTS } from "@/utils/task/taskAttrDefaults";
 
 // 一个含全部约定列的「经典」库
@@ -94,5 +94,20 @@ describe("buildSchemaHint", () => {
     expect(hint).toContain("priority");
     expect(hint).toContain('"urgent_important"');
     expect(hint).toContain("YYYY-MM-DD");
+  });
+});
+
+describe("todayHint", () => {
+  it("按本地时区给出日期与中文星期", () => {
+    // 2026-08-14 是星期五
+    expect(todayHint(new Date(2026, 7, 14, 9, 30))).toEqual({ date: "2026-08-14", weekday: "五" });
+  });
+});
+
+describe("buildSystemPrompt", () => {
+  it("把今天的日期写进 prompt，模型才能换算相对日期", () => {
+    const p = buildSystemPrompt("每个任务只需输出 text。", { date: "2026-08-14", weekday: "五" });
+    expect(p).toContain("今天是 2026-08-14（星期五）");
+    expect(p).toContain("每个任务只需输出 text。");
   });
 });

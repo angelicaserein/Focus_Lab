@@ -78,9 +78,10 @@ export default {
     zh: "缸里还没有长成的。",
   },
   "flasks.sealCancel": { en: "Not now", zh: "先不封" },
+  // 这个形状眼下没有空着的满瓶了：再注多久才又有一只能封
   "flasks.sealLocked": {
-    en: "{v} more to go before this one can hold a specimen",
-    zh: "再注 {v} 就能往这只里封标本",
+    en: "{v} more to fill another one that can hold a specimen",
+    zh: "再注 {v} 就又有一只能封标本",
   },
   "flasks.sealedOf": { en: "{v} sealed inside", zh: "里面封着 {v}" },
   "flasks.unseal": { en: "Back to the tank", zh: "放回缸里" },

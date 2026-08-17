@@ -21,9 +21,10 @@ export default function BrainDumpAssistant({ onClose, onAdded }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose, ai.isOpen]);
 
+  // 把新任务的 id 交回页面，那边才好给一个「撤回」的机会
   const handleCommit = (tasks) => {
-    const n = ai.commit(tasks);
-    if (n > 0) onAdded(n);
+    const ids = ai.commit(tasks);
+    if (ids.length > 0) onAdded(ids);
     onClose();
   };
 

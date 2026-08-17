@@ -11,8 +11,9 @@ export default function useResidents() {
   const entries = useMemo(() => normalizeCollection(raw), [raw]);
 
   // 封存/取出都走 data/specimen 里的纯函数：不合规矩时原样返回，故这里不必再校验一遍
+  // slot＝封进哪一只满瓶（形状 id + 第几只，见 data/specimen 的 slotId）
   const seal = useCallback(
-    (uid, flaskId) => setRaw((prev) => sealFish(prev, uid, flaskId)),
+    (uid, slot) => setRaw((prev) => sealFish(prev, uid, slot)),
     [setRaw],
   );
   const unseal = useCallback((uid) => setRaw((prev) => unsealFish(prev, uid)), [setRaw]);
