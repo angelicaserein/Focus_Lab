@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+<title>Focus Lab 功能点迭代表</title>
+<style>
+:root{
+  --paper:#EDF1EF; --surface:#F7FAF8; --surface-2:#E3E9E6;
+  --ink:#111A19; --ink-2:#3A4846; --muted:#667673; --hair:#C9D3D0;
+  --accent:#0F6F60; --accent-soft:#0F6F6018; --warm:#A85B14; --quiet:#7C8B96;
+  --shadow:0 1px 2px rgba(17,26,25,.06),0 8px 24px rgba(17,26,25,.05);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0B1211; --surface:#121B19; --surface-2:#182422;
+  --ink:#E6EEEB; --ink-2:#C0CDC9; --muted:#8B9C98; --hair:#25332F;
+  --accent:#4DC3AC; --accent-soft:#4DC3AC1F; --warm:#E0964A; --quiet:#7E909B;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+}}
+:root[data-theme="dark"]{
+  --paper:#0B1211; --surface:#121B19; --surface-2:#182422;
+  --ink:#E6EEEB; --ink-2:#C0CDC9; --muted:#8B9C98; --hair:#25332F;
+  --accent:#4DC3AC; --accent-soft:#4DC3AC1F; --warm:#E0964A; --quiet:#7E909B;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB","Noto Sans SC",-apple-system,system-ui,sans-serif;
+  font-size:16px; line-height:1.75; -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:ui-monospace,"SF Mono",Consolas,"DejaVu Sans Mono",monospace;font-variant-numeric:tabular-nums}
+.wrap{max-width:940px;margin:0 auto;padding:0 24px}
+
+header{border-bottom:1px solid var(--hair);padding:60px 0 26px;margin-bottom:30px}
+.eyebrow{font-family:ui-monospace,Consolas,monospace;font-size:12px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+h1{font-size:clamp(28px,4.2vw,42px);line-height:1.2;margin:0;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+.lede{max-width:62ch;color:var(--ink-2);margin:16px 0 0;font-size:16.5px}
+
+nav.index{
+  display:flex;flex-wrap:wrap;gap:7px;padding:18px 0 34px;border-bottom:1px solid var(--hair);margin-bottom:36px;
+}
+nav.index a{
+  font-size:13px;text-decoration:none;color:var(--ink-2);background:var(--surface);
+  border:1px solid var(--hair);border-radius:999px;padding:3px 12px;transition:.14s;
+}
+nav.index a:hover,nav.index a:focus-visible{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+nav.index a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.feat{margin:0 0 40px;scroll-margin-top:20px}
+.feat > h2{
+  margin:0;font-size:21px;font-weight:650;display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;
+  padding-bottom:9px;border-bottom:2px solid var(--ink);
+}
+.feat > h2 .path{
+  font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--muted);font-weight:400;
+  letter-spacing:.02em;
+}
+.feat > h2 .born{
+  font-size:11.5px;color:var(--accent);font-family:ui-monospace,Consolas,monospace;
+  border:1px solid var(--accent);border-radius:3px;padding:0 6px;font-weight:400;
+}
+.log{list-style:none;margin:0;padding:0}
+.log > li{
+  display:grid;grid-template-columns:58px 1fr;gap:16px;align-items:baseline;
+  padding:11px 0;border-bottom:1px solid var(--hair);
+}
+.log time{
+  font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+.log .pts{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+.log .pts li{font-size:15px;line-height:1.62;padding-left:15px;position:relative;color:var(--ink-2)}
+.log .pts li::before{
+  content:"";position:absolute;left:0;top:.68em;width:5px;height:5px;border-radius:50%;
+  background:var(--accent);opacity:.55;
+}
+.log .pts li.move::before{background:var(--warm);opacity:.8}
+.log .pts li.gone::before{background:var(--quiet);opacity:.8}
+b{color:var(--ink);font-weight:600}
+kbd{
+  font-family:inherit;font-size:.94em;background:var(--surface-2);border:1px solid var(--hair);
+  border-bottom-width:2px;border-radius:5px;padding:0 5px;color:var(--ink);white-space:nowrap;
+}
+.note{
+  background:var(--surface);border:1px solid var(--hair);border-left:3px solid var(--accent);
+  border-radius:8px;padding:14px 18px;margin:0 0 34px;font-size:14.5px;color:var(--ink-2);
+}
+.note b{display:block;margin-bottom:4px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:13px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:6px;height:6px;border-radius:50%;display:inline-block}
+.legend i.add{background:var(--accent);opacity:.55}
+.legend i.mv{background:var(--warm);opacity:.8}
+.legend i.rm{background:var(--quiet);opacity:.8}
+footer{border-top:1px solid var(--hair);padding:22px 0 60px;color:var(--muted);font-size:13px;margin-top:20px}
+@media (max-width:560px){
+  .log > li{grid-template-columns:1fr;gap:4px}
+  .log time{font-size:12px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Focus Lab · 界面层面的改动清单</p>
+  <h1>功能点迭代表</h1>
+  <p class="lede">上一份按提交讲，这一份按功能点讲：每条都是界面上真实发生的事——加了哪个按钮、多了哪个板块、什么被搬到了别的页、什么被删掉。日期取自该改动落地的提交，废弃页面不列。</p>
+  <div class="legend">
+    <span><i class="add"></i>新增</span>
+    <span><i class="mv"></i>搬动 / 改形态</span>
+    <span><i class="rm"></i>移除</span>
+  </div>
+</header>
+
+<nav class="index" aria-label="功能索引">
+  <a href="#focus">专注</a><a href="#tasks">任务库</a><a href="#calendar">日历 / 时间轴</a>
+  <a href="#memo">随记</a><a href="#analytics">分析</a><a href="#distraction">分心统计</a>
+  <a href="#flasks">烧瓶架</a><a href="#aquarium">生态缸</a><a href="#character">角色卡</a>
+  <a href="#wish">祈愿</a><a href="#world">世界地图</a><a href="#skilltree">技能树</a>
+  <a href="#industry">产业</a><a href="#reward">奖励</a><a href="#functiontree">功能树</a>
+  <a href="#gantt">甘特图</a><a href="#home">主页</a><a href="#settings">设置</a>
+  <a href="#scenario">情景</a><a href="#scenariostats">情景统计</a><a href="#ddl">截止日</a>
+  <a href="#research">研究记录</a><a href="#tutorial">新手引导</a>
+</nav>
+
+<div class="note">
+  <b>怎么核对</b>
+  想看某条背后的真实改动：<span class="mono">git log --date=short -p -- src/pages/&lt;页面&gt;</span>；文案类改动在 <span class="mono">src/i18n/&lt;命名空间&gt;.js</span> 里能查到对应的 key。
+</div>
+
+<!-- ============ 专注 ============ -->
+<section class="feat" id="focus">
+  <h2>专注 <span class="path">src/pages/Focus</span> <span class="born">06-12 出生</span></h2>
+  <ul class="log">
+    <li><time>06-12</time><ul class="pts">
+      <li>建<b>沉浸专注页</b>：任务选择 → 计时，<kbd>暂停</kbd><kbd>继续</kbd>两个按钮，「专注中 / 已暂停」状态字</li>
+      <li>当前任务卡，任务带「待处理 / ✓ 已完成」</li>
+      <li>烧瓶式<b>液体进度</b>条</li>
+    </ul></li>
+    <li><time>06-13</time><ul class="pts">
+      <li>加 <b>3D 场景</b>（PusheenScene）与「3D 开 / 关」开关</li>
+      <li>专注卡加<kbd>关闭卡片</kbd><kbd>打开卡片</kbd>，卡片可收起只留 3D</li>
+    </ul></li>
+    <li><time>06-14</time><ul class="pts">
+      <li>支持<b>多选任务</b>进一次专注；任务行加<kbd>标记完成</kbd><kbd>移出本次专注</kbd><kbd>移除</kbd></li>
+      <li>加 <b>AI 对话面板</b>：聊天记录列表、「和我说点什么…」输入框、空态「还没有对话」</li>
+      <li>加<b>任务选择器</b>弹层：新建任务输入（回车添加）、「从任务列表选择」、任务用尽的空态</li>
+      <li>任务行加<kbd>替换为其他任务</kbd></li>
+    </ul></li>
+    <li><time>06-16</time><ul class="pts">
+      <li>加<b>随记</b>：「✏ 随记」按钮 → 输入框（Enter 保存、Shift+Enter 换行），可连记多条</li>
+      <li>加<b>分心</b>：「⚡ 分心了」按钮 + 点后变「已记录 ✓」</li>
+      <li>加<b>随记 &amp; 分心记录</b>板块，按今天 / 昨天分组</li>
+      <li>加<b>结算卡</b>（SessionSummary）：本次时长、金币、分心次数、随记数</li>
+      <li>加<b>「今天做什么？」随机任务抽屉</b>，没任务时给「先去添加几个吧～」</li>
+      <li>AI 没连时挂「演示模式」徽标，输入框提示改成「（示例回复）」</li>
+    </ul></li>
+    <li><time>06-16</time><ul class="pts">
+      <li>加<b>分心弹窗</b>：五个原因（手机/屏幕、思绪游荡、外部打扰、去干别的、其他）+ 备注框</li>
+      <li>加<kbd>去分心一下</kbd>——主动暂停去处理别的事，进入「分心中」状态，记录标「· 主动暂停」</li>
+      <li>分心数旁加「与上次持平 / 更多 / 更少」的对比字</li>
+    </ul></li>
+    <li><time>06-21</time><ul class="pts">
+      <li>加<b>快捷条</b>：<kbd>+1分</kbd><kbd>+5分</kbd><kbd>+20分</kbd><kbd>满瓶</kbd>快速加时，<kbd>记分心</kbd><kbd>加随记</kbd>一键触发</li>
+      <li>加调试面板：卡片位置、拖拽偏移、窗口坐标、复制偏移量</li>
+    </ul></li>
+    <li><time>06-29</time><ul class="pts"><li>加<kbd>进入全屏</kbd> / <kbd>退出全屏</kbd></li></ul></li>
+    <li><time>07-02</time><ul class="pts">
+      <li>加<b>计时模式</b>三选：正计时 / 倒计时 / 注满烧瓶，各自带时长输入</li>
+      <li>加<b>情景推荐条</b>：按当前情景推任务，<kbd>✨ AI 精排</kbd>按钮 + 「加入本次专注」</li>
+    </ul></li>
+    <li><time>07-03</time><ul class="pts"><li>烧瓶形状参数化（圆瓶 / 三角瓶 / 烧杯），专注页的瓶子跟着设置走</li></ul></li>
+    <li><time>07-04</time><ul class="pts">
+      <li>加<b>优先级矩阵</b>：重要 × 紧急四象限 + 未分类托盘，卡片拖进象限</li>
+      <li class="gone">删掉旧结算卡 SessionSummary 与聊天记录组件</li>
+    </ul></li>
+    <li><time>07-05</time><ul class="pts">
+      <li class="move">结算卡换成<b>专注奖励卡</b>：本次时长、获得金币、经验、是否升级、连击是否保住，带「去看角色」「收下」</li>
+    </ul></li>
+    <li><time>07-09</time><ul class="pts">
+      <li>矩阵加<b>「分一下」引导</b>：两个问题（急吗 / 重要吗）→ 是 / 否，自动落进象限</li>
+      <li>专注卡加「展开专注卡片」，收起后可再展开</li>
+    </ul></li>
+    <li><time>07-15</time><ul class="pts">
+      <li>加<b>分心撤销 Toast</b>：记错了可以立刻撤回</li>
+      <li>时长输入换成独立的<b>时长选择器</b></li>
+    </ul></li>
+    <li><time>07-21</time><ul class="pts">
+      <li>矩阵卡片加<b>操作条</b>：完成 / 编辑 / 删除；<b>双击卡片直接进专注</b></li>
+      <li class="gone">结算卡去掉鼓励性语录，只留数字</li>
+    </ul></li>
+    <li><time>07-31</time><ul class="pts">
+      <li>加<b>启动仪式</b>：点开始后先播一段过渡——「深呼吸，准备好了吗」、这一程要做什么、情景，再<kbd>开始吧</kbd>或<kbd>跳过</kbd></li>
+    </ul></li>
+    <li><time>08-04</time><ul class="pts">
+      <li>矩阵加<kbd>倒脑子</kbd>入口、<kbd>加入专注</kbd>/<kbd>移出专注</kbd>，以及一段「这是一张优先级热力图」的说明</li>
+      <li>沉浸层加<kbd>重置</kbd><kbd>结束专注</kbd><kbd>+ 添加任务</kbd>；分心中状态加<kbd>我回来了</kbd></li>
+      <li>3D 加载失败时给「WebGL 不可用」的兜底提示，不再白屏</li>
+    </ul></li>
+    <li><time>08-09</time><ul class="pts"><li>专注时长开始<b>注进选中的烧瓶</b>，进度与烧瓶架联动</li></ul></li>
+    <li><time>08-17</time><ul class="pts"><li>暂停后按<b>真实时刻</b>补记，不再按恢复时刻算</li></ul></li>
+  </ul>
+</section>
+
+<!-- ============ 任务库 ============ -->
+<section class="feat" id="tasks">
+  <h2>任务库 <span class="path">src/pages/Tasks</span> <span class="born">06-21 出生</span></h2>
+  <ul class="log">
+    <li><time>06-21</time><ul class="pts">
+      <li>建<b>表格式任务库</b>：一行一任务，<kbd>+ 新建任务</kbd>行内输入（Enter 确认 / Esc 取消）</li>
+      <li>加<b>自定义属性</b>：文本 / 数字 / 日期 / 单选 / 多选五种单元格，表头可加属性、编辑属性、改选项颜色</li>
+      <li>加顶部工具栏：搜索框、状态筛选（全部 / 待办 / 已完成 / 重复任务）、排序（创建时间 / 截止日期 / 优先级 / 任务名）</li>
+      <li>两种空态：一个都没有 vs 筛完没有</li>
+    </ul></li>
+    <li><time>06-22</time><ul class="pts">
+      <li>加<b>多 database 标签页</b>：<kbd>+ 新建</kbd>开对话框（名称 + 模板）、重命名、删除此库（默认库不可删）</li>
+      <li>列头加操作菜单：<kbd>← 左移</kbd><kbd>右移 →</kbd><kbd>隐藏</kbd></li>
+    </ul></li>
+    <li><time>06-30</time><ul class="pts">
+      <li>日期单元格加<b>「设为截止日期」开关</b>——设了才联动主页截止图和提醒，点一下可取消</li>
+    </ul></li>
+    <li><time>07-02</time><ul class="pts">
+      <li>筛选、排序从下拉换成<b>多条件 Popover</b>：满足「且 / 或」、为空 / 包含 / 是其一 / 早于 / 晚于等运算符，可加多条、逐条删或删全部</li>
+      <li>排序支持多级，升序 ↑ / 降序 ↓</li>
+    </ul></li>
+    <li><time>07-15</time><ul class="pts">
+      <li>加<b>截止日助手</b>：一个「排截止日」面板，用<kbd>今天</kbd><kbd>明天</kbd><kbd>+3天</kbd><kbd>+1周</kbd>快速给任务派日期</li>
+    </ul></li>
+    <li><time>07-16</time><ul class="pts">
+      <li class="move"><b>倒脑子从随记页搬到这里</b>，并从整块页面改成弹窗：一股脑写 → AI 拆成任务 → 勾选加入</li>
+    </ul></li>
+    <li><time>08-04</time><ul class="pts">
+      <li>一页<b>两视图</b>，右上角切换：<kbd>心流</kbd>（一次一件、宽松卡片）/ <kbd>表格</kbd>（批量看改）</li>
+      <li>心流视图：hero 卡「现在就做这一件」+ <kbd>搞定</kbd><kbd>换一个</kbd><kbd>去专注</kbd>；任务分「今天 / 接下来 / 有空再做 / 已完成」四栏；顶部随手记输入；<kbd>一次只看一件</kbd>与<kbd>整理一下</kbd></li>
+      <li>删除任务后弹「已删除「X」」+ <kbd>撤销</kbd></li>
+    </ul></li>
+    <li><time>08-11</time><ul class="pts">
+      <li class="move">删库、删属性的 <span class="mono">window.confirm</span> 换成<b>自绘确认框</b>，带「此操作不可撤销」的后果说明</li>
+    </ul></li>
+    <li><time>08-17</time><ul class="pts">
+      <li>加<b>批量操作</b>：行首复选框 + 全选，选中后浮出操作条「已选 N 个」<kbd>标记完成</kbd><kbd>标记未完成</kbd><kbd>删除</kbd><kbd>取消选择</kbd></li>
+      <li>倒脑子加<kbd>撤回</kbd>——刚加进去的那批任务可整批移除</li>
+    </ul></li>
+  </ul>
+</section>
+
+<!-- ============ 日历 ============ -->
+<section class="feat" id="calendar">
+  <h2>日历 / 时间轴 <span class="path">src/pages/Calendar</span> <span class="born">07-04 出生</span></h2>
+  <ul class="log">
+    <li><time>07-04</time><ul class="pts">
+      <li>建<b>时间轴页</b>：月历格子（周一起排 42 格）+ 热度深浅，图例「少 → 多」</li>
+      <li>顶部三个统计：本月专注时长、专注次数、活跃天数；<kbd>上个月</kbd><kbd>下个月</kbd></li>
+      <li>点某天展开当日<b>专注时间轴</b>，空天给「这一天还没有专注记录」</li>
+    </ul></li>
+    <li><time>07-09</time><ul class="pts">
+      <li class="move">当日详情从「专注时间轴」改成<b>时刻轨道</b>：重叠的会话分到不同轨道列，当天带一条当前时刻线</li>
+      <li>加<kbd>今天</kbd>快速回到本日</li>
+    </ul></li>
+    <li><time>08-04</time><ul class="pts">
+      <li class="move">默认<b>只显示本周</b>一行，加<kbd>展开整月</kbd>/<kbd>收起</kbd>；周视图下加<kbd>上一周</kbd><kbd>下一周</kbd></li>
+      <li>轨道里并进<b>应用使用记录</b>：没专注只有使用记录的日子也排得出轨道</li>
+      <li>空态从「还没有专注记录」改成「还没有<b>任何</b>记录」</li>
+    </ul></li>
+    <li><time>08-11</time><ul class="pts">
+      <li class="move">与 /history 合并：一天的流水<b>共用同一份 DayLog 渲染</b>，两页从此长得一样</li>
+      <li class="gone">删掉换用 DayLog 后剩下的旧渲染代码</li>
+    </ul></li>
+  </ul>
+</section>
+
+<!-- ============ 随记 ============ -->
+<section class="feat" id="memo">
+  <h2>随记 <span class="path">src/pages/Memo</span> <span class="born">06-29 出生</span></h2>
+  <ul class="log">
+    <li><time>06-29</time><ul class="pts">
+      <li>建<b>备忘录页</b>：输入框（Enter 添加、Shift+Enter 换行）</li>
+      <li>加三档筛选：全部 / ⛯ 专注随记 / ✎ 手动——<b>专注时记的随记自动汇总到这里</b></li>
+      <li>两种空态分别引导：「去沉浸式专注里记录一条吧」「写下你的第一条想法」</li>
+    </ul></li>
+    <li><time>06-30</time><ul class="pts">
+      <li>加<b>「AI 整理成任务」弹窗</b>：粘一段乱糟糟的话 → AI 拆成任务列表 → 勾选、可改标题 → 加入任务库</li>
+      <li>失败 / 没识别出任务各有单独的提示文案</li>
+    </ul></li>
+    <li><time>07-04</time><ul class="pts">
+      <li>随记加<b>标签</b>：标签名回车确认、点标签筛选、可移除</li>
+    </ul></li>
+    <li><time>07-16</time><ul class="pts">
+      <li class="move"><b>倒脑子搬去任务页</b>，随记页只留记录本身</li>
+    </ul></li>
+  </ul>
+</section>
+
+<!-- ============ 分析 ============ -->
+<section class="feat" id="analytics">
+  <h2>分析 <span class="path">src/pages/Analytics</span> <span class="born">06-21 出生</span></h2>
+  <ul class="log">
+    <li><time>06-21</time><ul class="pts">
+      <li>建<b>数据分析页</b>，三节回答三个问题：<b>专注高峰时段</b>（0–23 时分布）、<b>每次专注多久</b>（时长分桶）、<b>哪些任务最难坚持</b></li>
+      <li>另有分心高峰时段一节，无数据时给空态</li>
+    </ul></li>
+    <li><time>08-04</time><ul class="pts"><li>加去<b>分心统计页</b>的入口</li></ul></li>
+    <li><time>08-11</time><ul class="pts">
+      <li class="move">把历史页顶部那 5 张等大统计卡<b>收拢成一张结论卡</b>：累计专注放大，今天 / 最长一次 / 平均每次做副指标，另配「近 7 天」小图</li>
+      <li class="move">两张任务表合并成一张</li>
+    </ul></li>
+  </ul>
+</section>
+
+<!-- ============ 分心统计 ============ -->
+<section class="feat" id="distraction">
+  <h2>分心统计 <span class="path">src/pages/Distraction</span> <span class="born">08-04 出生</span></h2>
+  <ul class="log">
+    <li><time>08-04</time><ul class="pts">
+      <li>建<b>分心统计页</b>：四张卡——分心总次数、每专注小时几次、平均每次专注几次、主动暂停几次</li>
+      <li>四个板块：近 7 天趋势、<b>分心高峰时段</b>（几点最易分心）、<b>分心原因排行</b>、按会话明细</li>
+      <li>空态告诉你怎么让它长出来：「专注时点一下分心按钮，这里就会长出统计」</li>
+    </ul></li>
+    <li><time>08-04</time><ul class="pts">
+      <li>加<b>「切去别的软件」</b>一类：明细里出现「用了 {某程序}」，来自前台程序探测</li>
+    </ul></li>
+    <li><time>08-11</time><ul class="pts"><li class="move">会话明细改用与日历同一份 DayLog 渲染</li></ul></li>
+  </ul>
+</section>
+
+<!-- ============ 烧瓶架 ============ -->
+<section class="feat" id="flasks">
+  <h2>烧瓶架 <span class="path">src/pages/Flasks</span> <span class="born">08-09 出生</span></h2>
+  <ul class="log">
+    <li><time>08-09</time><ul class="pts">
+      <li>建<b>烧瓶架页</b>：一小时专注注满一只瓶，溢出的流进下一只</li>
+      <li>每只瓶：起名输入、<kbd>选它来接水</kbd>、<kbd>移出架子</kbd>、「已注入 X」「N 只已注满」「还差 X」</li>
+      <li>空架子给一句到底怎么办：「先在设置页把烧瓶调成你想要的样子，点存进烧瓶架」+ <kbd>去调形状</kbd></li>
+      <li class="move">设置页的烧瓶形状编辑器加<kbd>存进烧瓶架</kbd>，从「只能有一只瓶」变成「可以存一架子」</li>
+    </ul></li>
+    <li><time>08-11</time><ul class="pts">
+      <li>移出架子加<b>确认框</b>：「把这只拿走？」+ 形状没有备份的提醒，<kbd>拿走</kbd>/<kbd>留着</kbd></li>
+      <li>加<b>水位调试面板</b>（仅开发环境）：手改任一只瓶的水位，改过的标「已覆盖」，可一键清掉</li>
+    </ul></li>
+    <li><time>08-11</time><ul class="pts">
+      <li>每只瓶加「{n} 次专注」和「最近 今天 / 昨天 / N 天前」</li>
+      <li>加<b>排法</b>切换：存入顺序 / 注得最多 / 最近用过 / 按名字</li>
+    </ul></li>
+    <li><time>08-11</time><ul class="pts">
+      <li>加<b>封标本</b>：<kbd>封一只标本</kbd>→ 弹窗挑一只长成的生物封进注满的瓶里；瓶上显示「里面封着 X」，可<kbd>放回缸里</kbd></li>
+      <li>没注满的瓶给「再注 X 就能往这只里封标本」</li>
+    </ul></li>
+    <li><time>08-11</time><ul class="pts">
+      <li class="move">整页<b>拆成两个板块</b>：「架上」（每个形状一只，挑一只接水）与「注满的」（每只都是一小时专注，就这么摆着），各带计数和一句说明</li>
+    </ul></li>
+    <li><time>08-17</time><ul class="pts"><li>封标本与生态缸<b>实时同步</b>，缸里那只立刻消失</li></ul></li>
+  </ul>
+</section>
+
+<!-- ============ 生态缸 ============ -->
+<section class="feat" id="aquarium">
+  <h2>生态缸 <span class="path">src/pages/Aquarium</span> <span class="born">07-21 出生</span></h2>
+  <ul class="log">
+    <li><time>07-21</time><ul class="pts">
+      <li>建<b>生态缸收集页</b>：<kbd>换一条鱼</kbd>花金币抽一只，金币不够显示「还差 N 金币」</li>
+      <li>加<b>图鉴</b>「已入住 N / 总数」，未遇见的显示「尚未相遇」；抽到新的先「新发现」再<kbd>收下它 ✓</kbd></li>
+      <li>首发 8 个物种（小鱼、贝、寄居蟹、水母、海星、珊瑚、海龟、海马），分常见 / 稀有 / 史诗</li>
+      <li>集齐后不封顶，改成「点下面任意一只，再请一位进缸」</li>
+    </ul></li>
+    <li><time>08-04</time><ul class="pts">
+      <li>物种扩到 20+（孔雀鱼、樱花虾、小丑鱼、蓝吊、河豚、锦鲤、章鱼、魟鱼、六角恐龙、小鲸…），每只配一句描述</li>
+      <li>生物从图标换成<b>手绘图形</b>，在缸里游动</li>
+    </ul></li>
+    <li><time>08-04</time><ul class="pts">
+      <li>加<b>养成三阶段</b>：卵 → 幼体 → 成体，卡上显示「还有 N 分钟 / N 小时」</li>
+      <li>加<b>生长情况</b>板块：「{总数} 只里还有 {n} 只在长」/「全都长成了」</li>
+      <li>抽到时说清楚：「放进缸里的是一颗卵，过一阵子才会长成这个样子」</li>
+    </ul></li>
+    <li><time>08-11</time><ul class="pts">
+      <li>加<b>缸内互动</b>：点水面撒饵、点水里荡开水波推开它们、按住可以拎起一只</li>
+      <li>写明喂食有用——「吃到一粒饵，那一只就往前赶两分钟。卵不吃东西」</li>
+      <li>加<b>「封存的标本」</b>板块：「封了 N 只」「在「某只瓶」里」</li>
+    </ul></li>
+    <li><time>08-17</time><ul class="pts">
+      <li>加<b>删除住客调试面板</b>（仅开发）：删一条存档，缸里 / 图鉴 / 生长情况同步变</li>
+      <li>标本位置精确到第几只瓶：「在「X」第 N 只里」</li>
+    </ul></li>
+  </ul>
+</section>
+
+<!-- ============ 角色卡 ============ -->
+<section class="feat" id="character">
+  <h2>角色卡 <span class="path">src/pages/Character</span> <span class="born">07-04 出生</span></h2>
+  <ul class="log">
+    <li><time>07-04</time><ul class="pts">
+      <li>建<b>角色页</b>：等级 + 经验条 + 到下一级还差多少、金币、连击天数、专注次数</li>
+      <li>做了<b>两套皮</b>可切换：现代卡片 / 像素风</li>
+      <li class="move">侧边栏加<b>常驻角色条</b>：金币、语言切换、主题循环</li>
+    </ul></li>
+    <li><time>07-04</time><ul class="pts">
+      <li>加<b>人生属性</b>五项：智识 / 毅力 / 专注 / 执行 / 探索，标明各自从哪些行为涨</li>
+      <li>加<b>成就</b>板块，首批 9 个（第一次专注、一小时俱乐部、马拉松、连续一周、零分心、探索者、收尾者、富有、五级）</li>
+    </ul></li>
+    <li><time>07-05</time><ul class="pts">
+      <li>加<b>成长阶段</b>（5 段）与<b>势头</b>标签（停滞 / 起步 / 有节奏 / 火热）</li>
+      <li>成就加进度提示（刚开始 / 过半 / 就快了）</li>
+    </ul></li>
+    <li><time>07-06</time><ul class="pts">
+      <li>加 <b>AI 旁白卡</b>（GameMaster）：<kbd>再说一句</kbd>刷新，没 key 时走本地词库并标明</li>
+      <li>加<b>常驻伙伴</b>台词：闲置 / 专注中 / 鼓励 / 犯困四组</li>
+    </ul></li>
+    <li><time>07-15</time><ul class="pts"><li class="gone">删掉像素皮，只留一套</li></ul></li>
+  </ul>
+</section>
+
+<!-- ============ 祈愿 ============ -->
+<section class="feat" id="wish">
+  <h2>祈愿 <span class="path">src/pages/Wish</span> <span class="born">07-06 出生</span></h2>
+  <ul class="log">
+    <li><time>07-06</time><ul class="pts">
+      <li>建<b>祈愿页</b>：花金币祈愿，抽出外观或世界碎片，带揭晓动画</li>
+      <li>两本图鉴：外观 / 传说；抽到可<kbd>立刻穿上</kbd>或<kbd>先收着</kbd></li>
+      <li><b>无损设计</b>：重复的自动转成星尘，「永远不会白费」；全收集后给一句收尾话</li>
+    </ul></li>
+    <li><time>08-04</time><ul class="pts">
+      <li class="move">文案去角色化：具名伙伴换成<b>无名的一盏灯</b>（「这盏灯诞生自你第一分钟专注。它从不评判」）</li>
+    </ul></li>
+  </ul>
+</section>
+
+<!-- ============ 世界 ============ -->
+<section class="feat" id="world">
+  <h2>世界地图 <span class="path">src/pages/World</span> <span class="born">07-06 出生</span></h2>
+  <ul class="log">
+    <li><time>07-06</time><ul class="pts">
+      <li>建<b>世界地图页</b>：地点分家园 / 旷野，每处有四个阶段——未发现 → 抵达 → 熟悉 → 故乡</li>
+      <li>底部提示还有多少没找到，全空时给一句引导</li>
+    </ul></li>
+  </ul>
+</section>
+
+<!-- ============ 技能树 ============ -->
+<section class="feat" id="skilltree">
+  <h2>技能树 <span class="path">src/pages/SkillTree</span> <span class="born">07-06 出生</span></h2>
+  <ul class="log">
+    <li><time>07-06</time><ul class="pts">
+      <li>建<b>技能树页</b>，两种视图切换：<b>星座图</b> / <b>树状图</b></li>
+      <li>三条分支（专注 / 执行 / 探索）各 4 个节点，节点状态分已解锁 / 可解锁 / 点数不够 / 前置未满足</li>
+      <li>天赋点来自等级与人生属性，<kbd>重置</kbd>全额退还</li>
+    </ul></li>
+    <li><time>07-16</time><ul class="pts">
+      <li>加<b>光环</b>板块：只能靠天赋点解锁的皮肤——「买不到也抽不到」，点一枚即佩戴、全 app 生效</li>
+    </ul></li>
+    <li><time>08-04</time><ul class="pts"><li class="move">「灯灵光环」改名「暖光光环」，配合角色去具名化</li></ul></li>
+  </ul>
+</section>
+
+<!-- ============ 产业 ============ -->
+<section class="feat" id="industry">
+  <h2>产业 <span class="path">src/pages/Industry</span> <span class="born">07-06 出生</span></h2>
+  <ul class="log">
+    <li><time>07-06</time><ul class="pts">
+      <li>建<b>产业页</b>：专注累积推动产线升级，六级（前哨 → 工地 → 产线 → 工厂 → 联合体 → 枢纽）</li>
+      <li>五条产线（开采 / 精炼 / 装配 / 供能 / 物流），显示今日产出、日均、在线 / 停摆</li>
+      <li>加 AI 工头播报，可<kbd>刷新</kbd></li>
+    </ul></li>
+  </ul>
+</section>
+
+<!-- ============ 奖励 ============ -->
+<section class="feat" id="reward">
+  <h2>奖励 <span class="path">src/pages/Reward</span> <span class="born">06-14 出生</span></h2>
+  <ul class="log">
+    <li><time>06-14</time><ul class="pts">
+      <li>建<b>奖励页</b>：我的资产 + 金币余额（1 秒专注 = 1 枚），商城卡片带<kbd>兑换</kbd>、「已拥有 ✓」、「金币不足」</li>
+    </ul></li>
+    <li><time>06-29</time><ul class="pts">
+      <li>加<b>自定义商品</b>：自己写名称、花费、描述，可编辑删除，和内置商城分成两栏</li>
+    </ul></li>
+    <li><time>07-03</time><ul class="pts">
+      <li>加<b>金币调试面板</b>（仅开发）：直接改金币数量</li>
+      <li>页头加一句定位：「用金币解锁皮肤与犒劳自己的小奖励」</li>
+    </ul></li>
+  </ul>
+</section>
+
+<!-- ============ 功能树 ============ -->
+<section class="feat" id="functiontree">
+  <h2>功能树 <span class="path">src/pages/FunctionTree</span> <span class="born">07-07 出生</span></h2>
+  <ul class="log">
+    <li><time>07-07</time><ul class="pts">
+      <li>建<b>功能树页</b>：每个节点是一个页面开关，关掉就从侧边栏消失、也打不开，随时可再点开</li>
+      <li>加<kbd>全部开启</kbd>与「已开启 N / 总数」；主页、设置、功能树自身设为核心，永不可关</li>
+    </ul></li>
+    <li><time>07-16 → 08-09</time><ul class="pts">
+      <li>每上线一个新页就往树上挂一个节点：心流任务（07-16）、生态缸（07-21）、分心统计（08-04）、烧瓶架（08-09）</li>
+    </ul></li>
+    <li><time>08-11</time><ul class="pts">
+      <li class="move">从一层叶子改成<b>两层分组</b>：情境配置 / 情境统计 / 侧栏选择器收进「情境功能」一组，不再是三个散落的顶层开关</li>
+      <li class="move">废弃页面的开关从功能树<b>移到「废弃页面」那一页</b>，不再两处重复</li>
+      <li>页头加一段说明，讲清楚「不会删除任何数据，你只是在决定屏幕上留多少东西」</li>
+    </ul></li>
+  </ul>
+</section>
+
+<!-- ============ 甘特图 ============ -->
+<section class="feat" id="gantt">
+  <h2>甘特图 <span class="path">src/pages/Gantt</span> <span class="born">07-05 出生</span></h2>
+  <ul class="log">
+    <li><time>07-05</time><ul class="pts">
+      <li>建<b>甘特图页</b>：按周铺开的时间轴，条形任务，顶部统计周数 / 任务数 / 轨道数</li>
+    </ul></li>
+    <li><time>07-09</time><ul class="pts">
+      <li>加<b>编辑模式</b>与<b>任务弹窗</b>：标题、轨道、标签、起止周、删除</li>
+    </ul></li>
+    <li><time>07-09</time><ul class="pts">
+      <li>加<b>多项目</b>：项目切换 + 项目设置弹窗（名称、刻度日/周/月、起止日期、轨道增删与上下移）</li>
+      <li>任务起止从「第几周」改成<b>具体日期</b></li>
+    </ul></li>
+    <li><time>08-11</time><ul class="pts">
+      <li class="move">删图确认换成自绘框：「删除这张图？图内的全部任务会一并删除，此操作不可撤销。」</li>
+    </ul></li>
+  </ul>
+</section>
+
+<!-- ============ 主页 ============ -->
+<section class="feat" id="home">
+  <h2>主页 <span class="path">src/pages/Home</span> <span class="born">06-12 出生</span></h2>
+  <ul class="log">
+    <li><time>06-16</time><ul class="pts">
+      <li>加<b>三张概览卡</b>：今日专注、待办任务、金币余额，配一句随状态变的问候（「今天还没开始，试试 5 分钟？」）</li>
+      <li>加<b>专注热力图</b>，带「少 → 多」图例与空态引导</li>
+    </ul></li>
+    <li><time>06-30</time><ul class="pts">
+      <li>加<b>截止日地平线</b>：一条从「现在」到「远期」的轴，把带截止日的任务钉在轴上，越近越靠前；没有时给「前方一片开阔 🌿」</li>
+    </ul></li>
+    <li><time>07-06</time><ul class="pts">
+      <li>加<b>今日委托</b>：露面 / 清理 / 探索 / 结算 / 收集五类小目标，达成自动打勾</li>
+    </ul></li>
+    <li><time>07-16</time><ul class="pts"><li class="gone">删掉无引用的今日委托旧组件文件</li></ul></li>
+    <li><time>08-04</time><ul class="pts">
+      <li>委托加一句免压力说明：「一些点子，不是任务——做哪个、跳哪个都行」</li>
+    </ul></li>
+  </ul>
+</section>
+
+<!-- ============ 设置 ============ -->
+<section class="feat" id="settings">
+  <h2>设置 <span class="path">src/pages/Settings</span> <span class="born">06-16 出生</span></h2>
+  <ul class="log">
+    <li><time>06-16</time><ul class="pts">
+      <li>建<b>设置页</b>：外观主题（默认 / 原始紫色调）、<b>数据管理</b>（各类数据条数与存储用量、导出、导入）、<b>危险操作</b>（清除专注记录 / 聊天记录，二次确认）</li>
+      <li>加<b>专注偏好</b>：番茄时长、3D 动画开关、每日固定任务</li>
+    </ul></li>
+    <li><time>06-21</time><ul class="pts">
+      <li>加<b>任务属性</b>编辑区（类型、单位、选项增删）</li>
+      <li class="gone">次日（06-22）撤掉——属性编辑<b>挪进任务库表头</b>，就近改</li>
+    </ul></li>
+    <li><time>06-29</time><ul class="pts">
+      <li>加<b>桌面通知</b>开关：番茄到点与今日 DDL 会系统通知；浏览器不支持 / 权限被拦截各有专门提示</li>
+    </ul></li>
+    <li><time>06-30</time><ul class="pts"><li>加<b>语言</b>切换区</li></ul></li>
+    <li><time>07-03</time><ul class="pts">
+      <li>加<b>时长预设槽位</b>（正计时 / 倒计时各一组，可自定义）</li>
+      <li>加<b>烧瓶形状编辑器</b>：圆瓶 / 三角瓶 / 烧杯 + 瓶颈、肩高、瓶身、底圆四个参数 + 敞口 / 带盖</li>
+    </ul></li>
+    <li><time>07-06</time><ul class="pts">
+      <li>加<b>语气设定</b>：四个预设（治愈 / RPG / 教练 / 禅）或自己写，可 AI 生成，带预览</li>
+    </ul></li>
+    <li><time>07-08</time><ul class="pts">
+      <li class="move">整页<b>拆成 5 个标签页</b>：外观 / 计时 / 语气 / 语言 / 数据，不再一路长滚动</li>
+    </ul></li>
+    <li><time>07-31</time><ul class="pts"><li>加<b>启动仪式</b>开关：「开始专注前先播一段揭晓过渡」</li></ul></li>
+    <li><time>08-04</time><ul class="pts">
+      <li>加<b>分心水位</b>区：<kbd>看住前台程序</kbd>开关、程序勾选列表（「算在专注里」）、默认关闭的隐私说明</li>
+      <li>一个都不勾时明说「等于什么都算分心，所以功能会保持不工作」</li>
+    </ul></li>
+    <li><time>08-09</time><ul class="pts"><li>烧瓶形状编辑器加<kbd>存进烧瓶架</kbd>，架子满了给「最多 N 只」</li></ul></li>
+    <li><time>08-11</time><ul class="pts">
+      <li>分心水位加<b>标题关键词黑名单</b>：勾了浏览器也能把「youtube」这类词单独算作分心，并说明标题比完就丢、不落盘</li>
+      <li class="move">导入<b>默认改成合并</b>，覆盖变成一个要主动打开的开关，两种模式各配后果说明</li>
+    </ul></li>
+  </ul>
+</section>
+
+<!-- ============ 情景 ============ -->
+<section class="feat" id="scenario">
+  <h2>情景 <span class="path">src/pages/Scenario</span> <span class="born">06-14 出生</span></h2>
+  <ul class="log">
+    <li><time>06-14</time><ul class="pts"><li>建<b>情景页</b>雏形</li></ul></li>
+    <li><time>06-18</time><ul class="pts">
+      <li>成形：情景列表 + 新增表单（名称如「深度工作」、描述选填）、每条可编辑 / 删除</li>
+      <li>加<b>情景设置</b>三组：可用设备、交流规则、任务类型；加「查看统计 →」入口</li>
+    </ul></li>
+    <li><time>06-29</time><ul class="pts">
+      <li>每条情景加<kbd>前往专注（预选此情景）</kbd></li>
+      <li>配置区可<kbd>收起配置</kbd>，列表不再被顶下去</li>
+    </ul></li>
+    <li><time>06-30</time><ul class="pts">
+      <li>三组设置加<b>选项编辑器</b>：<kbd>✎ 编辑</kbd>进入编辑态，改图标、改名、删除、加新选项</li>
+      <li>任务类型改为<b>直接引用任务库标签</b>，附「去任务库编辑标签」的跳转</li>
+    </ul></li>
+    <li><time>07-02</time><ul class="pts">
+      <li>加<b>推荐区</b>「现在最适合做」：按当前情景排任务，<kbd>✨ AI 精排</kbd>，失败时降级为规则排序并告知</li>
+    </ul></li>
+    <li><time>07-15</time><ul class="pts">
+      <li>加 <b>AI 配置助手</b>：写一句「在图书馆戴耳机安静写论文」→ 自动填好三组设置，逐项标出「新建 / 无此标签」，可<kbd>应用配置</kbd>或<kbd>放弃</kbd></li>
+      <li>没配 API key 时明说会退化成关键词粗配</li>
+    </ul></li>
+  </ul>
+</section>
+
+<!-- ============ 情景统计 ============ -->
+<section class="feat" id="scenariostats">
+  <h2>情景统计 <span class="path">src/pages/ScenarioStats</span> <span class="born">06-21 出生</span></h2>
+  <ul class="log">
+    <li><time>06-21</time><ul class="pts">
+      <li>建<b>情景统计页</b>：累计时长、专注次数、用过几个情景三个数</li>
+      <li>一张表列每个情景的次数 / 时长 / 上次使用，另有近 7 天与常用任务</li>
+      <li>顶部「← 情景列表」返回</li>
+    </ul></li>
+  </ul>
+</section>
+
+<!-- ============ DDL ============ -->
+<section class="feat" id="ddl">
+  <h2>截止日提醒 <span class="path">src/pages/DDLReminders</span> <span class="born">06-22 出生</span></h2>
+  <ul class="log">
+    <li><time>06-22</time><ul class="pts">
+      <li>建 <b>DDL 提醒页</b>：任务卡带倒计时标签（已过期 N 天 / 今天截止 / 明天截止 / 还有 N 天）</li>
+      <li>每个任务可加<b>提醒节点</b>：提前几天 + 提醒内容（如「完成初稿」），可标记完成 / 未完成、删除</li>
+      <li>加<b>今日提醒</b>区块与到点弹窗，空态提示去任务库设截止日期</li>
+      <li>加调试面板，可直接预览提醒弹窗</li>
+    </ul></li>
+    <li><time>07-15</time><ul class="pts"><li class="move">与任务库的截止日助手打通，日期从任务库那边派</li></ul></li>
+  </ul>
+</section>
+
+<!-- ============ 研究记录 ============ -->
+<section class="feat" id="research">
+  <h2>研究记录 <span class="path">src/pages/Research</span> <span class="born">06-16 出生</span></h2>
+  <ul class="log">
+    <li><time>06-16</time><ul class="pts">
+      <li>建<b>每日研究记录页</b>，<kbd>前一天</kbd>/<kbd>后一天</kbd>翻日，右上角显示已保存 / 未保存</li>
+      <li><b>系统记录</b>（只读，由专注会话自动算）：最大专注时长、今日总专注时长、实时分心次数、任务完成数</li>
+      <li><b>自评量表</b>三项，各是一条可点的评分轴：整体专注程度（分心 ↔ 专注）、启动困难程度（困难 ↔ 容易）、心情状态（焦虑 ↔ 平静），再点一次可取消</li>
+      <li><b>主观感受</b>自由文本，明说「可与系统记录不同」</li>
+    </ul></li>
+  </ul>
+</section>
+
+<!-- ============ 新手引导 ============ -->
+<section class="feat" id="tutorial">
+  <h2>新手引导 <span class="path">src/pages/Tutorial</span> <span class="born">07-15 出生</span></h2>
+  <ul class="log">
+    <li><time>07-15</time><ul class="pts"><li>建<b>引导页</b>，随任务提醒 / 截止日助手 / 情景配置三件套一起上线</li></ul></li>
+  </ul>
+</section>
+
+<footer>
+  依据截至 2026-08-17 提交 <span class="mono">8988a47</span>。功能点从各页 JSX 与 i18n 词典的新增文案、新增/删除组件文件还原；纯重构、配色 token、i18n 迁移这类不改变界面功能的改动未列。废弃页面按要求略去。
+</footer>
+</div>
+
+</body>
+</html>

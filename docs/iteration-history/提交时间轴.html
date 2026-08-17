@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+<title>Focus Lab 功能迭代史</title>
+<style>
+:root{
+  --paper:#EDF1EF;
+  --surface:#F7FAF8;
+  --surface-2:#E3E9E6;
+  --ink:#111A19;
+  --ink-2:#3A4846;
+  --muted:#667673;
+  --hair:#C9D3D0;
+  --accent:#0F6F60;
+  --accent-soft:#0F6F6022;
+  --warm:#A85B14;
+  --quiet:#7C8B96;
+  --shadow:0 1px 2px rgba(17,26,25,.06),0 8px 24px rgba(17,26,25,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0B1211;
+    --surface:#121B19;
+    --surface-2:#182422;
+    --ink:#E6EEEB;
+    --ink-2:#C0CDC9;
+    --muted:#8B9C98;
+    --hair:#25332F;
+    --accent:#4DC3AC;
+    --accent-soft:#4DC3AC22;
+    --warm:#E0964A;
+    --quiet:#7E909B;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0B1211;
+  --surface:#121B19;
+  --surface-2:#182422;
+  --ink:#E6EEEB;
+  --ink-2:#C0CDC9;
+  --muted:#8B9C98;
+  --hair:#25332F;
+  --accent:#4DC3AC;
+  --accent-soft:#4DC3AC22;
+  --warm:#E0964A;
+  --quiet:#7E909B;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB","Noto Sans SC",-apple-system,system-ui,sans-serif;
+  font-size:16px;
+  line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:ui-monospace,"SF Mono",Consolas,"DejaVu Sans Mono",monospace;font-variant-numeric:tabular-nums}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+header{border-bottom:1px solid var(--hair);padding:64px 0 28px;margin-bottom:40px}
+.eyebrow{
+  font-family:ui-monospace,Consolas,monospace;font-size:12px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--accent);margin:0 0 14px;
+}
+h1{
+  font-size:clamp(30px,4.4vw,46px);line-height:1.18;margin:0;letter-spacing:-.01em;
+  font-weight:700;text-wrap:balance;
+}
+.lede{max-width:60ch;color:var(--ink-2);margin:18px 0 26px;font-size:17px}
+.stats{display:flex;flex-wrap:wrap;gap:10px 40px;padding:0;margin:0;list-style:none}
+.stats div{display:flex;flex-direction:column;gap:2px}
+.stats dt{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.stats dd{margin:0;font-size:22px;font-weight:600;font-family:ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums}
+
+section{margin:0 0 56px}
+h2{
+  font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);
+  font-weight:600;margin:0 0 4px;font-family:ui-monospace,Consolas,monospace;
+}
+.h2sub{margin:0 0 22px;color:var(--ink-2);max-width:62ch}
+
+/* ---- timeline ---- */
+.chartcard{
+  background:var(--surface);border:1px solid var(--hair);border-radius:10px;
+  box-shadow:var(--shadow);overflow:hidden;
+}
+.legend{
+  display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center;
+  padding:14px 20px;border-bottom:1px solid var(--hair);
+  font-size:12.5px;color:var(--ink-2);
+}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.key{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none}
+.key.feat{background:var(--accent)}
+.key.fix{background:var(--warm)}
+.key.chore{background:var(--quiet)}
+.key.cross{background:transparent;border:2px solid var(--ink-2);width:12px;height:12px}
+.scroller{overflow-x:auto}
+svg{display:block;min-width:760px}
+.lane-bg{fill:var(--surface-2)}
+.lane-rule{stroke:var(--hair);stroke-width:1}
+.month-rule{stroke:var(--hair);stroke-width:1;stroke-dasharray:2 4}
+.month-label,.lane-label,.lane-count{fill:var(--muted);font-family:ui-monospace,Consolas,monospace;font-size:11px}
+.lane-label{fill:var(--ink);font-family:inherit;font-size:13px}
+.lane-count{font-size:11px}
+.group-label{fill:var(--accent);font-family:ui-monospace,Consolas,monospace;font-size:10.5px;letter-spacing:.14em}
+.dot{cursor:pointer}
+.dot:hover circle,.dot:focus circle{stroke:var(--ink);stroke-width:1.5}
+.dot:focus{outline:none}
+#tip{
+  position:fixed;z-index:5;pointer-events:none;opacity:0;transition:opacity .12s;
+  background:var(--ink);color:var(--paper);padding:8px 11px;border-radius:7px;
+  font-size:12.5px;line-height:1.5;max-width:320px;box-shadow:var(--shadow);
+}
+#tip b{display:block;font-family:ui-monospace,Consolas,monospace;font-weight:500;opacity:.7;font-size:11px}
+
+/* ---- threads ---- */
+.threads{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.thread{
+  background:var(--surface);border:1px solid var(--hair);border-radius:10px;
+  padding:20px 22px 22px;
+}
+.thread h3{margin:0;font-size:18px;font-weight:650;display:flex;align-items:baseline;gap:10px}
+.thread h3 em{
+  font-style:normal;font-family:ui-monospace,Consolas,monospace;font-size:11.5px;
+  color:var(--muted);font-weight:400;
+}
+.steps{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:0}
+.steps li{
+  display:grid;grid-template-columns:52px 1fr;gap:14px;align-items:start;
+  padding:7px 0;border-top:1px solid var(--hair);font-size:14.5px;line-height:1.6;
+}
+.steps li:first-child{border-top:none}
+.steps time{
+  font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--muted);
+  font-variant-numeric:tabular-nums;padding-top:2px;
+}
+.steps b{font-weight:600}
+
+/* ---- how-to ---- */
+pre{
+  background:var(--surface);border:1px solid var(--hair);border-left:3px solid var(--accent);
+  border-radius:8px;padding:16px 18px;overflow-x:auto;margin:0 0 14px;
+  font-size:13.5px;line-height:1.7;
+}
+code{font-family:ui-monospace,Consolas,monospace}
+p code{background:var(--accent-soft);padding:1px 5px;border-radius:4px;font-size:.9em}
+.howto p{margin:0 0 8px;color:var(--ink-2);max-width:62ch}
+footer{border-top:1px solid var(--hair);padding:22px 0 60px;color:var(--muted);font-size:13px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Focus Lab · 提交史读出的产品演化</p>
+  <h1>每个功能是怎么长出来的</h1>
+  <p class="lede">仓库里每个页面目录就是一个功能。把 <code class="mono">git log</code> 按目录切开，就得到这张图：横轴是真实日期，每个点是一次触碰该功能的提交。空心点表示那次是横扫全站的改动（配色、i18n、API 重构），不是这个功能自己在动。</p>
+  <dl class="stats">
+    <div><dt>提交总数</dt><dd>92</dd></div>
+    <div><dt>功能页</dt><dd>24</dd></div>
+    <div><dt>起止</dt><dd>06-12 → 08-17</dd></div>
+    <div><dt>跨度</dt><dd>66 天</dd></div>
+  </dl>
+</header>
+
+<section>
+  <h2>Timeline</h2>
+  <p class="h2sub">悬停任一点看那次提交的信息。</p>
+  <div class="chartcard">
+    <div class="legend">
+      <span><i class="key feat"></i>新功能 / 改进</span>
+      <span><i class="key fix"></i>修复</span>
+      <span><i class="key chore"></i>重构 · 杂务</span>
+      <span><i class="key cross"></i>全站横切改动</span>
+    </div>
+    <div class="scroller"><svg id="chart" role="img" aria-label="各功能页的提交时间轴"></svg></div>
+  </div>
+</section>
+
+<section>
+  <h2>Threads</h2>
+  <p class="h2sub">六条真正有迭代形状的主线——诞生、改向、并入。</p>
+  <div class="threads">
+
+    <article class="thread">
+      <h3>专注 <em>src/pages/Focus · 45 次</em></h3>
+      <ol class="steps">
+        <li><time>06-12</time><span><b>沉浸专注页</b>落地，仓库的第一个功能</span></li>
+        <li><time>06-13</time><span>加 3D 模型与历史记录</span></li>
+        <li><time>06-14</time><span>多选任务进专注 + 沉浸式卡片</span></li>
+        <li><time>07-02</time><span>倒计时 UX 重做</span></li>
+        <li><time>07-16</time><span>心流页并入；暗夜皮改 OLED 冷淡风</span></li>
+        <li><time>07-31</time><span><b>仪式感启动</b>：先播揭晓过渡再进沉浸</span></li>
+        <li><time>08-04</time><span>切走即分心——自动停表并记账</span></li>
+        <li><time>08-09</time><span>专注时长开始注进选中的烧瓶</span></li>
+        <li><time>08-17</time><span>暂停补记真实时刻</span></li>
+      </ol>
+    </article>
+
+    <article class="thread">
+      <h3>任务库 <em>src/pages/Tasks · 19 次</em></h3>
+      <ol class="steps">
+        <li><time>06-21</time><span>建库，任务作为数据落盘</span></li>
+        <li><time>06-28</time><span>拆工具栏与筛选状态，TodoRow memo 化</span></li>
+        <li><time>07-15</time><span>接上提醒与截止日助手</span></li>
+        <li><time>07-16</time><span><b>倒脑子</b>从随记页搬来，改成弹窗；抽出 useVisibleTasks</span></li>
+        <li><time>08-04</time><span>心流视图并进任务库，一页两视图</span></li>
+        <li><time>08-17</time><span>批量操作</span></li>
+      </ol>
+    </article>
+
+    <article class="thread">
+      <h3>生态缸 <em>src/pages/Aquarium · 7 次</em></h3>
+      <ol class="steps">
+        <li><time>07-21</time><span>作为收集页出生，复用祈愿的无损抽取</span></li>
+        <li><time>08-04</time><span>生物图形；卵 → 幼体 → <b>成体</b>的养成链</span></li>
+        <li><time>08-11</time><span>成体可封进注满的烧瓶，变成标本</span></li>
+        <li><time>08-17</time><span>标本与缸内实时同步</span></li>
+      </ol>
+    </article>
+
+    <article class="thread">
+      <h3>烧瓶架 <em>src/pages/Flasks · 7 次</em></h3>
+      <ol class="steps">
+        <li><time>08-09</time><span>建页：存下调好的烧瓶，专注时长注进选中那只</span></li>
+        <li><time>08-11</time><span>水位调试 → 装标本 → 拆成「架上」与「注满的」两板块</span></li>
+        <li><time>08-17</time><span>封瓶与缸内打通</span></li>
+      </ol>
+      <p style="margin:14px 0 0;font-size:14px;color:var(--muted)">全部迭代压在 9 天内，是这份历史里节奏最快的一条。</p>
+    </article>
+
+    <article class="thread">
+      <h3>分心监测 <em>src/pages/Distraction · 4 次</em></h3>
+      <ol class="steps">
+        <li><time>08-04</time><span>前台应用探测 + 积水可视化 + 统计页，同日出生</span></li>
+        <li><time>08-04</time><span>当天就接上专注：切走即自动停表记账</span></li>
+        <li><time>08-11</time><span>并入 DayLog，与日历共用一份渲染</span></li>
+      </ol>
+    </article>
+
+    <article class="thread">
+      <h3>角色与世界 <em>Character · Wish · World · SkillTree · Industry</em></h3>
+      <ol class="steps">
+        <li><time>07-04</time><span>角色条与角色页</span></li>
+        <li><time>07-06</time><span>常驻伙伴一次带出 Wish / World / SkillTree</span></li>
+        <li><time>07-07</time><span>功能树；此后这组基本停止单独迭代</span></li>
+        <li><time>08-11</time><span>只跟着配色 token 与 i18n 被动扫过</span></li>
+      </ol>
+    </article>
+
+  </div>
+</section>
+
+<section>
+  <h2>Cross-cutting</h2>
+  <p class="h2sub">三次横扫全站的改动——图上所有空心点。它们不属于任何单个功能，但决定了每个功能当下的样子。</p>
+  <div class="threads">
+    <article class="thread">
+      <h3>API 重构 <em>07-15</em></h3>
+      <p style="margin:10px 0 0;font-size:14.5px;color:var(--ink-2)">连带小猫图标、优先级矩阵、主题颜色、烧瓶形状，一次改到 Focus / Tasks / Home / Calendar / World。</p>
+    </article>
+    <article class="thread">
+      <h3>配色 token <em>08-11</em></h3>
+      <p style="margin:10px 0 0;font-size:14.5px;color:var(--ink-2)">主色换成实底 token，扫过全部 24 个页面；同批加了废弃页面回收站与烧瓶水位调试。</p>
+    </article>
+    <article class="thread">
+      <h3>i18n 全量接词典 <em>08-11</em></h3>
+      <p style="margin:10px 0 0;font-size:14.5px;color:var(--ink-2)">字典先按页拆成 common / analytics / history / memo，再把剩下页面的硬编码中文清干净。</p>
+    </article>
+  </div>
+</section>
+
+<section class="howto">
+  <h2>Reproduce</h2>
+  <p class="h2sub">这张图的数据来自下面第一条命令，可以随时重跑。</p>
+  <pre><code># 每个功能页各自的迭代史
+git ls-files src/pages | %{ ($_ -split '/')[2] } | sort -Unique | %{
+  "### $_"; git log --pretty=format:"  %ad %s" --date=short -- "src/pages/$_"; "" }</code></pre>
+  <p>看某个功能具体改了什么：<code>git log -p --date=short -- src/pages/Focus</code></p>
+  <p>追某几行是哪次改的：<code>git log -L 20,40:src/pages/Focus/index.jsx</code></p>
+  <p>看一个功能从出生到现在的净变化：<code>git diff &lt;首次提交&gt;..HEAD -- src/pages/Aquarium</code></p>
+</section>
+
+<footer>数据截至 2026-08-17 提交 <span class="mono">8988a47</span>。分组按 src/pages 目录，横切改动指同一提交触及 5 个以上功能页。</footer>
+</div>
+
+<div id="tip" role="status" aria-live="polite"></div>
+
+<script>
+const F = "feat", X = "fix", C = "chore", K = "cross";
+const groups = [
+ ["核心循环", [
+  ["专注","Focus",[["08-17",F,"标本封瓶与缸内实时同步 + 暂停补记真实时刻 + 任务批量操作"],["08-11",C,"i18n: 剩下的页面全部接入词典"],["08-11",F,"标本——把养成的成体封进注满的烧瓶里存好"],["08-11",K,"主色实底配色 token + 废弃页面回收站 + 烧瓶水位调试"],["08-09",F,"烧瓶架 —— 专注时长注进选中的那只"],["08-04",F,"切走即分心（自动停表+记账）"],["08-04",K,"分心监测 —— 前台应用探测 + 积水可视化"],["08-04",K,"桌面端 Electron 打包 + 生态缸生物图形"],["07-31",F,"仪式感启动 —— 先播揭晓过渡再进沉浸"],["07-21",C,"结算卡去掉鼓励性语录"],["07-21",F,"矩阵按象限定优先级，双击进专注"],["07-16",F,"心流任务页 + 暗夜皮改 OLED 冷淡风"],["07-15",F,"任务提醒 + 截止日助手 + 场景配置"],["07-15",K,"api 重构 小猫图标 优先级矩阵 主题颜色 烧瓶形状"],["07-09",F,"时间轴 优先级矩阵"],["07-08",F,"设置分页 手机专注页面优化"],["07-07",F,"功能树 细节优化"],["07-06",F,"常驻伙伴"],["07-05",X,"修复专注时长输入与日历今日的两处状态 bug"],["07-05",F,"甘特图界面"],["07-04",F,"角色条 专注布局"],["07-03",C,"封装"],["07-03",C,"重构"],["07-03",C,"重构"],["07-02",F,"UX 倒计时"],["06-29",F,"新增备忘录页面，并同步专注随记"],["06-28",C,"清理根目录杂物并补全格式"],["06-27",C,"重构"],["06-22",F,"improve database"],["06-21",F,"add database"],["06-21",F,"add page 数据分析"],["06-21",F,"情景设置 任务标签 情景统计"],["06-18",C,"refactor 整理代码结构"],["06-16",F,"完善分心 热力图 固定任务功能"],["06-16",F,"优化每日固定任务 日期显示 热力图"],["06-16",F,"重复任务 设置"],["06-16",F,"设置页数据管理模块 + 专注记录新增字段"],["06-14",F,"奖励"],["06-14",F,"沉浸式卡片 任务清单"],["06-14",C,"wip: 瘦身前的安全提交"],["06-14",C,"多选任务进入专注 重构代码"],["06-14",C,"wip: 瘦身前保护性提交"],["06-13",F,"add 3D model and history and improve UI"],["06-12",F,"增加按钮渐变"],["06-12",F,"优化 UI 增加沉浸专注页面"]]],
+  ["任务库","Tasks",[["08-17",F,"标本封瓶同步 + 任务批量操作"],["08-11",C,"i18n 全量接词典"],["08-11",F,"自绘确认框替掉 window.confirm"],["08-11",K,"主色实底配色 token"],["08-04",K,"桌面端 Electron + 任务库合并心流视图"],["07-16",F,"倒脑子从随记页搬到任务页，改为弹窗"],["07-16",C,"抽出 useVisibleTasks，任务库/甘特/心流页瘦身"],["07-16",C,"抽出 useVisibleTasks（续）"],["07-15",F,"任务提醒 + 截止日助手 + 场景配置"],["07-15",K,"api 重构 优先级矩阵 主题颜色"],["07-04",F,"角色条 专注布局"],["07-03",C,"重构"],["07-02",F,"UX 倒计时"],["06-30",F,"语言"],["06-29",F,"新增备忘录页面，并同步专注随记"],["06-28",C,"memo 化 TodoRow，避免整表重渲染"],["06-28",C,"拆分 Tasks 页的工具栏与筛选状态"],["06-22",F,"improve database"],["06-21",F,"add database"]]],
+  ["日历 / 时间轴","Calendar",[["08-11",C,"i18n 全量接词典"],["08-11",C,"删掉换用 DayLog 后剩下的旧渲染"],["08-11",C,"一天的流水——/history 与 /calendar 共用同一份渲染"],["08-11",K,"主色实底配色 token"],["08-04",K,"分心监测 —— 积水可视化 + 分心统计页"],["07-16",C,"抽出 useVisibleTasks"],["07-15",K,"api 重构 主题颜色"],["07-10",F,"适应性大小"],["07-09",F,"时间轴 优先级矩阵"],["07-05",X,"修复日历今日的状态 bug"],["07-04",F,"角色条 专注布局"]]],
+  ["随记 / 倒脑子","Memo",[["08-17",F,"标本封瓶与缸内实时同步"],["08-11",C,"i18n 全量接词典"],["08-11",F,"随记/情景统计接 i18n"],["08-11",K,"主色实底配色 token"],["07-16",F,"倒脑子从随记页搬到任务页，改为弹窗"],["07-10",F,"适应性大小"],["07-04",F,"角色条 专注布局"],["07-03",C,"封装"],["07-03",C,"重构"],["06-30",F,"增加 ai 功能"],["06-29",F,"新增备忘录页面，并同步专注随记"]]],
+  ["分析","Analytics",[["08-11",C,"i18n 全量接词典"],["08-11",F,"分析页收拢专注小结 + 两张任务表合一"],["08-11",K,"主色实底配色 token"],["08-09",F,"烧瓶架数据接入"],["08-04",K,"分心监测 + 分心统计页"],["07-16",C,"抽出 useVisibleTasks"],["07-16",C,"抽出 useVisibleTasks（续）"],["07-03",C,"重构"],["06-22",F,"improve database"],["06-21",F,"add database"],["06-21",F,"add page 数据分析"]]],
+  ["甘特图","Gantt",[["08-11",F,"自绘确认框替掉 window.confirm"],["08-11",K,"主色实底配色 token"],["07-16",C,"抽出 useVisibleTasks"],["07-09",F,"甘特图 优先级矩阵大小变化"],["07-09",F,"时间轴 优先级矩阵"],["07-05",F,"甘特图界面"]]]
+ ]],
+ ["养成与叙事", [
+  ["生态缸","Aquarium",[["08-17",F,"标本封瓶与缸内实时同步"],["08-11",F,"标本——成体封进注满的烧瓶"],["08-11",K,"主色实底配色 token + 烧瓶水位调试"],["08-04",F,"生态缸卵→幼体→成体养成"],["08-04",K,"分心监测 + 积水可视化"],["08-04",K,"桌面端 Electron + 生态缸生物图形"],["07-21",F,"生态缸收集页 /aquarium"]]],
+  ["烧瓶架","Flasks",[["08-17",F,"标本封瓶与缸内实时同步"],["08-11",C,"i18n 全量接词典"],["08-11",F,"分成「架上」与「注满的」两个板块"],["08-11",F,"标本——把成体封进注满的烧瓶"],["08-11",F,"导入备份默认合并"],["08-11",K,"主色实底配色 token + 烧瓶水位调试"],["08-09",F,"烧瓶架 —— 存下调好的烧瓶"]]],
+  ["角色卡","Character",[["08-11",K,"主色实底配色 token"],["07-15",K,"api 重构 小猫图标 主题颜色"],["07-06",F,"常驻伙伴"],["07-05",F,"甘特图界面"],["07-04",F,"角色"],["07-04",F,"角色条 专注布局"]]],
+  ["祈愿","Wish",[["08-11",K,"主色实底配色 token"],["08-04",K,"桌面端 Electron 打包"],["07-06",F,"常驻伙伴"]]],
+  ["世界地图","World",[["08-11",K,"主色实底配色 token"],["08-04",K,"桌面端 Electron 打包"],["07-15",K,"api 重构 主题颜色"],["07-07",F,"功能树 细节优化"],["07-06",F,"常驻伙伴"]]],
+  ["技能树","SkillTree",[["08-11",K,"主色实底配色 token"],["07-16",C,"抽出 useVisibleTasks"],["07-07",F,"功能树 细节优化"],["07-06",F,"常驻伙伴"]]],
+  ["产业","Industry",[["08-11",K,"主色实底配色 token"],["07-07",F,"功能树 细节优化"],["07-06",F,"常驻伙伴"]]],
+  ["奖励","Reward",[["08-11",C,"i18n 全量接词典"],["08-11",K,"主色实底配色 token"],["07-04",F,"角色条 专注布局"],["07-03",C,"封装"],["07-03",C,"重构"],["06-29",F,"新增备忘录页面"],["06-16",F,"专注记录新增金币等字段"],["06-14",F,"奖励"]]]
+ ]],
+ ["支撑与系统", [
+  ["分心","Distraction",[["08-11",C,"i18n 全量接词典"],["08-11",C,"与日历共用 DayLog 渲染"],["08-04",F,"切走即分心（自动停表+记账）"],["08-04",F,"分心监测 —— 前台应用探测 + 积水可视化 + 统计页"]]],
+  ["情景","Scenario",[["08-17",F,"标本封瓶与缸内实时同步"],["08-11",C,"i18n 全量接词典"],["07-15",F,"场景配置"],["07-03",C,"重构"],["07-02",F,"UX 倒计时"],["06-30",F,"增加 ai 功能"],["06-29",F,"新增备忘录页面"],["06-21",F,"add database"],["06-18",C,"refactor 整理代码结构"],["06-14",F,"加情境 page"]]],
+  ["情景统计","ScenarioStats",[["08-11",C,"i18n 全量接词典"],["08-11",F,"情景统计接 i18n"],["08-11",K,"主色实底配色 token"],["07-03",C,"重构"],["06-22",F,"improve database"],["06-21",F,"add database"],["06-21",F,"情景设置 任务标签 情景统计"]]],
+  ["截止日助手","DDLReminders",[["08-11",C,"i18n 全量接词典"],["08-11",K,"主色实底配色 token"],["07-15",F,"任务提醒 + 截止日助手"],["07-10",F,"适应性大小"],["07-03",C,"重构"],["07-03",C,"重构"],["07-03",C,"重构"],["06-30",F,"语言"],["06-22",F,"improve database"]]],
+  ["设置","Settings",[["08-11",C,"i18n 全量接词典"],["08-11",F,"标本存档"],["08-11",X,"写入闸门——导入/清空后不再被写回旧数据"],["08-11",F,"开机静默启动 + 渲染进程崩溃自愈"],["08-11",F,"导入备份默认合并 + 托盘文案抽成可测函数"],["08-11",K,"主色实底配色 token + 废弃页面回收站"],["08-09",F,"烧瓶架设置"],["08-04",K,"分心监测开关"],["07-31",F,"仪式感启动开关"],["07-08",F,"设置分页 手机专注页面优化"],["07-06",F,"常驻伙伴"],["07-04",F,"角色条 专注布局"],["07-03",C,"封装"],["07-03",C,"重构"],["07-02",F,"UX 倒计时"],["06-30",F,"语言"],["06-29",F,"新增备忘录页面"],["06-22",F,"improve database"],["06-21",F,"add database"],["06-16",F,"每日固定任务 日期显示 热力图"],["06-16",F,"重复任务 设置"],["06-16",F,"数据管理模块（存储用量、导入导出、清除确认）"]]],
+  ["功能树","FunctionTree",[["08-11",C,"i18n 全量接词典"],["08-11",K,"主色实底配色 token"],["08-09",F,"烧瓶架节点"],["08-04",K,"分心监测节点"],["08-04",K,"桌面端 Electron 打包"],["07-21",F,"生态缸收集页节点"],["07-16",F,"心流任务页节点"],["07-15",F,"任务提醒 + 场景配置节点"],["07-07",F,"功能树"]]],
+  ["首页","Home",[["08-11",K,"主色实底配色 token"],["08-04",K,"分心监测 + 积水可视化"],["08-04",K,"桌面端 Electron 打包"],["07-16",C,"删除无引用的死文件"],["07-15",K,"api 重构 小猫图标 主题颜色"],["07-10",X,"修正截止日期和坍缩侧边栏"],["07-09",F,"时间轴 优先级矩阵"],["07-06",F,"常驻伙伴"],["07-03",C,"重构"],["07-03",C,"重构"],["07-02",F,"优化 ui ux"],["07-02",F,"UX 倒计时"],["06-30",F,"语言"],["06-22",F,"improve database"],["06-16",F,"完善分心 热力图 固定任务功能"],["06-16",F,"每日固定任务 日期显示 热力图"],["06-16",F,"数据管理模块"],["06-14",C,"wip 保护性提交"],["06-13",F,"add 3D model and history"],["06-12",F,"优化 UI 增加沉浸专注页面"]]],
+  ["研究","Research",[["08-11",C,"i18n 全量接词典"],["08-11",K,"主色实底配色 token"],["07-03",C,"重构"],["06-21",F,"add database"],["06-16",F,"热力图"]]],
+  ["新手引导","Tutorial",[["08-11",C,"i18n 全量接词典"],["08-11",K,"主色实底配色 token"],["07-15",F,"任务提醒 + 场景配置引导"]]],
+  ["回收站","Deprecated",[["08-11",K,"废弃页面回收站"]]]
+ ]]
+];
+
+const START = new Date(2026,5,12), END = new Date(2026,7,17);
+const DAYS = (END-START)/864e5;
+const PADL = 132, PADR = 26, PADT = 30, ROW = 26, GAPH = 30;
+const W = 1000, PLOT = W - PADL - PADR;
+const COLORS = {feat:"var(--accent)", fix:"var(--warm)", chore:"var(--quiet)", cross:"var(--accent)"};
+
+const x = d => {
+  const [m,day] = d.split("-").map(Number);
+  return PADL + ((new Date(2026,m-1,day) - START)/864e5 / DAYS) * PLOT;
+};
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+
+let y = PADT, parts = [], H;
+const months = [["06-12","6月"],["07-01","7月"],["08-01","8月"]];
+
+for (const [gname, feats] of groups) {
+  parts.push(`<text class="group-label" x="12" y="${y+4}">${gname}</text>`);
+  y += 14;
+  for (const [label, dir, commits] of feats) {
+    const cy = y + ROW/2;
+    parts.push(`<rect class="lane-bg" x="${PADL}" y="${y+3}" width="${PLOT}" height="${ROW-6}" rx="3" opacity=".55"></rect>`);
+    parts.push(`<text class="lane-label" x="${PADL-40}" y="${cy+4}" text-anchor="end">${label}</text>`);
+    parts.push(`<text class="lane-count" x="${PADL-10}" y="${cy+4}" text-anchor="end">${commits.length}</text>`);
+    const seen = {};
+    for (const [d, type, subject] of commits) {
+      const px = x(d);
+      const n = (seen[d] = (seen[d]||0) + 1) - 1;
+      const off = n === 0 ? 0 : (n % 2 ? 1 : -1) * Math.ceil(n/2) * 5.5;
+      const tip = esc(`2026-${d}|${subject}`);
+      if (type === "cross") {
+        parts.push(`<g class="dot" tabindex="0" data-t="${tip}"><circle cx="${px}" cy="${cy+off}" r="4.6" fill="none" stroke="${COLORS.feat}" stroke-width="1.7"></circle></g>`);
+      } else {
+        parts.push(`<g class="dot" tabindex="0" data-t="${tip}"><circle cx="${px}" cy="${cy+off}" r="4.2" fill="${COLORS[type]}" opacity=".9"></circle></g>`);
+      }
+    }
+    y += ROW;
+  }
+  y += GAPH;
+}
+H = y + 26;
+
+let grid = "";
+for (const [d, name] of months) {
+  const px = x(d);
+  grid += `<line class="month-rule" x1="${px}" y1="${PADT-14}" x2="${px}" y2="${H-26}"></line>`;
+  grid += `<text class="month-label" x="${px+6}" y="${PADT-18}">${name}</text>`;
+  grid += `<text class="month-label" x="${px+6}" y="${H-10}">${name}</text>`;
+}
+
+const svg = document.getElementById("chart");
+svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+svg.setAttribute("width", "100%");
+svg.setAttribute("height", H);
+svg.innerHTML = grid + parts.join("");
+
+const tip = document.getElementById("tip");
+function show(e, el){
+  const [when, subject] = el.dataset.t.split("|");
+  tip.innerHTML = `<b>${when}</b>${subject}`;
+  const r = el.getBoundingClientRect();
+  tip.style.opacity = 1;
+  const tw = tip.offsetWidth;
+  tip.style.left = Math.min(Math.max(8, r.left + r.width/2 - tw/2), innerWidth - tw - 8) + "px";
+  tip.style.top = (r.top - tip.offsetHeight - 10) + "px";
+}
+svg.addEventListener("mouseover", e => { const el = e.target.closest(".dot"); if (el) show(e, el); });
+svg.addEventListener("focusin", e => { const el = e.target.closest(".dot"); if (el) show(e, el); });
+svg.addEventListener("mouseout", () => tip.style.opacity = 0);
+svg.addEventListener("focusout", () => tip.style.opacity = 0);
+</script>
+
+</body>
+</html>
