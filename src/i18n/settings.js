@@ -68,7 +68,7 @@ export default {
   },
   "settings.watch.denyLabel": { en: "…except these words", zh: "但标题里有这些词就不算" },
   "settings.watch.denyHint": {
-    en: "A browser is one program whether you're reading a paper or watching videos, so ticking it above lets both through. Add a word here and a ticked program still counts as a distraction whenever the word shows up in its window title — which for a browser is the title of the tab you're on. Matching happens in memory and the title is thrown away straight after: it is never saved, and your distraction records still say only \"Microsoft Edge\".",
+    en: "A browser is one program whether you're reading a paper or watching videos, so ticking it above lets both through. Add a word here and a ticked program still counts as a distraction whenever the word shows up in its window title — which for a browser is the title of the tab you're on. Matching happens in memory and the title is thrown away straight after: it is never saved, and your distraction records still say only “Microsoft Edge”.",
     zh: "浏览器是同一个程序——查论文和刷视频都走它，上面勾了就等于两样都放行。在这里加个词，勾过的程序只要窗口标题里出现这个词，照样算分心；浏览器的窗口标题就是你当前那个标签页的标题。比对只在内存里做一次，比完标题就丢掉：不落盘、不进记录，分心记录里留下的仍然只有「Microsoft Edge」。",
   },
   "settings.watch.denyPlaceholder": { en: "e.g. youtube", zh: "比如 youtube" },

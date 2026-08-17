@@ -2,9 +2,7 @@
 // 每条一行：key -> { en, zh }。新增可见文案时在此补齐两份。
 export default {
   "character.title": { en: "Character", zh: "角色" },
-  "character.xp": { en: "EXP", zh: "经验" },
   "character.coins": { en: "Coins", zh: "金币" },
-  "character.streak": { en: "Day streak", zh: "连续天数" },
   "character.momentumLabel": { en: "Momentum", zh: "势头" },
   "character.sessions": { en: "Sessions", zh: "专注次数" },
   "character.stage.0": { en: "Sprout", zh: "萌芽" },
@@ -64,16 +62,13 @@ export default {
   "character.ach.level5.desc": { en: "Reach level 5", zh: "达到 5 级" },
   "character.reward.title": { en: "Session complete", zh: "本次结算" },
   "character.reward.levelUp": { en: "NEW STAGE · {rank}", zh: "新阶段 · {rank}" },
-  "character.reward.duration": { en: "Focused for {time}", zh: "专注了 {time}" },
   "character.reward.focusTime": { en: "Focus time", zh: "专注时间" },
   "character.reward.distractions": { en: "Distractions", zh: "分心次数" },
   "character.reward.coins": { en: "Coins", zh: "金币" },
-  "character.reward.xpGained": { en: "Growth", zh: "成长" },
   "character.reward.grow.small": { en: "Every bit counts", zh: "点滴积累也算数" },
   "character.reward.grow.mid": { en: "Solid progress", zh: "扎扎实实的一段" },
   "character.reward.grow.big": { en: "A big step forward", zh: "成长了一大截" },
   "character.reward.streakKept": { en: "Another focused day — lovely", zh: "又是专注的一天，真好" },
-  "character.reward.viewCharacter": { en: "View character", zh: "查看角色" },
   "character.reward.collect": { en: "Collect", zh: "收下" },
   "gm.title": { en: "Your journey, told", zh: "旅程旁白" },
   "gm.refresh": { en: "Retell", zh: "换一段" },
@@ -91,5 +86,4 @@ export default {
   "companion.line.sleepy.0": { en: "Resting is part of it too.", zh: "歇一歇，也是专注的一部分。" },
   "companion.line.sleepy.1": { en: "Let's recharge a little.", zh: "我们充一小会儿电。" },
   "companion.line.sleepy.2": { en: "The lamp dims, but never goes out.", zh: "灯会变暗，但不会熄。" },
-  "companion.refresh": { en: "Another word", zh: "再说一句" },
 };

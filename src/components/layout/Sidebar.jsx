@@ -44,26 +44,40 @@ import { FEATURE_KEYS } from "@/pages/FunctionTree/functionTreeData";
 import { LANGUAGES } from "@/i18n/translations";
 
 const NAV_SECTIONS = [
+  // 主页单独领头，不归任何分区——它是回到一切的入口，别埋在「每日」列表中间。
   {
+    id: "home",
+    items: [{ to: "/", labelKey: "nav.home", Icon: Home }],
+  },
+  {
+    id: "daily",
     titleKey: "nav.section.daily",
     items: [
-      { to: "/",          labelKey: "nav.home",      Icon: Home },
+      { to: "/focus",     labelKey: "nav.focus",     Icon: Timer },
+      { to: "/tasks",     labelKey: "nav.tasks",     Icon: ListTodo },
+      { to: "/memo",      labelKey: "nav.memo",      Icon: StickyNote },
+      { to: "/ddl",       labelKey: "nav.ddl",       Icon: CalendarClock },
       { to: "/character", labelKey: "nav.character", Icon: Swords },
       { to: "/skilltree", labelKey: "nav.skilltree", Icon: Network },
-      { to: "/wish",      labelKey: "nav.wish",      Icon: Sparkles },
-      { to: "/aquarium",  labelKey: "nav.aquarium",  Icon: Fish },
       { to: "/world",     labelKey: "nav.world",     Icon: Map },
       { to: "/industry",  labelKey: "nav.industry",  Icon: Factory },
-      { to: "/focus",     labelKey: "nav.focus",     Icon: Timer },
-      { to: "/flasks",    labelKey: "nav.flasks",    Icon: FlaskRound },
-      { to: "/tasks",     labelKey: "nav.tasks",     Icon: ListTodo },
-      { to: "/memo",  labelKey: "nav.memo",  Icon: StickyNote },
-      { to: "/ddl",   labelKey: "nav.ddl",   Icon: CalendarClock },
+    ],
+  },
+  // 奖励系统：金币商店 + 祈愿抽取 + 收集展示（生态缸 / 标本瓶架）都是同一条「攒→换→看」的线。
+  {
+    id: "rewards",
+    titleKey: "nav.section.rewards",
+    items: [
+      { to: "/reward",   labelKey: "nav.reward",   Icon: Gift },
+      { to: "/wish",     labelKey: "nav.wish",     Icon: Sparkles },
+      { to: "/aquarium", labelKey: "nav.aquarium", Icon: Fish },
+      { to: "/flasks",   labelKey: "nav.flasks",   Icon: FlaskRound },
     ],
   },
   // 回顾三页各管一件事，别互相塞摘要：
   // 时间轴=何时发生 + 原始流水（含随记/聊天） / 数据分析=所有统计图表 / 分心统计=只管分心。
   {
+    id: "review",
     titleKey: "nav.section.review",
     items: [
       { to: "/calendar",       labelKey: "nav.calendar",      Icon: CalendarRange },
@@ -73,6 +87,7 @@ const NAV_SECTIONS = [
     ],
   },
   {
+    id: "config",
     titleKey: "nav.section.config",
     items: [
       { to: "/gantt",        labelKey: "nav.gantt",        Icon: GanttChartSquare },
@@ -80,7 +95,6 @@ const NAV_SECTIONS = [
       { to: "/functiontree", labelKey: "nav.functiontree", Icon: ListTree },
       { to: "/deprecated",   labelKey: "nav.deprecated",   Icon: Archive },
       { to: "/scenario",     labelKey: "nav.scenario",     Icon: Layers },
-      { to: "/reward",       labelKey: "nav.reward",       Icon: Gift },
       { to: "/research",     labelKey: "nav.research",     Icon: FlaskConical },
     ],
   },
@@ -259,9 +273,9 @@ export default function Sidebar() {
       )}
 
       <nav className="sidebar-nav">
-        {visibleSections.map(({ titleKey, items }) => (
-          <div key={titleKey} className="nav-section">
-            <p className="nav-section-title">{t(titleKey)}</p>
+        {visibleSections.map(({ id, titleKey, items }) => (
+          <div key={id} className="nav-section">
+            {titleKey && <p className="nav-section-title">{t(titleKey)}</p>}
             {items.map(({ to, labelKey, Icon }) => (
               <Link key={to} to={to} className={`nav-link${pathname === to ? " active" : ""}`}>
                 <Icon className="nav-icon" size={18} strokeWidth={2} aria-hidden="true" />

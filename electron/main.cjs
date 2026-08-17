@@ -24,6 +24,13 @@ const DEV_SERVER = process.env.VITE_DEV_SERVER_URL || "";
 const IS_DEV = !!DEV_SERVER;
 const DIST = path.join(__dirname, "..", "dist");
 
+// 打包后 icon 在 dist/ 里（public/ 的内容会原样拷过去）；dev 时读 public/。
+function appIconPath(name) {
+  return IS_DEV
+    ? path.join(__dirname, "..", "public", name)
+    : path.join(DIST, name);
+}
+
 // 开机自启写进注册表的那条命令带 --hidden（见托盘菜单的 setLoginItemSettings）。
 // 此时主窗口照样要创建——它是 localStorage 和全部业务状态的唯一 owner，没有它
 // 桌宠就没有数据来源——只是不弹到用户脸上，开机后看到的只有托盘和桌宠。
@@ -156,6 +163,9 @@ function createMainWindow() {
     minWidth: 900,
     minHeight: 600,
     backgroundColor: "#1a1620",
+    // 任务栏 / 窗口左上角的小猫。打包版由 electron-builder 写进 exe，
+    // 但 dev 和 --dir 直跑时要显式给，否则是默认的 Electron 原子图标。
+    icon: appIconPath("icon-512.png"),
     show: false,
     webPreferences: {
       preload: preloadPath(),
@@ -503,15 +513,19 @@ function sendToFlood(channel, payload) {
 // 水位推给两个窗口：积水窗画水，桌宠按同一个值把瓶子倒空——
 // 瓶里少掉的正好是屏幕上多出来的，两边是同一摊水。
 function pushFlood() {
+  // 皮肤跟着一起推：积水窗没有别的数据来源，不给它就永远画默认皮的强调色，
+  // 而水和桌宠瓶里那摊是同一摊，颜色不该是两个。
+  // 一并算进去重的 key，不然换皮时水位没怎么变，这条就被阈值挡下了。
+  const theme = lastState?.app?.theme || "default";
   // 翻瓶子这一下必须立刻推，不能被「水位没怎么变」的阈值挡住
-  const key = `${distracted}`;
+  const key = `${distracted}|${theme}`;
   if (key === lastPushedSpill && lastPushedFlood >= 0
       && Math.abs(floodLevel - lastPushedFlood) < 0.004) return;
   lastPushedSpill = key;
   lastPushedFlood = floodLevel;
   lastState = { ...(lastState || {}), watch: { level: floodLevel, spilling: distracted } };
   pushPetState();
-  sendToFlood("flood:level", { level: floodLevel, rising: distracted });
+  sendToFlood("flood:level", { level: floodLevel, rising: distracted, theme });
 }
 
 function floodTick() {
@@ -682,11 +696,7 @@ function registerPowerHooks() {
 
 // ── 托盘 ────────────────────────────────────────────────────────
 function trayIcon() {
-  // 打包后 icon 在 dist/ 里（public/ 的内容会原样拷过去）；dev 时读 public/。
-  const file = IS_DEV
-    ? path.join(__dirname, "..", "public", "icon-192.png")
-    : path.join(DIST, "icon-192.png");
-  const img = nativeImage.createFromPath(file);
+  const img = nativeImage.createFromPath(appIconPath("icon-192.png"));
   return img.isEmpty() ? img : img.resize({ width: 16, height: 16 });
 }
 

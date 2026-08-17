@@ -607,7 +607,8 @@
 .tasks-table .th-select,
 .tasks-table .td-select { width: 40px; text-align: center; }
 .tasks-table .th-check,
-.tasks-table .td-check { width: 44px; }
+.tasks-table .td-check { width: 48px; }
+.tasks-table .th-check { text-align: center; padding-left: 4px; padding-right: 4px; }
 .tasks-table .th-text,
 .tasks-table .td-text  { width: 220px; min-width: 220px; }
 .tasks-table .th-attr  { position: relative; }
@@ -632,7 +633,7 @@
 .tasks-table .th-text,
 .tasks-table .td-text {
   position: sticky;
-  left: 84px;
+  left: 88px;
   z-index: 2;
   border-right: 1.5px solid var(--border-input);
 }
@@ -705,13 +706,81 @@
   pointer-events: none;
 }
 
-/* Checkbox */
+/* Checkbox —— 两种勾选框刻意做成不同形状，避免「完成」和「多选」混淆：
+   完成 = 圆形 + 主题色实心；多选 = 方形 + 中性灰虚线框 */
 .td-check { text-align: center; }
 .task-check {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex: none;
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  cursor: pointer;
+  background: var(--card);
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+
+/* 完成框：圆形 */
+.task-check:not(.row-select) {
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+}
+.task-check:not(.row-select):hover { background: var(--accent-bg); }
+.task-check:not(.row-select):checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.task-check:not(.row-select):checked::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* 多选框：方形 + 虚线中性框 */
+.task-check.row-select {
   width: 15px;
   height: 15px;
-  cursor: pointer;
-  accent-color: var(--accent);
+  border: 1.5px dashed var(--text-faint);
+  border-radius: 4px;
+}
+.task-check.row-select:hover { border-style: solid; }
+.task-check.row-select:checked,
+.task-check.row-select:indeterminate {
+  background: var(--text-faint);
+  border-style: solid;
+  border-color: var(--text-faint);
+}
+.task-check.row-select:checked::after {
+  content: "";
+  position: absolute;
+  left: 3.5px;
+  top: 0.5px;
+  width: 3px;
+  height: 7px;
+  border: solid var(--card);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.task-check.row-select:indeterminate::after {
+  content: "";
+  position: absolute;
+  left: 2.5px;
+  top: 5px;
+  width: 7px;
+  height: 2px;
+  background: var(--card);
+}
+.task-check.row-select:disabled {
+  cursor: default;
+  opacity: 0.4;
 }
 
 /* Task text */

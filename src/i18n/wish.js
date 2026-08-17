@@ -5,7 +5,6 @@ export default {
   "wish.subtitle": { en: "Spend the coins you've earned to meet new sides of the light and pieces of this world. Every wish brings something new — nothing is ever wasted.", zh: "用你专注赚来的金币，去遇见这盏灯的新样子，和这个世界的碎片。每次祈愿都会带来新东西——永远不会白费。" },
   "wish.pray": { en: "Make a wish", zh: "祈愿" },
   "wish.cost": { en: "{n} coins", zh: "{n} 金币" },
-  "wish.costStardust": { en: "for stardust", zh: "换星尘" },
   "wish.needMore": { en: "{n} more coins to wish", zh: "再攒 {n} 金币就能祈愿" },
   "wish.allMet": { en: "You've met everyone in this little world. ✨ The light wears them all proudly now.", zh: "这个小世界里的每个人，你都遇见了。✨ 这盏灯把它们都好好收着呢。" },
   "wish.revealing": { en: "A wish takes shape…", zh: "祈愿正在成形……" },

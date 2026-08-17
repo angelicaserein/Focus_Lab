@@ -106,7 +106,7 @@ export default {
   "scenario.ai.loading": { en: "Setting up…", zh: "配置中…" },
   "scenario.ai.error": { en: "AI setup failed — try again later, or set it up by hand", zh: "AI 配置失败，请稍后再试，或手动配置" },
   "scenario.ai.noKey": { en: "No API key — falling back to offline keyword matching", zh: "未配置 API key，将用离线示例做关键词粗配" },
-  "scenario.ai.empty": { en: "Couldn’t pull a setup out of that — try describing it differently?", zh: "没能从描述里提取到配置，换个说法再试试？" },
+  "scenario.ai.empty": { en: "Couldn't pull a setup out of that — try describing it differently?", zh: "没能从描述里提取到配置，换个说法再试试？" },
   "scenario.ai.keyDevices": { en: "Devices", zh: "设备" },
   "scenario.ai.keyComm": { en: "Talking", zh: "交流" },
   "scenario.ai.keyTaskTypes": { en: "Task types", zh: "任务类型" },

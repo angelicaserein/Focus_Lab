@@ -2,6 +2,9 @@
 // 每条一行：key -> { en, zh }。新增可见文案时在此补齐两份。
 export default {
   "home.quickstart": { en: "▶ Start focusing", zh: "▶ 开始专注" },
+
+  // 今日委托：数据层与单测已就位（pages/Home/commissionsData.js），主页 UI 还没接。
+  // 这几条是等 UI 的，不是死文案，别当无引用清掉。
   "home.quests.title": { en: "Today, gently", zh: "今天，慢慢来" },
   "home.quests.lumiDone": { en: "You've already been kind to today. 💛", zh: "今天，你已经对自己挺好了。💛" },
   "home.quests.lumiOpen": { en: "No pressure — here are a few gentle ideas.", zh: "别有压力——这里有几个温柔的小点子。" },

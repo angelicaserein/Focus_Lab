@@ -35,7 +35,14 @@ function TodoRow({ todo, visibleAttrs, onSaveAttr, onEditText, onToggle, onDelet
       </td>
 
       <td className="td-check">
-        <input type="checkbox" className="task-check" checked={todo.completed} onChange={() => onToggle(todo.id)} />
+        <input
+          type="checkbox"
+          className="task-check"
+          checked={todo.completed}
+          onChange={() => onToggle(todo.id)}
+          title={t("tasks.colDone")}
+          aria-label={t("tasks.toggleDoneAria", { text: todo.text })}
+        />
       </td>
 
       <td className="td-text editable" onClick={() => !editingText && startEditText()}>

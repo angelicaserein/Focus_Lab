@@ -1,8 +1,8 @@
-// 功能树数据层：把 App 的各个功能（对应导航项 / 路由）编成三条分支，
+// 功能树数据层：把 App 的各个功能（对应导航项 / 路由）编成几条分支，
 // 每个叶子节点都是一个「功能开关」——点一下关掉，再点一下打开，随时可逆。
 // 纯数据、与 React 无关，便于 Sidebar / 路由守卫 / 页面复用与单测。
 //
-// 分支沿用侧边栏的三个分区（daily / review / config），复用 nav.section.* 与 nav.* 文案，
+// 分支沿用侧边栏的分区（daily / rewards / review / config），复用 nav.section.* 与 nav.* 文案，
 // 不新造一套标题；每个功能的标题就是它在导航里的名字。
 //
 // 两种节点：
@@ -31,12 +31,19 @@ export const FUNCTION_BRANCHES = [
     id: "daily", // → nav.section.daily
     color: "#6ea8fe",
     features: [
-      { path: "/aquarium",  labelKey: "nav.aquarium",  icon: "🐟" },
       { path: "/focus",     labelKey: "nav.focus",     icon: "⏱️" },
-      { path: "/flasks",    labelKey: "nav.flasks",    icon: "⚗️" },
       { path: "/tasks",     labelKey: "nav.tasks",     icon: "📋" },
       { path: "/memo",      labelKey: "nav.memo",      icon: "📝" },
       { path: "/ddl",       labelKey: "nav.ddl",       icon: "⏰" },
+    ],
+  },
+  {
+    id: "rewards", // → nav.section.rewards
+    color: "#c084fc",
+    features: [
+      { path: "/reward",   labelKey: "nav.reward",   icon: "🎁" },
+      { path: "/aquarium", labelKey: "nav.aquarium", icon: "🐟" },
+      { path: "/flasks",   labelKey: "nav.flasks",   icon: "⚗️" },
     ],
   },
   {
@@ -62,7 +69,6 @@ export const FUNCTION_BRANCHES = [
           { key: FEATURE_KEYS.SCENARIO_PICKER, labelKey: "sidebar.currentScenario", icon: "🎚️" },
         ],
       },
-      { path: "/reward", labelKey: "nav.reward", icon: "🎁" },
     ],
   },
 ];

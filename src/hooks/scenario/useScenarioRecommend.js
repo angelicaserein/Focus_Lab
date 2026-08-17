@@ -58,7 +58,11 @@ export default function useScenarioRecommend({ todos: todosArg, limit = 5 } = {}
       }));
       const result = await rerankRecommendations(candidates, {
         scenario: activeScenario,
-        envProfile: ctx?.envProfile,
+        // envProfile 带的是 labelKey（纯函数层不知道当前语言），在这个边界上兑成
+        // 人话再喂给模型——直接传下去的话 prompt 里永远是「无特别偏好」。
+        envProfile: ctx?.envProfile
+          ? { ...ctx.envProfile, label: ctx.envProfile.labelKey ? t(ctx.envProfile.labelKey) : "" }
+          : null,
         lang,
       });
       setAi({ ...result, baseKey });
@@ -66,7 +70,7 @@ export default function useScenarioRecommend({ todos: todosArg, limit = 5 } = {}
     } catch {
       setAiStatus("error");
     }
-  }, [base, aiStatus, activeScenario, ctx, baseKey]);
+  }, [base, aiStatus, activeScenario, ctx, baseKey, lang, t]);
 
   return {
     hasScenario: Boolean(activeScenario),

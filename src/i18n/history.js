@@ -1,6 +1,5 @@
-// 记录流水的文案（时间轴页 /calendar 的「全部记录」视图、DayLog、分心/情景统计共用）。
-// 注意：history.chatTitle / history.notes 等聊天与随记区的 key 早先落在 focus.js，
-// 那边是专注页共用的，别在这里重复定义。
+// history.* 命名空间：记录流水（时间轴页 /calendar 的「全部记录」视图、DayLog、
+// 会话详情里的聊天/随记/分心区、分心与情景统计共用）。
 // outcome.* 与 utils/records/focusRecords.js 的 OUTCOME_META.labelKey 一一对应。
 export default {
   // ── 全部记录 ──────────────────────────────────────────────────────────────
@@ -35,8 +34,23 @@ export default {
   "history.activityMore": { en: " +{count} more", zh: " 等 {count} 项" },
   "history.dayEmpty": { en: "Nothing recorded on this day", zh: "这一天还没有记录" },
 
+  // ── 会话详情：聊天与随记 ──────────────────────────────────────────────────
+  "history.chatTitle": { en: "Chat", zh: "聊天记录" },
+  "history.aiDemoNote": { en: "AI offline · demo replies", zh: "AI 未连接 · 演示回复" },
+  "history.clearChat": { en: "Clear", zh: "清空" },
+  "history.noChat": { en: "No conversation yet", zh: "还没有对话" },
+  "history.notes": { en: "Notes", zh: "随记" },
+
+  // ── 会话详情：分心 ────────────────────────────────────────────────────────
   // 分心密度评价（次/小时）
   "history.quality.deep": { en: "Deep focus", zh: "深度专注" },
   "history.quality.good": { en: "Focused", zh: "专注良好" },
   "history.quality.scattered": { en: "Scattered", zh: "容易分心" },
+  "history.distractPerHour": { en: "{rate}/h", zh: "{rate} 次/h" },
+  "history.mostly": { en: "Mostly {tag}", zh: "多为 {tag}" },
+  "history.fewerThanLast": { en: "{n} fewer than last time", zh: "比上次少 {n} 次" },
+  "history.moreThanLast": { en: "{n} more than last time", zh: "比上次多 {n} 次" },
+  "history.sameAsLast": { en: "Same as last time", zh: "与上次持平" },
+  "history.nthDistraction": { en: "Distraction #{n}", zh: "第 {n} 次分心" },
+  "history.proactivePause": { en: "proactive pause", zh: "主动暂停" },
 };

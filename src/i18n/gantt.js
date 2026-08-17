@@ -1,7 +1,7 @@
 // 甘特图页
 // 每条一行：key -> { en, zh }。新增可见文案时在此补齐两份。
 export default {
-  "gantt.title": { en: "Gantt Charts", zh: "甘特图" },
+  "gantt.title": { en: "Gantt charts", zh: "甘特图" },
   "gantt.subtitle": { en: "Build a timeline for any project — set the dates, add tracks, drop in tasks.", zh: "为任意项目排一条时间轴：设好起止日期，加分组，再放任务。" },
   "gantt.timeline": { en: "Timeline", zh: "时间线" },
   "gantt.stat.tasks": { en: "Tasks", zh: "任务数" },

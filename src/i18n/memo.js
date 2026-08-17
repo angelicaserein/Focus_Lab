@@ -40,7 +40,7 @@ export default {
   "memo.tag.filterBy": { en: "Filter by this tag", zh: "按此标签筛选" },
   "memo.tag.remove": { en: "Remove tag", zh: "移除标签" },
   "memo.tag.placeholder": { en: "Tag name, Enter to confirm", zh: "标签名，回车确认" },
-  "memo.tag.add": { en: "＋ Tag", zh: "＋ 标签" },
+  "memo.tag.add": { en: "+ Tag", zh: "＋ 标签" },
 
   // ── 选中后的浮动操作条 ────────────────────────────────────────────────────
   "memo.selectedCount": { en: "{count} selected", zh: "已选 {count} 条" },

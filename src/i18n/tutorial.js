@@ -1,8 +1,6 @@
-// 教程页：把整个软件的工作流按 SOP 分成六个阶段介绍一遍。
-// 每条一行：key -> { en, zh }。新增可见文案时在此补齐两份。
+// tutorial.* 命名空间：教程页把整个软件的工作流按 SOP 分成六个阶段介绍一遍。
+// 页面名（"nav.tutorial"）在 nav.js；卡片里的入口按钮直接复用 nav.* 文案。
 export default {
-  "nav.tutorial": { en: "Guide", zh: "教程" },
-
   "tutorial.title": { en: "How Focus Lab works", zh: "Focus Lab 怎么用" },
   "tutorial.subtitle": {
     en: "A gentle walkthrough of the whole flow — plan, focus, look back, grow.",
@@ -13,7 +11,6 @@ export default {
     zh: "不用全部都用上。看一遍，然后从今天做得到的那一步开始就好。每张卡片都直接链到它说的那一页。",
   },
   "tutorial.stepLabel": { en: "Step {n}", zh: "第 {n} 步" },
-  "tutorial.goTo": { en: "Open", zh: "去这里" },
   "tutorial.tip.title": { en: "One small thing", zh: "一件小事" },
   "tutorial.tip.body": {
     en: "If it ever feels like too much, open the Function tree and switch off whatever you don't need — it disappears from the sidebar until you want it back.",

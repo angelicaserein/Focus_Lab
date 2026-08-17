@@ -13,13 +13,26 @@ function interpolate(str, vars) {
   return str.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
 }
 
+// 开发期提示：key 查不到时会回退成 key 本身，页面上就是一串 "focus.xxx"，
+// 很容易在自测时被当成设计的一部分放过去。这里每个 key 只喊一次，不刷屏。
+const warned = new Set();
+function warnMissing(key, lang) {
+  if (!import.meta.env.DEV || warned.has(key)) return;
+  warned.add(key);
+  console.warn(`[i18n] 缺少文案 "${key}"（lang=${lang}），已回退成 key 本身`);
+}
+
 export function LanguageProvider({ children }) {
   const [lang, setLang] = useLocalStorage(STORAGE_KEYS.PREF_LANG, DEFAULT_LANG);
 
   const t = useCallback(
     (key, vars) => {
       const dict = TRANSLATIONS[lang] ?? TRANSLATIONS[DEFAULT_LANG];
-      const raw = dict[key] ?? TRANSLATIONS[DEFAULT_LANG][key] ?? key;
+      const raw = dict[key] ?? TRANSLATIONS[DEFAULT_LANG][key];
+      if (raw == null) {
+        warnMissing(key, lang);
+        return key;
+      }
       return interpolate(raw, vars);
     },
     [lang],

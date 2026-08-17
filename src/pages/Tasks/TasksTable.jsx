@@ -136,7 +136,7 @@ export default function TasksTable({ todos, visibleAttrs, activeDatabaseId, isDb
                   aria-label={t("tasks.selectAll")}
                 />
               </th>
-              <th className="th-check"></th>
+              <th className="th-check">{t("tasks.colDone")}</th>
               <th className="th-text sortable" onClick={() => sort.handleSortClick("name")}>
                 {t("tasks.colName")}{sort.arrow("name")}
               </th>

@@ -1,7 +1,8 @@
-// 侧边栏导航 + sidebar
-// 每条一行：key -> { en, zh }。新增可见文案时在此补齐两份。
+// nav.* 命名空间：每个页面的名字。侧边栏、教程页的「去这里」、功能树、废弃页面都读它，
+// 所以一个页面的名字只在这里写一次。侧栏外壳自己的控件文案在 sidebar.js。
 export default {
   "nav.section.daily": { en: "Daily", zh: "每日" },
+  "nav.section.rewards": { en: "Rewards", zh: "奖励" },
   "nav.section.review": { en: "Review", zh: "回顾" },
   "nav.section.config": { en: "Tools", zh: "工具" },
   "nav.home": { en: "Home", zh: "主页" },
@@ -21,20 +22,11 @@ export default {
   "nav.calendar": { en: "Timeline", zh: "时间轴" },
   "nav.gantt": { en: "Gantt", zh: "甘特图" },
   "nav.analytics": { en: "Analytics", zh: "数据分析" },
-  "nav.scenarioStats": { en: "Scenario Stats", zh: "情景统计" },
+  "nav.scenarioStats": { en: "Scenario stats", zh: "情景统计" },
   "nav.distraction": { en: "Distractions", zh: "分心统计" },
   "nav.scenario": { en: "Scenarios", zh: "情境配置" },
   "nav.reward": { en: "Rewards", zh: "奖励" },
   "nav.settings": { en: "Settings", zh: "设置" },
-  "nav.research": { en: "Research Log", zh: "研究记录" },
-  "sidebar.currentScenario": { en: "Current scenario", zh: "当前情景" },
-  "sidebar.noScenario": { en: "No scenario", zh: "无情景" },
-  "sidebar.openNav": { en: "Open navigation", zh: "打开导航" },
-  "sidebar.closeNav": { en: "Close navigation", zh: "关闭导航" },
-  "sidebar.collapseNav": { en: "Collapse sidebar", zh: "收起侧边栏" },
-  "sidebar.expandNav": { en: "Expand sidebar", zh: "展开侧边栏" },
-  "sidebar.coins": { en: "Coins: {count} — go to Rewards", zh: "金币：{count} — 前往奖励" },
-  "sidebar.toggleLang": { en: "Switch language", zh: "切换语言" },
-  "sidebar.cycleTheme": { en: "Switch theme", zh: "切换主题" },
-  "sidebar.unlockThemes": { en: "Unlock more themes in Rewards", zh: "在奖励商店解锁更多主题" },
+  "nav.research": { en: "Research log", zh: "研究记录" },
+  "nav.tutorial": { en: "Guide", zh: "教程" },
 };

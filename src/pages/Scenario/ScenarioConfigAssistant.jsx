@@ -71,13 +71,13 @@ export default function ScenarioConfigAssistant({ scenario }) {
         <textarea
           className="scenario-ai-input"
           rows={2}
-          placeholder="用一句话描述这个情境，如「在图书馆戴耳机安静写论文」，AI 帮你配置"
+          placeholder={t("scenario.ai.placeholder")}
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); run(); }
           }}
-          aria-label="情境描述，交给 AI 配置"
+          aria-label={t("scenario.ai.inputAria")}
         />
         <button
           type="button"
@@ -85,33 +85,33 @@ export default function ScenarioConfigAssistant({ scenario }) {
           onClick={run}
           disabled={!prompt.trim() || status === "loading"}
         >
-          {status === "loading" ? "配置中…" : "✨ AI 配置"}
+          {status === "loading" ? t("scenario.ai.loading") : t("scenario.ai.btn")}
         </button>
       </div>
 
       {status === "error" && (
-        <div className="scenario-ai-error">AI 配置失败，请稍后再试，或手动配置</div>
+        <div className="scenario-ai-error">{t("scenario.ai.error")}</div>
       )}
 
       {!hasApiKey() && status !== "loading" && !plan && (
-        <div className="scenario-ai-hint">未配置 API key，将用离线示例做关键词粗配</div>
+        <div className="scenario-ai-hint">{t("scenario.ai.noKey")}</div>
       )}
 
       {plan && (
         <div className="scenario-ai-preview" aria-live="polite">
           {nothing ? (
-            <div className="scenario-ai-empty">没能从描述里提取到配置，换个说法再试试？</div>
+            <div className="scenario-ai-empty">{t("scenario.ai.empty")}</div>
           ) : (
             <>
               {p.note && <div className="scenario-ai-note">{p.note}</div>}
 
               {p.devices.length > 0 && (
                 <div className="scenario-ai-line">
-                  <span className="scenario-ai-key">设备</span>
+                  <span className="scenario-ai-key">{t("scenario.ai.keyDevices")}</span>
                   <span className="scenario-ai-vals">
                     {p.devices.map((d, i) => (
                       <span key={i} className={`scenario-ai-chip${d.isNew ? " is-new" : ""}`}>
-                        {d.label}{d.isNew && <em>新建</em>}
+                        {d.label}{d.isNew && <em>{t("scenario.ai.isNew")}</em>}
                       </span>
                     ))}
                   </span>
@@ -120,10 +120,10 @@ export default function ScenarioConfigAssistant({ scenario }) {
 
               {p.communication && (
                 <div className="scenario-ai-line">
-                  <span className="scenario-ai-key">交流</span>
+                  <span className="scenario-ai-key">{t("scenario.ai.keyComm")}</span>
                   <span className="scenario-ai-vals">
                     <span className={`scenario-ai-chip${p.communication.isNew ? " is-new" : ""}`}>
-                      {p.communication.label}{p.communication.isNew && <em>新建</em>}
+                      {p.communication.label}{p.communication.isNew && <em>{t("scenario.ai.isNew")}</em>}
                     </span>
                   </span>
                 </div>
@@ -131,11 +131,11 @@ export default function ScenarioConfigAssistant({ scenario }) {
 
               {p.taskTypes.length > 0 && (
                 <div className="scenario-ai-line">
-                  <span className="scenario-ai-key">任务类型</span>
+                  <span className="scenario-ai-key">{t("scenario.ai.keyTaskTypes")}</span>
                   <span className="scenario-ai-vals">
-                    {p.taskTypes.map((t, i) => (
-                      <span key={i} className={`scenario-ai-chip${t.matched ? "" : " is-unmatched"}`}>
-                        {t.label}{!t.matched && <em>无此标签</em>}
+                    {p.taskTypes.map((tt, i) => (
+                      <span key={i} className={`scenario-ai-chip${tt.matched ? "" : " is-unmatched"}`}>
+                        {tt.label}{!tt.matched && <em>{t("scenario.ai.unmatched")}</em>}
                       </span>
                     ))}
                   </span>
@@ -147,11 +147,11 @@ export default function ScenarioConfigAssistant({ scenario }) {
           <div className="scenario-ai-actions">
             {!nothing && (
               <button type="button" className="scenario-ai-apply" onClick={apply}>
-                应用配置
+                {t("scenario.ai.apply")}
               </button>
             )}
             <button type="button" className="scenario-ai-dismiss" onClick={dismiss}>
-              {nothing ? "关闭" : "放弃"}
+              {nothing ? t("common.close") : t("scenario.ai.discard")}
             </button>
           </div>
         </div>

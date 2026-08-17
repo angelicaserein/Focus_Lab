@@ -16,13 +16,7 @@
 // 槽位不在了（瓶子被移出架子、或水位掉回不足一只）时，封在里面的那只自动回缸里游——
 // 故不会留下够不着的孤儿标本，也不必在删瓶子那条路径上再写一遍清理。
 import { STAGE, growthOf, normalizeCollection } from "@/data/aquarium/growth";
-import { FLASK_FULL_SECS, bottlesOf } from "@/pages/Flasks/flaskShelf";
-
-// 能封标本的最低水位＝一只瓶子注满（1 小时专注）
-export const SPECIMEN_MIN_SECS = FLASK_FULL_SECS;
-
-// 这只瓶子够不够格封标本
-export const flaskReady = (secs) => (secs || 0) >= SPECIMEN_MIN_SECS;
+import { bottlesOf } from "@/pages/Flasks/flaskShelf";
 
 export const isAdult = (entry, now = Date.now()) =>
   growthOf(entry?.born, now).stage === STAGE.ADULT;

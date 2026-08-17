@@ -3,6 +3,7 @@ import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 import { loadVersioned, loadVersionedScalar, WRAPPER_VERSION } from "@/utils/storage/storage";
 import usePersistedWrite from "@/hooks/common/usePersistedWrite";
 import { DATABASE_TEMPLATES } from "@/utils/task/databaseTemplates";
+import { TASK_ATTR_DEFAULTS } from "@/utils/task/taskAttrDefaults";
 
 export const DEFAULT_DB_ID = "default";
 
@@ -62,11 +63,18 @@ function reducer(state, action) {
   }
 }
 
+// 全新安装的默认库：空库（无内置列，符合「默认就是什么都没有」）
+const makeDefaultDb = (order = 0) => ({
+  id: DEFAULT_DB_ID,
+  nameKey: "tasks.db.defaultName",
+  order,
+  attrs: [],
+});
+
 function loadDatabases() {
   const data = loadVersioned(STORAGE_KEYS.DATABASES, WRAPPER_VERSION, null);
   if (Array.isArray(data) && data.length) return data;
-  // 全新安装：默认空库（无内置列，符合「默认就是什么都没有」）
-  return [{ id: DEFAULT_DB_ID, nameKey: "tasks.db.defaultName", order: 0, attrs: [] }];
+  return [makeDefaultDb()];
 }
 
 function loadActiveDbId(databases) {
@@ -137,6 +145,28 @@ export function DatabaseProvider({ children }) {
     if (activeDatabaseId === id) setActiveDatabaseId(DEFAULT_DB_ID);
   };
 
+  // 默认库恢复出厂：名字回到 i18n 默认，优先级/标签/截止日期/预计时长/备注 这五个
+  // 内置列按出厂配置补回（同 id 的覆盖回默认，改过名/删掉的都会还原）；
+  // 自己加的列排在后面原样保留，任务本身一个不动。
+  // 老数据里万一没有默认库，这里顺手补回来。
+  const resetDefaultDatabase = () => {
+    const db = databases.find(d => d.id === DEFAULT_DB_ID);
+    const builtinIds = new Set(TASK_ATTR_DEFAULTS.map(a => a.id));
+    const custom = (db?.attrs ?? []).filter(a => !builtinIds.has(a.id));
+    const restored = {
+      ...makeDefaultDb(db?.order ?? 0),
+      attrs: [
+        ...TASK_ATTR_DEFAULTS.map(a => ({ ...cloneAttr(a), system: false })),
+        ...custom.map((a, i) => ({ ...a, order: TASK_ATTR_DEFAULTS.length + i })),
+      ],
+    };
+    const next = db
+      ? databases.map(d => d.id === DEFAULT_DB_ID ? restored : d)
+      : [restored, ...databases.map(d => ({ ...d, order: d.order + 1 }))];
+    dispatch({ type: SET_DBS, payload: next });
+    setActiveDatabaseId(DEFAULT_DB_ID);
+  };
+
   const setActiveDatabase = (id) => setActiveDatabaseId(id);
 
   const reorderDatabases = (orderedIds) => dispatch({ type: REORDER_DB, payload: orderedIds });
@@ -177,6 +207,7 @@ export function DatabaseProvider({ children }) {
     addDatabase,
     renameDatabase,
     deleteDatabase,
+    resetDefaultDatabase,
     setActiveDatabase,
     reorderDatabases,
     addTaskAttr,

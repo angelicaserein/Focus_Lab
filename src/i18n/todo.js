@@ -87,6 +87,8 @@ export default {
   // 表格视图：勾选 + 批量操作
   "tasks.selectAll": { en: "Select all tasks shown", zh: "全选当前任务" },
   "tasks.selectRowAria": { en: "Select {text}", zh: "选中 {text}" },
+  "tasks.colDone": { en: "Done", zh: "完成" },
+  "tasks.toggleDoneAria": { en: "Mark {text} done", zh: "把「{text}」标记为完成" },
   "tasks.batch.aria": { en: "Bulk actions", zh: "批量操作" },
   "tasks.batch.selected": { en: "{count} selected", zh: "已选 {count} 个" },
   "tasks.batch.complete": { en: "Mark done", zh: "标记完成" },
@@ -104,19 +106,29 @@ export default {
 
   // 数据库（任务库分库）标签条
   "tasks.db.options": { en: "Database options", zh: "库选项" },
-  "tasks.db.create": { en: "New database", zh: "新建 database" },
+  "tasks.db.create": { en: "New database", zh: "新建库" },
   "tasks.db.createShort": { en: "+ New", zh: "+ 新建" },
   "tasks.db.rename": { en: "Rename", zh: "重命名" },
   "tasks.db.delete": { en: "Delete this database", zh: "删除此库" },
   "tasks.db.deleteDefault": { en: "The default database can't be deleted", zh: "默认库不可删除" },
   "tasks.db.confirmDelete": {
     en: "Delete database “{name}”?",
-    zh: "删除 database「{name}」？",
+    zh: "删除库「{name}」？",
   },
   "tasks.db.confirmDeleteDetail": {
     en: "Every task in it will be deleted too. This cannot be undone.",
     zh: "其下所有任务也会被删除，此操作不可撤销。",
   },
+  "tasks.db.reset": { en: "Restore default columns", zh: "恢复默认库" },
+  "tasks.db.confirmReset": {
+    en: "Restore the default database?",
+    zh: "恢复默认库？",
+  },
+  "tasks.db.confirmResetDetail": {
+    en: "Priority, Tags, Due date, Estimate and Notes come back with their default settings — renamed or deleted ones are restored. Columns you added yourself and all tasks are kept.",
+    zh: "优先级、标签、截止日期、预计时长、备注这五个内置列会按出厂配置补回来（改过名或删掉的都会还原），库名也回到默认。你自己加的列和所有任务都会保留。",
+  },
+  "tasks.db.resetOk": { en: "Restore", zh: "恢复" },
 
   // 属性列删除确认
   "tasks.attr.confirmDelete": {
@@ -166,7 +178,7 @@ export default {
   "tasks.option.label": { en: "Options", zh: "选项" },
   "tasks.option.newName": { en: "Option", zh: "选项" },
   "tasks.option.placeholder": { en: "Option name", zh: "选项名称" },
-  "tasks.option.color": { en: "Change colour", zh: "更改颜色" },
+  "tasks.option.color": { en: "Change color", zh: "更改颜色" },
   "tasks.option.add": { en: "+ Add option", zh: "+ 添加选项" },
 
   // 筛选 / 排序弹层

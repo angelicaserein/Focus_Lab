@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useScenarios } from "@/context/ScenarioContext";
 import { useTodos } from "@/context/TodoContext";
 import { useDatabases } from "@/context/DatabaseContext";
+import { useLanguage } from "@/context/LanguageContext";
 import useScenarioRecommend from "@/hooks/scenario/useScenarioRecommend";
 import RecommendItem from "@/components/ui/RecommendItem";
 
@@ -12,6 +13,7 @@ export default function ScenarioRecommend() {
   const { activeScenario } = useScenarios();
   const { todos } = useTodos();
   const { activeDatabaseId } = useDatabases();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   // 与任务页一致：推荐限定在当前库（priority 权重也取自当前库列定义）。
@@ -30,8 +32,11 @@ export default function ScenarioRecommend() {
     <section className="scenario-card scenario-recommend-card" aria-live="polite">
       <div className="header">
         <div className="title">
-          现在最适合做
-          {envProfile?.label && <span className="rec-env-tag">{envProfile.label}</span>}
+          {t("scenario.rec.title")}
+          {/* 环境标签是 i18n key（见 deriveEnvProfile），不是可直接显示的文案 */}
+          {envProfile?.labelKey && (
+            <span className="rec-env-tag">{t(envProfile.labelKey)}</span>
+          )}
         </div>
         {hasScenario && ranked.length > 0 && aiEnabled && (
           <button
@@ -40,19 +45,15 @@ export default function ScenarioRecommend() {
             onClick={runAi}
             disabled={aiStatus === "loading"}
           >
-            {aiStatus === "loading" ? "AI 精排中…" : "✨ AI 精排"}
+            {aiStatus === "loading" ? t("scenario.rec.aiLoading") : t("scenario.rec.aiBtn")}
           </button>
         )}
       </div>
 
       {!hasScenario ? (
-        <div className="scenario-config-empty">
-          先在上方点选一个情景作为「当前情景」，这里会推荐此刻最适合做的任务
-        </div>
+        <div className="scenario-config-empty">{t("scenario.rec.noScenario")}</div>
       ) : ranked.length === 0 ? (
-        <div className="scenario-config-empty">
-          当前任务库还没有可推荐的任务，去任务库添加一些吧
-        </div>
+        <div className="scenario-config-empty">{t("scenario.rec.noTasks")}</div>
       ) : (
         <div className="rec-list">
           {ranked.map((entry) => (
@@ -64,8 +65,8 @@ export default function ScenarioRecommend() {
                   type="button"
                   className="rec-go-btn"
                   onClick={goFocus}
-                  title="去专注（预选此情景）"
-                  aria-label={`去专注：${entry.todo.text}`}
+                  title={t("scenario.rec.goTitle")}
+                  aria-label={t("scenario.rec.goAria", { task: entry.todo.text })}
                 >
                   ▶
                 </button>
@@ -73,7 +74,7 @@ export default function ScenarioRecommend() {
             />
           ))}
           {aiStatus === "error" && (
-            <div className="rec-ai-error">AI 精排失败，已按规则排序展示</div>
+            <div className="rec-ai-error">{t("scenario.rec.aiError")}</div>
           )}
         </div>
       )}

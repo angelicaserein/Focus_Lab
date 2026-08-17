@@ -1,7 +1,7 @@
 // 世界地图（情景 → 可探索区域）
 // 每条一行：key -> { en, zh }。新增可见文案时在此补齐两份。
 export default {
-  "world.title": { en: "World Map", zh: "世界地图" },
+  "world.title": { en: "World map", zh: "世界地图" },
   "world.subtitle": { en: "Each scenario is a region beyond the Lab. Focusing there is exploring it — the more you visit, the brighter it grows on your map. Nothing is locked; it all comes from where you show up.", zh: "每个情景，都是研究所之外的一片区域。在它下面专注，就是在探索它——去得越多，它在地图上越亮。没有门禁，一切都来自你去过的地方。" },
   "world.home": { en: "The Lab", zh: "研究所" },
   "world.wilds": { en: "Uncharted Wilds", zh: "未定之野" },

@@ -15,6 +15,7 @@ export default function DatabaseTabs() {
     setActiveDatabase,
     renameDatabase,
     deleteDatabase,
+    resetDefaultDatabase,
   } = useDatabases();
   const { deleteTodosByDatabase } = useTodos();
   const { t } = useLanguage();
@@ -57,6 +58,17 @@ export default function DatabaseTabs() {
     if (!ok) return;
     deleteTodosByDatabase(db.id);
     deleteDatabase(db.id);
+  };
+
+  const handleReset = async () => {
+    closeMenu();
+    const ok = await confirm({
+      title: t("tasks.db.confirmReset"),
+      message: t("tasks.db.confirmResetDetail"),
+      confirmLabel: t("tasks.db.resetOk"),
+    });
+    if (!ok) return;
+    resetDefaultDatabase();
   };
 
   return (
@@ -118,6 +130,11 @@ export default function DatabaseTabs() {
                 <button type="button" className="db-menu-item" onClick={() => startRename(db)}>
                   {t("tasks.db.rename")}
                 </button>
+                {db.id === DEFAULT_DB_ID && (
+                  <button type="button" className="db-menu-item" onClick={handleReset}>
+                    {t("tasks.db.reset")}
+                  </button>
+                )}
                 <button
                   className="db-menu-item danger"
                   onClick={() => handleDelete(db)}

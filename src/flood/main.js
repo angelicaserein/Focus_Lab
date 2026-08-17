@@ -64,15 +64,23 @@ function surfaceAt(x, t, amp) {
 }
 
 function draw(now) {
-  raf = requestAnimationFrame(draw);
-  if (now - lastFrame < 1000 / FPS_CAP) return;
+  if (now - lastFrame < 1000 / FPS_CAP) { raf = requestAnimationFrame(draw); return; }
   lastFrame = now;
 
   level += (target - level) * EASE;
   if (Math.abs(target - level) < 0.0008) level = target;
 
   ctx.clearRect(0, 0, width, height);
-  if (level <= 0.001) return;
+  if (level <= 0.001) {
+    level = 0;
+    // 水退干净了就把循环停掉。这个窗口开着 backgroundThrottling: false
+    // （它的全部意义就是「用户在别的程序里的时候还在动」），代价是主进程把它
+    // 藏起来之后 rAF 照样一秒钟醒 60 次——一次不专注的下午过去，这个空转就
+    // 一直挂在那儿吃电。有水了再由 flood:level 把它叫醒。
+    if (target <= 0) { raf = 0; return; }
+    raf = requestAnimationFrame(draw);
+    return;
+  }
 
   const t = reduceMotion ? 0 : now / 1000;
   // 涨的时候水面躁一点，退潮时平静下来——不看数字也能感觉到方向
@@ -101,6 +109,28 @@ function draw(now) {
   ctx.strokeStyle = "rgba(255,255,255,0.34)";
   ctx.lineWidth = 1.5;
   ctx.stroke();
+
+  raf = requestAnimationFrame(draw);
+}
+
+// 停机后重新起循环。lastFrame 要清零，不然停了很久再回来时那一帧会被
+// FPS_CAP 判成「刚画过」而白白丢掉。
+function ensureLoop() {
+  if (raf) return;
+  lastFrame = 0;
+  raf = requestAnimationFrame(draw);
+}
+
+// 换皮。桌宠是靠主窗口推 app.theme 自己写 <html data-theme> 的（见 PetApp），
+// 这个窗口一直没人给它推——于是无论用户选了哪套皮，水都是默认皮的强调色。
+// 水和瓶子是同一摊水，颜色不该是两个。
+function applyTheme(theme) {
+  const next = theme || "default";
+  const cur = document.documentElement.getAttribute("data-theme") || "default";
+  if (next === cur) return;
+  if (next === "default") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", next);
+  readAccent();
 }
 
 // 主题变量可能是 #rgb / #rrggbb，也可能已经是 rgb()。
@@ -123,8 +153,10 @@ import("@/utils/desktop/desktopBridge").then(({ default: desktop }) => {
   desktop.onFloodLevel((payload) => {
     target = Math.min(Math.max(payload?.level ?? 0, 0), 1);
     rising = !!payload?.rising;
+    applyTheme(payload?.theme);
+    if (target > 0) ensureLoop();
   });
 });
 
-raf = requestAnimationFrame(draw);
-window.addEventListener("pagehide", () => cancelAnimationFrame(raf));
+ensureLoop();
+window.addEventListener("pagehide", () => { cancelAnimationFrame(raf); raf = 0; });

@@ -40,9 +40,9 @@ export default function ScenarioOptionEditor({
           className={`settings-manage-btn${managing ? " active" : ""}`}
           onClick={() => setManaging((v) => !v)}
           aria-pressed={managing}
-          title={managing ? "完成编辑" : "编辑选项"}
+          title={managing ? t("scenario.opt.doneTitle") : t("scenario.opt.editTitle")}
         >
-          {managing ? "完成" : "✎ 编辑"}
+          {managing ? t("scenario.opt.done") : t("scenario.opt.edit")}
         </button>
       </div>
 
@@ -57,20 +57,20 @@ export default function ScenarioOptionEditor({
                   maxLength={2}
                   placeholder="🙂"
                   onChange={(e) => updateScenarioOption(kind, opt.id, { icon: e.target.value })}
-                  aria-label="图标"
+                  aria-label={t("scenario.opt.iconAria")}
                 />
               )}
               <input
                 className="option-label-input"
                 value={optionLabel(t, opt)}
                 onChange={(e) => updateScenarioOption(kind, opt.id, { label: e.target.value })}
-                aria-label="选项名称"
+                aria-label={t("scenario.opt.nameAria")}
               />
               <button
                 type="button"
                 className="option-remove"
                 onClick={() => removeScenarioOption(kind, opt.id)}
-                title="删除选项"
+                title={t("scenario.opt.removeTitle")}
               >
                 ×
               </button>
@@ -85,16 +85,16 @@ export default function ScenarioOptionEditor({
                 maxLength={2}
                 placeholder="🙂"
                 onChange={(e) => setNewIcon(e.target.value)}
-                aria-label="新选项图标"
+                aria-label={t("scenario.opt.newIconAria")}
               />
             )}
             <input
               className="option-label-input"
               value={newLabel}
-              placeholder="新选项名称…"
+              placeholder={t("scenario.opt.newNamePlaceholder")}
               onChange={(e) => setNewLabel(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") commitNew(); }}
-              aria-label="新选项名称"
+              aria-label={t("scenario.opt.newNameAria")}
             />
             <button
               type="button"
@@ -102,14 +102,14 @@ export default function ScenarioOptionEditor({
               onClick={commitNew}
               disabled={!newLabel.trim()}
             >
-              + 添加
+              {t("scenario.opt.add")}
             </button>
           </div>
         </div>
       ) : (
         <div className="settings-chips">
           {options.length === 0 ? (
-            <span className="settings-empty-hint">还没有选项，点「✎ 编辑」添加</span>
+            <span className="settings-empty-hint">{t("scenario.opt.empty")}</span>
           ) : (
             options.map((opt) => (
               <button

@@ -40,7 +40,7 @@ export default function ScenarioSettings({ scenario }) {
       <ScenarioConfigAssistant scenario={scenario} />
 
       <ScenarioOptionEditor
-        title="可用设备"
+        title={t("scenario.settings.devices")}
         kind="devices"
         options={scenarioOptions.devices}
         selected={settings.devices}
@@ -50,7 +50,7 @@ export default function ScenarioSettings({ scenario }) {
       />
 
       <ScenarioOptionEditor
-        title="交流规则"
+        title={t("scenario.settings.comm")}
         kind="communication"
         options={scenarioOptions.communication}
         selected={settings.communication}
@@ -62,16 +62,14 @@ export default function ScenarioSettings({ scenario }) {
           选中后即按这些标签筛选任务库。 */}
       <div className="settings-section">
         <div className="settings-label-row">
-          <span className="settings-label">任务类型</span>
-          <Link to="/tasks" className="settings-manage-btn" title="去任务库编辑标签">
-            ⇢ 任务库标签
+          <span className="settings-label">{t("scenario.settings.taskTypes")}</span>
+          <Link to="/tasks" className="settings-manage-btn" title={t("scenario.settings.tagLinkTitle")}>
+            {t("scenario.settings.tagLink")}
           </Link>
         </div>
         <div className="settings-chips">
           {allTagOptions.length === 0 ? (
-            <span className="settings-empty-hint">
-              任务库还没有标签，去任务库的「标签」列添加后这里会同步出现
-            </span>
+            <span className="settings-empty-hint">{t("scenario.settings.noTags")}</span>
           ) : (
             allTagOptions.map((opt) => (
               <button

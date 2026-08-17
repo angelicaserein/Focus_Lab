@@ -6,6 +6,7 @@ import analytics from "./analytics";
 import history from "./history";
 import memo from "./memo";
 import nav from "./nav";
+import sidebar from "./sidebar";
 import character from "./character";
 import wish from "./wish";
 import aquarium from "./aquarium";
@@ -36,13 +37,15 @@ export const LANGUAGES = [
 
 export const DEFAULT_LANG = "zh";
 
-// 各命名空间按显示顺序合并；后者不覆盖前者的 key（命名空间前缀天然不冲突）。
+// 各命名空间按显示顺序合并。同名 key 会被后者覆盖，所以两个文件不许定义同一个 key——
+// i18n.test.js 会守住这条，以及 en/zh 齐全、占位符一致等约定。
 const MODULES = [
   common,
   analytics,
   history,
   memo,
   nav,
+  sidebar,
   character,
   wish,
   aquarium,

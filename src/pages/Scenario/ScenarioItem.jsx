@@ -1,12 +1,14 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useScenarios } from "@/context/ScenarioContext";
+import { useLanguage } from "@/context/LanguageContext";
 import useEditMode from "@/hooks/common/useEditMode";
 import { hasScenarioSettings } from "@/utils/scenario/scenarioConstants";
 
 export default function ScenarioItem({ scenario, settingsOpen, onToggleSettings }) {
   const { deleteScenario, editScenario, activeScenarioId, setActiveScenario } =
     useScenarios();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const [removing, setRemoving] = useState(false);
@@ -84,17 +86,17 @@ export default function ScenarioItem({ scenario, settingsOpen, onToggleSettings 
             onChange={(e) => setDraftTitle(e.target.value)}
             onKeyDown={handleKeyDown}
             onClick={(e) => e.stopPropagation()}
-            aria-label="编辑情景名称"
+            aria-label={t("scenario.item.editTitleAria")}
           />
           <input
             className="scenario-edit-input"
             value={draftDesc}
-            placeholder="描述（选填）"
+            placeholder={t("scenario.form.descPlaceholder")}
             onChange={(e) => setDraftDesc(e.target.value)}
             onKeyDown={handleKeyDown}
             onBlur={handleCommitEdit}
             onClick={(e) => e.stopPropagation()}
-            aria-label="编辑情景描述"
+            aria-label={t("scenario.item.editDescAria")}
           />
         </div>
       ) : (
@@ -111,25 +113,25 @@ export default function ScenarioItem({ scenario, settingsOpen, onToggleSettings 
           <button
             className="scenario-quickstart-btn"
             onClick={handleQuickStart}
-            aria-label={`前往专注，预选情景 ${scenario.title}`}
-            title="前往专注（预选此情景）"
+            aria-label={t("scenario.item.quickStartAria", { name: scenario.title })}
+            title={t("scenario.item.quickStartTitle")}
           >
             ▶
           </button>
           <button
             className={`scenario-settings-btn${hasSettings ? " active" : ""}${settingsOpen ? " open" : ""}`}
             onClick={(e) => { e.stopPropagation(); onToggleSettings(); }}
-            aria-label="情景设置"
+            aria-label={t("scenario.item.settingsAria")}
             aria-pressed={settingsOpen}
-            title="情景设置"
+            title={t("scenario.item.settingsAria")}
           >
             ⚙
           </button>
           <button
             className="edit-btn"
             onClick={handleStartEdit}
-            aria-label={`编辑 ${scenario.title}`}
-            title="编辑情景"
+            aria-label={t("scenario.item.editAria", { name: scenario.title })}
+            title={t("scenario.item.editTitle")}
           >
             ✎
           </button>
@@ -139,8 +141,8 @@ export default function ScenarioItem({ scenario, settingsOpen, onToggleSettings 
       <button
         className="delete-btn"
         onClick={handleDelete}
-        aria-label={`删除 ${scenario.title}`}
-        title="删除情景"
+        aria-label={t("scenario.item.deleteAria", { name: scenario.title })}
+        title={t("scenario.item.deleteTitle")}
       >
         ×
       </button>
