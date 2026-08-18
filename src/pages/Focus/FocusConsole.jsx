@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import EisenhowerMatrix from "@/components/todo/EisenhowerMatrix";
 import { useLanguage } from "@/context/LanguageContext";
+import { useFeatures } from "@/context/FeatureContext";
+import { FEATURE_KEYS } from "@/pages/FunctionTree/functionTreeData";
 import RandomTaskDrawer from "@/pages/Focus/RandomTaskDrawer";
 import RecommendStrip from "@/pages/Focus/RecommendStrip";
 import FocusDurationPicker from "@/pages/Focus/FocusDurationPicker";
@@ -41,8 +43,13 @@ function FocusConsole({
   // 没选情景时，温柔地问一句要不要设个情景，并给一个直达「情景配置」的入口——
   // 因为很多时候会忘记去左侧栏配置、这个功能就荒废了。可「这次先不用」在本次会话内忽略，
   // 不唠叨；选定情景后引导自然消失。dismiss 只存本次挂载，下次进专注页会再次提醒。
+  // 情景功能被关掉时不再劝设情景，也不显示选择器——否则引导会把用户送去一个已经
+  // 不可达的配置页，等于在推销一个他刚刚亲手关掉的功能。
+  const { isEnabled } = useFeatures();
+  const scenarioPickerOn = isEnabled(FEATURE_KEYS.SCENARIO_PICKER);
   const [scenarioNudgeDismissed, setScenarioNudgeDismissed] = useState(false);
-  const showScenarioNudge = !selectedScenarioId && !scenarioNudgeDismissed;
+  const showScenarioNudge =
+    scenarioPickerOn && !selectedScenarioId && !scenarioNudgeDismissed;
 
   return (
     <div className="page-focus">
@@ -135,8 +142,8 @@ function FocusConsole({
                 </div>
               )}
 
-              {/* 情境选择：有情境时才显示 */}
-              {scenarios.length > 0 && (
+              {/* 情境选择：功能开着且有情境时才显示 */}
+              {scenarioPickerOn && scenarios.length > 0 && (
                 <div className="focus-scenario-row">
                   <label className="focus-scenario-label" htmlFor="focus-scenario-select">
                     {t("focus.scenario")}

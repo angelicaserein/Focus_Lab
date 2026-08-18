@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Check, ChevronDown, ChevronRight, X } from "lucide-react";
 import AttrCell from "@/pages/Tasks/cells/AttrCell";
+import RecurringDayPicker, { recurringLabel } from "@/components/todo/RecurringDayPicker";
+import useOutsideClick from "@/hooks/common/useOutsideClick";
 import { useLanguage } from "@/context/LanguageContext";
-import { onActivateKey } from "@/utils/a11y";
+import desktop from "@/utils/desktop/desktopBridge";
 
 // 判断某属性在这条任务上是否已有值——空的属性折叠时不显示，避免一排「—」造成视觉噪音。
 function hasValue(todo, attr) {
@@ -14,11 +16,14 @@ function hasValue(todo, attr) {
 
 // 一张任务卡：大圆勾选 + 可点改的标题 + 已填属性的小徽标；点「展开」才露出全部属性编辑区，
 // 渐进披露、默认不铺满信息，是这套界面对「一眼看太多会瘫掉」的主要照顾。
-function TaskCard({ todo, visibleAttrs, onToggle, onEditText, onSaveAttr, onDelete }) {
+function TaskCard({ todo, visibleAttrs, onToggle, onEditText, onSaveAttr, onDelete, onSetRecurring }) {
   const { t } = useLanguage();
   const [editingText, setEditingText] = useState(false);
   const [draft, setDraft] = useState("");
   const [expanded, setExpanded] = useState(false);
+  const [showDayPicker, setShowDayPicker] = useState(false);
+  const cardRef = useRef(null);
+  useOutsideClick(cardRef, () => setShowDayPicker(false), showDayPicker);
 
   const startEdit = () => { setDraft(todo.text); setEditingText(true); };
   const commit = () => { onEditText(todo.id, draft); setEditingText(false); };
@@ -29,9 +34,15 @@ function TaskCard({ todo, visibleAttrs, onToggle, onEditText, onSaveAttr, onDele
 
   const saveAttr = (attrId, value) => onSaveAttr(todo.id, attrId, value);
   const filled = visibleAttrs.filter((a) => hasValue(todo, a));
+  const recurringDays = todo.recurringDays ?? [];
+  const recurLabel = recurringLabel(recurringDays, t);
 
   return (
-    <div className={`fc-card${todo.completed ? " done" : ""}`}>
+    <div
+      className={`fc-card${todo.completed ? " done" : ""}${showDayPicker ? " picker-open" : ""}`}
+      data-highlight-id={todo.id}
+      ref={cardRef}
+    >
       <button
         type="button"
         className="fc-check"
@@ -53,18 +64,24 @@ function TaskCard({ todo, visibleAttrs, onToggle, onEditText, onSaveAttr, onDele
               onKeyDown={onKey}
             />
           ) : (
-            <span
-              className="fc-title"
-              role="button"
-              tabIndex={0}
-              onClick={startEdit}
-              onKeyDown={onActivateKey(startEdit)}
-              title={t("tasks.clickToEdit")}
-            >
+            <span className="fc-title" onClick={startEdit} title={t("tasks.clickToEdit")}>
               {todo.text}
-              {todo.recurringDays?.length > 0 && <span className="fc-recur" title={t("tasks.recurring")}>↺</span>}
             </span>
           )}
+
+          {/* ↺ 固定任务：选中的星期几到点会自动重新变回未完成，
+              所以设置入口就长在任务上，不另开一处「重复规则」页面。 */}
+          <button
+            type="button"
+            className={`fc-recur${recurringDays.length > 0 ? " active" : ""}`}
+            onClick={() => setShowDayPicker((v) => !v)}
+            title={recurringDays.length > 0
+              ? t("todo.form.recurringSet", { label: recurLabel })
+              : t("todo.item.setRecurring")}
+            aria-pressed={recurringDays.length > 0}
+          >
+            ↺{recurringDays.length > 0 && <span className="fc-recur-label">{recurLabel}</span>}
+          </button>
 
           {visibleAttrs.length > 0 && (
             <button
@@ -81,6 +98,26 @@ function TaskCard({ todo, visibleAttrs, onToggle, onEditText, onSaveAttr, onDele
             <X size={15} aria-hidden="true" />
           </button>
         </div>
+
+        {/* 拖文件进来建的任务：点一下用系统默认程序打开那个文件。
+            「想到该改论文」和「真的开始改」之间隔着「找到那个文件」，
+            这个按钮就是把那一步省掉。文件被移走 / 删掉时 openPath 会返回
+            一句原因，用 title 交代，不弹窗打断。 */}
+        {todo.filePath && (
+          <button
+            type="button"
+            className="todo-file-open"
+            title={todo.filePath}
+            onClick={async (e) => {
+              // 按钮引用要在 await 之前拿：事件处理函数同步返回之后 currentTarget 就是 null 了
+              const btn = e.currentTarget;
+              const err = await desktop.openPath(todo.filePath);
+              if (err) btn.title = t("todo.item.openFileFailed");
+            }}
+          >
+            📎 {t("todo.item.openFile")}
+          </button>
+        )}
 
         {/* 折叠态：只把已填的属性以徽标形式露出来，点一下就能就地改（复用任务库的编辑弹层） */}
         {!expanded && filled.length > 0 && (
@@ -103,6 +140,14 @@ function TaskCard({ todo, visibleAttrs, onToggle, onEditText, onSaveAttr, onDele
               </div>
             ))}
           </div>
+        )}
+
+        {showDayPicker && (
+          <RecurringDayPicker
+            days={recurringDays}
+            onChange={(d) => onSetRecurring(todo.id, d)}
+            onClose={() => setShowDayPicker(false)}
+          />
         )}
       </div>
     </div>

@@ -1,8 +1,7 @@
 import React, { useState, useRef } from "react";
 import {
-  formatDate, formatMins, isDuePast, attrName, attrUnit, optionLabel,
+  formatDate, formatMins, isDuePast, attrUnit, optionLabel,
 } from "@/utils/task/taskAttrUtils";
-import { onActivateKey } from "@/utils/a11y";
 import { useLanguage } from "@/context/LanguageContext";
 import Popover from "@/components/ui/Popover";
 import AttrCellSelect from "@/pages/Tasks/cells/AttrCellSelect";
@@ -81,17 +80,7 @@ export default function AttrCell({ attrDef, todo, onSave }) {
   // Popup editors (select / multiselect) render in a portal anchored to the cell.
   return (
     <>
-      {/* 单元格点一下进编辑态。截止日那格里还嵌着一个开关按钮，套不了原生 <button>。 */}
-      <div
-        className="attr-cell-display"
-        ref={displayRef}
-        role="button"
-        tabIndex={0}
-        aria-label={attrName(t, attrDef)}
-        title={t("tasks.clickToEdit")}
-        onClick={startEdit}
-        onKeyDown={onActivateKey(startEdit)}
-      >
+      <div className="attr-cell-display" ref={displayRef} onClick={startEdit}>
         {renderValue({
           attrId, type, value, options, unit,
           completed: todo.completed, deadlineActive, t, lang,
@@ -182,9 +171,8 @@ function renderValue({
   }
   if (type === "number") {
     if (!value) return <span className="cell-empty">—</span>;
-    // 仅内置「预计时长」(或单位为分钟) 按 时:分 格式化；其余按 数值 + 单位 展示。
-    const isMinutes =
-      attrId === "estimatedMins" || ["分", "分钟", "min", "mins"].includes(unit);
+    // 单位为分钟的列按 时:分 格式化；其余按 数值 + 单位 展示。
+    const isMinutes = ["分", "分钟", "min", "mins"].includes(unit);
     return (
       <span className="est-value">
         {isMinutes ? formatMins(value, lang) : `${value}${unit ? ` ${unit}` : ""}`}

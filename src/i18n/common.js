@@ -10,4 +10,13 @@ export default {
   "common.loading": { en: "Loading", zh: "加载中" },
   "common.loadingEllipsis": { en: "Loading…", zh: "加载中…" },
   "common.close": { en: "Close", zh: "关闭" },
+
+  // localStorage 写满的警报条（StorageQuotaBanner）。措辞的重点是「数据没保存」，
+  // 不是「空间不足」——用户需要知道的是后果，不是原因。
+  "storage.quota.title": { en: "Your data is no longer being saved", zh: "数据已经存不进去了" },
+  "storage.quota.detail": {
+    en: "Local storage is full. Anything you do now lives only in this tab and will be lost when you close it. Export a backup, then clear old records in Settings › Data.",
+    zh: "本地存储已满。现在做的任何改动只存在当前页面里，关掉就没了。请先导出备份，再到「设置 › 数据」清理旧记录。",
+  },
+  "storage.quota.export": { en: "Export backup", zh: "导出备份" },
 };

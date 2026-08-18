@@ -7,9 +7,10 @@ import AppWatchSection from "@/pages/Settings/AppWatchSection";
 import ToneSection from "@/pages/Settings/ToneSection";
 import TaskSplitSection from "@/pages/Settings/TaskSplitSection";
 import DataSection from "@/pages/Settings/DataSection";
+import PrivacySection from "@/pages/Settings/PrivacySection";
 import "./Settings.css";
 
-const TABS = ["appearance", "timing", "tasks", "tone", "language", "data"];
+const TABS = ["appearance", "timing", "tasks", "tone", "language", "data", "privacy"];
 
 export default function SettingsPage() {
   const { t } = useLanguage();
@@ -55,6 +56,7 @@ export default function SettingsPage() {
         {tab === "tone" && <ToneSection />}
         {tab === "language" && <LanguageSection />}
         {tab === "data" && <DataSection />}
+        {tab === "privacy" && <PrivacySection />}
       </div>
     </div>
   );

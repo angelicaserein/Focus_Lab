@@ -28,7 +28,7 @@ export default function GanttProjectModal({
   };
 
   return (
-    <div className="gantt-modal-backdrop" role="presentation" onClick={onClose}>
+    <div className="gantt-modal-backdrop" onClick={onClose}>
       <div className="gantt-modal" onClick={(e) => e.stopPropagation()}>
         <div className="gantt-modal-head">
           <h2>{t("gantt.project.settings")}</h2>

@@ -23,7 +23,10 @@ function TodoRow({ todo, visibleAttrs, onSaveAttr, onEditText, onToggle, onDelet
   const saveAttr = (attrId, value) => onSaveAttr(todo.id, attrId, value);
 
   return (
-    <tr className={`tasks-row${todo.completed ? " done" : ""}${selected ? " selected" : ""}`}>
+    <tr
+      className={`tasks-row${todo.completed ? " done" : ""}${selected ? " selected" : ""}`}
+      data-highlight-id={todo.id}
+    >
       <td className="td-select">
         <input
           type="checkbox"

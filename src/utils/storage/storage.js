@@ -19,10 +19,11 @@
  */
 
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
+import { reportStorageError } from "@/utils/storage/quotaAlert";
 import { TASK_ATTR_DEFAULTS } from "@/utils/task/taskAttrDefaults";
 import { TASK_TYPE_OPTIONS } from "@/utils/scenario/scenarioConstants";
 
-export const SCHEMA_VERSION = 8;
+export const SCHEMA_VERSION = 9;
 
 // ── 写入闸门 ────────────────────────────────────────────────────
 // localStorage 有两类写入方，它们对「什么是最新的数据」有各自的看法：
@@ -50,6 +51,8 @@ export function writesAreFrozen() {
 // v7 时期的出厂默认标签 id。v8 迁移把它们换成新的 TASK_TYPE_OPTIONS。
 const LEGACY_TAG_IDS = ["deep_work", "admin", "creative", "communication", "reading"];
 const SCHEMA_META_KEY = "__focuslab_schema";
+// 已删除的研究记录页留下的键。只有 v9 迁移用它把老数据抹掉，别再往回加读写。
+const LEGACY_RESEARCH_KEY = "research_daily_v1";
 
 const MIGRATIONS = [
   null, // v0→v1: no-op placeholder
@@ -132,6 +135,14 @@ const MIGRATIONS = [
       }),
     };
   },
+  // v8→v9: 研究记录页整个删掉了，盘上的 research_daily_v1 不再有任何读写方。
+  // 这一条是唯一一个「删键」而不是「改数据」的迁移：键已经不在 KEY_MAP 里，
+  // 变换 data 对象碰不到它，只能直接从 localStorage 抹掉，否则它会永远留在
+  // 老用户浏览器里占配额。
+  (data) => {
+    localStorage.removeItem(LEGACY_RESEARCH_KEY);
+    return data;
+  },
 ];
 
 // 所有 key 统一使用 { version: N, data: T } 包装格式（v6 起）。
@@ -169,7 +180,6 @@ const KEY_MAP = {
   memos:         { key: STORAGE_KEYS.MEMOS            },
   distractions:  { key: STORAGE_KEYS.DISTRACTIONS     },
   chatHistory:   { key: STORAGE_KEYS.CHAT             },
-  researchDaily: { key: STORAGE_KEYS.RESEARCH_RECORDS },
   ganttTasks:    { key: STORAGE_KEYS.GANTT_TASKS      },
   ganttProjects: { key: STORAGE_KEYS.GANTT_PROJECTS   },
   taskAttrs:     { key: STORAGE_KEYS.TASK_ATTRS       },
@@ -257,7 +267,11 @@ function writeAllVersioned(data) {
     try {
       localStorage.setItem(key, JSON.stringify(wrapVersioned(data[name])));
       writtenKeys.push(key);
-    } catch { /* 配额溢出时局部失败 */ }
+    } catch (e) {
+      // 配额溢出时局部失败。以前这里空吞，于是导入会「成功」一半：
+      // 提示写着导入 12 项，实际只落盘 5 项，剩下的悄悄没了。现在报出去。
+      reportStorageError(e, key);
+    }
   }
   return writtenKeys;
 }
@@ -307,16 +321,22 @@ export function runMigrations() {
     if (stored >= SCHEMA_VERSION) return;
 
     const data = {};
+    const corrupt = new Set();
     for (const [name, { key }] of Object.entries(KEY_MAP)) {
       const raw = localStorage.getItem(key);
       if (raw === null) continue;
       try {
         // 兼容旧格式（裸 JSON）和已有的 versioned 格式
         data[name] = unwrapVersioned(JSON.parse(raw));
-      } catch { /* 跳过损坏的键 */ }
+      } catch { corrupt.add(name); }
     }
 
-    writeAllVersioned(applyMigrations(data, stored));
+    // 迁移函数写的是 `todos: (data.todos ?? []).map(...)`，读不出来的键会被它补成 []，
+    // 于是「跳过损坏键」在写回这一步变成「拿空数组盖掉损坏键」——原始字节没了，
+    // 用户连手工抢救的机会都没有。所以损坏的键读不回来也不写回去，原样留在盘上。
+    const migrated = applyMigrations(data, stored);
+    for (const name of corrupt) delete migrated[name];
+    writeAllVersioned(migrated);
 
     localStorage.setItem(SCHEMA_META_KEY, String(SCHEMA_VERSION));
   } catch (e) {
@@ -372,6 +392,13 @@ export function importAllData(jsonString, mode = "merge") {
   const incoming = applyMigrations(parsed.data, fileSchemaVersion);
   const data = mode === "replace" ? incoming : mergeAllData(readAllVersioned(), incoming);
   const writtenKeys = writeAllVersioned(data);
+
+  // 配额不够时 writeAllVersioned 会写掉一部分就写不动了。这时候还报「导入成功 N 项」
+  // 就是在骗人——用户会以为备份已经回来了，转头把源文件删掉。
+  const expected = Object.keys(KEY_MAP).filter((name) => name in data).length;
+  if (writtenKeys.length < expected) {
+    return { success: false, error: "settings.data.errQuota", keys: writtenKeys };
+  }
 
   localStorage.setItem(SCHEMA_META_KEY, String(SCHEMA_VERSION));
   return { success: true, keys: writtenKeys };

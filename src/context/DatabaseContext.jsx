@@ -145,7 +145,7 @@ export function DatabaseProvider({ children }) {
     if (activeDatabaseId === id) setActiveDatabaseId(DEFAULT_DB_ID);
   };
 
-  // 默认库恢复出厂：名字回到 i18n 默认，优先级/标签/截止日期/预计时长/备注 这五个
+  // 默认库恢复出厂：名字回到 i18n 默认，优先级/标签/截止日期/备注 这四个
   // 内置列按出厂配置补回（同 id 的覆盖回默认，改过名/删掉的都会还原）；
   // 自己加的列排在后面原样保留，任务本身一个不动。
   // 老数据里万一没有默认库，这里顺手补回来。

@@ -35,20 +35,11 @@ export const TASK_ATTR_DEFAULTS = [
     order: 2,
   },
   {
-    id: "estimatedMins",
-    nameKey: "tasks.attr.estimatedMins",
-    type: "number",
-    system: true,
-    visible: true,
-    order: 3,
-    unitKey: "tasks.unit.min",
-  },
-  {
     id: "notes",
     nameKey: "tasks.attr.notes",
     type: "text",
     system: true,
     visible: true,
-    order: 4,
+    order: 3,
   },
 ];

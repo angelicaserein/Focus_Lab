@@ -4,7 +4,7 @@ import { Shuffle, Check, Timer, Plus, RotateCcw } from "lucide-react";
 import { useTodos } from "@/context/TodoContext";
 import { useFocus } from "@/context/FocusContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { formatDate, formatMins, isDuePast, optionLabel } from "@/utils/task/taskAttrUtils";
+import { formatDate, isDuePast, optionLabel } from "@/utils/task/taskAttrUtils";
 import TaskCard from "@/pages/Tasks/TaskCard";
 import {
   activeDue,
@@ -22,8 +22,8 @@ const BUCKET_META = {
   anytime:  { emoji: "🌿", label: "flow.bucket.anytime",  hint: "flow.bucket.anytimeHint" },
 };
 
-// 「现在就做」卡片里那排只读小徽标：优先级 / 截止 / 预计时长，一眼看清份量。
-function HeroChips({ todo, priorityAttr, t, lang }) {
+// 「现在就做」卡片里那排只读小徽标：优先级 / 截止，一眼看清份量。
+function HeroChips({ todo, priorityAttr, t }) {
   const chips = [];
   const pOpt = priorityAttr?.options?.find((o) => o.id === todo.attrs?.priority);
   if (pOpt) {
@@ -42,8 +42,6 @@ function HeroChips({ todo, priorityAttr, t, lang }) {
       </span>,
     );
   }
-  const est = todo.attrs?.estimatedMins;
-  if (est) chips.push(<span key="e" className="fc-hero-chip">⏱ {formatMins(est, lang)}</span>);
   return chips.length ? <div className="fc-hero-chips">{chips}</div> : null;
 }
 
@@ -79,10 +77,10 @@ function useStickyBuckets(todos, weightOf, scopeKey) {
  * 数据（当前库 / 情景 / 搜索筛选排序）由任务库页面统一算好后传进来，
  * 所以两个视图看到的永远是同一批任务。
  */
-export default function FlowView({ todos, visibleAttrs, priorityAttr, activeDatabaseId, scopeKey }) {
+export default function FlowView({ todos, visibleAttrs, priorityAttr, activeDatabaseId, scopeKey, highlightId }) {
   const { addTodo, toggleTodo, editTodo, setTodoAttr, deleteTodo } = useTodos();
   const { addFocusTodo } = useFocus();
-  const { t, lang } = useLanguage();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const [soloMode, setSoloMode] = useState(false);          // 「一次只看一件」专注模式
@@ -94,6 +92,16 @@ export default function FlowView({ todos, visibleAttrs, priorityAttr, activeData
   const weightOf = useMemo(() => makeWeightOf(priorityAttr), [priorityAttr]);
   const incomplete = useMemo(() => todos.filter((t) => !t.completed), [todos]);
   const [buckets, tidy] = useStickyBuckets(todos, weightOf, scopeKey);
+
+  // 跨页搜索定位到一件已完成的任务时，把已完成堆展开——它默认折叠，
+  // 不展开的话卡片根本没渲染，滚过去和高亮都落空；专注模式同理，先退出来。
+  useEffect(() => {
+    if (!highlightId) return;
+    const target = todos.find((t) => t.id === highlightId);
+    if (!target) return;
+    if (target.completed) setShowDone(true);
+    setSoloMode(false);
+  }, [highlightId, todos]);
 
   const doneCount = useMemo(() => todos.filter((t) => t.completed).length, [todos]);
   const total = todos.length;
@@ -171,7 +179,7 @@ export default function FlowView({ todos, visibleAttrs, priorityAttr, activeData
         <section className="fc-hero">
           <div className="fc-hero-eyebrow">{t("flow.heroEyebrow")}</div>
           <div className="fc-hero-title">{hero.text}</div>
-          <HeroChips todo={hero} priorityAttr={priorityAttr} t={t} lang={lang} />
+          <HeroChips todo={hero} priorityAttr={priorityAttr} t={t} />
           <div className="fc-hero-actions">
             <button
               type="button"

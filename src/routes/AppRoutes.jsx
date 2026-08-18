@@ -19,7 +19,6 @@ const ROUTES = [
   { path: "/flasks",         importer: () => import("@/pages/Flasks") },
   { path: "/scenario",       importer: () => import("@/pages/Scenario") },
   { path: "/reward",         importer: () => import("@/pages/Reward") },
-  { path: "/research",       importer: () => import("@/pages/Research") },
   { path: "/scenario-stats", importer: () => import("@/pages/ScenarioStats") },
   { path: "/analytics",      importer: () => import("@/pages/Analytics") },
   { path: "/distraction",    importer: () => import("@/pages/Distraction") },

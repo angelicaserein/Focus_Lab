@@ -39,7 +39,7 @@ FocusLab 的测试流程与规范。目标：核心**纯逻辑**受测试保护�
 
 ## 覆盖率门槛
 
-- 只 gate 纯逻辑层 `src/utils/**`（配置见 `vite.config.js` 的 `test.coverage`）。当前 ≈65%。
+- 只 gate 纯逻辑层 `src/utils/**`（配置见 `vite.config.js` 的 `test.coverage`）。当前 ≈91%。
 - 阈值是"只涨不跌"的地板线，不是目标。补了测试、`npm run test:cov` 数字上去后，
   就把 `vite.config.js` 里的 thresholds 往上调，锁住成果。
 - UI/three/JSX 组件不计入覆盖率，别为凑数字给它们硬写脆测试。

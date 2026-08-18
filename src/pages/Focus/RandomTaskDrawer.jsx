@@ -59,7 +59,7 @@ export default function RandomTaskDrawer({ onSelect, onClose }) {
       : null;
 
   return (
-    <div className="rtd-overlay" role="presentation" onClick={onClose}>
+    <div className="rtd-overlay" onClick={onClose}>
       <div className="rtd-modal" onClick={(e) => e.stopPropagation()}>
         <div className="rtd-header">
           <h2 className="rtd-title">{t("focus.rtd.title")}</h2>

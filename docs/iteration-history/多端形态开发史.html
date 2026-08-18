@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Focus Lab 多端形态开发史</title>
+</head>
+<body>
+<style>
+:root{
+  --paper:#EDF1EF; --surface:#F7FAF8; --surface-2:#E3E9E6;
+  --ink:#111A19; --ink-2:#3A4846; --muted:#667673; --hair:#C9D3D0;
+  --accent:#0F6F60; --accent-soft:#0F6F6018; --warm:#A85B14; --quiet:#7C8B96;
+  --desk:#2B5FA8; --desk-soft:#2B5FA815; --mob:#8A4A9E; --mob-soft:#8A4A9E15;
+  --shadow:0 1px 2px rgba(17,26,25,.06),0 8px 24px rgba(17,26,25,.05);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0B1211; --surface:#121B19; --surface-2:#182422;
+  --ink:#E6EEEB; --ink-2:#C0CDC9; --muted:#8B9C98; --hair:#25332F;
+  --accent:#4DC3AC; --accent-soft:#4DC3AC1F; --warm:#E0964A; --quiet:#7E909B;
+  --desk:#7FB0F0; --desk-soft:#7FB0F01F; --mob:#D19BE6; --mob-soft:#D19BE61F;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+}}
+:root[data-theme="dark"]{
+  --paper:#0B1211; --surface:#121B19; --surface-2:#182422;
+  --ink:#E6EEEB; --ink-2:#C0CDC9; --muted:#8B9C98; --hair:#25332F;
+  --accent:#4DC3AC; --accent-soft:#4DC3AC1F; --warm:#E0964A; --quiet:#7E909B;
+  --desk:#7FB0F0; --desk-soft:#7FB0F01F; --mob:#D19BE6; --mob-soft:#D19BE61F;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB","Noto Sans SC",-apple-system,system-ui,sans-serif;
+  font-size:16px; line-height:1.75; -webkit-font-smoothing:antialiased;
+}
+.mono,code{font-family:ui-monospace,"SF Mono",Consolas,"DejaVu Sans Mono",monospace;font-variant-numeric:tabular-nums}
+code{font-size:.88em;background:var(--surface-2);border-radius:4px;padding:1px 5px;color:var(--ink-2)}
+.wrap{max-width:960px;margin:0 auto;padding:0 24px}
+
+header{border-bottom:1px solid var(--hair);padding:60px 0 26px;margin-bottom:26px}
+.eyebrow{font-family:ui-monospace,Consolas,monospace;font-size:12px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+h1{font-size:clamp(28px,4.2vw,42px);line-height:1.2;margin:0;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+.lede{max-width:64ch;color:var(--ink-2);margin:16px 0 0;font-size:16.5px}
+
+nav.index{display:flex;flex-wrap:wrap;gap:7px;padding:16px 0 30px;border-bottom:1px solid var(--hair);margin-bottom:34px}
+nav.index a{font-size:13px;text-decoration:none;color:var(--ink-2);background:var(--surface);
+  border:1px solid var(--hair);border-radius:999px;padding:3px 12px;transition:.14s}
+nav.index a:hover,nav.index a:focus-visible{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+nav.index a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.part{margin:0 0 18px;padding-top:14px;scroll-margin-top:18px}
+.part-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:22px}
+.part-head h2{margin:0;font-size:25px;font-weight:700;letter-spacing:-.01em}
+.part-head .tag{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;border-radius:3px;padding:1px 7px;font-weight:400}
+.tag.d{color:var(--desk);border:1px solid var(--desk);background:var(--desk-soft)}
+.tag.m{color:var(--mob);border:1px solid var(--mob);background:var(--mob-soft)}
+.part-head .sub{font-size:13px;color:var(--muted);font-family:ui-monospace,Consolas,monospace}
+
+.blk{margin:0 0 34px;scroll-margin-top:18px}
+.blk > h3{margin:0 0 10px;font-size:19px;font-weight:650;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;
+  padding-bottom:8px;border-bottom:1px solid var(--hair)}
+.blk > h3 .path{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--muted);font-weight:400}
+.blk > h3 .born{font-size:11.5px;font-family:ui-monospace,Consolas,monospace;font-weight:400;
+  border-radius:3px;padding:0 6px;color:var(--accent);border:1px solid var(--accent)}
+.blk > p{margin:10px 0;color:var(--ink-2);font-size:15.2px;max-width:70ch}
+
+ul.pts{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:7px}
+ul.pts li{font-size:15px;line-height:1.62;padding-left:16px;position:relative;color:var(--ink-2)}
+ul.pts li::before{content:"";position:absolute;left:0;top:.68em;width:5px;height:5px;border-radius:50%;
+  background:var(--accent);opacity:.55}
+ul.pts li.only::before{background:var(--desk);opacity:.9}
+ul.pts li.why::before{background:var(--warm);opacity:.85}
+b{color:var(--ink);font-weight:600}
+
+.log{list-style:none;margin:0;padding:0}
+.log > li{display:grid;grid-template-columns:62px 1fr;gap:16px;align-items:baseline;
+  padding:11px 0;border-bottom:1px solid var(--hair)}
+.log time{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.log .pts{margin:0}
+.log .pts li{font-size:14.8px}
+.log .sha{font-family:ui-monospace,Consolas,monospace;font-size:11px;color:var(--quiet);display:block}
+
+kbd{font-family:inherit;font-size:.94em;background:var(--surface-2);border:1px solid var(--hair);
+  border-bottom-width:2px;border-radius:5px;padding:0 5px;color:var(--ink);white-space:nowrap}
+.note{background:var(--surface);border:1px solid var(--hair);border-left:3px solid var(--accent);
+  border-radius:8px;padding:14px 18px;margin:0 0 32px;font-size:14.5px;color:var(--ink-2)}
+.note b{display:block;margin-bottom:4px}
+.note.d{border-left-color:var(--desk)}
+.note.m{border-left-color:var(--mob)}
+
+.tablewrap{overflow-x:auto;margin:14px 0 0;border:1px solid var(--hair);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14.5px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--hair);vertical-align:top;color:var(--ink-2)}
+th{font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--surface-2)}
+tbody tr:last-child td{border-bottom:none}
+td.k{color:var(--ink);font-weight:600;white-space:nowrap}
+.yes{color:var(--accent);font-weight:600}
+.no{color:var(--quiet)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:6px;height:6px;border-radius:50%;display:inline-block}
+.legend i.a{background:var(--accent);opacity:.55}
+.legend i.o{background:var(--desk);opacity:.9}
+.legend i.w{background:var(--warm);opacity:.85}
+footer{border-top:1px solid var(--hair);padding:22px 0 60px;color:var(--muted);font-size:13px;margin-top:20px}
+@media (max-width:560px){
+  .log > li{grid-template-columns:1fr;gap:4px}
+  .log time{font-size:12px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Focus Lab · 桌面版与手机端</p>
+  <h1>多端形态开发史</h1>
+  <p class="lede">前两份讲的是「功能」和「需求」，这一份讲的是<b>壳</b>：同一份 <code>src/</code>，怎么长出网页、手机（PWA）和 Windows 桌面（Electron）三种形态，各自加了哪些别处没有的东西。结论先放在这里——手机端确实只有「优化 + 装进主屏的壳」，一件独占功能都没有；桌面端才是真正长出新能力的那一路：桌宠悬浮窗、托盘、全局快捷键、前台应用探测、屏幕底部积水、拖文件建任务、自动更新。</p>
+  <div class="legend">
+    <span><i class="a"></i>常规改动</span>
+    <span><i class="o"></i>该形态独占（另一端做不到）</span>
+    <span><i class="w"></i>设计取舍 / 为什么这么做</span>
+  </div>
+</header>
+
+<nav class="index" aria-label="目录">
+  <a href="#shell">一份源码三个壳</a>
+  <a href="#desk">桌面版</a>
+  <a href="#desk-timeline">桌面时间线</a>
+  <a href="#windows">三窗架构</a>
+  <a href="#pet">桌宠</a>
+  <a href="#tray">托盘</a>
+  <a href="#hotkey">全局快捷键</a>
+  <a href="#watch">前台应用探测</a>
+  <a href="#flood">屏幕积水</a>
+  <a href="#resilience">睡眠 / 崩溃 / 单实例</a>
+  <a href="#drop">拖文件建任务</a>
+  <a href="#update">自动更新与打包</a>
+  <a href="#mob">手机端 / PWA</a>
+  <a href="#mob-timeline">手机时间线</a>
+  <a href="#pwa">PWA 三件套</a>
+  <a href="#feel">原生手感</a>
+  <a href="#bp">断点体系</a>
+  <a href="#mobpage">页面级手机优化</a>
+  <a href="#compare">三端能力对照</a>
+  <a href="#howto">怎么跑 / 怎么打包</a>
+</nav>
+
+<!-- ══════════ 一份源码三个壳 ══════════ -->
+<section class="blk" id="shell">
+  <h3>一份源码三个壳 <span class="path">vite.config.js · main.cjs · sw.js</span></h3>
+  <p>三种形态共用同一份 React 源码，分叉只发生在最外面一层：谁来装载它、它能碰到什么系统 API。</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>形态</th><th>装载方式</th><th>入口</th><th>额外拿到的东西</th></tr></thead>
+    <tbody>
+      <tr><td class="k">网页版</td><td>浏览器访问（Vercel）</td><td><code>index.html</code></td><td>——</td></tr>
+      <tr><td class="k">手机端</td><td>浏览器「添加到主屏」，standalone 全屏</td><td><code>index.html</code> + <code>manifest.webmanifest</code> + <code>sw.js</code></td><td>离线可用、独立图标、无地址栏</td></tr>
+      <tr><td class="k">桌面版</td><td>Electron 装进硬盘，<code>app://</code> 自定义协议加载</td><td><code>index.html</code> / <code>pet.html</code> / <code>flood.html</code> 三个 Vite 入口</td><td>托盘、置顶悬浮窗、全局快捷键、进程探测、文件路径、系统通知</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <ul class="pts">
+    <li class="why">业务代码里<b>没有</b>散落的 <code>if (window.focusDesktop)</code>：preload 注入的能力统一被 <code>src/utils/desktop/desktopBridge.js</code> 包一层，网页环境下每个方法都是安全的 no-op、订阅类返回空的取消函数。要判断形态只有一个出口 —— <code>isDesktop</code>。</li>
+    <li class="why">桌面版生产环境<b>不用 <code>file://</code></b>，而是注册 <code>app://focuslab</code>（standard + secure）。原因是 <code>file://</code> 下 localStorage 的 origin 不透明，两个窗口不一定共享，<code>crypto.randomUUID</code> / Notification 还会因「非安全上下文」失效。</li>
+    <li class="why">桌面版<b>不注册 Service Worker</b>（<code>registerSW.js</code> 里第一件事就是看到 <code>window.focusDesktop</code> 直接 return）：应用本来就在本地，离线缓存没有意义，SW 介入 <code>app://</code> 反而容易在升级后吃到上一版的旧 chunk。</li>
+  </ul>
+</section>
+
+<!-- ══════════ 桌面版 ══════════ -->
+<section class="part" id="desk">
+  <div class="part-head">
+    <h2>桌面版（Electron）</h2>
+    <span class="tag d">Windows 优先</span>
+    <span class="sub">electron/ · src/pet/ · src/flood/ · 1408 行主进程代码</span>
+  </div>
+</section>
+
+<div class="note d">
+  <b>一句话概括</b>
+  桌面版做的不是「把网页装进一个窗口」，而是把专注这件事<b>搬出应用本身</b>：不打开主窗口也能开始（快捷键）、不看主窗口也知道跑到哪儿了（托盘图标水位 + 桌宠）、离开专注这件事本身会被系统级地看见（前台进程探测 + 屏幕积水）。
+</div>
+
+<section class="blk" id="desk-timeline">
+  <h3>时间线 <span class="path">三次提交，三周</span></h3>
+  <ul class="log">
+    <li><time>08-04</time><ul class="pts">
+      <li><b>Electron 打包起步</b>：主进程 + preload + 桌宠悬浮窗 + 托盘 + 单实例锁；<code>pet.html</code> 成为第二个 Vite 入口<span class="sha">94d0230</span></li>
+      <li><b>分心监测</b>：PowerShell 常驻子进程探测前台窗口 → 白名单判定 → 屏幕底部积水窗 <code>flood.html</code> + 分心统计页<span class="sha">9ae09b1</span></li>
+      <li><b>切走即分心</b>：探测结果不只是画面，会自动把计时按下暂停，回来再补一条「几点到几点、用的哪个程序」的账<span class="sha">c5900a1</span></li>
+    </ul></li>
+    <li><time>08-11</time><ul class="pts">
+      <li>托盘文案抽成纯函数 <code>trayTooltip.cjs</code>，能进 vitest 锁住格式与边界<span class="sha">d84c80e</span></li>
+      <li><b>开机静默启动</b>（<code>--hidden</code>）、<b>渲染进程崩溃自愈</b>、探测器不受支持时功能自己关掉并说明原因<span class="sha">fb382e7</span></li>
+    </ul></li>
+    <li><time>08-17</time><ul class="pts">
+      <li><b>拖文件建任务</b>（任务记住文件在硬盘上的位置，点一下用系统默认程序打开）</li>
+      <li><b>托盘图标跟着水位变</b>：手绘 BGRA 位图，一只从底部注水的小瓶子</li>
+      <li><b>自动更新</b>：GitHub Releases 后台下载，退出时才装<span class="sha">b8b7831</span></li>
+    </ul></li>
+  </ul>
+</section>
+
+<section class="blk" id="windows">
+  <h3>三窗架构与单向数据流 <span class="path">electron/main.cjs</span> <span class="born">08-04 出生</span></h3>
+  <p>桌面版同时开着三个 BrowserWindow，共用一份 preload，靠主进程注入的 <code>--focuslab-role=</code> 参数区分身份。</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>窗口</th><th>形态</th><th>职责</th></tr></thead>
+    <tbody>
+      <tr><td class="k">main</td><td>1280×840 常规窗口，最小 900×600</td><td>完整的 Focus Lab，<b>localStorage 与全部业务状态的唯一 owner</b></td></tr>
+      <tr><td class="k">pet</td><td>320×460 无边框 / 透明 / 置顶 / 不进任务栏</td><td>只画那只烧瓶 + 一个迷你面板，自己不存任何数据</td></tr>
+      <tr><td class="k">flood</td><td>屏幕下半张、鼠标穿透、置顶</td><td>一块 canvas，把 0~1 的水位画成一摊会晃的水</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <ul class="pts">
+    <li class="why"><b>桌宠为什么是无状态的</b>：两个渲染进程各写各的 localStorage 会打架（<code>useLocalStorage</code> 不监听跨窗口 storage 事件）。所以状态一律由主窗口经 IPC 单向推过去，桌宠上的操作也原样转回主窗口执行。代价是主窗口不能真被销毁 —— 点 X 只是 <code>hide()</code>，退出走托盘菜单。</li>
+    <li class="only">主窗口藏起来后 Chromium 会做 <b>background throttling</b>，里面的 <code>setInterval</code> 被掐到一分钟才跑一次，桌宠上的秒数就会卡住。主进程为此单独做了一层<b>时间补偿</b>：拿最后一次快照的时间戳自己往前推。</li>
+    <li class="why">桌宠窗尺寸<b>固定不变</b>，展开面板只是把内容画出来。曾经是 176 / 460 两档、点一下改窗口大小 —— 但透明无边框窗在 Windows 上每次 <code>setBounds</code> 都会先刷一帧再合成，看起来就是「闪一下才出现」。空白的上半截反正穿透，不占地方。</li>
+    <li>桌宠位置记的是<b>窗口右下角</b>（也就是烧瓶所在处）的屏幕坐标，写进 <code>userData/pet-window.json</code>；面板往左上方长出去，烧瓶保持不动。拔掉外接屏后会被 clamp 回某块真实显示器内。</li>
+    <li>置顶层级用的是 <code>"screen-saver"</code>（比普通置顶更高）+ <code>setVisibleOnAllWorkspaces</code>，全屏播视频 / 演示时桌宠也还在。</li>
+  </ul>
+</section>
+
+<section class="blk" id="pet">
+  <h3>桌宠：桌面上那只烧瓶 <span class="path">src/pet/PetApp.jsx · usePetWindow.js</span> <span class="born">08-04 出生</span></h3>
+  <p>就是沉浸式专注页里的同一只烧瓶（复用 <code>FlaskGraphic</code>），形状跟着烧瓶架 / 设置页的参数走。它没有情绪、不会饿也不会枯萎 —— 只有一个状态量：装到哪儿了。</p>
+  <ul class="pts">
+    <li class="only"><b>按轮廓穿透</b>：窗口是矩形，画面里只有烧瓶那一小块是实体。光标不在实体上时整个窗口对鼠标透明，否则这块看不见的矩形会挡住底下的桌面图标。判定交给 CSS（只有 <code>[data-pet-hit]</code> 会被 <code>elementFromPoint</code> 命中），主进程用 <code>setIgnoreMouseEvents(ignore, {forward:true})</code> —— forward 保证穿透状态下仍收得到 mousemove，不然一旦穿透就再也回不来了。</li>
+    <li>迷你面板：当前计时 + 候选任务（最多 8 条）+ <kbd>开始专注</kbd><kbd>暂停</kbd><kbd>继续</kbd><kbd>结束</kbd><kbd>记一条…</kbd><kbd>打开主窗口</kbd><kbd>藏起来</kbd>。文案没有拉整份 i18n 字典进这个 bundle，只内联了中英两组十来个词。</li>
+    <li>草稿存在 PetApp 这一层而不是面板组件里：面板收起时会整个卸载，「打一半的记录 → 顺手切去别的程序」不该白打。</li>
+    <li>拖动 / 点击 / 穿透三件事互相纠缠（拖动期间不能判定点击、也不能开穿透），单独抽成 <code>usePetWindow</code>；位移小于 4px 才算点击。</li>
+    <li class="why">桌宠点「开始专注」时，一次专注的状态活在 <code>/focus</code> 页的组件里 —— 而那是个懒加载路由，多半还没挂载。主进程为此把计时类指令<b>额外暂存一份</b>（带 id、10 秒 TTL），页面挂载后自己来认领；渲染层按 id 去重，「实时收到 + 挂载后认领」不会执行两次。</li>
+  </ul>
+</section>
+
+<section class="blk" id="tray">
+  <h3>托盘：视野边缘那一格 <span class="path">electron/trayIcon.cjs · trayTooltip.cjs</span> <span class="born">08-04 / 08-17</span></h3>
+  <ul class="pts">
+    <li class="only"><b>图标跟着水位变</b>（08-17）：纯函数手绘一张 32×32 的 BGRA 位图喂给 <code>nativeImage.createFromBitmap</code> —— 圆形轮廓 + 从底部涨上来的水面，2×2 超采样抗锯齿。16px 上画不下瓶颈瓶身，圆是唯一还能看清「水到哪儿了」的形状。跑着是蓝、暂停压成灰蓝，一眼分得出，不用读 tooltip。</li>
+    <li>Tooltip：<code>Focus Lab — 专注中 12:34</code>，正计时显示已过、倒计时显示剩余、超时显示 <code>+超出多久</code>，跟桌宠面板上的时钟同一口径。没会话时只显示应用名，不显示 00:00。</li>
+    <li class="why">tooltip 单独抽成纯函数只为一件事：<b>能测</b>。Electron 的 Tray 没有 <code>getToolTip</code>，装进 app 之后这句话在自动化里一个字都读不出来，只能靠人把鼠标停上去看。纯函数化之后中英、暂停、超时、超过一小时几个边界都进了 vitest。</li>
+    <li>菜单：打开 Focus Lab / 开始专注 / 显示桌宠（checkbox）/ <b>开机自启</b>（写注册表，带 <code>--hidden</code>）/ 检查更新 / 退出。</li>
+    <li>Windows 上通知和托盘按 AppUserModelID 归属，启动时 <code>setAppUserModelId("com.focuslab.desktop")</code> 与打包 appId 对齐 —— 不设的话系统通知里的发送者会显示成 electron.app.Electron，且点不回来。</li>
+  </ul>
+</section>
+
+<section class="blk" id="hotkey">
+  <h3>全局快捷键 <span class="path">main.cjs · globalShortcut</span> <span class="born">08-04</span></h3>
+  <ul class="pts">
+    <li class="only"><kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd> —— 无论人在哪个程序里，一键把桌宠叫出来并<b>直接把光标送进「记一条」</b>。想法冒出来的那一刻不用先找到应用。</li>
+    <li class="only"><kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> —— 开始 / 暂停，不翻出任何窗口。一个键管两件事：有正在跑的会话就暂停/继续，没有就开一次新的。<b>这是「专注」这件事本身最该有的那个键</b>：想开始的那一刻，手不用离开当前的活。</li>
+    <li>注册失败（被别的软件占了）不致命，静默跳过。</li>
+  </ul>
+</section>
+
+<section class="blk" id="watch">
+  <h3>前台应用探测 <span class="path">electron/appWatch.cjs</span> <span class="born">08-04</span></h3>
+  <p>「现在最前面的窗口属于哪个程序」—— 浏览器沙箱里永远拿不到的一件事，也是桌面版存在的最硬理由。</p>
+  <ul class="pts">
+    <li class="why"><b>没有用 active-win / get-windows 那类原生模块</b>：它们要为每个 Electron ABI 重新编译，打包链路上会多一个在墙内下载失败的环节。改成起一个常驻的 PowerShell 子进程，里面 P/Invoke user32 的 <code>GetForegroundWindow</code>，每 1.2 秒往 stdout 打一行 JSON。零依赖、不用 rebuild，代价是 Windows-only。</li>
+    <li class="why"><b>按需启动</b>：只有功能开着、且正在专注时才拉起子进程。不专注的时候机器上不该有一个常驻进程盯着用户开了什么 —— 这既是省电，也是这功能唯一说得过去的隐私姿态。</li>
+    <li>判定分三档：白名单外 = 分心；Focus Lab 自己永远不算；锁屏 / 开始菜单 / 输入法候选框这类系统外壳（<code>lockapp</code> <code>searchhost</code> <code>textinputhost</code> …）一律「维持原判」，一闪而过就翻瓶子会非常吵。</li>
+    <li>白名单还空着时<b>只采集不判定</b> —— 设置页那张勾选表就是探测器自己攒出来的，空名单时若不采集，名单就永远攒不出来，功能从第一次起就是死的。</li>
+    <li class="why"><b>标题关键词</b>这一道：浏览器整个勾进来是没办法的事，查论文和刷视频是同一个 <code>msedge.exe</code>，只有窗口标题分得开。但标题只在内存里比一次，比完就丢 —— 不落盘、不进记录、也不发给渲染层，分心明细里留下的仍然只有「Microsoft Edge」。</li>
+    <li>切走的一段会按程序分段结账（<code>10:03–10:07 Chrome、10:07–10:12 微信</code>），短于 5 秒的「路过」不写进记录 —— 计时器照旧暂停，只是不留一条几秒钟的账。</li>
+    <li>探测器在这台机器上跑不起来时会通知渲染层，设置页据此<b>自己把开关关掉并说明原因</b>（08-11），而不是留一个永远不生效的勾。</li>
+  </ul>
+</section>
+
+<section class="blk" id="flood">
+  <h3>屏幕底部的积水 <span class="path">flood.html · src/flood/main.js</span> <span class="born">08-04</span></h3>
+  <p>专注中切到白名单外的程序，桌宠的烧瓶就翻过来倒水，倒出去的水积在屏幕底部。涨满一屏要 4 分钟，回到白名单 45 秒退干净。</p>
+  <ul class="pts">
+    <li class="only">一扇鼠标穿透、置顶、占屏幕下半张的透明窗，<b>没有用 React</b> —— 里面没有状态、没有交互、没有 DOM 结构，就一块 canvas。为它拉一份 React 只是让常驻窗口白白多占几十 KB。</li>
+    <li class="why">三条刻意的约束（用户拍板）：① <b>不扣真实专注进度</b>，水位只是一面镜子，跑过的秒数一秒都不少；② 回到白名单<b>立刻退潮，退得比涨快得多</b> —— 回头的动作要马上被奖励；③ <b>不设宽限期</b>，切走就开始倒。之所以敢这么严，正是因为代价可逆又不真扣分。</li>
+    <li>水一旦开始积就至少 56px 深：刚分心的头半分钟水位只有百分之几，在 1080p 上是最底下一条看不见的线 —— 而「有水了」本身才是那条信息，深浅只是量级。缓动会把这一跳抹成半秒的涌入。</li>
+    <li>高 DPI 屏上 DPR 封顶 1.5、帧率封顶 30：水是一团模糊的色块，看不出锯齿，但这块半屏大的 canvas 按物理像素画填充量会翻几倍。</li>
+    <li>分辨率变了 / 拔了外接屏就销毁重建（监听 <code>display-metrics-changed</code> 等三个事件），下次要用时按新尺寸摆。</li>
+  </ul>
+</section>
+
+<section class="blk" id="resilience">
+  <h3>睡眠、崩溃、单实例 <span class="path">main.cjs</span> <span class="born">08-11</span></h3>
+  <ul class="pts">
+    <li class="only"><b>合盖睡眠</b>：秒数是拿时间戳差值算的，睡一夜第二天打开会把整夜算进这次专注。于是借「切走」那条现成通路把计时按下暂停，但<b>不发 segment</b> —— 睡觉不是分心，明细里不该留账。消息带上判定时刻 <code>ts</code>，因为机器多半在渲染层处理完之前就已经睡死了，醒来后要把暂停补记在「睡着的那一刻」。</li>
+    <li class="why">锁屏（<code>lock-screen</code>）<b>没有</b>一并接进来：那是「人还在不在」的判断，跟这里「机器停了多久」不是一回事，要不要算暂停得先有个产品口径。</li>
+    <li class="only"><b>渲染进程崩溃自愈</b>：主窗口的渲染进程挂了（OOM、GPU 崩、three.js 把页面拖死）不能就这么算了 —— 它是全部状态的唯一 owner，没有它桌宠就没有数据来源，而用户看到的只是「桌宠不动了」，没有任何报错。所以就地重建；这次专注的计时跟着页面一起没了，与其让桌宠停在一个永不前进的进度上，不如干净地退回待机态。崩之前是藏着的（托盘常驻用法），重建后也不会突然弹到用户脸上。</li>
+    <li><b>单实例锁</b>：第二次启动只是把已有窗口唤到前面。<b>开机静默启动</b>：注册表里那条命令带 <code>--hidden</code>，主窗口照样创建（它是数据源），只是不弹出来，开机后看到的只有托盘和桌宠。</li>
+    <li>退出时 <code>globalShortcut.unregisterAll()</code> + 停掉探测子进程 —— 那是我们 spawn 出来的，不收拾会留在任务管理器里。</li>
+    <li>外链走系统浏览器（<code>setWindowOpenHandler</code> 一律 deny + <code>shell.openExternal</code>），不在 app 里开一个没有导航栏的窗口。</li>
+  </ul>
+</section>
+
+<section class="blk" id="drop">
+  <h3>拖文件建任务 <span class="path">src/hooks/desktop/useDesktopFileDrop.js</span> <span class="born">08-17</span></h3>
+  <p>把文件拖进主窗口 → 建成一条任务，任务记着这个文件在硬盘上的位置，点一下用系统默认程序打开。</p>
+  <ul class="pts">
+    <li class="only"><b>桌面版真正独一份的一件事</b>：浏览器的 drop 只给你文件内容，拿不到路径，更不可能回头把它打开。网页版最多做到「把文件读进来」，这里做到的是「这条任务对应硬盘上那个文件」。Electron 32 起 <code>File.path</code> 被移除，走的是 preload 里的 <code>webUtils.getPathForFile</code>。</li>
+    <li class="why"><b>为什么值得做</b>：从想到「该改论文了」到真的开始改，中间隔着「找到那个文件」。那一步看着不算什么，却正是最容易在半路走神的地方 —— 拖一下就把这段路省了。</li>
+    <li class="why">靶子是<b>主窗口而不是桌宠</b>：桌宠为了不挡桌面图标是鼠标穿透的，而穿透的窗口在 Windows 上根本不会被注册成拖放目标，收不到 drop。</li>
+    <li>文件名 → 标题：去扩展名、下划线/连字符还原成空格（<code>实验设计_v3.docx</code> → <code>实验设计 v3</code>）。标题是给人读的，扩展名已经由旁边的「打开」按钮代表了。</li>
+    <li>只认「从系统里拖文件进来」（<code>dataTransfer.types</code> 含 Files），页面内部拖任务卡排序的那些不接管；dragenter/dragleave 进出各记一笔，不然子元素之间冒泡会闪。</li>
+  </ul>
+</section>
+
+<section class="blk" id="update">
+  <h3>自动更新与打包 <span class="path">electron/updater.cjs · electron-builder.yml</span> <span class="born">08-17</span></h3>
+  <p>网页版改一版、刷新就是新的；装在硬盘上的 exe 不会自己变。</p>
+  <ul class="pts">
+    <li class="why">三条克制的规矩：① <b>绝不主动重启</b> —— 下载完只是备好，安装发生在用户自己退出之后。中途弹一个「立即重启」会直接打断正在计时的会话，<b>那是这个 app 最不该做的事</b>。② 后台检查<b>失败一律静默</b> —— 墙内从 GitHub 拉东西失败是常态，弹红框既没可操作性也只是打扰；只有用户从托盘主动点「检查更新」时才每种结果都回话。③ 只在打包后的正式版里跑。</li>
+    <li>启动后延迟 10 秒才查：开机自启时别一上来就抢网。</li>
+    <li>打包 <code>files:</code> 只带 <code>dist/</code> + <code>electron/</code> + <code>package.json</code>，前端依赖已经在 vite build 时打进 dist 了。唯一例外是 electron-updater 及其整条依赖链 —— 它是主进程运行时 <code>require</code> 的，必须真的进包。</li>
+    <li>产物：Windows NSIS（可改安装目录、建桌面和开始菜单快捷方式）、macOS dmg（x64 + arm64）、Linux AppImage。发版时 <code>latest.yml</code> 必须跟安装包一起传到 Release，少传这个文件客户端永远发现不了新版本。</li>
+    <li>安装包<b>没有代码签名</b>，Windows 上更新后首次启动可能仍会过一次 SmartScreen —— 那是证书的事。</li>
+  </ul>
+</section>
+
+<!-- ══════════ 手机端 ══════════ -->
+<section class="part" id="mob">
+  <div class="part-head">
+    <h2>手机端（PWA）</h2>
+    <span class="tag m">没有独占功能</span>
+    <span class="sub">manifest.webmanifest · sw.js · 78 处媒体查询</span>
+  </div>
+</section>
+
+<div class="note m">
+  <b>先把话说清楚</b>
+  手机端<b>没有任何一件桌面 / 网页上没有的功能</b>。它走的是另一条路：同一套功能，让它在小屏上不难用、能装进主屏、断网也打得开。所以下面列的全是「壳 + 优化」，一条新功能都没有 —— 这不是遗漏，是当时的取舍：手机上真正缺的能力（后台计时、锁屏通知、前台应用探测）浏览器都给不了，硬做只会做出一个残废版本。
+</div>
+
+<section class="blk" id="mob-timeline">
+  <h3>时间线 <span class="path">散在五次提交里</span></h3>
+  <ul class="log">
+    <li><time>06-11</time><ul class="pts">
+      <li>「优化 UI 和手感」—— 最早一次为触摸调的样式，<code>index.html</code> 第一次动 viewport<span class="sha">28c352c</span></li>
+    </ul></li>
+    <li><time>06-29</time><ul class="pts">
+      <li><b>PWA 三件套落地</b>：<code>manifest.webmanifest</code> + <code>sw.js</code> + <code>registerSW.js</code> 同一次提交进来，从此可安装、可离线<span class="sha">782b220</span></li>
+    </ul></li>
+    <li><time>07-08</time><ul class="pts">
+      <li><b>手机专注页优化</b> + 设置页分页；优先级矩阵大改（矩阵在小屏上是最先崩的那个布局）<span class="sha">df077fb</span></li>
+    </ul></li>
+    <li><time>07-10</time><ul class="pts">
+      <li>「适应性大小」—— 日历 / 截止日 / 随记三页的断点统一<span class="sha">73281e0</span></li>
+    </ul></li>
+    <li><time>07-19</time><ul class="pts">
+      <li><b>原生手感那一枪</b>：viewport 锁缩放 + <code>touch-action</code> / <code>overscroll-behavior</code> / <code>-webkit-tap-highlight-color</code> / <code>text-size-adjust</code> 四条<span class="sha">5777776</span></li>
+    </ul></li>
+    <li><time>08-04 起</time><ul class="pts">
+      <li>SW 缓存策略持续迭代到 <code>focuslab-v13</code>：加入构建清单驱动的旧产物清理</li>
+    </ul></li>
+  </ul>
+</section>
+
+<section class="blk" id="pwa">
+  <h3>PWA 三件套 <span class="path">public/manifest.webmanifest · public/sw.js · src/utils/registerSW.js</span> <span class="born">06-29 出生</span></h3>
+  <ul class="pts">
+    <li><b>manifest</b>：<code>display: standalone</code>（进主屏后没有地址栏）、<code>orientation: portrait-primary</code>、主题色 <code>#ac6c9f</code>、192/512 两档图标且 <code>purpose: "any maskable"</code>（安卓自适应图标不会被裁掉边）。<code>start_url</code> 和 <code>scope</code> 都是相对路径 <code>./</code>，配合 Vite 的 <code>base: './'</code>。</li>
+    <li><b>iOS 那一套额外的</b>：<code>apple-touch-icon</code>、<code>apple-mobile-web-app-capable</code>、状态栏样式、主屏标题 —— Safari 至今不完全吃 manifest。</li>
+    <li><b>SW 缓存策略</b>四条分流：导航请求走网络优先、断网回退到缓存的 <code>index.html</code>（HashRouter 下所有路由都是同一个文件，所以离线也能进任意页）；同源静态资源缓存优先；<code>/api/*</code>（AI 对话）永不缓存；跨域直接放行不拦截。</li>
+    <li class="why"><b>构建清单驱动的清理</b>：Vite 产物文件名带 hash，每发一版就是一批新文件名。没有清单就只能靠手动 bump 版本号才淘汰，否则旧 bundle 和 <code>.glb</code> 模型会永远躺在同一个 cache 里，发几版就是几十 MB。现在由 <code>vite.config.js</code> 的 <code>sw-build-manifest</code> 插件把占位符替换成真正的文件数组，activate 时把不在本次构建里的条目删掉 —— 而未变动的 hash 资源仍然命中缓存、不必重下。</li>
+    <li class="why"><b>dev 下主动注销 SW 并清空 Cache Storage</b>：跑过一次 build/preview 之后 SW 会常驻浏览器并对 JS 走缓存优先，导致 dev 时拿到旧的坏 bundle（表现为 <code>Cannot read properties of null (reading 'useState')</code> 这种莫名其妙的报错）。</li>
+  </ul>
+</section>
+
+<section class="blk" id="feel">
+  <h3>原生手感 <span class="path">index.html · src/styles/global.css</span> <span class="born">07-19</span></h3>
+  <p>一次提交、六行 CSS，把「一个网页」和「一个 app」之间那点违和感抹掉。</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>写了什么</th><th>解决的是</th></tr></thead>
+    <tbody>
+      <tr><td class="k">viewport 加 <code>maximum-scale=1, user-scalable=no</code></td><td>双指乱缩放把布局搞坏</td></tr>
+      <tr><td class="k"><code>viewport-fit=cover</code></td><td>刘海屏 / 手势条区域也铺满，配合下面的安全区</td></tr>
+      <tr><td class="k"><code>touch-action: manipulation</code></td><td>点击后那 300ms 的双击缩放等待，按钮响应发黏</td></tr>
+      <tr><td class="k"><code>overscroll-behavior: none</code></td><td>下拉刷新和边缘橡皮筋回弹 —— 计时页被一下拉刷新掉是灾难</td></tr>
+      <tr><td class="k"><code>-webkit-tap-highlight-color: transparent</code></td><td>点哪儿都闪一块灰色方块</td></tr>
+      <tr><td class="k"><code>text-size-adjust: 100%</code></td><td>横竖屏切换 / 输入聚焦时系统自动放大字号，把布局撑爆</td></tr>
+      <tr><td class="k">侧栏底部 <code>env(safe-area-inset-bottom)</code></td><td>金币和快捷图标被 iPhone 手势条压住</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="blk" id="bp">
+  <h3>断点体系 <span class="path">全站 78 处 @media</span></h3>
+  <p>两级主断点定全局骨架，各页再按自己的内容加一档。</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>断点</th><th>叫什么</th><th>发生什么</th></tr></thead>
+    <tbody>
+      <tr><td class="k">≤ 768px</td><td>平板</td><td>侧边栏仍常驻但收窄到 200px；正文左内边距同步收到 228px；侧栏底栏变紧凑（图标 30px、金币药丸缩小），否则会挤在一起</td></tr>
+      <tr><td class="k">≤ 600px</td><td>手机</td><td>侧边栏<b>改成滑出抽屉</b>（<code>width: min(78vw, 280px)</code>，离屏 <code>translateX(-100%)</code>，靠固定汉堡按钮滑入，带半透明遮罩）；正文铺满、顶部留出汉堡的 64px</td></tr>
+      <tr><td class="k">页面级</td><td>780 / 720 / 640 / 560 / 480 / 400px</td><td>日历、甘特、分心统计、烧瓶架、随记、分析、角色卡、奖励等各自按内容再降一档</td></tr>
+      <tr><td class="k"><code>prefers-reduced-motion</code></td><td>无障碍</td><td>贯穿全站的动效开关，生态缸、矩阵、确认框、骨架屏、技能树等都各自接了 —— 手机上动效更容易引发不适</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <ul class="pts">
+    <li class="why">正文的左内边距<b>必须</b>跟着侧边栏断点同步收 —— 忘了这一条，手机上内容会被推出屏幕、左侧留一条死白边。这两个数字在两个文件里，是最容易改漏的地方。</li>
+  </ul>
+</section>
+
+<section class="blk" id="mobpage">
+  <h3>页面级手机优化 <span class="born">07-08 / 07-10</span></h3>
+  <ul class="pts">
+    <li><b>优先级矩阵</b>（改动最大的一处，150 行 CSS + 170 行 JSX）：四象限在小屏上没法真的四等分，480px 以下改布局；卡片文字后来又改成两行显示，长标题不再单行硬截（<code>d12b7bf</code>）。</li>
+    <li><b>沉浸式专注卡</b>：600px 以下重排，3D 场景（PusheenScene）在小屏上调整取景，避免烧瓶被卡片挤没。</li>
+    <li><b>设置页分页</b>：一整页往下滚十几屏在手机上完全没法用，拆成分段导航。</li>
+    <li>日历 / 截止日 / 随记三页的断点在 07-10 统一了一遍（780 → 560 两档）。</li>
+    <li>骨架屏（PageSkeleton）自己带 860 / 640 / 480 三档 —— 加载态也得跟着真实布局变，不然会「骨架和内容对不上，闪一下」。</li>
+  </ul>
+</section>
+
+<!-- ══════════ 对照 ══════════ -->
+<section class="blk" id="compare">
+  <h3>三端能力对照</h3>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>能力</th><th>网页</th><th>手机 / PWA</th><th>桌面 / Electron</th></tr></thead>
+    <tbody>
+      <tr><td class="k">全部业务功能</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td class="k">离线可用</td><td class="yes">✓（同一个 SW）</td><td class="yes">✓</td><td class="yes">✓（本来就在本地）</td></tr>
+      <tr><td class="k">独立图标 / 无地址栏</td><td class="no">—</td><td class="yes">✓ standalone</td><td class="yes">✓ 装进硬盘</td></tr>
+      <tr><td class="k">关掉窗口后继续存在</td><td class="no">—</td><td class="no">—</td><td class="yes">✓ 托盘常驻</td></tr>
+      <tr><td class="k">不打开应用就能开始专注</td><td class="no">—</td><td class="no">—</td><td class="yes">✓ 全局快捷键</td></tr>
+      <tr><td class="k">进度一直在视野里</td><td class="no">—</td><td class="no">—</td><td class="yes">✓ 桌宠 + 托盘图标水位</td></tr>
+      <tr><td class="k">知道你切去了哪个程序</td><td class="no">浏览器沙箱不给</td><td class="no">浏览器沙箱不给</td><td class="yes">✓ 前台进程探测</td></tr>
+      <tr><td class="k">分心时屏幕本身有反应</td><td class="no">—</td><td class="no">—</td><td class="yes">✓ 底部积水层</td></tr>
+      <tr><td class="k">拖进来的文件能被再打开</td><td class="no">只拿得到内容</td><td class="no">只拿得到内容</td><td class="yes">✓ 真实路径 + shell.openPath</td></tr>
+      <tr><td class="k">合盖睡眠不算进专注</td><td class="no">—</td><td class="no">—</td><td class="yes">✓ powerMonitor</td></tr>
+      <tr><td class="k">开机自启</td><td class="no">—</td><td class="no">—</td><td class="yes">✓ 静默启动</td></tr>
+      <tr><td class="k">自动更新</td><td class="yes">✓ 刷新即最新</td><td class="yes">✓ SW 换版</td><td class="yes">✓ 退出时装</td></tr>
+      <tr><td class="k">触摸手感 / 小屏布局</td><td class="no">用不上</td><td class="yes">✓ 全部优化都在这</td><td class="no">用不上</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="blk" id="howto">
+  <h3>怎么跑 / 怎么打包</h3>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>命令</th><th>做什么</th></tr></thead>
+    <tbody>
+      <tr><td class="k"><code>npm run dev</code></td><td>网页版开发（5173，strictPort）。SW 不注册，还会主动清掉残留的</td></tr>
+      <tr><td class="k"><code>npm run desktop:dev</code></td><td>拉起 vite 后<b>等它真的听上端口</b>再起 Electron。没引 concurrently / wait-on —— 为这一件事加两个包不值当</td></tr>
+      <tr><td class="k"><code>npm run desktop:pack</code></td><td>vite build + <code>electron-builder --dir</code>，出免安装目录，验证打包后行为</td></tr>
+      <tr><td class="k"><code>npm run desktop:build</code></td><td>出正式安装包到 <code>release/</code></td></tr>
+      <tr><td class="k"><code>npm run build && npm run preview</code></td><td>唯一能验证 PWA（SW + 可安装）的路径 —— dev 下这套是关着的</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <ul class="pts">
+    <li class="why"><code>dev-desktop.mjs</code> 里有一行 <code>delete childEnv.ELECTRON_RUN_AS_NODE</code>：从 Electron 系的终端（部分 IDE 内置终端、Claude Code）启动时环境里会带着它，会让 electron 二进制退化成纯 node 跑，<code>require("electron")</code> 只返回一个路径字符串，主进程一上来就 TypeError。</li>
+  </ul>
+</section>
+
+<div class="note">
+  <b>怎么核对</b>
+  桌面版：<span class="mono">git log --date=short -p -- electron src/pet src/flood</span>；手机端：<span class="mono">git log --date=short -p -- public/sw.js public/manifest.webmanifest index.html src/styles</span>。主进程那 1408 行里几乎每个决策旁边都有注释写着「为什么不是另一种做法」，比这份文档更细。
+</div>
+
+<footer class="wrap">
+  Focus Lab · 多端形态开发史 —— 与《功能点迭代表》《需求演变史》《提交时间轴》同属 docs/iteration-history/。日期取自改动落地的提交。
+</footer>
+</div>
+</body>
+</html>

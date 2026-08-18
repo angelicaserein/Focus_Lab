@@ -137,8 +137,8 @@ export default {
     zh: "恢复默认库？",
   },
   "tasks.db.confirmResetDetail": {
-    en: "Priority, Tags, Due date, Estimate and Notes come back with their default settings — renamed or deleted ones are restored. Columns you added yourself and all tasks are kept.",
-    zh: "优先级、标签、截止日期、预计时长、备注这五个内置列会按出厂配置补回来（改过名或删掉的都会还原），库名也回到默认。你自己加的列和所有任务都会保留。",
+    en: "Priority, Tags, Due date and Notes come back with their default settings — renamed or deleted ones are restored. Columns you added yourself and all tasks are kept.",
+    zh: "优先级、标签、截止日期、备注这四个内置列会按出厂配置补回来（改过名或删掉的都会还原），库名也回到默认。你自己加的列和所有任务都会保留。",
   },
   "tasks.db.resetOk": { en: "Restore", zh: "恢复" },
 
@@ -157,9 +157,7 @@ export default {
   "tasks.attr.priority": { en: "Priority", zh: "优先级" },
   "tasks.attr.tags": { en: "Tags", zh: "标签" },
   "tasks.attr.dueDate": { en: "Due date", zh: "截止日期" },
-  "tasks.attr.estimatedMins": { en: "Estimate", zh: "预计时长" },
   "tasks.attr.notes": { en: "Notes", zh: "备注" },
-  "tasks.unit.min": { en: "min", zh: "分" },
   "tasks.priority.urgentImportant": { en: "Urgent & important", zh: "重要且紧急" },
   "tasks.priority.important": { en: "Important, not urgent", zh: "重要不紧急" },
   "tasks.priority.urgent": { en: "Urgent, not important", zh: "紧急不重要" },
@@ -231,8 +229,8 @@ export default {
   "tasks.tpl.blankDesc": { en: "Task names only — build every column yourself", zh: "只有任务名，列全部自己搭建" },
   "tasks.tpl.classic": { en: "Classic tasks", zh: "经典任务" },
   "tasks.tpl.classicDesc": {
-    en: "Priority, tags, due date, estimate, notes",
-    zh: "优先级、标签、截止日期、预计时长、备注",
+    en: "Priority, tags, due date, notes",
+    zh: "优先级、标签、截止日期、备注",
   },
 
   // 单元格 / 截止日

@@ -19,6 +19,7 @@ const { app, Notification } = require("electron");
 
 let updater = null;      // 懒加载：dev 下根本不该把这个模块拉进来
 let checking = false;    // 手动检查时防连点
+let loadFailed = false;  // require 挂了：跟「网络不通」是两回事，回话要分开
 let downloaded = false;
 
 function notify(title, body) {
@@ -28,9 +29,30 @@ function notify(title, body) {
 
 // 只在真的要用时才 require：electron-updater 导入时就会去读打包进来的
 // app-update.yml，dev 下没有那个文件。
+//
+// 加载失败要吼一声，这是这个文件里唯一不静默的地方。
+// electron-updater 是主进程运行时 require 的，得靠 electron-builder.yml 里那份
+// 手写的 files 清单把它和它的十来个依赖一起打进包——漏一个，正式版里
+// 自动更新就是死的，而用户侧一点动静都没有（检查是静默的、失败也是静默的）。
+// 正好是最该在日志里留痕的那类故障：不留痕就永远不会有人发现。
 function load() {
   if (updater) return updater;
-  const { autoUpdater } = require("electron-updater");
+  // 已经失败过就直接认输：那行日志说清楚一次就够了，托盘每点一次刷一遍只是噪音
+  if (loadFailed) throw new Error("electron-updater 不在这个安装包里");
+  let mod;
+  try {
+    mod = require("electron-updater");
+  } catch (e) {
+    loadFailed = true;
+    console.error([
+      "[updater] 加载 electron-updater 失败——这个安装包里的自动更新是死的。",
+      `  原因：${e?.message ?? e}`,
+      "  多半是打包时漏带了它或它的某个依赖：见 electron-builder.yml 的 files 清单。",
+      "  核对：node node_modules/@electron/asar/bin/asar.js list release/win-unpacked/resources/app.asar",
+    ].join("\n"));
+    throw e;
+  }
+  const { autoUpdater } = mod;
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
   // 日志走 console：出问题时至少在终端 / 崩溃日志里留得下痕迹
@@ -66,7 +88,16 @@ async function checkNow() {
   if (checking) return;
   checking = true;
   try {
-    const r = await load().checkForUpdates();
+    // load() 挂掉和「查不到服务器」要分开说：前者是这个安装包本身缺东西，
+    // 重试多少次都一样，把用户往「稍后再试」上引是骗人。
+    let u;
+    try {
+      u = load();
+    } catch {
+      notify("Focus Lab", "这个安装包里没带更新组件，自动更新不可用（详见日志）。");
+      return;
+    }
+    const r = await u.checkForUpdates();
     // updateInfo.version 和当前版本一样 = 已经是最新的
     if (!r || r.updateInfo?.version === app.getVersion()) {
       notify("Focus Lab", `已经是最新版本（${app.getVersion()}）。`);

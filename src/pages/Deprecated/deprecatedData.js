@@ -11,7 +11,6 @@ export const DEPRECATED_FEATURES = [
   { path: "/industry",  labelKey: "nav.industry",  icon: "🏭" },
   { path: "/gantt",     labelKey: "nav.gantt",     icon: "📊" },
   { path: "/tutorial",  labelKey: "nav.tutorial",  icon: "📖" },
-  { path: "/research",  labelKey: "nav.research",  icon: "🧪" },
 ];
 
 export const DEPRECATED_PATHS = DEPRECATED_FEATURES.map((f) => f.path);

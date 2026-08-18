@@ -6,7 +6,6 @@ import useCharacter from "@/hooks/character/useCharacter";
 import useLocalStorage from "@/hooks/common/useLocalStorage";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 import Companion from "@/components/companion/Companion";
-import { onActivateKey } from "@/utils/a11y";
 import { formatDuration } from "@/utils/time";
 import {
   computeRegions,
@@ -38,7 +37,12 @@ export default function WorldPage() {
     }
     navigate("/focus", { state: { scenarioId: r.id } });
   };
-  const onRegionKey = (e, r) => onActivateKey(() => launchRegion(r))(e);
+  const onRegionKey = (e, r) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      launchRegion(r);
+    }
+  };
 
   const regions = useMemo(
     () => computeRegions(scenarios, char.skills),

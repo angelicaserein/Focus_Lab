@@ -40,17 +40,15 @@ export default function TodoList({ filter = "ALL", scenarioFilter = null }) {
     const otherTasks = filtered.filter(t => !t.recurringDays?.includes(todayDow));
 
     return (
-      {/* 分组视图下 role="list" 落在分组容器上，不落在外层 section——
-          list 和 listitem 之间隔着一层 div 的话，读屏软件就串不起「第几项/共几项」。 */}
       <section className="todo-list" aria-live="polite" data-filter={filter}>
         {todayTasks.length > 0 && (
-          <div className="recurring-section" role="list">
+          <div className="recurring-section">
             <div className="recurring-section-header">{t("todo.list.todaySection", { day: t(`day.long.${todayDow}`) })}</div>
             {todayTasks.map(todo => <TodoItem key={todo.id} todo={todo} />)}
           </div>
         )}
         {otherTasks.length > 0 && (
-          <div className="recurring-section recurring-section-other" role="list">
+          <div className="recurring-section recurring-section-other">
             <div className="recurring-section-header">{t("todo.list.otherDays")}</div>
             {otherTasks.map(todo => <TodoItem key={todo.id} todo={todo} isOtherDay />)}
           </div>
@@ -60,7 +58,7 @@ export default function TodoList({ filter = "ALL", scenarioFilter = null }) {
   }
 
   return (
-    <section className="todo-list" role="list" aria-live="polite" data-filter={filter}>
+    <section className="todo-list" aria-live="polite" data-filter={filter}>
       {filtered.map((todo) => (
         <TodoItem key={todo.id} todo={todo} />
       ))}

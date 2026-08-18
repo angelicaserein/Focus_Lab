@@ -20,13 +20,8 @@ export default function SessionRewardCard({ reward, onClose }) {
   }, [onClose]);
 
   return (
-    <div className="srewards-backdrop" onClick={onClose} role="presentation">
-      <div
-        className="srewards-card"
-        role="dialog"
-        aria-modal="true"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="srewards-backdrop" onClick={onClose} role="dialog" aria-modal="true">
+      <div className="srewards-card" onClick={(e) => e.stopPropagation()}>
         <div className="srewards-title">{t("character.reward.title")}</div>
 
         <div className="srewards-stats">

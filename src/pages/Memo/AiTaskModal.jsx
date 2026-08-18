@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { sanitizeTaskAttrs } from "@/utils/ai/aiTasks";
-import { attrUnit, optionLabel } from "@/utils/task/taskAttrUtils";
+import { optionLabel } from "@/utils/task/taskAttrUtils";
 import { useLanguage } from "@/context/LanguageContext";
 import "./AiTaskModal.css";
 
-// 把已清洗的 attrs 渲染成只读 chips（优先级带色点、标签、截止、时长、备注）。
+// 把已清洗的 attrs 渲染成只读 chips（优先级带色点、标签、截止、备注）。
 // t 从组件传进来：chip 里有「截止 / 备注」这类要翻译的固定词。
 function attrChips(attrs, database, t) {
   const byId = new Map((database?.attrs ?? []).map((a) => [a.id, a]));
@@ -26,10 +26,6 @@ function attrChips(attrs, database, t) {
   }
   if (attrs.dueDate) {
     chips.push({ key: "dueDate", label: t("memo.ai.chipDue", { date: attrs.dueDate }) });
-  }
-  if (attrs.estimatedMins != null) {
-    const unit = attrUnit(t, byId.get("estimatedMins")) || t("memo.ai.minutesUnit");
-    chips.push({ key: "estimatedMins", label: `${attrs.estimatedMins}${unit}` });
   }
   if (attrs.notes) chips.push({ key: "notes", label: t("memo.ai.chipNotes") });
   return chips;
@@ -133,7 +129,7 @@ export default function AiTaskModal({ status, candidates, error, database, onRef
   };
 
   return (
-    <div className="ait-backdrop" role="presentation" onClick={onClose}>
+    <div className="ait-backdrop" onClick={onClose}>
       <div className="ait-modal" onClick={(e) => e.stopPropagation()}>
         <div className="ait-head">
           <h2 className="ait-title">{t("memo.ai.title")}</h2>

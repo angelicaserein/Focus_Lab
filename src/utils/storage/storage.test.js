@@ -51,17 +51,17 @@ describe("importAllData", () => {
     expect(readKey(STORAGE_KEYS.ACTIVE_THEME)).toBe("ocean");
   });
 
-  it("研究日志按日期去重", () => {
+  it("没有 id 的条目按 date 去重", () => {
     localStorage.setItem(
-      STORAGE_KEYS.RESEARCH_RECORDS,
+      STORAGE_KEYS.TODOS,
       JSON.stringify(wrapVersioned([{ date: "2026-08-01", note: "本地" }])),
     );
 
     importAllData(backup({
-      researchDaily: [{ date: "2026-08-01", note: "导入" }, { date: "2026-08-02", note: "新的" }],
+      todos: [{ date: "2026-08-01", note: "导入" }, { date: "2026-08-02", note: "新的" }],
     }));
 
-    expect(readKey(STORAGE_KEYS.RESEARCH_RECORDS)).toEqual([
+    expect(readKey(STORAGE_KEYS.TODOS)).toEqual([
       { date: "2026-08-01", note: "本地" },
       { date: "2026-08-02", note: "新的" },
     ]);

@@ -95,17 +95,19 @@ export default defineConfig({
       // 想测某个 hook 的逻辑时，照既有范式把纯函数抽出去（见 docs/TDD.md）。
       include: ['src/utils/**'],
       exclude: ['**/*.{test,spec}.*', '**/index.{js,jsx}'],
-      // 只涨不跌的地板线（当前 utils≈71%；analytics/character 100%，
-      // time/ddl/matrixGeometry/focusRecords/dayLog/researchRecords/tonePack 已补测）。
+      // 只涨不跌的地板线（当前 utils≈91%；analytics/character 100%，
+      // time/ddl/matrixGeometry/focusRecords/dayLog/tonePack、storage 的逐版本迁移、
+      // utils/ai 六支的三模式分流与兜底均已补测——AI 那几支把 aiClient 换成桩，
+      // 只钉「走哪条路 / 失败回退到哪」，不发真请求，见 aiTasksModes.test.js）。
       // 补了测试、覆盖率上去后，把这几个数字往上调，锁住成果、防止回退。
       // 留几个点余量，避免无关改动误伤红灯。
-      // 还没测的大头：storage.js、utils/ai 里几支走网络的（aiChat/aiRecommend/
-      // aiScenarioConfig/aiMatrixAssign）、desktopBridge。下一轮从 storage.js 起。
+      // 还没测的：desktopBridge、notify、registerSW —— 都是浏览器/Electron 的 I/O
+      // 壳子，值不值得测取决于 mock 到哪一层，下一轮先定这个。
       thresholds: {
-        statements: 68,
-        branches: 59,
-        functions: 61,
-        lines: 68,
+        statements: 89,
+        branches: 82,
+        functions: 81,
+        lines: 89,
       },
     },
   },

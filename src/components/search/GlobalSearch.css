@@ -1,0 +1,196 @@
+/* 跨页搜索：侧边栏顶部的输入框 + 展开在其下方的结果浮层。 */
+
+.gs {
+  position: relative;
+  padding: 0 12px;
+  margin: 0 12px 4px;
+}
+
+/* ── 输入框 ───────────────────────────────────────────────────────────────── */
+
+.gs-field {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 9px;
+  border-radius: 10px;
+  border: 1px solid var(--border-dark);
+  background: var(--glass);
+  transition: border-color var(--dur-fast) var(--ease);
+}
+
+.gs-field:hover,
+.gs-field:focus-within {
+  border-color: var(--accent);
+}
+
+.gs-field-icon {
+  flex-shrink: 0;
+  color: var(--muted);
+  opacity: 0.65;
+}
+
+.gs-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  color: var(--text-body);
+  font-size: 0.875rem;
+  font-family: inherit;
+}
+
+.gs-input:focus {
+  outline: none;
+}
+
+.gs-input::placeholder {
+  color: var(--text-placeholder);
+}
+
+/* 隐掉浏览器给 type=search 自带的那个叉，我们自己画一个跟主题走的 */
+.gs-input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.gs-clear {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease);
+}
+
+.gs-clear:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ── 结果浮层 ─────────────────────────────────────────────────────────────── */
+
+/* 绝对定位盖在导航上，而不是把导航挤下去——搜索是临时动作，
+   收起后侧栏该原样回到原位，列表不该跟着上下跳。 */
+.gs-panel {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 12px;
+  right: 12px;
+  max-height: min(62vh, 460px);
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--border-card);
+  background: var(--card);
+  box-shadow: 0 12px 32px var(--glass-shadow);
+  animation: gs-drop var(--dur-fast) var(--ease);
+}
+
+@keyframes gs-drop {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.gs-empty {
+  margin: 0;
+  padding: 14px 10px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.gs-group + .gs-group {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border-input);
+}
+
+.gs-group-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  padding: 6px 8px 4px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.65;
+}
+
+.gs-group-more {
+  margin-left: auto;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 500;
+}
+
+.gs-row {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease);
+}
+
+.gs-row:hover {
+  background: var(--accent-hover);
+}
+
+/* 已完成的任务不隐藏（找旧东西时正需要它），只压低对比度并划掉 */
+.gs-row.done .gs-row-title {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+
+.gs-row-title {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--text-body);
+  /* 长任务标题截两行，跟优先性矩阵的卡片保持一致 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.gs-hit {
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 700;
+  border-radius: 3px;
+  padding: 0 1px;
+}
+
+.gs-row-sub,
+.gs-row-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 2px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.gs-row-tag {
+  margin-right: 6px;
+  color: var(--accent);
+}
+
+/* 侧栏收起时整条侧栏滑出屏幕，搜索框跟着走，无需单独处理 */
+
+@media (prefers-reduced-motion: reduce) {
+  .gs-panel { animation: none; }
+}

@@ -60,7 +60,10 @@ export default function MemoItem({
   const dropTag = (tag) => onSetTags(item.id, removeTag(tags, tag), item.source);
 
   return (
-    <li className={`memo-item${isFocus ? " focus" : ""}${selected ? " selected" : ""}`}>
+    <li
+      className={`memo-item${isFocus ? " focus" : ""}${selected ? " selected" : ""}`}
+      data-highlight-id={item.id}
+    >
       <div className="memo-item-head">
         <input
           type="checkbox"

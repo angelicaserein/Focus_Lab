@@ -23,7 +23,7 @@ export { hasApiKey };
 
 // 抽取识别的约定列 id（与 taskAttrDefaults.js 一致）。
 // 仅当目标库存在同 id 的列时，对应字段才会被应用。
-const KNOWN_ATTR_IDS = ["priority", "tags", "dueDate", "estimatedMins", "notes"];
+const KNOWN_ATTR_IDS = ["priority", "tags", "dueDate", "notes"];
 
 // ── prompt 构建 ──────────────────────────────────────────────
 
@@ -147,7 +147,7 @@ export function sanitizeTaskAttrs(proposedAttrs = {}, database) {
   for (const [id, rawVal] of Object.entries(proposedAttrs)) {
     if (!KNOWN_ATTR_IDS.includes(id)) continue;
     const attr = byId.get(id);
-    const labels = { priority: "优先级", tags: "标签", dueDate: "截止日期", estimatedMins: "预计时长", notes: "备注" };
+    const labels = { priority: "优先级", tags: "标签", dueDate: "截止日期", notes: "备注" };
     if (!attr) {
       if (!dropped.includes(labels[id])) dropped.push(labels[id]);
       continue;
@@ -193,7 +193,6 @@ function sampleTasks(database, input = "") {
   const t2 = { text: zh ? "示例：回复导师的邮件" : "Sample: Reply to advisor's email", attrs: {} };
   if (has("priority")) t2.attrs.priority = "urgent_important";
   if (has("tags")) t1.attrs.tags = ["project"];
-  if (has("estimatedMins")) t1.attrs.estimatedMins = 25;
   return [t1, t2];
 }
 

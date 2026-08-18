@@ -85,5 +85,4 @@ export default {
   "memo.ai.listSep": { en: ", ", zh: "、" },
   "memo.ai.chipDue": { en: "due {date}", zh: "截止 {date}" },
   "memo.ai.chipNotes": { en: "Notes", zh: "备注" },
-  "memo.ai.minutesUnit": { en: " min", zh: "分钟" },
 };

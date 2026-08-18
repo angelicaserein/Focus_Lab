@@ -1,0 +1,144 @@
+/* 首启告知卡片。挂在 body 上，fixed 铺满视口；z-index 压过站内所有浮层
+   （确认弹窗 900 是目前最高的）——它得是打开应用后看到的第一样东西。 */
+.pn-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(4px);
+  animation: pn-fade 180ms ease;
+}
+
+@keyframes pn-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.pn-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  max-width: 520px;
+  margin: auto;
+  padding: 30px 30px 24px;
+  border-radius: 24px;
+  border: 1.5px solid var(--border-input);
+  background: var(--card);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+  animation: pn-rise 220ms ease;
+}
+
+@keyframes pn-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.pn-title {
+  margin: 0;
+  font-size: 1.32rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text-heading);
+}
+
+.pn-items {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pn-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+/* 图标是路标不是装饰：三条并排时，一眼能分出「本机 / 外发 / 监看」 */
+.pn-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: var(--accent-soft, var(--bg));
+  color: var(--accent-solid);
+}
+
+.pn-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+/* 粗体这行必须自己就说得完；小字是补充，不承载结论 */
+.pn-item-title {
+  margin: 0;
+  font-size: 0.94rem;
+  font-weight: 650;
+  line-height: 1.5;
+  color: var(--text-heading);
+}
+
+.pn-item-body {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+
+.pn-footer {
+  margin: 0;
+  padding-top: 2px;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+
+/* 唯一的出口，给足分量：整宽、居中、不和别的按钮争 */
+.pn-ack {
+  padding: 12px 20px;
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  background: var(--accent-solid);
+  color: var(--on-accent);
+  font-size: 0.92rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.pn-ack:hover {
+  background: var(--accent-deep);
+}
+
+.pn-ack:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .pn-card {
+    gap: 16px;
+    padding: 24px 20px 20px;
+    border-radius: 20px;
+  }
+  .pn-title { font-size: 1.18rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pn-overlay,
+  .pn-card { animation: none; }
+}

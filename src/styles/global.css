@@ -128,6 +128,39 @@ summary:focus-visible,
   outline-offset: 2px;
 }
 
+/* ── 跨页搜索的到站高亮 ──
+   从侧栏搜索点进某一条时，目标行滚进视野后闪一下再淡回常态（见
+   hooks/common/useHighlightTarget）。做成全局类而不是每页各写一份：
+   备忘、任务两处的行长得完全不同，但"就是这条"的提示该是同一个。
+   用 outline 而不是 border —— 后者会撑开行高，列表跟着抖一下。 */
+.is-highlighted {
+  animation: highlight-flash 2.2s var(--ease);
+  border-radius: 10px;
+}
+
+@keyframes highlight-flash {
+  0%, 55% {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    background-color: var(--accent-bg);
+  }
+  100% {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    background-color: transparent;
+  }
+}
+
+/* 减少动效时不闪，改为静态描边——提示还在，只是不动。
+   （上面的全局兜底会把动画压到 0.01ms，等于提示直接消失，故这里补一条。） */
+@media (prefers-reduced-motion: reduce) {
+  .is-highlighted {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    background-color: var(--accent-bg);
+  }
+}
+
 /* ── 无障碍：尊重系统"减少动态效果" ──
    原本是一份手点的选择器名单，只覆盖了 todo 那批老组件；后来加的
    专注仪式、生态缸、祈愿、烧瓶架全都漏在名单外。改成全局兜底。

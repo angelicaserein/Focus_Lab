@@ -26,16 +26,12 @@ export default function FlaskDebugPanel({
   return (
     <div
       className="fk-debug-overlay"
-      role="presentation"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t("flasks.debug.aria")}
       onClick={onClose}
     >
-      <div
-        className="fk-debug-panel"
-        role="dialog"
-        aria-modal="true"
-        aria-label={t("flasks.debug.aria")}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="fk-debug-panel" onClick={(e) => e.stopPropagation()}>
         <div className="fk-debug-title">{t("flasks.debug.title")}</div>
         <p className="fk-debug-note">
           {t("flasks.debug.note", { mins: FLASK_FULL_SECS / 60 })}

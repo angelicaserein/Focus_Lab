@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Waves, Table2 } from "lucide-react";
 import { useTodos } from "@/context/TodoContext";
-import { useTaskAttrs } from "@/context/DatabaseContext";
+import { useTaskAttrs, useDatabases } from "@/context/DatabaseContext";
 import { useLanguage } from "@/context/LanguageContext";
 import DatabaseTabs from "@/pages/Tasks/DatabaseTabs";
 import TasksToolbar from "@/pages/Tasks/TasksToolbar";
@@ -12,6 +12,7 @@ import BrainDumpAssistant from "@/pages/Tasks/BrainDumpAssistant";
 import useVisibleTasks from "@/pages/Tasks/useVisibleTasks";
 import useLocalStorage from "@/hooks/common/useLocalStorage";
 import useToast from "@/hooks/common/useToast";
+import useHighlightTarget from "@/hooks/common/useHighlightTarget";
 import "./Tasks.css";
 
 /**
@@ -21,8 +22,9 @@ import "./Tasks.css";
  * 两个视图看到的任务集合永远一致。
  */
 export default function Tasks() {
-  const { setTodoAttr, deleteTodos } = useTodos();
+  const { todos, setTodoAttr, deleteTodos } = useTodos();
   const { taskAttrs } = useTaskAttrs();
+  const { databases, setActiveDatabase } = useDatabases();
   const { t } = useLanguage();
   // 倒脑子落库后的提示：AI 拆出来的东西未必都想要，给一段时间反悔。
   // payload: { ids } 刚加入的一批 ｜ { undone: true } 已撤回
@@ -36,6 +38,22 @@ export default function Tasks() {
   const {
     filtered, visibleAttrs, fields, query, undatedTodos, scenario, isDbEmpty, activeDatabaseId,
   } = useVisibleTasks();
+
+  // 跨页搜索点进来时定位到那一条。目标任务未必在当前库里——先切库，
+  // 否则它压根不在列表中，滚也滚不到。（若又被工具栏的筛选/情景过滤挡住，
+  // 就只跳到本页不高亮，这一步不去替用户清筛选。）
+  const highlightId = useHighlightTarget();
+  useEffect(() => {
+    if (!highlightId) return;
+    const target = todos.find((t) => t.id === highlightId);
+    if (!target) return;
+    const dbId = target.databaseId ?? "default";
+    // 库被删过、任务却还挂着旧 databaseId 时不要切过去——那会把标签栏切到
+    // 一个不存在的库上。这种孤儿任务定位不到，就停在当前库不动。
+    if (dbId !== activeDatabaseId && databases.some((d) => d.id === dbId)) {
+      setActiveDatabase(dbId);
+    }
+  }, [highlightId, todos, activeDatabaseId, databases, setActiveDatabase]);
 
   const [view, setView] = useLocalStorage("tasks.view", "flow"); // "flow" | "table"
   const [showDueAssist, setShowDueAssist] = useState(false);
@@ -102,6 +120,7 @@ export default function Tasks() {
           priorityAttr={priorityAttr}
           activeDatabaseId={activeDatabaseId}
           scopeKey={scopeKey}
+          highlightId={highlightId}
         />
       ) : (
         <TasksTable

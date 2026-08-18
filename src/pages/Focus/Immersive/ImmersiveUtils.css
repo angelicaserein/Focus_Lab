@@ -263,6 +263,12 @@
   border-radius: 999px;
 }
 
+/* 滚动锚点，不占位：列表是 flex column + gap，留着高度会在末尾多出一格空白 */
+.immersive-note-history-end {
+  height: 0;
+  margin-top: -6px;
+}
+
 .immersive-note-history-item {
   display: flex;
   gap: 8px;

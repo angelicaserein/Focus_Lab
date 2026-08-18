@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./ImmersiveCard.css";
 import FocusFlask from "@/pages/Focus/FocusFlask";
 import DebugTweaks from "@/pages/Focus/DebugTweaks";
@@ -41,9 +41,19 @@ export default function ImmersiveCard({ flaskProgress }) {
   const [debugMode, setDebugMode] = useState(false);
   const [debugProgress, setDebugProgress] = useState(0.5);
 
+  // 收起动画那 210ms 的定时器。结束专注会把整个沉浸层卸掉，动画很容易横跨这一下，
+  // 故存进 ref 并在卸载时清掉——否则是往已卸载的组件里写 state。
+  // 同时也保证同一时刻只有一个在跑：连点两下切换器不会让两次收起动画抢着改 picker。
+  const pickerTimerRef = useRef(null);
+  const schedulePicker = (fn) => {
+    clearTimeout(pickerTimerRef.current);
+    pickerTimerRef.current = setTimeout(fn, 210);
+  };
+  useEffect(() => () => clearTimeout(pickerTimerRef.current), []);
+
   const closePicker = () => {
     setPickerClosing(true);
-    setTimeout(() => { setPicker(null); setPickerClosing(false); }, 210);
+    schedulePicker(() => { setPicker(null); setPickerClosing(false); });
   };
 
   const togglePicker = (value) => {
@@ -53,7 +63,7 @@ export default function ImmersiveCard({ flaskProgress }) {
       closePicker();
     } else {
       setPickerClosing(true);
-      setTimeout(() => { setPickerClosing(false); setPicker(value); }, 210);
+      schedulePicker(() => { setPickerClosing(false); setPicker(value); });
     }
   };
 

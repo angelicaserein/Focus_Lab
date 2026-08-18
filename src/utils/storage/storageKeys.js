@@ -14,8 +14,6 @@ export const STORAGE_KEYS = {
   ACTIVITY_LOG:     "activity_log_v1",
   // 备忘录（手动随时添加，与专注随记合并展示）
   MEMOS:            "memos_v1",
-  // 研究日志
-  RESEARCH_RECORDS: "research_daily_v1",
   // 项目甘特图：v1 是单张写死研究计划的任务列表（已废弃，保留仅为兼容旧数据）
   GANTT_TASKS:      "gantt_tasks_v1",
   // 通用甘特图 maker（v2 起）：多项目，每个项目含独立时间轴 / 泳道 / 任务

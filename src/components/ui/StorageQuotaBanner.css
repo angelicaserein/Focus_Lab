@@ -1,0 +1,92 @@
+/* localStorage 写满的警报条。固定在视口顶部、压过所有浮层——
+   它说的是「你刚才做的事没保存上」，被任何弹窗盖住都等于没说。
+   z-index 取 950：高于 ConfirmDialog 的 900。 */
+.storage-quota-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 950;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1.5px solid var(--danger);
+  background: color-mix(in srgb, var(--danger) 14%, var(--card));
+  box-shadow: 0 4px 16px var(--glass-shadow);
+  animation: sqb-drop 200ms ease;
+}
+
+@keyframes sqb-drop {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(0); }
+}
+
+.sqb-icon {
+  flex: none;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.sqb-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.sqb-title {
+  color: var(--text-heading);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sqb-detail {
+  color: var(--text-body);
+  font-size: 13px;
+}
+
+/* 导出是这条警报唯一的出口，做成实心主按钮 */
+.sqb-export {
+  flex: none;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 999px;
+  background: var(--danger);
+  color: var(--on-accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sqb-export:hover {
+  filter: brightness(1.06);
+}
+
+.sqb-dismiss {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sqb-dismiss:hover {
+  background: var(--accent-hover);
+  color: var(--text-body);
+}
+
+@media (max-width: 560px) {
+  .storage-quota-banner {
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+}

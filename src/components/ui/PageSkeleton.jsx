@@ -341,31 +341,6 @@ function SettingsSk() {
   );
 }
 
-// ── 每日研究记录：标题+日期导航 / 多个分区 / 操作栏 ─────────────────────────
-function ResearchSk() {
-  return (
-    <div className="sk-page skp-research">
-      <div className="sk-between">
-        <Sk w="40%" h={30} r={10} />
-        <Sk w={160} h={34} r={12} />
-      </div>
-      {rep(4).map((i) => (
-        <div className="sk-section" key={i}>
-          <Sk w={120} h={16} />
-          <Sk w="48%" h={12} />
-          <Card>
-            <Sk w="100%" h={i === 3 ? 100 : 56} r={12} />
-          </Card>
-        </div>
-      ))}
-      <div className="sk-actions">
-        <Sk w={120} h={42} r={12} />
-        <Sk w={120} h={42} r={12} />
-      </div>
-    </div>
-  );
-}
-
 // ── 数据分析：标题 / 时段柱状图+段卡 / 列表型分区 ───────────────────────────
 function AnalyticsSk() {
   return (
@@ -574,7 +549,6 @@ const VARIANTS = {
   "/scenario-stats": ScenarioStatsSk,
   "/reward": RewardSk,
   "/settings": SettingsSk,
-  "/research": ResearchSk,
   "/analytics": AnalyticsSk,
   "/distraction": DistractionSk,
   "/tasks": TasksSk,

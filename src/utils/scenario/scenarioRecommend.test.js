@@ -96,29 +96,6 @@ describe("scoreTask - 截止临近度分桶", () => {
   });
 });
 
-describe("scoreTask - 环境时长契合", () => {
-  it("long 环境奖励长任务、惩罚极短任务", () => {
-    const ctx = ctxFor({ taskTypes: [], communication: "silent", devices: ["computer"] });
-    const long = scoreTask(todo("a", { estimatedMins: 50 }), ctx, NOW).score;
-    const tiny = scoreTask(todo("b", { estimatedMins: 5 }), ctx, NOW).score;
-    expect(long).toBeGreaterThan(0);
-    expect(tiny).toBeLessThan(0);
-  });
-
-  it("short 环境奖励短任务、惩罚长任务", () => {
-    const ctx = ctxFor({ taskTypes: [], communication: "talking", devices: ["phone"] });
-    const short = scoreTask(todo("a", { estimatedMins: 10 }), ctx, NOW).score;
-    const long = scoreTask(todo("b", { estimatedMins: 90 }), ctx, NOW).score;
-    expect(short).toBeGreaterThan(0);
-    expect(long).toBeLessThan(0);
-  });
-
-  it("any 环境对时长无偏好", () => {
-    const ctx = ctxFor({ taskTypes: [], communication: "", devices: [] });
-    expect(scoreTask(todo("a", { estimatedMins: 90 }), ctx, NOW).score).toBe(0);
-  });
-});
-
 describe("recommendTasks", () => {
   const ctx = ctxFor({ taskTypes: ["deep_work"], communication: "silent", devices: ["computer"] });
 

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import useMemos from "@/hooks/useMemos";
+import useHighlightTarget from "@/hooks/common/useHighlightTarget";
 import useTaskExtraction from "@/hooks/task/useTaskExtraction";
 import AiTaskModal from "@/pages/Memo/AiTaskModal";
 import MemoItem from "@/pages/Memo/MemoItem";
@@ -39,6 +40,9 @@ export default function MemoPage() {
   const { t, lang } = useLanguage();
   const ai = useTaskExtraction();
   const organize = useMemoAiOrganize({ timeline, ai, activeDatabase, t });
+
+  // 跨页搜索点进来时，把那一条滚进视野并短暂高亮
+  useHighlightTarget();
 
   const [draft, setDraft] = useState("");
   const [filter, setFilter] = useState("all");

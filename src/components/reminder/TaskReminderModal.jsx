@@ -55,7 +55,7 @@ export default function TaskReminderModal() {
   if (!open) return null;
 
   return (
-    <div className="ddl-modal-overlay" role="presentation" onClick={dismiss}>
+    <div className="ddl-modal-overlay" onClick={dismiss}>
       <div
         className="ddl-modal"
         onClick={(e) => e.stopPropagation()}

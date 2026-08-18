@@ -52,16 +52,15 @@ describe("parseTasksJson", () => {
 });
 
 describe("sanitizeTaskAttrs", () => {
-  it("保留合法的 select / multiselect / date / number 值", () => {
+  it("保留合法的 select / multiselect / date / text 值", () => {
     const { attrs, dropped } = sanitizeTaskAttrs(
-      { priority: "urgent_important", tags: ["project", "fun"], dueDate: "2026-07-01", estimatedMins: "30", notes: "记得带U盘" },
+      { priority: "urgent_important", tags: ["project", "fun"], dueDate: "2026-07-01", notes: "记得带U盘" },
       fullDb,
     );
     expect(attrs).toEqual({
       priority: "urgent_important",
       tags: ["project", "fun"],
       dueDate: "2026-07-01",
-      estimatedMins: 30,
       notes: "记得带U盘",
     });
     expect(dropped).toEqual([]);

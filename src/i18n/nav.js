@@ -27,6 +27,5 @@ export default {
   "nav.scenario": { en: "Scenarios", zh: "情境配置" },
   "nav.reward": { en: "Rewards", zh: "奖励" },
   "nav.settings": { en: "Settings", zh: "设置" },
-  "nav.research": { en: "Research log", zh: "研究记录" },
   "nav.tutorial": { en: "Guide", zh: "教程" },
 };

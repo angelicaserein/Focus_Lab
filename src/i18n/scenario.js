@@ -22,8 +22,6 @@ export default {
   "scenario.due.today": { en: "Due today", zh: "今天截止" },
   "scenario.due.soon": { en: "Due soon", zh: "即将截止" },
   "scenario.due.week": { en: "Due this week", zh: "本周截止" },
-  "scenario.fit.deep": { en: "Fits deep focus right now", zh: "适合此刻深度投入" },
-  "scenario.fit.short": { en: "A short task fits well", zh: "短任务正合适" },
   "scenario.reason.tag": { en: "Matches this scenario", zh: "契合当前情景" },
   "scenario.reason.priority": { en: "{label} priority", zh: "{label}优先级" },
 

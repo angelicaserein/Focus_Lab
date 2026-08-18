@@ -48,6 +48,10 @@ export default function ImmersiveUtils({
     return () => window.clearInterval(id);
   }, [isProactiveDistraction, proactiveDistractionStartTs]);
 
+  // 「已记下」那一下的回弹定时器：结束专注会把整个沉浸层卸掉，
+  // 而这个 timer 只有 1.2 秒，很容易横跨这一下——不清就是往已卸载的组件里写 state。
+  useEffect(() => () => clearTimeout(feedbackTimerRef.current), []);
+
   const saveNote = () => {
     const t = noteText.trim();
     if (!t) return;
@@ -106,7 +110,8 @@ export default function ImmersiveUtils({
                   <span className="immersive-note-history-text">{n.text}</span>
                 </li>
               ))}
-              <div ref={historyEndRef} />
+              {/* 滚动锚点。<ul> 里只能放 <li>，塞 <div> 是非法结构 */}
+              <li ref={historyEndRef} className="immersive-note-history-end" aria-hidden="true" />
             </ul>
           )}
 

@@ -181,11 +181,9 @@ function ResultCard({ result, t, onClose, onEquip, equipped }) {
   }, [onClose]);
 
   return (
-    <div className="wish-result-backdrop" onClick={onClose} role="presentation">
+    <div className="wish-result-backdrop" onClick={onClose} role="dialog" aria-modal="true">
       <div
         className={`wish-result${isItem ? ` rarity-${item.rarity}` : " stardust"}`}
-        role="dialog"
-        aria-modal="true"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="wish-result-glow" aria-hidden="true" />

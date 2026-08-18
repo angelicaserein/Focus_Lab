@@ -8,6 +8,7 @@ export default {
   "settings.tab.tone": { en: "Tone", zh: "语气" },
   "settings.tab.language": { en: "Language", zh: "语言" },
   "settings.tab.data": { en: "Data", zh: "数据" },
+  "settings.tab.privacy": { en: "Privacy", zh: "隐私" },
   "settings.theme.title": { en: "Appearance theme", zh: "外观主题" },
   "settings.theme.hint": { en: "Unlock skins in the Rewards shop, then switch them here.", zh: "在「奖励」商城解锁皮肤后即可在此切换" },
   "settings.theme.default": { en: "Default", zh: "默认" },
@@ -168,4 +169,8 @@ export default {
   "settings.data.label.chatHistory": { en: "Chat", zh: "聊天" },
   "settings.data.errParse": { en: "Could not parse the JSON file", zh: "无法解析 JSON 文件" },
   "settings.data.errFormat": { en: "Invalid file format", zh: "文件格式无效" },
+  "settings.data.errQuota": {
+    en: "Local storage filled up part-way through — only some of the backup was restored. Clear old records below, then import again.",
+    zh: "导入到一半本地存储就满了，备份只恢复了一部分。请先在下方清理旧记录，再重新导入。",
+  },
 };

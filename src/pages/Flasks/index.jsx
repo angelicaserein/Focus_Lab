@@ -1,6 +1,6 @@
 // React 必须显式引入：本项目没装 @vitejs/plugin-react，JSX 走 esbuild 的经典
 // 转换（编译成 React.createElement），少了这个默认导入整页会 React is not defined。
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, FlaskConical, Trash2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -12,7 +12,6 @@ import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 import { flaskSlots, sealable, slotId, splitResidents } from "@/data/specimen";
 import FishGlyph from "@/pages/Aquarium/FishGlyph";
 import { FlaskGraphic } from "@/pages/Focus/FocusFlask";
-import { onActivateKey } from "@/utils/a11y";
 import {
   DEFAULT_SHELF_SORT,
   FLASK_FULL_SECS,
@@ -292,17 +291,9 @@ export default function FlasksPage() {
 // 故盯着这一页等某只长成、随手一点，挑得到的就是它。
 function SealPicker({ entries, slots, t, onPick, onClose }) {
   const list = useMemo(() => sealable(entries, slots), [entries, slots]);
-
-  // Esc 关闭：点遮罩关闭是鼠标的便利，键盘得有等价出路，否则只能靠 Tab 摸到取消按钮。
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   return (
-    <div className="fk-seal-veil" role="presentation" onClick={onClose}>
-      <div className="fk-seal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+    <div className="fk-seal-veil" role="dialog" aria-modal="true" onClick={onClose}>
+      <div className="fk-seal" onClick={(e) => e.stopPropagation()}>
         <h2 className="fk-seal-title">{t("flasks.sealTitle")}</h2>
         <p className="fk-seal-note">{t("flasks.sealNote")}</p>
         {list.length === 0 ? (
@@ -413,15 +404,7 @@ function ShelfCard({
 
   return (
     <li className={`fk-card${active ? " active" : ""}`}>
-      {/* 卡片主体点一下 = 选中这只烧瓶；里面嵌着删除按钮，套不了原生 <button>。 */}
-      <div
-        className="fk-pick"
-        role="button"
-        tabIndex={0}
-        aria-pressed={active}
-        onClick={onSelect}
-        onKeyDown={onActivateKey(onSelect)}
-      >
+      <div className="fk-pick" onClick={onSelect}>
         <button
           type="button"
           className="fk-remove"

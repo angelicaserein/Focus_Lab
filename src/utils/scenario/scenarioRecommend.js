@@ -21,8 +21,6 @@ const DUE_OVERDUE = 35;
 const DUE_TODAY = 30;
 const DUE_SOON = 20; // ≤2 天
 const DUE_WEEK = 8; // ≤7 天
-const ENV_FIT = 15; // estimatedMins 契合环境时长偏好
-const ENV_MISFIT = -10; // estimatedMins 与环境明显不符
 
 const MS_PER_DAY = 86_400_000;
 const DEFAULT_LIMIT = 5;
@@ -75,29 +73,13 @@ function scoreDue(days) {
   return { delta: 0, labelKey: "" };
 }
 
-// estimatedMins 与环境时长偏好的契合度。
-function scoreEnvFit(estimatedMins, preferredDuration) {
-  if (preferredDuration === "any" || estimatedMins == null) {
-    return { delta: 0, labelKey: "" };
-  }
-  if (preferredDuration === "long") {
-    if (estimatedMins >= 25) return { delta: ENV_FIT, labelKey: "scenario.fit.deep" };
-    if (estimatedMins < 10) return { delta: ENV_MISFIT, labelKey: "" };
-    return { delta: 0, labelKey: "" };
-  }
-  // short
-  if (estimatedMins <= 15) return { delta: ENV_FIT, labelKey: "scenario.fit.short" };
-  if (estimatedMins > 45) return { delta: ENV_MISFIT, labelKey: "" };
-  return { delta: 0, labelKey: "" };
-}
-
 // ── 单任务打分 ───────────────────────────────────────────────
 
 // ctx: { taskTypes: string[], envProfile, prioritySortMap, priorityLabels }
 // 返回 { todo, score, reasons:[{ key, labelKey, vars, delta }] }，reasons 仅收正向理由供 UI 解释。
 // 理由只给 key，由 UI 层用 t() 取文案（优先级等名字以 vars 传入）。
 export function scoreTask(todo, ctx, now) {
-  const { taskTypes = [], envProfile, prioritySortMap = {}, priorityLabels = {} } = ctx;
+  const { taskTypes = [], prioritySortMap = {}, priorityLabels = {} } = ctx;
   const attrs = todo.attrs ?? {};
   let score = 0;
   const reasons = [];
@@ -130,11 +112,6 @@ export function scoreTask(todo, ctx, now) {
   const due = scoreDue(daysUntil(attrs.dueDate, now));
   score += due.delta;
   push("due", due.labelKey, due.delta);
-
-  // 4. 环境时长契合
-  const env = scoreEnvFit(attrs.estimatedMins, envProfile?.preferredDuration ?? "any");
-  score += env.delta;
-  push("env", env.labelKey, env.delta);
 
   return { todo, score, reasons };
 }

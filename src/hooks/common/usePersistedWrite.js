@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { wrapVersioned, writesAreFrozen } from "@/utils/storage/storage";
+import { reportStorageError } from "@/utils/storage/quotaAlert";
 
 // 把 value 持久化到 localStorage[key]，写入有去抖以减少 I/O 压力。
 // 在页面隐藏/关闭时立即 flush，防止 debounce 窗口内关闭标签页丢失数据。
@@ -23,7 +24,9 @@ export default function usePersistedWrite(key, value) {
       try {
         localStorage.setItem(key, JSON.stringify(wrapVersioned(latestRef.current)));
       } catch (e) {
-        console.warn("usePersistedWrite error", e);
+        // 配额满了要摆到用户脸上：这条写入没成功，界面上那份值只活在内存里，
+        // 关掉页面就没了。只往控制台打 warn 等于让用户在不知情的情况下丢数据。
+        if (!reportStorageError(e, key)) console.warn("usePersistedWrite error", e);
       }
     };
 

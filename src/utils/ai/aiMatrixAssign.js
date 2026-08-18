@@ -53,7 +53,6 @@ export function buildUserPayload(tasks) {
         a.priority ? `优先级=${a.priority}` : null,
         a.tags?.length ? `标签=${a.tags.join("/")}` : null,
         a.dueDate ? `截止=${a.dueDate}` : null,
-        a.estimatedMins != null ? `预计=${a.estimatedMins}分` : null,
       ].filter(Boolean).join(" ");
       return `- id=${c.id}｜${c.text}${meta ? "｜" + meta : ""}`;
     }),

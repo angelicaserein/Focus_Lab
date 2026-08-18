@@ -49,7 +49,6 @@
 .skp-history,
 .skp-reward,
 .skp-settings,
-.skp-research,
 .skp-analytics,
 .skp-scs,
 .skp-generic {
@@ -61,7 +60,6 @@
 .skp-settings {
   gap: 40px;
 }
-.skp-research,
 .skp-analytics,
 .skp-generic {
   gap: 28px;

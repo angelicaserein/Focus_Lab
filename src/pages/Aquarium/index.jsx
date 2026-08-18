@@ -113,11 +113,13 @@ export default function AquariumPage() {
 
   // 先揭晓、后安置：抽到就立刻弹解锁卡（这一刻是「你遇到了谁」），
   // 收下之后才把鱼扔进缸里溅起水花（这一刻是「它住进来了」）。
+  // 先抽后扣：抽空（理论上 allMet 已拦住）时金币不能已经花出去了——
+  // 那会是「按了一下，币没了，什么都没得到」，比不给抽还糟。
   const buy = () => {
     if (!canBuy) return;
-    if (!spendCoins(FISH_COST)) return;
     const id = drawFish([...ownedSet]);
-    if (!id) return; // 理论上 allMet 已拦住
+    if (!id) return;
+    if (!spendCoins(FISH_COST)) return;
     setBusy(true);
     setCard({ id });
   };
@@ -127,7 +129,10 @@ export default function AquariumPage() {
   const settle = (id) => {
     const rec = newResident(id);
     setCollection((prev) => [...normalizeCollection(prev), rec]);
-    tankRef.current?.drop(rec, () => setBusy(false));
+    // busy 是靠 drop 的落地回调解开的。缸要是没挂上（理论上不会），
+    // 没人来调那个回调，买鱼按钮就永远灰着——这里兜一下，宁可少一段入水动画。
+    if (tankRef.current) tankRef.current.drop(rec, () => setBusy(false));
+    else setBusy(false);
   };
 
   // 缸里某一只吃到一粒饵：往前赶一点成长。喂已经长成的那只不改存档（feedResident 原样返回），
