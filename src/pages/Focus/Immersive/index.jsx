@@ -17,6 +17,7 @@ export default function ImmersiveView() {
     onAddNote, onDistraction, onProactiveDistraction, onReturnFromDistraction,
     isProactiveDistraction, proactiveDistractionStartTs,
     sessionNotes, sessionDistractionCount,
+    onOpenBrowser,
   } = useFocusSession();
 
   // 正计时：注满目标时长；倒计时：满容量=倒计时时长。两者都随已过秒数从空到满。
@@ -48,6 +49,7 @@ export default function ImmersiveView() {
         isRunning={isRunning}
         sessionNotes={sessionNotes}
         sessionDistractionCount={sessionDistractionCount}
+        onOpenBrowser={onOpenBrowser}
       />
     </div>
   );

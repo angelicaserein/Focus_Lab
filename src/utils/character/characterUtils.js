@@ -247,25 +247,33 @@ export function computeCharacter(
 // 算出本次赚得的金币 / 经验来源 / 是否升级 / 连续天数。纯函数，便于单测。
 //   prevRecords —— 结算前的历史记录（用于判断今天是否首次专注、以及连续天数）。
 //   prevXp / prevLevel —— 结算前 computeCharacter 得到的总经验与等级。
-/** @param {{ durationSecs?: number, distractionCount?: number, prevRecords?: FocusRecord[], prevXp?: number, prevLevel?: number, now?: number }} input */
+//   completedTasks —— 本次会话里真正被打上勾的任务数。必须传：主经验条把
+//     「完成任务」也算成一项（computeXpBreakdown 的 tasks 源），漏掉它，卡上报的
+//     gainedXp 就比角色卡下一次算出来的少一截，leveledUp 在临界点还会漏报升级。
+/** @param {{ durationSecs?: number, distractionCount?: number, completedTasks?: number, prevRecords?: FocusRecord[], prevXp?: number, prevLevel?: number, now?: number }} input */
 export function computeSessionReward({
   durationSecs = 0,
   distractionCount = 0,
+  completedTasks = 0,
   prevRecords = [],
   prevXp = 0,
   prevLevel = 0,
   now = Date.now(),
 } = {}) {
   const secs = Math.max(0, Math.floor(durationSecs));
+  const tasksDone = Math.max(0, Math.floor(completedTasks));
   const today = dayStart(now);
   const isFirstToday = !prevRecords.some((r) => dayStart(r.startedAt) === today);
 
   const focusXp = secs;
+  const taskXp = tasksDone * XP_PER_TASK;
   const dayXp = isFirstToday ? XP_PER_FOCUS_DAY : 0;
   const cleanXp = distractionCount === 0 && secs > 0 ? XP_PER_CLEAN_SESSION : 0;
-  const gainedXp = focusXp + dayXp + cleanXp;
+  const gainedXp = focusXp + taskXp + dayXp + cleanXp;
 
+  // 顺序与 computeXpBreakdown 的 sources 一致（focus / tasks / days / clean）
   const sources = [{ key: "focus", icon: "⏱️", xp: focusXp }];
+  if (taskXp) sources.push({ key: "tasks", icon: "✅", xp: taskXp });
   if (dayXp) sources.push({ key: "days", icon: "📅", xp: dayXp });
   if (cleanXp) sources.push({ key: "clean", icon: "🧘", xp: cleanXp });
 
@@ -276,6 +284,7 @@ export function computeSessionReward({
   return {
     durationSecs: secs,
     coins: focusXp,
+    completedTasks: tasksDone,
     gainedXp,
     sources,
     prevLevel,

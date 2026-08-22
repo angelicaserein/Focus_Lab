@@ -91,4 +91,11 @@ export const NAV_PAGES = [
   { to: "/deprecated", labelKey: "nav.deprecated", sectionKey: "nav.section.config" },
 ];
 
+// 路径 → 页面名的 i18n key。沉浸专注的「看看别的页面」用它给浮层导航取名，
+// 分心明细也用它把记下的路径还原成当前语言的页面名（记录里存的是路径，不是译文，
+// 切语言后旧记录才不会僵在另一种语言上）。
+export const PAGE_LABEL_KEYS = Object.fromEntries(
+  NAV_PAGES.map(({ to, labelKey }) => [to, labelKey]),
+);
+
 export default NAV_SECTIONS;

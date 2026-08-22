@@ -110,9 +110,12 @@ export default function Tasks() {
         </div>
       </div>
 
-      <DatabaseTabs />
-
-      <TasksToolbar query={query} fields={fields} scenario={scenario} />
+      {/* 库标签与查询工具挤在同一条：搜索/筛选/排序靠右贴边，
+          不再单占一张卡片横在标签和任务之间。 */}
+      <div className="tasks-bar">
+        <DatabaseTabs />
+        <TasksToolbar query={query} fields={fields} scenario={scenario} />
+      </div>
 
       {view === "flow" ? (
         <FlowView

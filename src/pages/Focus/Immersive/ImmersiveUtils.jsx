@@ -8,6 +8,7 @@ const DISTRACTION_FEEDBACK_MS = 1200;
 // 沉浸模式右下角工具栏：随记 + 记录分心（被动/主动）
 export default function ImmersiveUtils({
   onAddNote,
+  onOpenBrowser,
   onDistraction,
   onProactiveDistraction,
   onReturnFromDistraction,
@@ -171,6 +172,24 @@ export default function ImmersiveUtils({
           title={t("focus.imm.goDistractTitle")}
         >
           {t("focus.imm.goDistract")}
+        </button>
+        {/* 应用内的其它页面：打开即暂停计时并记账，和「去分心一下」同一个道理，
+            区别只是人没离开这个 app，故不算主动分心、单独一条记录（type: "page"）。 */}
+        <button
+          type="button"
+          className="immersive-util-btn browse"
+          onClick={() => onOpenBrowser("/")}
+          title={t("focus.imm.browse.openTitle")}
+        >
+          {t("focus.imm.browse.open")}
+        </button>
+        <button
+          type="button"
+          className="immersive-util-btn browse"
+          onClick={() => onOpenBrowser("/settings")}
+          title={t("focus.imm.browse.settingsTitle")}
+        >
+          {t("focus.imm.browse.settings")}
         </button>
       </div>
     </div>

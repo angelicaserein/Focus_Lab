@@ -15,6 +15,13 @@ const TYPE_COL_WIDTHS = {
   text:        "160px",
 };
 
+/** 优先级这类文案偏长的固定列，按列 id 单独放宽，避免 select 列一刀切都变宽。 */
+const ATTR_COL_WIDTHS = {
+  priority: "110px",
+};
+
+const colWidth = (attr) => ATTR_COL_WIDTHS[attr.id] ?? TYPE_COL_WIDTHS[attr.type];
+
 /**
  * 表格视图（「高级模式」）：Notion 式的一行一任务、一列一属性，
  * 用来批量看 / 批量改。数据由任务库页面统一算好后传进来。
@@ -145,7 +152,7 @@ export default function TasksTable({ todos, visibleAttrs, activeDatabaseId, isDb
                 <th
                   key={attr.id}
                   className="th-attr"
-                  style={{ width: TYPE_COL_WIDTHS[attr.type] }}
+                  style={{ width: colWidth(attr) }}
                 >
                   <div
                     className="th-inner th-attr-edit"

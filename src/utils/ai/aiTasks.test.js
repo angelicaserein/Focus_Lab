@@ -45,9 +45,18 @@ describe("parseTasksJson", () => {
     expect(out.map((t) => t.text)).toEqual(["有效"]);
   });
 
-  it("接受已是数组的输入", () => {
+  // 已是数组的输入也要走同一道归一化：两条分支出来的形状必须一样，
+  // 否则属性平铺在顶层、落库时读 attrs 的那一侧什么都拿不到。
+  it("接受已是数组的输入，且照样归一成 { text, attrs }", () => {
     const out = parseTasksJson([{ text: "x" }, { foo: 1 }]);
-    expect(out).toEqual([{ text: "x" }]);
+    expect(out).toEqual([{ text: "x", attrs: {} }]);
+  });
+
+  it("已是数组时，顶层的已知属性同样折进 attrs", () => {
+    const out = parseTasksJson([{ text: " 写论文 ", priority: "urgent", dueDate: "2026-08-30" }]);
+    expect(out).toEqual([
+      { text: "写论文", attrs: { priority: "urgent", dueDate: "2026-08-30" } },
+    ]);
   });
 });
 

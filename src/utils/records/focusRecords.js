@@ -2,6 +2,16 @@
 // 与 React 无关，便于复用与单测。
 /** @import { FocusRecord } from '@/types' */
 
+// 短于这个的专注不记账（addFocusRecord 直接丢掉）。
+//
+// 放在这里而不是 FocusContext 里，是因为「记不记账」和「发不发币」必须是同一条线：
+// 金币按 1 秒 1 枚发放，发了币却没有对应的记录，账面上就永远对不平——用户的金币
+// 比所有专注记录加起来还多，而多出来的那部分在历史里查无此事。
+export const MIN_RECORD_SECS = 10;
+
+// 这一段够不够格记一笔（同时也决定够不够格发币）。
+export const isRecordable = (secs) => Number(secs) >= MIN_RECORD_SECS;
+
 // 会话唯一键：有 sessionId 时用它，旧记录无 sessionId 则退化到记录自身 id
 export const sessionKey = (r) => r.sessionId ?? r.id;
 

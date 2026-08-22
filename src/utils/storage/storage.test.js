@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { importAllData, SCHEMA_VERSION, wrapVersioned } from "./storage";
+import { importAllData, SCHEMA_VERSION, wrapVersioned, KEY_MAP } from "./storage";
 import { STORAGE_KEYS } from "./storageKeys";
 
 // 测试环境是 node（见 vite.config.js），用最小 localStorage 桩替代浏览器实现
@@ -79,5 +79,42 @@ describe("importAllData", () => {
     expect(importAllData("{ 不是 json").success).toBe(false);
     expect(importAllData(JSON.stringify({ data: {} })).success).toBe(false);
     expect(localStorage.length).toBe(0);
+  });
+});
+
+
+// 备份的完整性守护。KEY_MAP 就是「导出文件里有什么」的定义，而设置页那句
+// 「清除浏览器缓存前请先导出备份」承诺的是全部身家 —— 漏一个键不会报错，
+// 只会让用户在清缓存之后发现生态缸空了、DDL 节点没了。加新 STORAGE_KEYS 时
+// 这条会红，逼你当场决定它该不该进备份。
+describe("KEY_MAP 覆盖全部用户数据键", () => {
+  // 刻意不进备份的键，每个都要写清楚为什么。
+  const EXCLUDED = {
+    // 本机的一次性提示状态，不是用户数据：换台机器就该重新告知一次
+    // （键名写死在 utils/privacy/privacyNotice.js，不在 STORAGE_KEYS 里）
+    FLASK_DEBUG_FILL: "仅开发环境的水位调试覆盖，不是真实数据",
+    DDL_MODAL_DISMISSED: "「今天已关掉这个弹窗」，跨设备重放没有意义",
+    DDL_NOTIFIED: "「今天已经通知过了」的去重记号，同上",
+  };
+
+  it("STORAGE_KEYS 里的每个键，要么在 KEY_MAP 里，要么在豁免名单里说明了理由", () => {
+    const mapped = new Set(Object.values(KEY_MAP).map((e) => e.key));
+    const missing = Object.entries(STORAGE_KEYS)
+      .filter(([name, key]) => !mapped.has(key) && !(name in EXCLUDED))
+      .map(([name]) => name);
+    expect(missing).toEqual([]);
+  });
+
+  it("KEY_MAP 里没有指向已删除 STORAGE_KEYS 的死条目", () => {
+    const known = new Set(Object.values(STORAGE_KEYS));
+    const stale = Object.entries(KEY_MAP)
+      .filter(([, e]) => !known.has(e.key))
+      .map(([name]) => name);
+    expect(stale).toEqual([]);
+  });
+
+  it("同一个 localStorage 键不会在 KEY_MAP 里挂两个名字", () => {
+    const keys = Object.values(KEY_MAP).map((e) => e.key);
+    expect(keys.length).toBe(new Set(keys).size);
   });
 });

@@ -127,13 +127,17 @@ export function buildDayView(records, isToday, activities = []) {
   const raw = groupBySession(records)
     .map((s) => {
       const taskMap = new Map();
+      // coins / distractions 是**会话级**数字，结算时被原样复制到本会话的每条
+      // 任务记录上（见 hooks/session/useSessionStop）。所以这里必须取 max 而不是
+      // 求和 —— 求和会让一次三任务的专注显示成三倍金币、三倍分心。
+      // 口径与 focusRecords.sessionMaxSecsMap / characterUtils.aggregateSessions 一致。
       let coins = 0;
       let distractions = 0;
       let scenarioTitle;
       for (const r of s.records) {
         if (!taskMap.has(r.taskText)) taskMap.set(r.taskText, r.outcome);
-        coins += r.coinsEarned ?? 0;
-        distractions += r.distractionCount ?? 0;
+        coins = Math.max(coins, r.coinsEarned ?? 0);
+        distractions = Math.max(distractions, r.distractionCount ?? 0);
         if (!scenarioTitle && r.scenarioTitle) scenarioTitle = r.scenarioTitle;
       }
       const tasks = [...taskMap.entries()].map(([text, outcome]) => ({ text, outcome }));

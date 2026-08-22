@@ -9,16 +9,19 @@ import useFocusChat from "@/hooks/focus/useFocusChat";
 import usePrefs from "@/hooks/common/usePrefs";
 import useSessionEvents from "@/hooks/session/useSessionEvents";
 import useDistractionTracking from "@/hooks/focus/useDistractionTracking";
+import { usePageBrowsingState, useRegisterBrowsingHost } from "@/context/PageBrowsingContext";
 import useSessionLifecycle from "@/hooks/session/useSessionLifecycle";
 import useSessionNotes from "@/hooks/session/useSessionNotes";
 import useFocusSelection from "@/hooks/focus/useFocusSelection";
 import useScenarioFromRoute from "@/hooks/scenario/useScenarioFromRoute";
+import useAutoStartFromRoute from "@/hooks/focus/useAutoStartFromRoute";
 import usePruneDeletedFocus from "@/hooks/focus/usePruneDeletedFocus";
 import useAutoStopOnEmpty from "@/hooks/focus/useAutoStopOnEmpty";
 import useFlaskFullNotify from "@/hooks/focus/useFlaskFullNotify";
 import useFlaskShelf from "@/hooks/flask/useFlaskShelf";
 import useDesktopFocusSync from "@/hooks/desktop/useDesktopFocusSync";
 import { filterSinceSession } from "@/utils/records/focusRecords";
+import { PAGE_LABEL_KEYS } from "@/components/layout/navSections";
 import { FocusSessionContext } from "@/pages/Focus/FocusSessionContext";
 // 沉浸层里挂着 three.js + 16MB 模型（约 1MB JS chunk）。懒加载后：进专注页只加载控制台，
 // three 的 chunk 不再被打进 Focus 页 chunk、也不随路由空闲预取拉取，真正开专注才下载。
@@ -104,6 +107,7 @@ export default function FocusPage() {
     isProactiveDistraction,
     proactiveDistractionStartTs,
     recordDistraction,
+    recordPageVisit,
     startProactiveDistraction,
     endProactiveDistraction,
     handleDistractionTag,
@@ -111,6 +115,28 @@ export default function FocusPage() {
     removeDistraction,
     flushProactiveDistraction,
   } = useDistractionTracking({ getSession, focusedTodoIds, isRunning, isRunningNow, togglePause });
+
+  // 沉浸层里「看看别的页面」：开着的时候计时器被按停，每看完一页落一条 type: "page" 的记录。
+  // 页面名按记账那一刻的语言存一份，路径也一并存下——展示时优先按路径重新取名，
+  // 切语言后旧记录才不会僵在另一种语言上。
+  const handleRecordVisit = useCallback(
+    (visit) => {
+      const key = PAGE_LABEL_KEYS[visit.path];
+      recordPageVisit({ ...visit, label: key ? t(key) : visit.path });
+    },
+    [recordPageVisit, t],
+  );
+  // 浮层状态住在路由之上的 Provider 里（浮层要自带 MemoryRouter，只能挂在 HashRouter 外面），
+  // 专注页这边把计时器那几件事登记进去。
+  const { openBrowser, flushBrowsing } = usePageBrowsingState();
+  useRegisterBrowsingHost({ isRunningNow, togglePause, getSession, onRecordVisit: handleRecordVisit });
+
+  // 结束专注时把「离开专注的时长」一次算清：主动暂停中的那段 + 正开着的浏览浮层那段。
+  // 两者对计时器的作用一样（都把它按停了），统计口径也该一样。
+  const flushAwayTime = useCallback(
+    () => flushProactiveDistraction() + flushBrowsing(),
+    [flushProactiveDistraction, flushBrowsing],
+  );
 
   // 分心存档后的撤回 toast：{ id, blank }。id 供撤回删除，blank 决定文案。
   const [distractionUndo, setDistractionUndo] = useState(null);
@@ -165,6 +191,11 @@ export default function FocusPage() {
   // 烧瓶注满（倒计时归零）弹系统通知，仅在开启「桌面通知」偏好时生效
   useFlaskFullNotify({ seconds, targetMins, isRunning, enabled: notifyEnabled, t });
 
+  // 本次会话里已经逐个勾掉的任务数。经验拆解里「完成任务」也是一项，
+  // 而快照定格在会话开始时（那时它们都还没完成），所以得自己数着。
+  // 「结束专注」那条路上一次性打勾的那些由 useSessionStop 另行报数，不在这里。
+  const settledCompletedRef = useRef(0);
+
   // 定格「结算前」快照（会话开始时调用）。
   const captureStartSnapshot = () => {
     const before = computeCharacter({ records: focusRecords, scenarios, coins, todos });
@@ -173,19 +204,25 @@ export default function FocusPage() {
       prevXp: before.xp,
       prevLevel: before.level,
     };
+    settledCompletedRef.current = 0;
   };
 
   // 用开始时的快照 + 本次会话事实换算收益并弹卡。两条结束路径共用。
-  const showSessionReward = ({ durationSecs, distractionCount }) => {
+  const showSessionReward = ({ durationSecs, distractionCount, completedTasks = 0 }) => {
     const snap = sessionStartRef.current ?? { prevRecords: focusRecords, prevXp: 0, prevLevel: 0 };
-    setSessionReward(computeSessionReward({ durationSecs, distractionCount, ...snap }));
+    setSessionReward(computeSessionReward({
+      durationSecs,
+      distractionCount,
+      completedTasks: completedTasks + settledCompletedRef.current,
+      ...snap,
+    }));
   };
 
   // useSessionLifecycle 先于 useFocusSelection：后者需要 handleStart 作为 onAutoStart 回调
   const { handleStart, settleTask, handleStop } = useSessionLifecycle({
     seconds, start, clearSession, getSession,
     logEvent, resetEvents, getSnapshot,
-    flushProactiveDistraction,
+    flushProactiveDistraction: flushAwayTime,
     sessionDistractions,
     sessionNotes,
     addFocusRecord, addCoins, removeFocusTodo, toggleTodo,
@@ -200,6 +237,9 @@ export default function FocusPage() {
     // 「结束专注」路径：结算所有剩余任务后弹卡。
     onSessionReward: showSessionReward,
   });
+
+  // 主页一键开专注：带 autoStart 进来的直接开会话、进沉浸层（不走仪式）。
+  useAutoStartFromRoute(hasSelection, handleStart);
 
   // 启动仪式：点「开始专注」按钮时先播揭晓过渡，用户点「开始吧」才真正 handleStart。
   // 只拦截显式按钮这条路；双击任务直达专注的 onAutoStart 保持顺手启动、不走仪式。
@@ -220,6 +260,7 @@ export default function FocusPage() {
   // 清空按钮 / 逐个移除 chip 等非完成收尾不触发（它们不是 completed）。
   const handleSettle = useCallback(
     (todo, outcome, opts) => {
+      if (outcome === "completed" && !todo.completed) settledCompletedRef.current += 1;
       settleTask(todo, outcome, opts);
       const emptiesSelection = focusedTodoIds.filter((id) => id !== todo.id).length === 0;
       if (outcome === "completed" && seconds > 0 && emptiesSelection) {
@@ -245,7 +286,9 @@ export default function FocusPage() {
     seconds,
     addCoins,
     clearSession,
-    onStop: () => setIsImmersive(false),
+    // 任务在浏览浮层里被清空也会走到这儿（沉浸层随之卸载）：
+    // 不结账的话浏览状态会挂着不放，下次再按「看看别的页面」就打不开了。
+    onStop: () => { flushBrowsing(); setIsImmersive(false); },
   });
 
   const handleTogglePause = () => {
@@ -299,6 +342,7 @@ export default function FocusPage() {
       proactiveDistractionStartTs,
       sessionNotes,
       sessionDistractionCount: sessionDistractions.length,
+      onOpenBrowser: openBrowser,
       jumpSeconds,
     }),
     // handleTogglePause / addNote 每渲染重建但消费方为事件回调，不影响正确性
@@ -309,7 +353,7 @@ export default function FocusPage() {
       setCardVisible, setAnimEnabled, messages, sending, sendUserMessage,
       recordDistraction, startProactiveDistraction, endProactiveDistraction,
       isProactiveDistraction, proactiveDistractionStartTs, sessionNotes,
-      sessionDistractions.length, jumpSeconds,
+      sessionDistractions.length, jumpSeconds, openBrowser,
     ],
   );
 

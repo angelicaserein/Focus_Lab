@@ -1,12 +1,20 @@
 // 心流任务页的纯逻辑：与任务库共用同一份数据（TodoContext / DatabaseContext），
 // 这里只负责「怎么把任务分堆、排序、挑出此刻该做的一件」，方便复用与单测。
 
-/** 今天 0 点起算，dateStr 距今天的天数（负数=已过期，0=今天）。 */
+/**
+ * 今天 0 点起算，dateStr 距今天的天数（负数=已过期，0=今天）。
+ *
+ * "YYYY-MM-DD" 必须补上 "T00:00:00" 再解析：不补的话 ECMAScript 规定按 **UTC**
+ * 午夜解释，在西半球（UTC-5 之类）那一刻还是前一天的傍晚，setHours(0) 之后就退回
+ * 到了前一天——所有截止日整体差一天，「今天到期」的任务被分进 today 堆的前一天。
+ * 口径与 utils/time.js 的 getDaysUntil 保持一致。
+ */
 export function daysUntil(dateStr) {
   if (!dateStr) return null;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const d = new Date(dateStr);
+  // 只给「纯日期」补时刻；万一哪天存进来的是完整时间戳，原样解析即可。
+  const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(dateStr) ? `${dateStr}T00:00:00` : dateStr);
   if (isNaN(d)) return null;
   d.setHours(0, 0, 0, 0);
   return Math.round((d - today) / 86400000);

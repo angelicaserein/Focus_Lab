@@ -17,6 +17,8 @@ export default {
   "distraction.stat.times": { en: "{n}×", zh: "{n} 次" },
   "distraction.stat.away": { en: "Switched away", zh: "切去别的软件" },
   "distraction.away.row": { en: "In {app}", zh: "用了 {app}" },
+  "distraction.away.page": { en: "Looked at {page}", zh: "去看了 {page}" },
+  "distraction.stat.page": { en: "Left for another page", zh: "翻了别的页面" },
   "distraction.stat.noRate": { en: "—", zh: "—" },
   "distraction.trend.title": { en: "Last 7 days", zh: "近 7 天" },
   "distraction.trend.badge": { en: "{n} in the last 7 days", zh: "近 7 天共 {n} 次" },

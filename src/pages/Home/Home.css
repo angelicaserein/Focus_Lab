@@ -31,7 +31,6 @@
 .page-home > *:nth-child(1) { animation-delay: 40ms; }
 .page-home > *:nth-child(2) { animation-delay: 120ms; }
 .page-home > *:nth-child(3) { animation-delay: 200ms; }
-.page-home > *:nth-child(4) { animation-delay: 280ms; }
 
 @keyframes home-enter {
   from {
@@ -44,45 +43,6 @@
   }
 }
 
-/* ── 快速开始按钮 ──
-   移到首屏第一位后它是页面的主行动点，所以比原先更宽、更高一点，
-   一进门不用找就能按下去。 */
-.home-quickstart {
-  width: 100%;
-  max-width: 560px;
-  padding: 22px 24px;
-  border-radius: 20px;
-  border: none;
-  background: var(--accent-solid);
-  color: var(--on-accent);
-  font: inherit;
-  font-size: 1.1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
-  box-shadow: 0 4px 18px var(--accent-glow);
-}
-
-.home-quickstart:hover {
-  transform: translateY(-2px);
-  opacity: 0.92;
-  box-shadow: 0 8px 24px var(--accent-glow);
-}
-
-.home-quickstart:active {
-  transform: scale(0.98);
-  box-shadow: none;
-}
-
-/* 键盘聚焦时给一个清晰可见的焦点环（鼠标点击不显示） */
-.home-quickstart:focus-visible {
-  outline: none;
-  box-shadow:
-    0 0 0 3px var(--bg),
-    0 0 0 6px var(--accent),
-    0 8px 24px var(--accent-glow);
-}
-
 @media (max-width: 600px) {
   .page-home {
     padding: 32px 16px 48px;
@@ -93,11 +53,5 @@
 @media (prefers-reduced-motion: reduce) {
   .page-home > * {
     animation: none;
-  }
-  .home-quickstart,
-  .home-quickstart:hover,
-  .home-quickstart:active {
-    transition: none;
-    transform: none;
   }
 }

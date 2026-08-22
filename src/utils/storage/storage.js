@@ -182,15 +182,28 @@ export function unwrapVersioned(parsed) {
   return parsed;
 }
 
+// 导出 / 导入 / 迁移认得的全部键。
+//
+// 这张表就是「备份里有什么」的定义 —— 设置页那句「清除浏览器缓存前请先导出备份」
+// 承诺的是全部身家，所以凡是用户攒出来、丢了就回不来的东西都必须在列：
+// 收集品（生态缸的鱼、祈愿图鉴）是用金币换的，DDL 节点、烧瓶架、自定义商品、
+// 语气包是手工配的，偏好是一条条调出来的。漏一项，用户照着提示导完备份、
+// 清掉缓存，那一项就永远没了 —— 而且导出时界面上不会有任何异样。
+//
+// 唯一刻意不在列的是隐私须知的「看过没有」（privacy_notice_ack_v1）：
+// 那是本机的一次性提示状态、不是用户数据，换台机器就该重新告知一次。
 const KEY_MAP = {
   todos:           { key: STORAGE_KEYS.TODOS            },
   scenarios:       { key: STORAGE_KEYS.SCENARIOS        },
+  activeScenario:  { key: STORAGE_KEYS.ACTIVE_SCENARIO  },
   scenarioOptions: { key: STORAGE_KEYS.SCENARIO_OPTIONS },
   focusRecords:  { key: STORAGE_KEYS.FOCUS_RECORDS    },
   activityLog:   { key: STORAGE_KEYS.ACTIVITY_LOG     },
-  coins:         { key: STORAGE_KEYS.COINS            },
+  // merge:"max" —— 金币是累计量，重复导入同一份备份不该翻倍（见 mergeValue）
+  coins:         { key: STORAGE_KEYS.COINS, merge: "max" },
   ownedRewards:  { key: STORAGE_KEYS.REWARD_OWNED     },
   redeemCounts:  { key: STORAGE_KEYS.REWARD_REDEEM    },
+  customRewards: { key: STORAGE_KEYS.REWARD_CUSTOM    },
   activeTheme:   { key: STORAGE_KEYS.ACTIVE_THEME     },
   notes:         { key: STORAGE_KEYS.NOTES            },
   memos:         { key: STORAGE_KEYS.MEMOS            },
@@ -198,8 +211,39 @@ const KEY_MAP = {
   chatHistory:   { key: STORAGE_KEYS.CHAT             },
   ganttTasks:    { key: STORAGE_KEYS.GANTT_TASKS      },
   ganttProjects: { key: STORAGE_KEYS.GANTT_PROJECTS   },
+  ganttActiveProject: { key: STORAGE_KEYS.GANTT_ACTIVE_PROJECT },
   taskAttrs:     { key: STORAGE_KEYS.TASK_ATTRS       },
   databases:     { key: STORAGE_KEYS.DATABASES        },
+  activeDatabase: { key: STORAGE_KEYS.ACTIVE_DB       },
+  // 提醒节点：手工配出来的，丢了没法从别处推回来
+  ddlCheckpoints: { key: STORAGE_KEYS.DDL_CHECKPOINTS },
+  // 收集品：都是用金币换的，等价于钱
+  companionCollection: { key: STORAGE_KEYS.COMPANION_COLLECTION },
+  companionOutfit:     { key: STORAGE_KEYS.COMPANION_OUTFIT     },
+  aquariumCollection:  { key: STORAGE_KEYS.AQUARIUM_COLLECTION  },
+  skilltreeUnlocked:   { key: STORAGE_KEYS.SKILLTREE_UNLOCKED   },
+  // 烧瓶架：一只只存出来的形状
+  flaskShelf:     { key: STORAGE_KEYS.FLASK_SHELF      },
+  flaskShelfSort: { key: STORAGE_KEYS.FLASK_SHELF_SORT },
+  // 功能树 / 废弃页面的开关名单
+  disabledFeatures:  { key: STORAGE_KEYS.DISABLED_FEATURES  },
+  enabledDeprecated: { key: STORAGE_KEYS.ENABLED_DEPRECATED },
+  // AI 生成的语气包与任务拆分偏好：都是用户提过 prompt / 调过档位才有的
+  tonePack:       { key: STORAGE_KEYS.TONE_PACK        },
+  taskSplitPrefs: { key: STORAGE_KEYS.TASK_SPLIT_PREFS },
+  // 偏好设置
+  prefCountupFullMins: { key: STORAGE_KEYS.PREF_COUNTUP_FULL_MINS },
+  prefCountdownMins:   { key: STORAGE_KEYS.PREF_COUNTDOWN_MINS    },
+  prefCountupPresets:  { key: STORAGE_KEYS.PREF_COUNTUP_PRESETS   },
+  prefCountdownPresets:{ key: STORAGE_KEYS.PREF_COUNTDOWN_PRESETS },
+  prefTimerMode:    { key: STORAGE_KEYS.PREF_TIMER_MODE     },
+  prefFlaskShape:   { key: STORAGE_KEYS.PREF_FLASK_SHAPE    },
+  prefAnimEnabled:  { key: STORAGE_KEYS.PREF_ANIM_ENABLED   },
+  prefRitualEnabled:{ key: STORAGE_KEYS.PREF_RITUAL_ENABLED },
+  prefCardVisible:  { key: STORAGE_KEYS.PREF_CARD_VISIBLE   },
+  prefNotifyEnabled:{ key: STORAGE_KEYS.PREF_NOTIFY_ENABLED },
+  prefAppWatch:     { key: STORAGE_KEYS.PREF_APP_WATCH      },
+  prefLang:         { key: STORAGE_KEYS.PREF_LANG           },
 };
 
 // 顺序执行迁移函数，把 schema 从 fromVersion 升级到 SCHEMA_VERSION。
@@ -244,21 +288,27 @@ function mergeArrays(local, incoming) {
 /**
  * 逐键合并导入数据与本地数据，本地优先：
  *   数组   → 按条目身份去重后追加（本地在前）
- *   数字   → 取较大值（金币这类累计量，重复导入不会翻倍）
  *   对象   → 递归合并（scenarioOptions 的分组数组、redeemCounts 的计数）
- *   其余   → 本地有值就保留本地（activeTheme 这类单选项）
+ *   其余   → 本地有值就保留本地（activeTheme、各项偏好这类单值）
+ *
+ * strategy="max" 的键（只有金币）才对数字取较大值 —— 那是累计量，
+ * 重复导入同一份备份不该翻倍。其余数字一律走「保留本地」：
+ * 偏好里的「倒计时 25 分钟」不是越大越对，拿备份里的 45 盖掉是莫名其妙的。
  */
-function mergeValue(local, incoming) {
+function mergeValue(local, incoming, strategy) {
   if (local === undefined) return incoming;
   if (incoming === undefined) return local;
   if (Array.isArray(local) && Array.isArray(incoming)) return mergeArrays(local, incoming);
-  if (typeof local === "number" && typeof incoming === "number") return Math.max(local, incoming);
+  if (strategy === "max" && typeof local === "number" && typeof incoming === "number") {
+    return Math.max(local, incoming);
+  }
   if (
     local && incoming &&
     typeof local === "object" && typeof incoming === "object" &&
     !Array.isArray(local) && !Array.isArray(incoming)
   ) {
     const out = { ...local };
+    // 嵌套层不再继承 max：策略是按顶层键定的（redeemCounts 的计数各自为政）
     for (const [k, v] of Object.entries(incoming)) out[k] = mergeValue(local[k], v);
     return out;
   }
@@ -268,9 +318,9 @@ function mergeValue(local, incoming) {
 // 只返回文件里出现过的 key（其余本地键无需重写），值为合并结果。
 function mergeAllData(local, incoming) {
   const out = {};
-  for (const name of Object.keys(KEY_MAP)) {
+  for (const [name, { merge }] of Object.entries(KEY_MAP)) {
     if (!(name in incoming)) continue;
-    out[name] = mergeValue(local[name], incoming[name]);
+    out[name] = mergeValue(local[name], incoming[name], merge);
   }
   return out;
 }

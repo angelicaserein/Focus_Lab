@@ -119,20 +119,36 @@ describe("buildDayView", () => {
     expect(view.nowTop).toBeNull();
   });
 
-  it("同一会话内多任务合并，coins/distractions 累加、tone 取完成优先", () => {
+  // coins / distractions 是会话级数字，结算时被复制到本会话的每条记录上。
+  // 这里用「每条都带同一个值」的真实形状：求和会得到 3 倍，取 max 才是对的。
+  it("同一会话内多任务合并，coins/distractions 取会话值不叠加、tone 取完成优先", () => {
     const view = buildDayView(
       [
-        rec({ sessionId: "s", taskText: "A", outcome: "ended", durationSecs: 3600, coinsEarned: 5, distractionCount: 1, startedAt: at(2026, 6, 1, 9) }),
-        rec({ sessionId: "s", taskText: "B", outcome: "completed", durationSecs: 3600, coinsEarned: 3, distractionCount: 2, startedAt: at(2026, 6, 1, 9) }),
+        rec({ sessionId: "s", taskText: "A", outcome: "ended", durationSecs: 3600, coinsEarned: 600, distractionCount: 2, startedAt: at(2026, 6, 1, 9) }),
+        rec({ sessionId: "s", taskText: "B", outcome: "completed", durationSecs: 3600, coinsEarned: 600, distractionCount: 2, startedAt: at(2026, 6, 1, 9) }),
+        rec({ sessionId: "s", taskText: "C", outcome: "completed", durationSecs: 3600, coinsEarned: 600, distractionCount: 2, startedAt: at(2026, 6, 1, 9) }),
       ],
       false,
     );
     expect(view.sessions).toHaveLength(1);
     const s = view.sessions[0];
-    expect(s.tasks.map((t) => t.text)).toEqual(["A", "B"]);
+    expect(s.tasks.map((t) => t.text)).toEqual(["A", "B", "C"]);
     expect(s.tone).toBe("completed"); // 只要有一项完成即视为完成
-    expect(s.coins).toBe(8);
-    expect(s.distractions).toBe(3);
+    expect(s.coins).toBe(600);
+    expect(s.distractions).toBe(2);
+  });
+
+  // 「逐一勾完」路径：每条任务在自己结算的那一刻落一条记录，秒数递增。
+  // 金币在会话收尾时按最终秒数发一次，所以显示的也该是最后那条。
+  it("逐一勾完的会话取最后一条的金币，而不是各条相加", () => {
+    const view = buildDayView(
+      [
+        rec({ sessionId: "s", taskText: "A", durationSecs: 300, coinsEarned: 300, startedAt: at(2026, 6, 1, 9) }),
+        rec({ sessionId: "s", taskText: "B", durationSecs: 900, coinsEarned: 900, startedAt: at(2026, 6, 1, 9) }),
+      ],
+      false,
+    );
+    expect(view.sessions[0].coins).toBe(900);
   });
 
   it("全部移除的会话记为 removed", () => {

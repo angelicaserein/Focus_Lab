@@ -3,6 +3,7 @@ import React from "react";
 import useDistractionAnalytics from "@/hooks/focus/useDistractionAnalytics";
 import { useLanguage } from "@/context/LanguageContext";
 import { UNTAGGED } from "@/utils/analytics/distractionStats";
+import { PAGE_LABEL_KEYS } from "@/components/layout/navSections";
 import { formatTimestamp, formatSessionDate, formatDuration } from "@/utils/time";
 import "@/components/records/records.css";
 import "@/components/records/SessionSummary.css";
@@ -12,6 +13,13 @@ import "./Distraction.css";
 // 只在关键刻度显示小时标签（与数据分析页一致）
 // 横轴刻度：两种语言同形（"0:00" 一类），中文保留「时」以贴合原样。
 const HOUR_TICKS = [0, 6, 12, 18, 23];
+
+// 沉浸层里翻过的页面：记录存的是路径，按当前语言重新取名；
+// 页面后来被改名/移出侧栏时退回记录里那份译文，再退回路径。
+function pageName(t, item) {
+  const key = PAGE_LABEL_KEYS[item.pagePath];
+  return key ? t(key) : item.pageLabel || item.tag || item.pagePath;
+}
 
 function SectionHead({ title, badge }) {
   return (
@@ -89,6 +97,17 @@ export default function DistractionPage() {
           </div>
         </div>
         {/* 桌面端才会有的一张：没装桌面版的话这栏永远是 0，不如不占地方 */}
+        {overview.pageCount > 0 && (
+          <div className="hist-stat-card">
+            <div className="hist-stat-value">
+              {t("distraction.stat.times", { n: overview.pageCount })}
+            </div>
+            <div className="hist-stat-label">
+              {t("distraction.stat.page")}
+              {overview.pageSecs > 0 && ` · ${formatDuration(overview.pageSecs)}`}
+            </div>
+          </div>
+        )}
         {overview.appCount > 0 && (
           <div className="hist-stat-card">
             <div className="hist-stat-value">
@@ -226,7 +245,7 @@ export default function DistractionPage() {
                       {/* 切去别的软件那种是一段时间，不是一个瞬间：时间列直接写成起止 */}
                       <span className="session-summary-time">
                         {formatTimestamp(item.ts)}
-                        {item.type === "app" && item.endTs && (
+                        {(item.type === "app" || item.type === "page") && item.endTs && (
                           <span className="dst-time-end">–{formatTimestamp(item.endTs)}</span>
                         )}
                       </span>
@@ -234,6 +253,10 @@ export default function DistractionPage() {
                         {item.type === "app" ? (
                           <span className="dst-app-name">
                             {t("distraction.away.row", { app: item.appLabel || item.tag })}
+                          </span>
+                        ) : item.type === "page" ? (
+                          <span className="dst-app-name">
+                            {t("distraction.away.page", { page: pageName(t, item) })}
                           </span>
                         ) : (
                           <>

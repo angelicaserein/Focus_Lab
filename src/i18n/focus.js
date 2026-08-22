@@ -114,6 +114,23 @@ export default {
   "focus.imm.distractedTitle": { en: "Log a distraction that just happened", zh: "记录一次刚刚发生的分心" },
   "focus.imm.goDistract": { en: "🚶 Step away", zh: "🚶 去分心一下" },
   "focus.imm.goDistractTitle": { en: "Pause focusing to handle something else", zh: "暂停专注，去处理别的事" },
+  "focus.imm.browse.open": { en: "🧭 Other pages", zh: "🧭 看看别的页面" },
+  "focus.imm.browse.openTitle": {
+    en: "Browse the rest of the app — the timer pauses and the page you open gets logged",
+    zh: "翻翻应用里的其它页面——计时会暂停，看的是哪一页会被记下来",
+  },
+  "focus.imm.browse.settings": { en: "⚙ Settings", zh: "⚙ 设置" },
+  "focus.imm.browse.settingsTitle": {
+    en: "Open settings without leaving this session (the timer pauses)",
+    zh: "不离开本次专注就改设置（计时会暂停）",
+  },
+  "focus.imm.browse.title": { en: "Other pages", zh: "别的页面" },
+  "focus.imm.browse.back": { en: "Back to focusing", zh: "回到专注" },
+  "focus.imm.browse.paused": { en: "Timer paused · away", zh: "计时已暂停 · 已离开" },
+  "focus.imm.browse.hint": {
+    en: "The timer stays paused until you head back. Which pages you open is logged with this session.",
+    zh: "回到专注前计时一直停着。你翻了哪些页面会记进本次专注。",
+  },
   "focus.imm.webglFallback": { en: "3D model failed to load (WebGL unavailable)", zh: "3D 模型加载失败（WebGL 不可用）" },
   "focus.recommend": { en: "Suggested for scenario", zh: "情景推荐" },
   "focus.aiRanking": { en: "AI ranking…", zh: "AI 精排中…" },

@@ -24,6 +24,8 @@ import {
   PLANE_Y_MIN,
   PLANE_Y_MAX,
 } from "@/utils/task/matrixGeometry";
+import { getDaysUntil } from "@/utils/time";
+import { countdownLabel, countdownClass, isActiveDeadline } from "@/utils/ddlUtils";
 import MatrixSortDialog from "./MatrixSortDialog";
 import BrainDumpAssistant from "@/pages/Tasks/BrainDumpAssistant";
 import Toast from "@/components/ui/Toast";
@@ -42,6 +44,51 @@ import "./EisenhowerMatrix.css";
 
 // 卡片默认只显示任务名。单击＝在卡片右上方浮出「完成/编辑/删除」扁平小菜单（不撑宽卡片本身，
 // 菜单由父组件在矩阵层单独渲染，见 MatrixCardMenu），双击＝直接进入沉浸式专注。
+// —— 未分类清单的排序 ——
+// 未分类任务不再是一堆散标签，而是一份「先做哪件」的清单：越靠前越该先动手。
+// 排序键取「优先级标签」与「DDL 紧迫度」里更急的那一个（两者都可能缺）：
+//   有的任务在任务库里定了级但没落矩阵，有的只有截止日——谁更急谁排前面。
+// 优先级标签 id → 任务库里那套文案（清单行尾复用，措辞与表格保持一致）
+const PRIORITY_LABEL_KEY = {
+  urgent_important: "tasks.priority.urgentImportant",
+  important: "tasks.priority.important",
+  urgent: "tasks.priority.urgent",
+  trivial: "tasks.priority.trivial",
+};
+
+const PRIORITY_RANK = { urgent_important: 0, urgent: 1, important: 2, trivial: 3 };
+const priorityRank = (todo) => PRIORITY_RANK[todo.attrs?.priority] ?? 4;
+
+// 剩余天数 → 紧迫档位（与 priorityRank 同一把尺子，才能取 min 比较）
+function ddlRank(days) {
+  if (days === null) return 4;
+  if (days <= 0) return 0; // 逾期 / 今天到期
+  if (days <= 2) return 1;
+  if (days <= 7) return 2;
+  return 3;
+}
+
+// 未分类任务 → 「先做哪件」的顺序：紧迫档位 → DDL 早的在前 → 优先级高的在前 → 原顺序
+export function sortUnplaced(todos) {
+  return todos
+    .map((todo, i) => {
+      // 必须过 isActiveDeadline：任务库里关掉了「截止」开关的日期只是个普通日期，
+      // 不是死期。直接读 attrs.dueDate 会让它照样按 DDL 紧迫度往前排，
+      // 与主页截止图 / DDL 提醒 / 今天要做的事的口径打架（见 ddlUtils 的单一标准）。
+      const days = isActiveDeadline(todo) ? getDaysUntil(todo.attrs.dueDate) : null;
+      const pr = priorityRank(todo);
+      const dr = ddlRank(days);
+      return { todo, i, days, pr, rank: Math.min(pr, dr) };
+    })
+    .sort((a, b) =>
+      a.rank - b.rank ||
+      (a.days ?? Infinity) - (b.days ?? Infinity) ||
+      a.pr - b.pr ||
+      a.i - b.i
+    )
+    .map((e) => ({ todo: e.todo, days: e.days }));
+}
+
 // 托盘里的未分类卡额外常驻「分一下」入口。data-todo-id 供菜单定位到这张卡。
 function TaskTag({
   todo, focused, settling, dragging, expanded, editing, editDraft,
@@ -378,6 +425,9 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
     return { placed, unplaced };
   }, [todos]);
 
+  // 未分类清单：按紧迫度排好序（含各自的剩余天数，行尾直接显示倒计时）
+  const unplacedList = useMemo(() => sortUnplaced(unplaced), [unplaced]);
+
   // 标签 ↔ 落点对账（每次 todos 变化各卡片各写一次，改动才写，写完即收敛）：
   //   ① 已落位的卡片：把优先级标签对齐到落点所在象限，并把落点夹进该象限（清掉旧数据
   //      里跨中线 / 标签与落点不符的历史遗留）。落点是它的真相。
@@ -696,9 +746,9 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
           })}
         </div>
 
-        {/* 未分类托盘：新建任务先落这里，拖入平面完成摆放。
-            宽屏（电脑）平面被屏高封顶后本栏会剩出横向余量，托盘就贴在平面右边把它吃掉，
-            免得彩色平面两侧各留一条白；余量不够时自动折到平面下方（见 CSS 的 flex-wrap）。 */}
+        {/* 未分类清单：新建任务先落这里，拖入平面完成摆放。
+            始终整行摆在平面下方，内容是一份按紧迫度排好序的待办清单——
+            越靠上越该先动手，行尾给出优先级标签与 DDL 倒计时。 */}
         <div
           ref={trayRef}
           className={`matrix-tray${overTray ? " drag-over" : ""}`}
@@ -723,13 +773,33 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
               {t("focus.matrix.aiAssignError")}
             </span>
           )}
-          <div className="matrix-tray-tags">
-            {unplaced.length > 0 ? (
-              unplaced.map((todo) => renderTag(todo, true))
-            ) : (
-              <span className="matrix-cell-empty">{t("focus.matrix.trayEmpty")}</span>
-            )}
-          </div>
+          {unplacedList.length > 0 ? (
+            <ol className="matrix-tray-list">
+              {unplacedList.map(({ todo, days }, i) => {
+                const priority = todo.attrs?.priority;
+                return (
+                  <li key={todo.id} className="matrix-tray-row">
+                    <span className="matrix-tray-rank" aria-hidden="true">{i + 1}</span>
+                    {renderTag(todo, true)}
+                    <span className="matrix-tray-meta">
+                      {priority && (
+                        <span className={`matrix-tray-prio ${priority}`}>
+                          {t(PRIORITY_LABEL_KEY[priority])}
+                        </span>
+                      )}
+                      {days !== null && (
+                        <span className={`matrix-tray-ddl ${countdownClass(days)}`}>
+                          {countdownLabel(days, t)}
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+          ) : (
+            <span className="matrix-cell-empty">{t("focus.matrix.trayEmpty")}</span>
+          )}
         </div>
       </div>
 

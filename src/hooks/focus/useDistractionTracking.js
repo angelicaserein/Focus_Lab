@@ -95,6 +95,29 @@ export default function useDistractionTracking({ getSession, focusedTodoIds, isR
     [setDistractions],
   );
 
+  // ── 沉浸专注里「看看别的页面」 ──────────────────────────────────────
+  // 用户在沉浸层里翻应用内其它页面（计时器同时被按停，见 usePageBrowsing）时，
+  // 每看完一页落一条：几点到几点、看的哪一页。和桌面版的 app 记录同构，
+  // 区别只在离开去的是应用内的另一页而不是另一个程序，故单列 type: "page"。
+  const recordPageVisit = useCallback(({ path, label, startTs, endTs, durationSecs, sessionId }) => {
+    const entry = makeSessionEntry(
+      {
+        // 记的是「离开专注那一刻」，不是回来的那一刻
+        ts: startTs,
+        endTs,
+        type: "page",
+        // 用页面名当标签：分心原因排行就直接排出「是哪一页把人拽走的」
+        tag: label || path,
+        note: null,
+        durationSecs,
+        pagePath: path,
+        pageLabel: label || path,
+      },
+      { sessionId: sessionId ?? getSession().sessionId, focusedTodoIds },
+    );
+    setDistractions((prev) => [...prev, entry]);
+  }, [getSession, focusedTodoIds, setDistractions]);
+
   // ── 桌面端：切去别的软件 ────────────────────────────────────────────
   // 主进程判定前台程序不在白名单时，桌宠的瓶子会翻过来往外倒水（见 main.cjs）。
   // 那一下和用户自己按「我分心了」是同一件事，所以这里做两件事：
@@ -184,6 +207,7 @@ export default function useDistractionTracking({ getSession, focusedTodoIds, isR
     isProactiveDistraction: phase === "proactive-running",
     proactiveDistractionStartTs: proactiveStartTs,
     recordDistraction,
+    recordPageVisit,
     startProactiveDistraction,
     endProactiveDistraction,
     handleDistractionTag,

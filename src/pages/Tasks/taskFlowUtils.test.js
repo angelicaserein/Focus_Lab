@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { bucketTasks, stickyBuckets, makeWeightOf } from "@/pages/Tasks/taskFlowUtils";
+import { bucketTasks, stickyBuckets, makeWeightOf, daysUntil } from "@/pages/Tasks/taskFlowUtils";
 
 const weightOf = makeWeightOf({
   options: [
@@ -17,7 +17,12 @@ const todo = (id, over = {}) => ({
   ...over,
 });
 
-const today = new Date().toISOString().slice(0, 10);
+// 本地年月日，不能用 toISOString()——那是 UTC，在 UTC+8 的凌晨 0–8 点会给出昨天，
+// 让这里所有「今天到期」的用例在半夜跑 CI 时随机变红。口径同 utils/time.js 的 getTodayStr。
+const localDateStr = (d = new Date()) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+const today = localDateStr();
 
 describe("stickyBuckets：冻结卡片落位", () => {
   it("首次调用等同于普通分堆", () => {
@@ -77,5 +82,31 @@ describe("stickyBuckets：冻结卡片落位", () => {
     expect(twice.buckets.anytime.map((t) => t.id)).toEqual(
       once.buckets.anytime.map((t) => t.id),
     );
+  });
+});
+
+
+// 日期解析的时区口径。"YYYY-MM-DD" 交给 new Date() 会按 UTC 午夜解释，
+// 在西半球那一刻还是前一天——所有截止日整体差一天。这几条在任何时区都必须成立。
+describe("daysUntil：按本地日历算天数", () => {
+  it("今天的日期是 0，与本地时区无关", () => {
+    expect(daysUntil(localDateStr())).toBe(0);
+  });
+
+  it("明天是 1、昨天是 -1", () => {
+    const shift = (n) => {
+      const d = new Date();
+      d.setDate(d.getDate() + n);
+      return localDateStr(d);
+    };
+    expect(daysUntil(shift(1))).toBe(1);
+    expect(daysUntil(shift(-1))).toBe(-1);
+    expect(daysUntil(shift(30))).toBe(30);
+  });
+
+  it("空值与坏值都回 null，不抛", () => {
+    expect(daysUntil(null)).toBeNull();
+    expect(daysUntil("")).toBeNull();
+    expect(daysUntil("不是日期")).toBeNull();
   });
 });

@@ -22,7 +22,11 @@ export default function useTaskSettlement({
     {
       overrideSecs = seconds,
       overrideSess = getSession(),
-      coinsEarned,
+      // 缺省即「此刻的秒数」。金币按 1 秒 1 枚发放，而「逐一勾完」这条路上
+      // 发币发生在收尾（见 useAutoStopOnEmpty），按最终秒数发一次；每条记录
+      // 记下自己结算那一刻的秒数，读的一侧取 max 就正好是真实到手的数目。
+      // 以前这里留空，那条路上的记录 coinsEarned 全是 undefined，日历上显示 0。
+      coinsEarned = overrideSecs,
       distractionCount,
       noteCount,
       eventsSnapshot,

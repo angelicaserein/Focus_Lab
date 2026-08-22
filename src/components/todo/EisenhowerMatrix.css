@@ -173,9 +173,9 @@
    余量不足托盘的 flex-basis 时自动换行，回到「托盘在平面下方」的窄屏排法。 */
 .matrix-board {
   display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-  justify-content: center;
+  /* 平面在上、未分类清单在下：清单是一列待办，横着挤在平面右边读不成行 */
+  flex-direction: column;
+  align-items: center;
   gap: 10px;
   /* 天平的观察透视：让平面的 3D 倾倒有纵深感 */
   perspective: 1100px;
@@ -344,10 +344,9 @@
   margin: auto;
 }
 
-/* 未分类托盘 */
+/* 未分类清单：整行摆在平面下方 */
 .matrix-tray {
-  /* 余量 ≥ 200px 就跟平面并排（吃掉右侧留白），不够则整行折到平面下方 */
-  flex: 1 1 200px;
+  width: 100%;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -415,15 +414,87 @@
   color: var(--text-muted);
 }
 
-.matrix-tray-tags {
+/* 待办清单：一行一件事，从上到下就是建议的动手顺序 */
+.matrix-tray-list {
   display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  gap: 6px;
-  min-height: 24px;
-  /* 并排时托盘被拉到平面同高：标签从顶部排起，多了就在托盘内滚动，不撑高整张卡 */
-  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  /* 清单再长也不撑爆整张卡，超出部分在清单内滚动 */
+  max-height: 46vh;
   overflow-y: auto;
+}
+
+.matrix-tray-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px;
+  border-radius: 10px;
+}
+
+.matrix-tray-row + .matrix-tray-row {
+  border-top: 1px solid var(--border-subtle, var(--border-pill));
+}
+
+/* 序号：只作视觉锚点，不抢戏 */
+.matrix-tray-rank {
+  flex: none;
+  width: 1.5em;
+  text-align: right;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+/* 清单里的卡片撑满整行（平面上仍是小卡片，只有这里变成行） */
+.matrix-tray-row .matrix-tag {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.matrix-tray-row .matrix-tag-text {
+  max-width: none;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+/* 行尾的优先级标签 + DDL 倒计时 */
+.matrix-tray-meta {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.matrix-tray-prio {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border-pill);
+  color: var(--text-muted);
+}
+
+.matrix-tray-prio.urgent_important { color: #e5484d; border-color: rgba(229, 72, 77, 0.5); }
+.matrix-tray-prio.important        { color: #e88c3e; border-color: rgba(232, 140, 62, 0.5); }
+.matrix-tray-prio.urgent           { color: #3aa8a0; border-color: rgba(58, 168, 160, 0.5); }
+
+.matrix-tray-ddl {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.matrix-tray-ddl.urgent  { color: #e88c3e; font-weight: 600; }
+.matrix-tray-ddl.overdue { color: #e5484d; font-weight: 700; }
+
+/* 窄屏：行尾信息换到标题下方会太碎，这里直接让优先级标签让位，只留 DDL */
+@media (max-width: 480px) {
+  .matrix-tray-prio {
+    display: none;
+  }
 }
 
 /* 任务小标签 —— 立体实心卡片（与任务页卡片同一套质感）：

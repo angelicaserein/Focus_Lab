@@ -242,32 +242,49 @@
 }
 .dda-clear:hover { color: var(--danger); }
 
+/* ── 库标签 + 查询工具同一条 ──
+   工具栏原本是标签栏下面一整张卡片（搜索独占一行、筛选排序又一行），
+   把任务推得很低。改成贴在标签栏右端，共用同一条下边线。 */
+.tasks-bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-bottom: 1.5px solid var(--border-card);
+  padding-bottom: 2px;
+}
+.tasks-bar .db-tabs {
+  flex: 1 1 auto;
+  min-width: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
 /* ── Toolbar ── */
 .tasks-toolbar {
-  background: var(--card);
-  border: 1.5px solid var(--border-card);
-  border-radius: 16px;
-  padding: 14px 18px;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  box-shadow: 0 2px 8px var(--shadow-xs);
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 4px;
 }
 
 .tasks-search-wrap {
   position: relative;
-  width: 100%;
+  width: 170px;
+  transition: width var(--dur-fast) var(--ease);
 }
+.tasks-search-wrap:focus-within { width: 240px; }
 
 .tasks-search {
   width: 100%;
   box-sizing: border-box;
-  padding: 8px 36px 8px 14px;
-  border-radius: 10px;
+  padding: 5px 28px 5px 12px;
+  border-radius: 8px;
   border: 1.5px solid var(--border-input);
   background: var(--bg);
   color: var(--text-body);
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   outline: none;
   transition: border-color var(--dur-fast) var(--ease);
 }
@@ -276,13 +293,13 @@
 
 .search-clear {
   position: absolute;
-  right: 10px;
+  right: 4px;
   top: 50%;
   transform: translateY(-50%);
   border: none;
   background: none;
   color: var(--text-faint);
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
   padding: 2px 6px;
   line-height: 1;
@@ -341,6 +358,8 @@
 
 /* 当前情景筛选 chip：醒目、置于工具栏最前，提示「全站正按此情景筛选」 */
 .flt-btn.scenario-pill {
+  padding: 4px 10px;
+  font-size: 0.78rem;
   border-color: color-mix(in srgb, var(--accent) 45%, transparent);
   color: var(--accent-mid);
   font-weight: 600;

@@ -111,9 +111,13 @@ const DEFAULT_RULES_HINT = [
 
 // 鲁棒解析模型输出：剥代码围栏、定位首个 JSON 数组、失败兜底 []。
 export function parseTasksJson(raw) {
-  if (Array.isArray(raw)) return raw.filter((t) => t && typeof t.text === "string");
-  // 剥围栏 + 定位首个 '[' 到最后一个 ']'，容忍前后的解释性文字
-  const arr = extractJson(raw, "array");
+  // 已经是数组（调用方自己解析过）就跳过剥壳，但**归一化这一步不能跳**：
+  // 以前这里直接把原始对象原样返回，属性还平铺在顶层、没有 attrs，
+  // 与另一条分支出来的形状不是一个东西，落库时那些属性会静静消失。
+  const arr = Array.isArray(raw)
+    ? raw
+    // 剥围栏 + 定位首个 '[' 到最后一个 ']'，容忍前后的解释性文字
+    : extractJson(raw, "array");
   if (!Array.isArray(arr)) return [];
   return arr
     .filter((t) => t && typeof t.text === "string" && t.text.trim())

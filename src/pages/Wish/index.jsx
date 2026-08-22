@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Sparkles, Coins } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useReward } from "@/context/RewardContext";
@@ -37,19 +37,30 @@ export default function WishPage() {
   const outfits = WISH_POOL.filter((it) => it.kind === "outfit");
   const lores = WISH_POOL.filter((it) => it.kind === "lore");
 
+  // 揭晓动画的定时器。离开页面时要撤掉——它 setState 的那个组件已经没了。
+  const revealTimer = useRef(0);
+  useEffect(() => () => window.clearTimeout(revealTimer.current), []);
+
+  // 先落账、后演出。
+  //
+  // 反过来写（等 REVEAL_MS 之后再入档）会丢东西：币是按下去那一刻就扣的，
+  // 而这一秒多里用户完全可能切走——那样组件连同它的 setCollection 一起没了，
+  // 结果是「币扣了、抽到的立绘没入图鉴」。花掉的金币换来的东西不能挂在一个
+  // 随时可能被打断的定时器上，所以抽完立刻记账，动画只负责怎么把它揭出来。
   const doWish = () => {
     if (phase !== "idle" || !spendCoins(WISH_COST)) return;
     const draw = drawWish(collection);
+    if (draw.stardust) addCoins(draw.stardust);
+    else setCollection((prev) => (prev.includes(draw.itemId) ? prev : [...prev, draw.itemId]));
+
     setPhase("revealing");
     setResult(null);
-    window.setTimeout(() => {
-      if (draw.stardust) {
-        addCoins(draw.stardust);
-        setResult({ type: "stardust", amount: draw.stardust });
-      } else {
-        setCollection((prev) => (prev.includes(draw.itemId) ? prev : [...prev, draw.itemId]));
-        setResult({ type: "item", item: itemById(draw.itemId) });
-      }
+    revealTimer.current = window.setTimeout(() => {
+      setResult(
+        draw.stardust
+          ? { type: "stardust", amount: draw.stardust }
+          : { type: "item", item: itemById(draw.itemId) },
+      );
       setPhase("result");
     }, REVEAL_MS);
   };

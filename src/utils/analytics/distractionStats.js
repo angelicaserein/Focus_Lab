@@ -27,6 +27,10 @@ export function distractionOverview(distractions, durationBySession) {
   // 它跟主动暂停一样会停表，但不是用户自己按下的，混在一起会看不出区别。
   let appCount = 0;
   let appSecs = 0;
+  // 沉浸专注里翻应用内别的页面（type: "page"）：同样会停表，但人还在这个 app 里，
+  // 和「切去别的软件」是两回事，也单列一组。
+  let pageCount = 0;
+  let pageSecs = 0;
 
   for (const d of distractions) {
     if (d.sessionId) sessionIds.add(d.sessionId);
@@ -36,6 +40,9 @@ export function distractionOverview(distractions, durationBySession) {
     } else if (d.type === "app") {
       appCount++;
       appSecs += d.durationSecs ?? 0;
+    } else if (d.type === "page") {
+      pageCount++;
+      pageSecs += d.durationSecs ?? 0;
     }
   }
 
@@ -50,6 +57,8 @@ export function distractionOverview(distractions, durationBySession) {
     proactiveSecs,
     appCount,
     appSecs,
+    pageCount,
+    pageSecs,
     avgPerSession: sessionIds.size > 0 ? total / sessionIds.size : 0,
     ratePerHour: focusSecs > 0 ? total / (focusSecs / 3600) : null,
     focusSecs,

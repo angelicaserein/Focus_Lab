@@ -128,6 +128,14 @@ describe("normalizeToday", () => {
     expect(normalizeToday({ date: "2026-08-17", weekday: "X" }).weekday).toBe("一");
   });
 
+  // "日一二三四五六".includes("") 恒为 true —— 空串曾经能一路通过校验，
+  // 拼进 prompt 变成「今天是 2026-08-17（星期）」。多字符的串同理要挡掉。
+  it("空串 / 多字符的星期一律按日期重算", () => {
+    expect(normalizeToday({ date: "2026-08-17", weekday: "" }).weekday).toBe("一");
+    expect(normalizeToday({ date: "2026-08-17", weekday: "日一" }).weekday).toBe("一");
+    expect(normalizeToday({ date: "2026-08-17", weekday: 3 }).weekday).toBe("一");
+  });
+
   it("日期不合法时退回服务器当天", () => {
     const { date } = normalizeToday({ date: "8/17/2026" });
     expect(date).toBe(new Date().toISOString().slice(0, 10));

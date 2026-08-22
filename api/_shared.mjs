@@ -33,13 +33,19 @@ export class BadRequest extends Error {
  * 「今天」由浏览器按本地时区算好发过来；缺了才退回服务器时间（UTC，可能差一天）。
  * extract-tasks / clarify-tasks / refine-task 三处共用。
  */
+const WEEKDAYS = "日一二三四五六";
+
 export function normalizeToday(today) {
   const date = /^\d{4}-\d{2}-\d{2}$/.test(today?.date)
     ? today.date
     : new Date().toISOString().slice(0, 10);
-  const weekday = "日一二三四五六".includes(today?.weekday)
-    ? today.weekday
-    : "日一二三四五六"[new Date(`${date}T00:00:00Z`).getUTCDay()];
+  // 必须先判长度为 1：String.prototype.includes("") 恒为 true，
+  // 空串会一路通过校验被拼进 prompt，模型读到的是「今天是 …（星期）」。
+  const weekday =
+    typeof today?.weekday === "string" && today.weekday.length === 1 &&
+    WEEKDAYS.includes(today.weekday)
+      ? today.weekday
+      : WEEKDAYS[new Date(`${date}T00:00:00Z`).getUTCDay()];
   return { date, weekday };
 }
 

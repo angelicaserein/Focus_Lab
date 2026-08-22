@@ -43,6 +43,9 @@ export default function useDistractionAnalytics() {
           // 桌面端自动记的那种：明细行要显示「几点到几点 · 哪个程序」
           endTs: d.endTs ?? null,
           appLabel: d.appLabel ?? null,
+          // 沉浸层里翻的应用内页面：存的是路径，展示时再按当前语言取页面名
+          pagePath: d.pagePath ?? null,
+          pageLabel: d.pageLabel ?? null,
         })),
         durationBySession,
       ),

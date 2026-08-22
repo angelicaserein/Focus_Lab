@@ -116,7 +116,13 @@ class AppWatcher extends EventEmitter {
     this.child = child;
     this.buf = "";
     child.stdout.setEncoding("utf8");
-    child.stdout.on("data", (chunk) => this.#consume(chunk));
+    child.stdout.on("data", (chunk) => {
+      // 收到第一行就说明这一次是真的起来了，重试计数清零。
+      // 不清的话，连续三次是「起不来」，而一天里偶尔崩一次、崩到第四次也会被
+      // 判成 unavailable —— 那之后功能永久关闭，直到用户重启整个 app。
+      this.restarts = 0;
+      this.#consume(chunk);
+    });
     child.on("error", () => { /* spawn 失败会顺带触发 exit，在那里统一处理 */ });
     child.on("exit", () => {
       if (this.child !== child) return; // 已经被 stop() 换掉了

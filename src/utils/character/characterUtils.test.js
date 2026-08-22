@@ -291,6 +291,41 @@ describe("computeSessionReward", () => {
     expect(r.gainedXp).toBe(300 + XP_PER_CLEAN_SESSION);
   });
 
+  // 结算卡的经验必须和角色卡的经验拆解同源，否则卡上写着「+600」、
+  // 转头角色卡按 focus+tasks+days+clean 算出来多一截，用户看到的是两个数。
+  it("完成任务也计经验，与 computeXpBreakdown 的 tasks 源同价", () => {
+    const r = computeSessionReward({
+      durationSecs: 300,
+      distractionCount: 1, // 排掉零分心加成，只看专注+任务两项
+      completedTasks: 3,
+      prevRecords: [rec(now - 3600_000, 600)], // 排掉专注天数加成
+      now,
+    });
+    expect(r.completedTasks).toBe(3);
+    expect(r.gainedXp).toBe(300 + 3 * XP_PER_TASK);
+    expect(r.sources.map((s) => s.key)).toEqual(["focus", "tasks"]);
+  });
+
+  it("一个任务都没勾完时不出现 tasks 这一项", () => {
+    const r = computeSessionReward({ durationSecs: 300, completedTasks: 0, prevRecords: [], now });
+    expect(r.sources.some((s) => s.key === "tasks")).toBe(false);
+  });
+
+  it("完成任务的经验也能把等级推过阈值", () => {
+    // prevXp=280（还差 20 到 Lv.1 的 300），本次只专注 1 秒但勾完 1 个任务（+60）
+    const r = computeSessionReward({
+      durationSecs: 1,
+      completedTasks: 1,
+      distractionCount: 1,
+      prevRecords: [rec(now - 3600_000, 600)],
+      prevXp: 280,
+      prevLevel: 0,
+      now,
+    });
+    expect(r.leveledUp).toBe(true);
+    expect(r.newLevel).toBe(1);
+  });
+
   it("有分心：不计零分心加成", () => {
     const r = computeSessionReward({ durationSecs: 300, distractionCount: 2, prevRecords: [], now });
     expect(r.sources.some((s) => s.key === "clean")).toBe(false);
