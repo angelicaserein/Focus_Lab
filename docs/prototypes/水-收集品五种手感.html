@@ -1,0 +1,347 @@
+<title>水 · 收集品五种手感</title>
+<style>
+  :root{
+    --bg:#e6eef1; --panel:#ffffff; --panel2:#f2f7f9;
+    --ink:#0f2530; --muted:#57727e; --line:rgba(15,52,66,.13);
+    --accent:#1c93b4; --accent2:#0f9e88;
+    --locked:rgba(15,52,66,.10); --lockedink:rgba(15,52,66,.28);
+    --shadow:0 1px 2px rgba(15,52,66,.06),0 8px 30px rgba(15,52,66,.07);
+    --glass:rgba(28,147,180,.08);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#061218; --panel:#0d1f28; --panel2:#0a1a22;
+      --ink:#dcecf1; --muted:#82a3af; --line:rgba(150,210,225,.13);
+      --accent:#4fc4e0; --accent2:#57e0c2;
+      --locked:rgba(150,210,225,.07); --lockedink:rgba(150,210,225,.22);
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 40px rgba(0,0,0,.45);
+      --glass:rgba(79,196,224,.09);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#e6eef1; --panel:#ffffff; --panel2:#f2f7f9;
+    --ink:#0f2530; --muted:#57727e; --line:rgba(15,52,66,.13);
+    --accent:#1c93b4; --accent2:#0f9e88;
+    --locked:rgba(15,52,66,.10); --lockedink:rgba(15,52,66,.28);
+    --shadow:0 1px 2px rgba(15,52,66,.06),0 8px 30px rgba(15,52,66,.07);
+    --glass:rgba(28,147,180,.08);
+  }
+  :root[data-theme="dark"]{
+    --bg:#061218; --panel:#0d1f28; --panel2:#0a1a22;
+    --ink:#dcecf1; --muted:#82a3af; --line:rgba(150,210,225,.13);
+    --accent:#4fc4e0; --accent2:#57e0c2;
+    --locked:rgba(150,210,225,.07); --lockedink:rgba(150,210,225,.22);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 40px rgba(0,0,0,.45);
+    --glass:rgba(79,196,224,.09);
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0}
+  .wrap{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    background:
+      radial-gradient(1100px 520px at 82% -8%, var(--glass), transparent 60%),
+      var(--bg);
+    color:var(--ink); min-height:100vh;
+    padding:clamp(20px,5vw,64px) clamp(16px,5vw,48px) 96px;
+    line-height:1.6;
+  }
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+  .serif{font-family:Georgia,"Times New Roman",serif}
+
+  /* ---- header ---- */
+  header{max-width:960px;margin:0 auto 8px}
+  .kicker{
+    font:600 12px/1 ui-monospace,monospace; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--accent); margin-bottom:18px;
+  }
+  h1{
+    font-size:clamp(28px,5vw,46px); line-height:1.08; margin:0 0 14px;
+    font-weight:700; letter-spacing:-.01em; text-wrap:balance;
+  }
+  h1 em{font-style:normal;color:var(--accent)}
+  .lede{font-size:clamp(15px,2vw,18px);color:var(--muted);max-width:60ch;margin:0}
+  .howto{
+    max-width:960px;margin:22px auto 40px;display:flex;gap:10px;align-items:center;
+    font-size:13.5px;color:var(--muted);
+  }
+  .howto b{color:var(--ink);font-weight:600}
+  .pulse{
+    width:9px;height:9px;border-radius:50%;background:var(--accent2);flex:none;
+    box-shadow:0 0 0 0 var(--accent2);animation:pulse 2.4s ease-out infinite;
+  }
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(87,224,194,.5)}70%,100%{box-shadow:0 0 0 10px rgba(87,224,194,0)}}
+
+  /* ---- concept card ---- */
+  .concept{
+    max-width:960px;margin:0 auto 22px;background:var(--panel);
+    border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .concept.pick{border-color:color-mix(in srgb,var(--accent) 55%,transparent)}
+  .chead{
+    display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+    padding:22px clamp(18px,3vw,30px) 0;
+  }
+  .idx{font:700 13px/1 ui-monospace,monospace;color:var(--lockedink);letter-spacing:.1em}
+  .ctitle{font-size:clamp(20px,2.6vw,26px);font-weight:700;margin:0;letter-spacing:-.01em}
+  .tag{
+    font:600 11px/1 ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--accent);border:1px solid var(--line);border-radius:999px;padding:6px 11px;
+  }
+  .tag.rec{color:#06222c;background:var(--accent2);border-color:transparent}
+  @media (prefers-color-scheme:dark){.tag.rec{color:#052018}}
+  :root[data-theme="dark"] .tag.rec{color:#052018}
+  :root[data-theme="light"] .tag.rec{color:#06222c}
+
+  .body{
+    display:grid;grid-template-columns:1fr 1.15fr;gap:clamp(18px,3vw,34px);
+    padding:16px clamp(18px,3vw,30px) 26px;align-items:start;
+  }
+  @media (max-width:680px){.body{grid-template-columns:1fr}}
+  .desc{font-size:14.5px;color:var(--muted);margin:2px 0 16px}
+  .desc b{color:var(--ink);font-weight:600}
+
+  /* demo column */
+  .demo{
+    background:var(--panel2);border:1px solid var(--line);border-radius:14px;
+    padding:18px;display:flex;flex-direction:column;align-items:center;gap:14px;
+  }
+  .flask{width:74px;height:112px;position:relative;flex:none}
+  .flaskFill{
+    position:absolute;left:0;bottom:0;width:100%;height:20%;
+    background:linear-gradient(var(--accent),var(--accent2));
+    clip-path:polygon(28% 0,72% 0,72% 34%,96% 100%,4% 100%,28% 34%);
+    transition:height .9s cubic-bezier(.4,0,.2,1);border-radius:0 0 6px 6px;
+  }
+  .flaskGlass{
+    position:absolute;inset:0;clip-path:polygon(28% 0,72% 0,72% 34%,96% 100%,4% 100%,28% 34%);
+    border:0;background:var(--glass);
+    box-shadow:inset 0 0 0 1.6px var(--line);
+  }
+  .flaskCap{position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:26px;height:12px;
+    background:rgba(198,150,96,.85);border-radius:4px}
+  .btn{
+    appearance:none;border:1px solid var(--accent);background:transparent;color:var(--accent);
+    font:600 13.5px/1 inherit;padding:11px 18px;border-radius:10px;cursor:pointer;
+    transition:transform .1s,background .2s,color .2s;letter-spacing:.02em;
+  }
+  .btn:hover{background:var(--accent);color:#04191f}
+  :root[data-theme="dark"] .btn:hover{color:#04191f}
+  .btn:active{transform:translateY(1px)}
+  .btn:focus-visible{outline:2px solid var(--accent2);outline-offset:3px}
+  .btn:disabled{opacity:.45;cursor:default;background:transparent;color:var(--muted);border-color:var(--line)}
+  .lastdrop{font-size:12.5px;color:var(--muted);min-height:18px;text-align:center}
+  .lastdrop b{color:var(--accent2)}
+
+  /* catalog column */
+  .cat h3{
+    font:600 11px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 12px;display:flex;justify-content:space-between;align-items:center;
+  }
+  .count{color:var(--ink);font-size:12px}
+  .count b{color:var(--accent);font-size:14px}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:9px}
+  .slot{
+    aspect-ratio:1;border-radius:11px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:3px;
+    border:1px solid var(--line);background:var(--panel2);position:relative;
+  }
+  .slot.locked{background:var(--locked);border-style:dashed}
+  .slot.locked svg{color:var(--lockedink);opacity:.5}
+  .slot.locked .nm{color:var(--lockedink)}
+  .slot svg{width:26px;height:26px;color:var(--accent)}
+  .slot .nm{font-size:10.5px;color:var(--muted)}
+  .slot.just{animation:pop .5s cubic-bezier(.2,1.3,.4,1)}
+  @keyframes pop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+
+  /* aquarium (concept 3) */
+  .tank{
+    grid-column:1/-1;height:150px;border-radius:12px;position:relative;overflow:hidden;
+    background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 14%,var(--panel2)),var(--panel2));
+    border:1px solid var(--line);
+  }
+  .tank .crit{position:absolute;color:var(--accent);opacity:0;transition:opacity .5s}
+  .tank .crit.on{opacity:1;animation:swim 9s ease-in-out infinite alternate}
+  .tank svg{width:34px;height:34px}
+  @keyframes swim{from{transform:translateX(-6px)}to{transform:translateX(10px)}}
+
+  /* crystal (concept 4) */
+  .crystalWrap{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;gap:12px;
+    padding:14px;background:var(--panel2);border:1px solid var(--line);border-radius:12px}
+  .crystalWrap svg{width:120px;height:120px;color:var(--accent);transition:transform .7s cubic-bezier(.3,1.2,.4,1)}
+  .stageLbl{font:600 12px ui-monospace,monospace;letter-spacing:.1em;color:var(--muted)}
+  .stageLbl b{color:var(--accent)}
+
+  /* puzzle (concept 5) */
+  .puzzle{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;
+    border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+  .ptile{aspect-ratio:1;background:var(--locked);transition:opacity .6s,filter .6s;opacity:.15}
+  .ptile.on{opacity:1}
+
+  footer{max-width:960px;margin:30px auto 0;color:var(--muted);font-size:13px;
+    border-top:1px solid var(--line);padding-top:18px}
+  footer b{color:var(--ink)}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="kicker">FocusLab · 收集机制选型</div>
+    <h1>一次专注，析出<em>一件水</em></h1>
+    <p class="lede">五种「水主题收集品」的手感对照。每种都复用你现有的<b class="serif" style="font-style:italic">烧瓶灌水</b>，区别只在——灌满之后，掉出来的是什么、怎么攒。点按钮亲自感受即时反馈那一拍。</p>
+  </header>
+
+  <div class="howto">
+    <span class="pulse"></span>
+    <span>每张卡点 <b>「析出一件」</b> 模拟一次专注结束的瞬间，看它掉进图鉴。</span>
+  </div>
+
+  <div id="app"></div>
+
+  <footer>
+    共通设计：过程中烧瓶灌水（已有）→ 结束瞬间析出 → 落入图鉴。<b>先做「结算即时」</b>（掉落那一下），验证收集循环好玩再考虑加「过程即时」的实时结晶动画。数字与水共存：图鉴计数给自我监控，水的隐喻给情绪缓冲。
+  </footer>
+</div>
+
+<script>
+// ---- glyph library (hand-authored, currentColor, no emoji) ----
+const G = {
+  drop:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c4 6 6 9 6 12a6 6 0 0 1-12 0c0-3 2-6 6-12z"/></svg>',
+  snow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 2v20M2 12h20M5 5l14 14M19 5L5 19"/></svg>',
+  cloud:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 18a4 4 0 0 1 .5-8 5 5 0 0 1 9.5 1.2A3.5 3.5 0 0 1 17 18z"/></svg>',
+  wave:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M2 9c2.5-3 4.5-3 7 0s4.5 3 7 0 4.5-3 6-1M2 15c2.5-3 4.5-3 7 0s4.5 3 7 0 4.5-3 6-1"/></svg>',
+  arc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 19a9 9 0 0 1 18 0"/><path opacity=".55" d="M6.5 19a5.5 5.5 0 0 1 11 0"/></svg>',
+  shard:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l6 7-6 13-6-13z" opacity=".85"/></svg>',
+  spring:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="13" r="3"/><circle cx="12" cy="13" r="7" opacity=".5"/></svg>',
+  vial:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 3h6M10 3v7l-3 8a3 3 0 0 0 3 4h4a3 3 0 0 0 3-4l-3-8V3"/><path fill="currentColor" stroke="none" d="M8 15h8l2 4a2.5 2.5 0 0 1-2.5 3.5h-7A2.5 2.5 0 0 1 6 19z"/></svg>',
+  fish:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 12c4-6 12-6 16 0-4 6-12 6-16 0z"/><path d="M18 12l4-3v6z"/></svg>',
+  jelly:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path fill="currentColor" stroke="none" d="M5 11a7 7 0 0 1 14 0v1H5z"/><path d="M7 13v5M10 13v6M12 13v5M14 13v6M17 13v5"/></svg>',
+  shell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path fill="currentColor" stroke="none" d="M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><path d="M12 3v9M7.5 4.5 6 12M16.5 4.5 18 12"/></svg>',
+  star:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l3 3 4-1-1 4 3 3-3 3 1 4-4-1-3 3-3-3-4 1 1-4-3-3 3-3-1-4 4 1z" opacity=".9"/></svg>',
+  crystal:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l4 5-4 15-4-15z" opacity=".9"/><path d="M12 2l4 5 4 3-8 12z" opacity=".55"/><path d="M12 2L8 7 4 10l8 12z" opacity=".7"/></svg>',
+};
+
+const concepts = [
+  {
+    id:1, title:'样本瓶 · 标本架', tag:'最省 · 直接复用烧瓶', pick:false,
+    desc:'一次专注 = 灌满并<b>封存一瓶</b>。不同情境采到不同水样，攒满一整面架子。掉落那一下最直白——就是你刚灌的瓶子上架。',
+    kind:'grid', glyph:'vial', count:14, got:5,
+    items:['晨露水','雨水','融雪','山泉','深海水','温泉水','冰川水','湖心水','雾凝水','井水','潮水','溪涧','雪顶水','夜露']
+  },
+  {
+    id:2, title:'水的形态', tag:'⌾ 推荐', pick:true,
+    desc:'专注结束析出一种<b>水的样子</b>：露、霜、雨、雪、雾、冰、虹……<b>有限集合</b>，进度看得见（8/14）。短专注得露、长专注得冰、深夜得霜——收集品顺带记录了你<b>怎么</b>专注。',
+    kind:'grid', glyph:'mixed', count:14, got:8,
+    items:[['露','drop'],['雨','drop'],['雾','cloud'],['云','cloud'],['雪','snow'],['霜','snow'],['泉','spring'],['潮','wave'],['冰','shard'],['凇','shard'],['虹','arc'],['霰','snow'],['涧','wave'],['渊','drop']]
+  },
+  {
+    id:3, title:'海洋生物 · 生态缸', tag:'情绪陪伴强', pick:false,
+    desc:'专注<b>引来一只</b>生物游进你的缸里：鱼、水母、贝、海星……瓶子长成一片小水族。陪伴感最强，但没有硬性终点。',
+    kind:'tank', count:6, got:2,
+    items:[['小鱼','fish'],['水母','jelly'],['贝','shell'],['海星','star'],['珊瑚','spring'],['幼鲸','fish']]
+  },
+  {
+    id:4, title:'矿石 · 结晶生长', tag:'奖励长时专注', pick:false,
+    desc:'水中<b>析出结晶</b>，越攒越大、越攒越繁。它不集齐——它<b>生长</b>。长时间深度专注让晶体长成一整簇，适合奖励「一坐一下午」。',
+    kind:'crystal', count:6, got:1,
+  },
+  {
+    id:5, title:'潮汐 · 星海拼图', tag:'拼图型 · 目标感强', pick:false,
+    desc:'每次专注点亮<b>一片水光</b>，慢慢拼出一整幅海图 / 星海。「还差 3 片就完整」最能把 ADHD 拽回来收尾。一图集满再开下一幅。',
+    kind:'puzzle', count:16, got:5,
+  },
+];
+
+const app = document.getElementById('app');
+
+function slotHTML(item, glyph, locked){
+  let g, nm;
+  if(Array.isArray(item)){ nm=item[0]; g=G[item[1]]; }
+  else { nm=item; g=G[glyph]; }
+  return `<div class="slot ${locked?'locked':''}">${g}<span class="nm">${nm}</span></div>`;
+}
+
+concepts.forEach(c=>{
+  const el=document.createElement('section');
+  el.className='concept'+(c.pick?' pick':'');
+  let catalog='';
+
+  if(c.kind==='grid'){
+    catalog=`<div class="cat"><h3>图鉴 <span class="count"><b data-c>${c.got}</b> / ${c.count}</span></h3><div class="grid" data-grid>`;
+    c.items.forEach((it,i)=> catalog+= slotHTML(c.glyph==='mixed'?it:c.items[i], c.glyph, i>=c.got));
+    catalog+='</div></div>';
+  } else if(c.kind==='tank'){
+    catalog=`<div class="cat" style="grid-column:1/-1"><h3>生态缸 <span class="count"><b data-c>${c.got}</b> / ${c.count} 种</span></h3><div class="tank" data-grid>`;
+    c.items.forEach((it,i)=>{
+      const top=15+((i*37)%70), left=8+((i*53)%78);
+      catalog+=`<div class="crit ${i<c.got?'on':''}" style="top:${top}%;left:${left}%">${G[it[1]]}</div>`;
+    });
+    catalog+='</div></div>';
+  } else if(c.kind==='crystal'){
+    catalog=`<div class="cat" style="grid-column:1/-1"><h3>晶体规模 <span class="count">阶段 <b data-c>${c.got}</b> / ${c.count}</span></h3>
+      <div class="crystalWrap"><div data-grid style="transform:scale(${0.5+c.got*0.12})">${G.crystal}</div>
+      <div class="stageLbl">深度专注累计 · 阶段 <b>${c.got}</b></div></div></div>`;
+  } else if(c.kind==='puzzle'){
+    catalog=`<div class="cat" style="grid-column:1/-1"><h3>海图 <span class="count"><b data-c>${c.got}</b> / ${c.count} 片</span></h3><div class="puzzle" data-grid>`;
+    for(let i=0;i<c.count;i++){
+      const hue=190+ (i%4)*8, lum=42+((i/4|0))*7;
+      catalog+=`<div class="ptile ${i<c.got?'on':''}" style="background:hsl(${hue} 55% ${lum}%)"></div>`;
+    }
+    catalog+='</div></div>';
+  }
+
+  const capacityFull = c.kind==='crystal'? c.count : c.count;
+  el.innerHTML=`
+    <div class="chead">
+      <span class="idx">0${c.id}</span>
+      <h2 class="ctitle">${c.title}</h2>
+      <span class="tag ${c.pick?'rec':''}">${c.tag}</span>
+    </div>
+    <div class="body">
+      <div class="demo">
+        <div class="flask"><div class="flaskCap"></div><div class="flaskGlass"></div><div class="flaskFill" data-fill></div></div>
+        <button class="btn" data-btn>析出一件 →</button>
+        <div class="lastdrop" data-last>灌满一次，看它掉进图鉴</div>
+      </div>
+      ${catalog}
+    </div>`;
+  app.appendChild(el);
+
+  // wiring
+  const btn=el.querySelector('[data-btn]');
+  const fill=el.querySelector('[data-fill]');
+  const last=el.querySelector('[data-last]');
+  const cEl=el.querySelector('[data-c]');
+  let got=c.got;
+
+  btn.addEventListener('click',()=>{
+    if(got>=capacityFull){return;}
+    fill.style.height='88%';
+    setTimeout(()=>fill.style.height='20%',1100);
+    got++;
+    cEl.textContent=got;
+
+    if(c.kind==='grid'){
+      const slots=el.querySelectorAll('.slot');
+      const s=slots[got-1];
+      s.classList.remove('locked'); s.classList.add('just');
+      last.innerHTML='析出 <b>'+s.querySelector('.nm').textContent+'</b>';
+    } else if(c.kind==='tank'){
+      const crits=el.querySelectorAll('.crit');
+      crits[got-1].classList.add('on');
+      last.innerHTML='新访客 <b>'+c.items[got-1][0]+'</b> 游进缸里';
+    } else if(c.kind==='crystal'){
+      el.querySelector('[data-grid]').style.transform='scale('+(0.5+got*0.12)+')';
+      el.querySelector('.stageLbl b').textContent=got;
+      last.innerHTML='晶体长大到 <b>阶段 '+got+'</b>';
+    } else if(c.kind==='puzzle'){
+      el.querySelectorAll('.ptile')[got-1].classList.add('on');
+      const left=capacityFull-got;
+      last.innerHTML= left? ('点亮一片，还差 <b>'+left+'</b> 片') : '海图 <b>集满了</b>';
+    }
+    if(got>=capacityFull){btn.disabled=true; btn.textContent= c.kind==='crystal'?'已满级':'已集齐 ✓';}
+  });
+});
+</script>

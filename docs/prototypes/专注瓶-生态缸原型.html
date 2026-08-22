@@ -1,0 +1,388 @@
+<title>专注瓶 · 生态缸原型</title>
+<style>
+  /* —— FocusLab 主题（默认＝淡粉藕荷；dark＝暗夜皮肤） —— */
+  :root{
+    --bg:#fff0f6; --card:#ffffff; --card2:#fff7fb;
+    --ink:#1e1b4b; --muted:#64748b; --faint:#94a3b8;
+    --accent:#a07898; --accent-rgb:160,120,152; --mid:#7d5876; --deep:#8c6885;
+    --onlight:#e0cedd;
+    --line:rgba(160,120,152,.16); --border-dark:rgba(15,23,42,.10);
+    --wtop:rgba(160,120,152,.14); --wbot:rgba(160,120,152,.40);
+    --fish:#7d5876;
+    --shadow:0 1px 2px rgba(31,27,75,.05),0 14px 40px rgba(31,27,75,.10);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0a0a0c; --card:#141418; --card2:#17171c;
+      --ink:#e6e6ea; --muted:#8a8a94; --faint:#55555f;
+      --accent:#a9a0d0; --accent-rgb:169,160,208; --mid:#c3bce0; --deep:#9a90c6;
+      --onlight:#e8e6f2;
+      --line:rgba(169,160,208,.18); --border-dark:rgba(255,255,255,.08);
+      --wtop:rgba(169,160,208,.12); --wbot:rgba(169,160,208,.34);
+      --fish:#c3bce0;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 18px 50px rgba(0,0,0,.55);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#fff0f6;--card:#ffffff;--card2:#fff7fb;--ink:#1e1b4b;--muted:#64748b;--faint:#94a3b8;
+    --accent:#a07898;--accent-rgb:160,120,152;--mid:#7d5876;--deep:#8c6885;--onlight:#e0cedd;
+    --line:rgba(160,120,152,.16);--border-dark:rgba(15,23,42,.10);
+    --wtop:rgba(160,120,152,.14);--wbot:rgba(160,120,152,.40);--fish:#7d5876;
+    --shadow:0 1px 2px rgba(31,27,75,.05),0 14px 40px rgba(31,27,75,.10);
+  }
+  :root[data-theme="dark"]{
+    --bg:#0a0a0c;--card:#141418;--card2:#17171c;--ink:#e6e6ea;--muted:#8a8a94;--faint:#55555f;
+    --accent:#a9a0d0;--accent-rgb:169,160,208;--mid:#c3bce0;--deep:#9a90c6;--onlight:#e8e6f2;
+    --line:rgba(169,160,208,.18);--border-dark:rgba(255,255,255,.08);
+    --wtop:rgba(169,160,208,.12);--wbot:rgba(169,160,208,.34);--fish:#c3bce0;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 18px 50px rgba(0,0,0,.55);
+  }
+  *{box-sizing:border-box}
+  body{margin:0}
+  .wrap{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    background:radial-gradient(900px 460px at 50% -12%, rgba(var(--accent-rgb),.10), transparent 62%),var(--bg);
+    color:var(--ink);min-height:100vh;line-height:1.6;
+    display:flex;flex-direction:column;align-items:center;padding:clamp(20px,5vw,52px) 18px 80px;
+  }
+  .kicker{font:600 12px/1 ui-monospace,monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+  h1{font-size:clamp(23px,4.5vw,36px);margin:0 0 8px;letter-spacing:-.01em;text-align:center;color:var(--ink)}
+  .lede{color:var(--muted);text-align:center;max-width:44ch;margin:0 0 28px;font-size:14.5px}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .stage{
+    background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);
+    padding:20px 26px 24px;width:min(430px,100%);display:flex;flex-direction:column;align-items:center;gap:4px;
+  }
+  canvas{width:260px;height:340px;max-width:100%;display:block;touch-action:manipulation}
+  .say{min-height:20px;font-size:13.5px;color:var(--muted);text-align:center;margin-top:2px}
+  .say b{color:var(--accent)}
+  .btn{
+    appearance:none;border:none;cursor:pointer;margin-top:12px;color:var(--card);
+    background:var(--accent);font:600 15px/1 inherit;padding:14px 26px;border-radius:13px;letter-spacing:.02em;
+    box-shadow:0 6px 18px rgba(var(--accent-rgb),.34);transition:transform .12s,filter .2s;
+  }
+  .btn:hover{filter:brightness(1.06)}
+  .btn:active{transform:translateY(1px) scale(.99)}
+  .btn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+  .btn:disabled{filter:grayscale(.4) opacity(.55);cursor:default;transform:none}
+
+  .shelf{width:min(430px,100%);margin-top:22px}
+  .shelf h2{font:600 11px/1 ui-monospace,monospace;letter-spacing:.15em;text-transform:uppercase;
+    color:var(--muted);display:flex;justify-content:space-between;align-items:center;margin:0 0 12px}
+  .shelf h2 .c{color:var(--ink)} .shelf h2 .c b{color:var(--accent);font-size:14px}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .slot{aspect-ratio:1;border-radius:15px;background:var(--card2);border:1px solid var(--line);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative;overflow:hidden}
+  .slot::before{content:"";position:absolute;inset:auto 0 0 0;height:34%;background:linear-gradient(rgba(var(--accent-rgb),.14),rgba(var(--accent-rgb),.24))}
+  .slot.locked{background:var(--card2);border-style:dashed;opacity:.6}
+  .slot.locked::before{opacity:0}
+  .slot.locked svg{color:var(--faint)} .slot.locked .nm{color:var(--faint)}
+  .slot svg{width:30px;height:30px;color:var(--mid);position:relative;z-index:1}
+  .slot .nm{font-size:11px;color:var(--muted);position:relative;z-index:1}
+  .slot.just{animation:pop .55s cubic-bezier(.2,1.4,.4,1)}
+  @keyframes pop{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.14)}100%{transform:scale(1)}}
+
+  .note{width:min(430px,100%);margin-top:24px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--line);padding-top:16px}
+  .note b{color:var(--ink)}
+
+  /* —— 收集卡弹层 —— */
+  .veil{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;
+    background:rgba(31,27,75,.34);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .28s;z-index:50}
+  .veil.on{opacity:1;pointer-events:auto}
+  .rcard{width:min(300px,86vw);background:var(--card);border:1px solid var(--line);border-radius:22px;
+    box-shadow:var(--shadow);padding:26px 24px 22px;text-align:center;transform:scale(.8) translateY(14px);
+    transition:transform .34s cubic-bezier(.2,1.3,.4,1);position:relative;overflow:hidden}
+  .veil.on .rcard{transform:scale(1) translateY(0)}
+  .rcard::before{content:"";position:absolute;inset:0 0 auto 0;height:120px;
+    background:radial-gradient(120% 90% at 50% 0%, rgba(var(--accent-rgb),.20), transparent 70%)}
+  .reye{font:600 11px/1 ui-monospace,monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);position:relative}
+  .medal{width:104px;height:104px;margin:16px auto 12px;border-radius:50%;position:relative;
+    background:radial-gradient(circle at 50% 38%, rgba(var(--accent-rgb),.20), rgba(var(--accent-rgb),.06));
+    border:1px solid var(--line);display:flex;align-items:center;justify-content:center}
+  .medal svg{width:56px;height:56px;color:var(--mid)}
+  .rname{font-size:22px;font-weight:700;color:var(--ink);margin:0;position:relative}
+  .rara{display:flex;gap:5px;justify-content:center;margin:8px 0 10px;position:relative}
+  .rara i{width:7px;height:7px;border-radius:50%;background:rgba(var(--accent-rgb),.25)}
+  .rara i.on{background:var(--accent)}
+  .rcap{font-size:13px;color:var(--muted);margin:0 4px 18px;position:relative;font-style:italic}
+  .rbtn{position:relative;width:100%;border:none;cursor:pointer;color:var(--card);background:var(--accent);
+    font:600 15px/1 inherit;padding:13px;border-radius:12px;transition:filter .2s,transform .1s}
+  .rbtn:hover{filter:brightness(1.06)} .rbtn:active{transform:translateY(1px)}
+  .rbtn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .spark{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--accent);pointer-events:none}
+
+  @media (prefers-reduced-motion:reduce){
+    .slot.just{animation:none}.rcard,.veil{transition:none}
+  }
+</style>
+
+<div class="wrap">
+  <div class="kicker">FocusLab · 独立收藏页原型</div>
+  <h1>专注瓶 · 生态缸</h1>
+  <p class="lede">缸是<b>活的</b>：收集到的生物一直在里面游。完成一次专注——浪花翻涌、新生物跃出，弹出一张<b>收集卡</b>，收下后它便潜回缸里游动。</p>
+
+  <div class="stage">
+    <canvas id="jar" width="520" height="680" aria-label="专注瓶"></canvas>
+    <div class="say" id="say">水面很静，等你专注一次</div>
+    <button class="btn" id="go">完成一次专注 →</button>
+  </div>
+
+  <div class="shelf">
+    <h2>生态缸 · 标本架 <span class="c"><b id="cnt">2</b> / 8 种</span></h2>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="note">
+    <b>独立新页</b>的样子，配色取自 FocusLab 主题（藕荷主色 · 淡粉底），暗夜皮肤自动适配。缸里游的就是你已收集的物种，越攒越热闹。搬进代码时水与游动全用 canvas；跃出的物种可绑定专注情境（时长/时段/场景），让收藏顺带记录你<b>怎么</b>专注。
+  </div>
+</div>
+
+<div class="veil" id="veil">
+  <div class="rcard" id="rcard">
+    <div class="reye">新发现</div>
+    <div class="medal"><span id="rIcon"></span></div>
+    <h3 class="rname" id="rName">小鱼</h3>
+    <div class="rara" id="rRara"></div>
+    <p class="rcap" id="rCap"></p>
+    <button class="rbtn" id="rBtn">收下它 ✓</button>
+  </div>
+</div>
+
+<script>
+const G={
+  fish:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 12c4-6 12-6 16 0-4 6-12 6-16 0z"/><path d="M18 12l4-3v6z"/></svg>',
+  jelly:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path fill="currentColor" stroke="none" d="M5 11a7 7 0 0 1 14 0v1H5z"/><path d="M7 13v5M10 13v6M12 13v5M14 13v6M17 13v5"/></svg>',
+  shell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path fill="currentColor" stroke="none" d="M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><path d="M12 3v9M7.5 4.5 6 12M16.5 4.5 18 12"/></svg>',
+  star:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l3 3 4-1-1 4 3 3-3 3 1 4-4-1-3 3-3-3-4 1 1-4-3-3 3-3-1-4 4 1z"/></svg>',
+  crab:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><ellipse cx="12" cy="13" rx="5" ry="3.5" fill="currentColor" stroke="none"/><path d="M7 12 3 9M17 12l4-3M8 16l-3 3M16 16l3 3"/></svg>',
+  turtle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><ellipse cx="12" cy="13" rx="6" ry="4.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/><path d="M8 17l-1 2M16 17l1 2M7 11l-2-1"/></svg>',
+  seahorse:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 3c2 0 3 2 2 4-1 1-2 1-2 3s2 2 2 5-2 6-5 6c1-2 1-3 0-4-2-2-3-3-3-6 0-4 3-8 6-8z"/></svg>',
+  coral:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 21v-8M12 13c0-3-3-3-3-6M12 13c0-3 3-3 3-7M9 7c-2 0-2-2 0-3M15 6c2 0 2-2 0-3"/></svg>',
+};
+const SPECIES=[
+  {n:'小鱼',k:'fish',r:1,c:'浅滩边最先遇见的一抹微光。'},
+  {n:'水母',k:'jelly',r:2,c:'在静水里慢慢舒张的透明伞。'},
+  {n:'贝',k:'shell',r:1,c:'潮退后留在沙上的一句低语。'},
+  {n:'海星',k:'star',r:2,c:'五臂张开，贴着缸壁慢慢挪。'},
+  {n:'寄居蟹',k:'crab',r:1,c:'背着借来的家，四处走走。'},
+  {n:'海龟',k:'turtle',r:3,c:'慢，但从不迷路。'},
+  {n:'海马',k:'seahorse',r:3,c:'用尾巴勾住水草打个盹。'},
+  {n:'珊瑚',k:'coral',r:2,c:'不动声色地长成一片森林。'},
+];
+const TOTAL=SPECIES.length;
+let got=2;
+
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+// ---------- shelf ----------
+const grid=document.getElementById('grid'), cnt=document.getElementById('cnt');
+function renderShelf(justIdx){
+  grid.innerHTML='';
+  SPECIES.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='slot'+(i>=got?' locked':'')+(i===justIdx?' just':'');
+    d.innerHTML=G[s.k]+'<span class="nm">'+s.n+'</span>';
+    grid.appendChild(d);
+  });
+  cnt.textContent=got;
+}
+renderShelf(-1);
+
+// ---------- canvas ----------
+const cv=document.getElementById('jar'), ctx=cv.getContext('2d');
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const W=cv.width,H=cv.height;
+const JX=110, JY=90, JW=300, JH=500, R=54;
+const RIM=JY+46, APEX=JY-8;
+const SW_L=JX+36, SW_R=JX+JW-36, SW_B=JY+JH-30;
+let splash=0, t=0, drops=[], leapers=[], residents=[];
+
+function spawnResident(k,x,y,vy){
+  residents.push({k,
+    x:x??(SW_L+Math.random()*(SW_R-SW_L)),
+    y:y??(RIM+60+Math.random()*(SW_B-RIM-90)),
+    vx:(Math.random()<.5?-1:1)*(0.18+Math.random()*0.16),   // 慢
+    vy:vy??((Math.random()-.5)*0.15), ph:Math.random()*6.3});
+}
+for(let i=0;i<got;i++) spawnResident(SPECIES[i].k);
+
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+
+function surfaceY(x){
+  const nx=(x-JX)/JW, a=4+splash*40;
+  return RIM+Math.sin(nx*7+t*1.5)*a*0.5+Math.sin(nx*3.3-t*1)*a*0.8+Math.sin(nx*13+t*2.4)*a*0.22*(0.4+splash);
+}
+
+function drawCreature(x,y,rot,k,scale,color,flip){
+  ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.scale((flip?-1:1)*scale,scale);
+  ctx.fillStyle=color;ctx.strokeStyle=color;ctx.lineWidth=2.2;ctx.lineCap='round';
+  const eye=css('--card');
+  if(k==='fish'){
+    ctx.beginPath();ctx.ellipse(0,0,15,9,0,0,7);ctx.fill();
+    ctx.beginPath();ctx.moveTo(13,0);ctx.lineTo(24,-7);ctx.lineTo(24,7);ctx.closePath();ctx.fill();
+    ctx.fillStyle=eye;ctx.beginPath();ctx.arc(-7,-2,1.9,0,7);ctx.fill();
+  }else if(k==='jelly'){
+    ctx.beginPath();ctx.arc(0,0,12,Math.PI,0);ctx.lineTo(12,4);ctx.lineTo(-12,4);ctx.fill();
+    ctx.beginPath();for(let i=-8;i<=8;i+=4){ctx.moveTo(i,4);ctx.lineTo(i,15);}ctx.stroke();
+  }else if(k==='star'){
+    ctx.beginPath();for(let i=0;i<10;i++){const a=Math.PI*i/5-Math.PI/2,rr2=i%2?5:14;ctx.lineTo(Math.cos(a)*rr2,Math.sin(a)*rr2);}ctx.closePath();ctx.fill();
+  }else if(k==='shell'){
+    ctx.beginPath();ctx.arc(0,4,13,Math.PI,0);ctx.fill();
+    ctx.strokeStyle=eye;ctx.beginPath();ctx.moveTo(0,-9);ctx.lineTo(0,4);ctx.moveTo(-7,-6);ctx.lineTo(-4,4);ctx.moveTo(7,-6);ctx.lineTo(4,4);ctx.stroke();
+  }else if(k==='crab'){
+    ctx.beginPath();ctx.ellipse(0,0,13,8,0,0,7);ctx.fill();
+    ctx.beginPath();ctx.moveTo(-11,-2);ctx.lineTo(-20,-8);ctx.moveTo(11,-2);ctx.lineTo(20,-8);
+    ctx.moveTo(-9,6);ctx.lineTo(-15,12);ctx.moveTo(9,6);ctx.lineTo(15,12);ctx.stroke();
+  }else if(k==='turtle'){
+    ctx.beginPath();ctx.ellipse(0,0,14,10,0,0,7);ctx.fill();
+    ctx.beginPath();ctx.arc(16,-1,4,0,7);ctx.fill();
+  }else if(k==='seahorse'){
+    ctx.beginPath();ctx.ellipse(0,0,7,15,0,0,7);ctx.fill();
+    ctx.beginPath();ctx.arc(2,-11,5,0,7);ctx.fill();
+  }else{
+    ctx.beginPath();ctx.moveTo(0,16);ctx.lineTo(0,-2);ctx.moveTo(0,4);ctx.lineTo(-9,-10);ctx.moveTo(0,2);ctx.lineTo(9,-12);ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function frame(){
+  t+=reduce?0:0.016;
+  splash=Math.max(0,splash-0.011);
+  ctx.clearRect(0,0,W,H);
+  const fish=css('--fish');
+
+  // 底部柔影
+  ctx.save();ctx.fillStyle='rgba(31,27,75,.10)';
+  ctx.beginPath();ctx.ellipse(JX+JW/2,JY+JH+14,JW*0.42,16,0,0,7);ctx.fill();ctx.restore();
+
+  // 玻璃底
+  ctx.save();rr(JX,JY,JW,JH,R);ctx.fillStyle=css('--card2');ctx.fill();ctx.restore();
+
+  // 水（裁剪在缸内）
+  ctx.save();rr(JX,JY,JW,JH,R);ctx.clip();
+  const g=ctx.createLinearGradient(0,RIM,0,JY+JH);
+  g.addColorStop(0,css('--wtop'));g.addColorStop(1,css('--wbot'));
+  ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(JX,JY+JH);
+  for(let x=JX;x<=JX+JW;x+=6)ctx.lineTo(x,surfaceY(x));
+  ctx.lineTo(JX+JW,JY+JH);ctx.closePath();ctx.fill();
+  // 水面高光
+  ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=2;ctx.beginPath();
+  for(let x=JX;x<=JX+JW;x+=6){const y=surfaceY(x);x===JX?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();
+  // 气泡
+  for(let i=0;i<5;i++){
+    const bx=JX+JW*((i*0.19+(t*0.03*(i+1))%1));
+    const by=JY+JH-((t*22*(0.4+i*0.15))%(JH-40));
+    ctx.fillStyle='rgba(255,255,255,.22)';ctx.beginPath();ctx.arc(bx,by,2+(i%3),0,7);ctx.fill();
+  }
+  // 住客游动
+  residents.forEach(r=>{
+    if(!reduce){
+      r.x+=r.vx;r.y+=r.vy+Math.sin(t*1.1+r.ph)*0.09;
+      if(r.x<SW_L){r.x=SW_L;r.vx=Math.abs(r.vx);}
+      if(r.x>SW_R){r.x=SW_R;r.vx=-Math.abs(r.vx);}
+      const top=surfaceY(r.x)+24;
+      if(r.y<top){r.y=top;r.vy=Math.abs(r.vy)*.5;}
+      if(r.y>SW_B){r.y=SW_B;r.vy=-Math.abs(r.vy)*.5;}
+      if(Math.random()<0.006)r.vy+=(Math.random()-.5)*0.12;
+    }
+    drawCreature(r.x,r.y,Math.sin(t*1.6+r.ph)*0.05,r.k,0.8,fish,r.vx<0);
+  });
+  ctx.restore();
+
+  // 浪花
+  drops.forEach(d=>{d.vy+=0.45;d.x+=d.vx;d.y+=d.vy;d.life--;
+    ctx.fillStyle=css('--accent');ctx.globalAlpha=Math.max(0,d.life/40);
+    ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,7);ctx.fill();ctx.globalAlpha=1;});
+  drops=drops.filter(d=>d.life>0);
+
+  // 跃出 / 潜回
+  leapers.forEach(L=>{
+    if(L.mode==='rise'){
+      L.p+=0.02;const e=L.p;
+      const x=L.x0+(L.ax-L.x0)*e, y=RIM-(RIM-APEX)*Math.sin(e*Math.PI/2), rot=e*L.spin;
+      drawCreature(x,y,rot,L.k,1.15,fish,L.spin<0);
+      if(L.p>=1&&!L.done){L.done=true;onApex(L.idx,L.ax);}
+    }else{
+      L.p+=0.028;const e=L.p;
+      const x=L.ax+(L.ex-L.ax)*e, y=APEX+(RIM+40-APEX)*e*e, rot=L.spin*(1-e);
+      drawCreature(x,y,rot,L.k,1.15,fish,L.spin<0);
+      if(L.p>=1&&!L.done){L.done=true;spawnResident(L.k,L.ex,RIM+40,1);setBusy(false);}
+    }
+  });
+  leapers=leapers.filter(L=>L.p<1);
+
+  // 玻璃描边 + 竖向高光
+  ctx.save();rr(JX,JY,JW,JH,R);ctx.lineWidth=3.5;ctx.strokeStyle=css('--line');ctx.stroke();ctx.clip();
+  const gl=ctx.createLinearGradient(JX,0,JX+JW,0);
+  gl.addColorStop(0,'rgba(255,255,255,.22)');gl.addColorStop(.16,'rgba(255,255,255,0)');
+  gl.addColorStop(.84,'rgba(255,255,255,0)');gl.addColorStop(1,'rgba(255,255,255,.12)');
+  ctx.fillStyle=gl;ctx.fillRect(JX,JY,JW,JH);ctx.restore();
+
+  requestAnimationFrame(frame);
+}
+frame();
+
+// ---------- interaction ----------
+const go=document.getElementById('go'), say=document.getElementById('say');
+const veil=document.getElementById('veil');
+let busy=false;
+function setBusy(b){busy=b;go.disabled=b||got>=TOTAL;}
+
+go.addEventListener('click',()=>{
+  if(busy||got>=TOTAL)return;
+  setBusy(true);
+  const idx=got, cx=JX+JW/2, dir=(Math.random()<.5?-1:1);
+  if(reduce){onApex(idx,cx+dir*JW*0.14);return;}
+  say.textContent='浪花翻涌……';splash=1;
+  for(let i=0;i<20;i++)drops.push({x:cx+(Math.random()-.5)*JW*0.5,y:RIM-6,
+    vx:(Math.random()-.5)*6.5,vy:-5-Math.random()*7,r:2+Math.random()*3,life:32+Math.random()*16});
+  setTimeout(()=>leapers.push({mode:'rise',k:SPECIES[idx].k,idx,p:0,spin:dir*2.4,x0:cx,ax:cx+dir*JW*0.14}),140);
+});
+
+function onApex(idx,ax){
+  // 到达顶点 → 弹收集卡（顶点位置记下，收下后从这里潜回）
+  window._pendingAx=ax;
+  showCard(idx);
+  if(reduce){/* reduce 下 showCard 也会等用户点“收下” */}
+}
+
+// 收集卡
+const rIcon=document.getElementById('rIcon'),rName=document.getElementById('rName'),
+      rRara=document.getElementById('rRara'),rCap=document.getElementById('rCap'),
+      rBtn=document.getElementById('rBtn'),rcard=document.getElementById('rcard');
+let cardIdx=-1;
+function showCard(idx){
+  cardIdx=idx;const s=SPECIES[idx];
+  rIcon.innerHTML=G[s.k];rName.textContent=s.n;rCap.textContent=s.c;
+  rRara.innerHTML=[1,2,3].map(i=>'<i class="'+(i<=s.r?'on':'')+'"></i>').join('');
+  say.innerHTML='<b>'+s.n+'</b> 跃出水面！';
+  veil.classList.add('on');
+}
+rBtn.addEventListener('click',()=>{
+  if(cardIdx<0)return;const idx=cardIdx;cardIdx=-1;
+  // 归档
+  got=Math.max(got,idx+1);renderShelf(idx);cnt.textContent=got;
+  const s=SPECIES[idx];say.innerHTML='<b>'+s.n+'</b> 已归档 · 潜回缸里';
+  // 卡片迸发几点星火再关闭
+  burst();
+  veil.classList.remove('on');
+  const ax=window._pendingAx??(JX+JW/2), dir=ax<JX+JW/2?-1:1;
+  if(got>=TOTAL){go.textContent='生态缸已集齐 ✓';}
+  if(reduce){spawnResident(s.k);setBusy(false);return;}
+  // 潜回缸里
+  leapers.push({mode:'dive',k:s.k,idx,p:0,spin:dir*1.8,ax,ex:ax+dir*JW*0.1});
+});
+function burst(){
+  for(let i=0;i<10;i++){
+    const sp=document.createElement('span');sp.className='spark';
+    rcard.appendChild(sp);const a=Math.PI*2*i/10,d=40+Math.random()*30;
+    sp.animate([{transform:'translate(0,0) scale(1)',opacity:1},
+      {transform:`translate(${Math.cos(a)*d}px,${Math.sin(a)*d}px) scale(0)`,opacity:0}],
+      {duration:600,easing:'ease-out'}).onfinish=()=>sp.remove();
+    sp.style.left='50%';sp.style.top='30%';
+  }
+}
+</script>
