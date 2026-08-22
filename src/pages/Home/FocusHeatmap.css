@@ -1,6 +1,12 @@
-/* ── 热力图容器 ── */
+/* ── 热力图容器 ──
+   与「今日委托」「截止临近感」同一套卡片语言（--card + --border-input + 24px 圆角），
+   首屏三张卡因此读起来是一个体系，而不是一块裸网格贴在页面上。 */
 .heatmap-wrap {
   width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border-input);
+  border-radius: 24px;
+  padding: 22px;
 }
 
 .heatmap-header {
@@ -12,16 +18,15 @@
   flex-wrap: wrap;
 }
 
+/* 标题与另外两张卡同级：同字号、同颜色 */
 .heatmap-title {
-  font-size: 0.8rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  color: var(--text-muted);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  color: var(--text-heading);
 }
 
 .heatmap-total {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--text-faint);
 }
 
@@ -94,6 +99,10 @@
 /* On narrow screens, stop shrinking the grid — give it a legible minimum
    width and let the column scroll horizontally (auto-scrolled to this week). */
 @media (max-width: 600px) {
+  .heatmap-wrap {
+    padding: 18px;
+    border-radius: 20px;
+  }
   .heatmap-month-row,
   .heatmap-grid {
     min-width: 560px;

@@ -17,7 +17,7 @@ export default function ImmersiveCard({ flaskProgress }) {
     animEnabled, setAnimEnabled,
     timerMode = "countup", targetMins = 25,
     onSettle, onAddFocus, onCreateFocus, onReplaceFocus,
-    onTogglePause, onReset, onStop,
+    onTogglePause, onReset, onStop, onDone,
   } = useFocusSession();
 
   // 倒计时显示剩余时间；归零后继续计时，用「+超时」表示
@@ -167,6 +167,15 @@ export default function ImmersiveCard({ flaskProgress }) {
               </button>
               <button className="immersive-btn ghost" type="button" onClick={onStop}>
                 {t("focus.imm.stop")}
+              </button>
+              <button
+                className="immersive-btn done"
+                type="button"
+                onClick={onDone}
+                disabled={selectedTodos.length === 0}
+                title={t("focus.imm.doneTitle")}
+              >
+                {t("focus.imm.done")}
               </button>
             </div>
           </div>

@@ -98,6 +98,15 @@ export default function FlasksPage() {
   const slots = useMemo(() => flaskSlots(items, fills), [items, fills]);
   const sealed = useMemo(() => splitResidents(entries, slots).sealed, [entries, slots]);
   const hasReady = useMemo(() => sealable(entries, slots).length > 0, [entries, slots]);
+  // 封不了的时候说一句为什么。什么都不摆的话，「够不着」和「坏了」在页面上长得一模一样——
+  // 满瓶就那么空着杵着，没人知道还差哪一步。三种情形各自对应一个下一步动作。
+  const sealHint = useMemo(() => {
+    if (hasReady) return null;
+    const { swimming } = splitResidents(entries, slots);
+    if (entries.length === 0) return "flasks.sealHintNoFish";
+    // 缸里一只不剩＝长成的都封在别的瓶子里了；还有在游的＝那些还没长成
+    return swimming.length === 0 ? "flasks.sealHintAllSealed" : "flasks.sealHintGrowing";
+  }, [hasReady, entries, slots]);
   // 正在为哪只瓶子挑标本（null＝没在挑；否则是那只瓶子的槽位 id）
   const [sealFor, setSealFor] = useState(null);
 
@@ -115,11 +124,12 @@ export default function FlasksPage() {
           flask: it,
           specimen,
           canSeal: !specimen && hasReady,
+          hint: specimen || hasReady ? null : sealHint,
         });
       }
     }
     return list;
-  }, [shown, fills, sealed, hasReady]);
+  }, [shown, fills, sealed, hasReady, sealHint]);
 
   // 哪些形状眼下已经没有空着的满瓶了——上面那层据此说「再注多久能再封一只」。
   const noFreeBottle = useMemo(() => {
@@ -260,6 +270,7 @@ export default function FlasksPage() {
                     specimen={b.specimen}
                     // 每只满瓶都能封一只：按钮和它作用的那只瓶子摆在同一张卡上。
                     canSeal={b.canSeal}
+                    hint={b.hint}
                     t={t}
                     onAskSeal={() => setSealFor(b.slot)}
                     onUnseal={() => unseal(b.specimen?.uid)}
@@ -320,7 +331,7 @@ function SealPicker({ entries, slots, t, onPick, onClose }) {
 
 // 攒下的一只满瓶：名字输入框/删除/选中都不在这儿——那些是「这个形状」的事，归主卡管。
 // 这张卡回答两件事：这儿有一只已经注满的瓶子；里面封着谁（没封的话，从这儿封一只进去）。
-function FullCard({ flask, specimen, canSeal, t, onAskSeal, onUnseal }) {
+function FullCard({ flask, specimen, canSeal, hint, t, onAskSeal, onUnseal }) {
   const presetName = t(`settings.prefs.flaskShape.${flask.preset}`);
   return (
     <li className="fk-card filled">
@@ -343,8 +354,8 @@ function FullCard({ flask, specimen, canSeal, t, onAskSeal, onUnseal }) {
             每张卡再重复一遍只是把卡面填满。里面封着谁才是这张卡真正要说的事。 */}
 
         {/* 封了：说清里面是谁，并留一条「取出放回缸里」的退路（封存是保存，不是牺牲）。
-            没封且缸里有长成的：一枚按钮。缸里没有够格的就什么都不摆——
-            没养过鱼的人不该看见一条够不着的规则。 */}
+            没封且缸里有长成的：一枚按钮。缸里没有够格的：一行灰字说明还差哪一步——
+            空着不说话的话，够不着和坏掉在这张卡上看起来是同一件事。 */}
         {specimen ? (
           <p className="fk-sealed">
             <span className="fk-sealed-name">
@@ -359,6 +370,8 @@ function FullCard({ flask, specimen, canSeal, t, onAskSeal, onUnseal }) {
             <FlaskConical size={14} aria-hidden="true" />
             {t("flasks.sealBtn")}
           </button>
+        ) : hint ? (
+          <p className="fk-seal-hint">{t(hint)}</p>
         ) : null}
       </div>
     </li>

@@ -1,6 +1,8 @@
 import { useCallback } from "react";
 
 // 处理专注会话的全局停止：发币、结算所有任务、清零计时器。
+// outcome 区分两条收尾路径：默认 "ended" = 只是结束（任务未必做完），
+// "completed" = 「都做完了」，剩余任务一并打勾。
 export default function useSessionStop({
   seconds,
   getSession,
@@ -17,7 +19,9 @@ export default function useSessionStop({
   onStop,
   onSessionReward,
 }) {
-  const handleStop = useCallback(() => {
+  // 参数可能是 click 事件（按钮直接绑 onStop），故只认显式的 outcome 字段
+  const handleStop = useCallback((opts) => {
+    const outcome = opts?.outcome === "completed" ? "completed" : "ended";
     const extraDistSecs = flushProactiveDistraction();
 
     // 先捕获计时状态再归零——确保 hasSelection effect 读到 seconds=0 不重复发币
@@ -34,13 +38,13 @@ export default function useSessionStop({
 
     if (finalSecs > 0) addCoins(finalSecs);
     selectedTodos.forEach((t) =>
-      logEvent("task_ended", { taskId: t.id, taskText: t.text })
+      logEvent(`task_${outcome}`, { taskId: t.id, taskText: t.text })
     );
-    logEvent("session_end");
+    logEvent("session_end", { allDone: outcome === "completed" });
     const finalEvents = getSnapshot();
     clearSession();
     selectedTodos.forEach((t) =>
-      settleTask(t, "ended", {
+      settleTask(t, outcome, {
         overrideSecs: finalSecs,
         overrideSess: finalSession,
         coinsEarned: finalSecs,

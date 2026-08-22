@@ -23,7 +23,7 @@ import { reportStorageError } from "@/utils/storage/quotaAlert";
 import { TASK_ATTR_DEFAULTS } from "@/utils/task/taskAttrDefaults";
 import { TASK_TYPE_OPTIONS } from "@/utils/scenario/scenarioConstants";
 
-export const SCHEMA_VERSION = 9;
+export const SCHEMA_VERSION = 10;
 
 // ── 写入闸门 ────────────────────────────────────────────────────
 // localStorage 有两类写入方，它们对「什么是最新的数据」有各自的看法：
@@ -142,6 +142,22 @@ const MIGRATIONS = [
   (data) => {
     localStorage.removeItem(LEGACY_RESEARCH_KEY);
     return data;
+  },
+  // v9→v10: 内置「预计时长」列整个删掉了（工时估计对 ADHD 用户只是又一处评判）。
+  // 各库的列定义里把它摘掉，任务上残留的值也一并清掉——留着就是永远显示不出来的死键。
+  (data) => {
+    const stripEst = (attrs) => (attrs ?? []).filter(a => a.id !== "estimatedMins");
+    return {
+      ...data,
+      databases: (data.databases ?? []).map(d => ({ ...d, attrs: stripEst(d.attrs) })),
+      // 兼容仍读 taskAttrs 的旧导入路径
+      taskAttrs: data.taskAttrs ? stripEst(data.taskAttrs) : data.taskAttrs,
+      todos: (data.todos ?? []).map(t => {
+        if (t.attrs?.estimatedMins === undefined) return t;
+        const { estimatedMins, ...attrs } = t.attrs;
+        return { ...t, attrs };
+      }),
+    };
   },
 ];
 

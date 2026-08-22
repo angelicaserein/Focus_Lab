@@ -78,6 +78,20 @@ export default {
     zh: "缸里还没有长成的。",
   },
   "flasks.sealCancel": { en: "Not now", zh: "先不封" },
+  // 这只满瓶还空着，但眼下没有能封进去的——不说一声就跟坏了一模一样。
+  // 三种「够不着」各有各的下一步：去请一只 / 等它长 / 先取出一只。
+  "flasks.sealHintNoFish": {
+    en: "The tank is still empty — raise one first, then it can be sealed in here.",
+    zh: "缸里还空着。先养一只，才有得封进这里。",
+  },
+  "flasks.sealHintGrowing": {
+    en: "Nothing in the tank has finished growing yet — it can be sealed in here once one has.",
+    zh: "缸里的还没长成。等长成了就能封进这只。",
+  },
+  "flasks.sealHintAllSealed": {
+    en: "Every grown one is already sealed in another flask — take one back to the tank to move it here.",
+    zh: "长成的都封在别的瓶子里了。想换到这只，先把那边的放回缸里。",
+  },
   // 这个形状眼下没有空着的满瓶了：再注多久才又有一只能封
   "flasks.sealLocked": {
     en: "{v} more to fill another one that can hold a specimen",

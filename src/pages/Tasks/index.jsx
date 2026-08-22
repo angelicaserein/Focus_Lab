@@ -13,6 +13,7 @@ import useVisibleTasks from "@/pages/Tasks/useVisibleTasks";
 import useLocalStorage from "@/hooks/common/useLocalStorage";
 import useToast from "@/hooks/common/useToast";
 import useHighlightTarget from "@/hooks/common/useHighlightTarget";
+import Toast from "@/components/ui/Toast";
 import "./Tasks.css";
 
 /**
@@ -22,7 +23,7 @@ import "./Tasks.css";
  * 两个视图看到的任务集合永远一致。
  */
 export default function Tasks() {
-  const { todos, setTodoAttr, deleteTodos } = useTodos();
+  const { todos, setTodoAttr, deleteTodos, pendingDelete, undoDelete } = useTodos();
   const { taskAttrs } = useTaskAttrs();
   const { databases, setActiveDatabase } = useDatabases();
   const { t } = useLanguage();
@@ -153,6 +154,10 @@ export default function Tasks() {
           )}
         </div>
       )}
+
+      {/* 删错一条能立刻撤回：deleteTodo 走的是 useUndoDelete，
+          没有这个 toast 的话那份撤销能力就没有入口。 */}
+      <Toast pendingDelete={pendingDelete} undoDelete={undoDelete} getText={(item) => item.text} />
 
       {showDueAssist && (
         <DueDateAssistant

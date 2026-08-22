@@ -767,3 +767,27 @@
   line-height: 1;
   opacity: 0.6;
 }
+
+/* ── 底部小字入口（废弃页面）── */
+/* 刻意做得比正文还淡：它是「知道才会点」的角落，不是一个待办项。 */
+.settings-footnote {
+  margin-top: 48px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-card);
+  text-align: right;
+}
+
+.settings-footnote-link {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  opacity: 0.55;
+  text-decoration: none;
+  transition: opacity var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.settings-footnote-link:hover,
+.settings-footnote-link:focus-visible {
+  opacity: 1;
+  color: var(--accent);
+  text-decoration: underline;
+}

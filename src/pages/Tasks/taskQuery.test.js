@@ -29,7 +29,7 @@ const ATTRS = [
     ],
   },
   { id: "dueDate", name: "截止日期", type: "date" },
-  { id: "estimatedMins", name: "预计时长", type: "number", unit: "分" },
+  { id: "wordCount", name: "字数", type: "number", unit: "字" },
   { id: "notes", name: "备注", type: "text" },
 ];
 
@@ -43,7 +43,7 @@ const ids = (list) => list.map(t => t.id);
 
 describe("buildQueryFields", () => {
   it("内置字段在前，随后是各列", () => {
-    expect(FIELDS.slice(0, 3).map(f => f.key)).toEqual(["name", "status", "createdAt"]);
+    expect(FIELDS.slice(0, 4).map(f => f.key)).toEqual(["name", "status", "createdAt", "recurring"]);
     expect(FIELDS.map(f => f.key)).toContain("priority");
   });
 });
@@ -126,8 +126,8 @@ describe("applyFilter - 且/或", () => {
 
 describe("applyFilter - 日期与数字", () => {
   const todos = [
-    todo("a", { dueDate: "2026-07-01", estimatedMins: 10 }),
-    todo("b", { dueDate: "2026-07-10", estimatedMins: 60 }),
+    todo("a", { dueDate: "2026-07-01", wordCount: 10 }),
+    todo("b", { dueDate: "2026-07-10", wordCount: 60 }),
     todo("c", {}),
   ];
   const f = (rule) => ids(applyFilter(todos, { conjunction: "and", rules: [{ id: "r", ...rule }] }, fieldMap));
@@ -136,8 +136,8 @@ describe("applyFilter - 日期与数字", () => {
     expect(f({ field: "dueDate", op: "after", value: "2026-07-05" })).toEqual(["b"]);
   });
   it("数字 >/<", () => {
-    expect(f({ field: "estimatedMins", op: "gt", value: 30 })).toEqual(["b"]);
-    expect(f({ field: "estimatedMins", op: "lt", value: 30 })).toEqual(["a"]);
+    expect(f({ field: "wordCount", op: "gt", value: 30 })).toEqual(["b"]);
+    expect(f({ field: "wordCount", op: "lt", value: 30 })).toEqual(["a"]);
   });
 });
 
@@ -187,5 +187,30 @@ describe("applyQuery - 组合", () => {
       sorts: [{ field: "priority", dir: "desc" }],
     }, FIELDS);
     expect(ids(out)).toEqual(["a", "c"]);
+  });
+});
+
+// 固定任务（recurringDays）不是自定义列，而是内置的「星期几」多选字段：
+// 「只看固定任务」＝ 不为空，「周一要做的」＝ 含周一。旧待办列表的 ↺ 筛选页签就折进了这里。
+describe("recurring 内置字段", () => {
+  const todos = [
+    todo("每天", {}, { recurringDays: [0, 1, 2, 3, 4, 5, 6] }),
+    todo("工作日", {}, { recurringDays: [1, 2, 3, 4, 5] }),
+    todo("一次性"),
+  ];
+  const filter = (rule) =>
+    ids(applyFilter(todos, { conjunction: "and", rules: [rule] }, fieldMap));
+
+  it("不为空＝只看固定任务", () => {
+    expect(filter({ field: "recurring", op: "is_not_empty" })).toEqual(["每天", "工作日"]);
+  });
+
+  it("为空＝只看一次性任务", () => {
+    expect(filter({ field: "recurring", op: "is_empty" })).toEqual(["一次性"]);
+  });
+
+  it("含某几天＝那几天要做的", () => {
+    expect(filter({ field: "recurring", op: "has_any_of", value: [0] })).toEqual(["每天"]);
+    expect(filter({ field: "recurring", op: "has_any_of", value: [3] })).toEqual(["每天", "工作日"]);
   });
 });

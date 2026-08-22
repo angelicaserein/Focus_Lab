@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Check, ChevronDown, ChevronRight, X } from "lucide-react";
 import AttrCell from "@/pages/Tasks/cells/AttrCell";
+import { attrName } from "@/utils/task/taskAttrUtils";
 import RecurringDayPicker, { recurringLabel } from "@/components/todo/RecurringDayPicker";
 import useOutsideClick from "@/hooks/common/useOutsideClick";
 import { useLanguage } from "@/context/LanguageContext";
@@ -133,7 +134,7 @@ function TaskCard({ todo, visibleAttrs, onToggle, onEditText, onSaveAttr, onDele
           <div className="fc-editor">
             {visibleAttrs.map((attr) => (
               <div key={attr.id} className="fc-editor-row">
-                <span className="fc-editor-label">{attr.name}</span>
+                <span className="fc-editor-label" title={attrName(t, attr)}>{attrName(t, attr)}</span>
                 <div className="fc-editor-cell">
                   <AttrCell attrDef={attr} todo={todo} onSave={saveAttr} />
                 </div>

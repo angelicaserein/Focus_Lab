@@ -5,7 +5,7 @@ export default {
   "search.clear": { en: "Clear search", zh: "清空搜索" },
   "search.empty": { en: "Nothing found", zh: "没找到相关内容" },
   "search.more": { en: "{n} more", zh: "还有 {n} 条" },
-  "search.fromFocus": { en: "Focus note", zh: "专注随记" },
+  "search.fromFocus": { en: "Focus Notes", zh: "专注备忘" },
   "search.kind.page": { en: "Pages", zh: "页面" },
   "search.kind.task": { en: "Tasks", zh: "任务" },
   "search.kind.memo": { en: "Notes", zh: "备忘" },

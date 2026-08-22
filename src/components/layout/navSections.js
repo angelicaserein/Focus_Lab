@@ -13,7 +13,6 @@ import {
   Network,
   Fish,
   ListTree,
-  Archive,
   Map,
   Factory,
   BarChart3,
@@ -76,19 +75,20 @@ export const NAV_SECTIONS = [
       { to: "/gantt",        labelKey: "nav.gantt",        Icon: GanttChartSquare },
       { to: "/tutorial",     labelKey: "nav.tutorial",     Icon: BookOpen },
       { to: "/functiontree", labelKey: "nav.functiontree", Icon: ListTree },
-      { to: "/deprecated",   labelKey: "nav.deprecated",   Icon: Archive },
       { to: "/scenario",     labelKey: "nav.scenario",     Icon: Layers },
     ],
   },
 ];
 
 // 摊平成一维的页面列表，每项记住自己属于哪个分区（搜索结果里用作副标题）。
-// 设置页不在 NAV_SECTIONS 里（它在侧栏底部的图标区），但搜索该找得到，故在此补上。
+// 设置页不在 NAV_SECTIONS 里（它在侧栏底部的图标区），废弃页面则只从设置页底部的小字进得去——
+// 两页都不该在侧栏露面，但搜索该找得到，故在此补上。
 export const NAV_PAGES = [
   ...NAV_SECTIONS.flatMap(({ titleKey, items }) =>
     items.map(({ to, labelKey }) => ({ to, labelKey, sectionKey: titleKey })),
   ),
-  { to: "/settings", labelKey: "nav.settings", sectionKey: "nav.section.config" },
+  { to: "/settings",   labelKey: "nav.settings",   sectionKey: "nav.section.config" },
+  { to: "/deprecated", labelKey: "nav.deprecated", sectionKey: "nav.section.config" },
 ];
 
 export default NAV_SECTIONS;

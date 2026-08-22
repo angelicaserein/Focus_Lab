@@ -11,7 +11,8 @@
   display: grid;
   place-items: center;
   pointer-events: none;
-  background: color-mix(in srgb, var(--bg, #1a1620) 62%, transparent);
+  /* 中性黑遮罩，不用 --bg 调：浅色皮下拿 --bg 去压等于没压，卡片会浮不起来 */
+  background: rgb(0 0 0 / 30%);
   backdrop-filter: blur(2px);
   animation: desktop-drop-in 120ms ease-out;
 }
@@ -21,21 +22,21 @@
   border-radius: 18px;
   text-align: center;
   /* 虚线框是「这里是个坑，往里放」的通用说法，不必再写一句话解释 */
-  border: 2px dashed var(--accent, #8ab4ff);
-  background: color-mix(in srgb, var(--card, #241f2e) 88%, transparent);
+  border: 2px dashed var(--accent);
+  background: var(--card);
   box-shadow: 0 18px 48px rgb(0 0 0 / 32%);
 }
 
 .desktop-drop-hint {
   font-size: 1.15rem;
   font-weight: 600;
-  color: var(--text, #eee);
+  color: var(--text-heading);
 }
 
 .desktop-drop-sub {
   margin-top: 6px;
   font-size: 0.85rem;
-  color: var(--text-muted, #aaa);
+  color: var(--text-muted);
 }
 
 @keyframes desktop-drop-in {

@@ -841,10 +841,39 @@
 }
 .done .task-text { text-decoration: line-through; }
 
+/* ↺ 固定任务按钮（表格视图）。td-text 是冻结列，面板要浮在它上层 */
 .row-recur {
-  font-size: 0.7rem;
-  color: var(--text-faint);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   margin-left: 4px;
+  padding: 1px 5px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 0.7rem;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.tasks-row:hover .row-recur,
+.row-recur:focus-visible { opacity: 1; }
+.row-recur.active {
+  opacity: 1;
+  color: var(--accent-deep);
+  background: var(--accent-bg);
+}
+.row-recur:hover { background: var(--accent-bg); color: var(--accent-deep); }
+.row-recur-label { font-weight: 600; }
+
+/* 面板就地展开、把这一行撑高，不做浮层：td-text 是冻结列又在横向滚动容器里，
+   浮层要么被裁掉要么跟不上滚动，行变高反而是最稳的。 */
+.row-recur-panel { margin-top: 6px; }
+.row-recur-panel .recurring-day-picker {
+  border-top: 1px solid var(--accent-border);
+  border-radius: 10px;
+  padding: 6px 8px;
 }
 
 /* Cell inline inputs */

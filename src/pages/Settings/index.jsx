@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
 import LanguageSection from "@/pages/Settings/LanguageSection";
 import ThemeSection from "@/pages/Settings/ThemeSection";
@@ -57,6 +58,14 @@ export default function SettingsPage() {
         {tab === "language" && <LanguageSection />}
         {tab === "data" && <DataSection />}
         {tab === "privacy" && <PrivacySection />}
+      </div>
+
+      {/* 废弃页面的开关就这一处入口。它不该占侧栏一格——找它的人本来就知道自己在找什么，
+          真要捡回旧页面时会翻到设置底下；不找的人一眼扫过去也不会被这行小字绊住。 */}
+      <div className="settings-footnote">
+        <Link to="/deprecated" className="settings-footnote-link">
+          {t("settings.deprecatedEntry")}
+        </Link>
       </div>
     </div>
   );

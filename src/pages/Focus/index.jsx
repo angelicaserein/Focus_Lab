@@ -284,6 +284,8 @@ export default function FocusPage() {
       onTogglePause: handleTogglePause,
       onReset: resetTimer,
       onStop: handleStop,
+      // 「都做完了」：把剩余任务按完成结算后结束会话，与「结束专注」共用同一条收尾路径
+      onDone: () => handleStop({ outcome: "completed" }),
       setCardVisible,
       setAnimEnabled,
       chatMessages: messages,

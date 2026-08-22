@@ -474,6 +474,18 @@
   opacity: 0.75;
 }
 
+/* 空着的满瓶眼下封不了：一行灰字说明还差哪一步。压过按钮一档，
+   免得「做不了的事」比「能做的事」还抢眼。 */
+.fk-seal-hint {
+  margin: 0;
+  max-width: 22ch;
+  font-size: 11.5px;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+
 /* 挑标本：一层遮罩 + 一张小卡，点外面或「先不封」都能退出去 */
 .fk-seal-veil {
   position: fixed;

@@ -78,7 +78,7 @@ function useStickyBuckets(todos, weightOf, scopeKey) {
  * 所以两个视图看到的永远是同一批任务。
  */
 export default function FlowView({ todos, visibleAttrs, priorityAttr, activeDatabaseId, scopeKey, highlightId }) {
-  const { addTodo, toggleTodo, editTodo, setTodoAttr, deleteTodo } = useTodos();
+  const { addTodo, toggleTodo, editTodo, setTodoAttr, deleteTodo, toggleRecurring } = useTodos();
   const { addFocusTodo } = useFocus();
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -146,6 +146,7 @@ export default function FlowView({ todos, visibleAttrs, priorityAttr, activeData
     onEditText: editTodo,
     onSaveAttr: setTodoAttr,
     onDelete: deleteTodo,
+    onSetRecurring: toggleRecurring,
   };
 
   return (

@@ -4,6 +4,7 @@ import {
   todayStats,
   pickDailyCommissions,
 } from "./commissionsData";
+import { TRANSLATIONS } from "@/i18n/translations";
 
 // 固定一个「今天中午」的时间戳，方便造今天/昨天的记录。
 const NOON = new Date(2026, 6, 6, 12, 0, 0).getTime();
@@ -61,5 +62,17 @@ describe("pickDailyCommissions（当天确定、跨天变化）", () => {
     const day2 = pickDailyCommissions(NOON + 24 * HOUR).map((c) => c.id).join();
     const day3 = pickDailyCommissions(NOON + 3 * 24 * HOUR).map((c) => c.id).join();
     expect(new Set([day1, day2, day3]).size).toBeGreaterThan(1);
+  });
+});
+
+// TodayQuests 用 `commission.${id}` 动态取文案，i18n 守护测试扫不到这种拼出来的 key，
+// 所以往池子里加委托时漏翻译不会被别处发现——只能在这里钉住。
+describe("委托文案齐全", () => {
+  it("每条委托在每种语言下都有 commission.<id> 文案", () => {
+    for (const lang of Object.keys(TRANSLATIONS)) {
+      for (const c of COMMISSIONS) {
+        expect(TRANSLATIONS[lang][`commission.${c.id}`]).toBeTruthy();
+      }
+    }
   });
 });

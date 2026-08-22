@@ -263,7 +263,38 @@
   cursor: pointer;
   word-break: break-word;
 }
-.fc-recur { font-size: 0.72rem; color: var(--text-faint); margin-left: 5px; }
+/* ↺ 固定任务按钮：没设过时淡到几乎隐形，设过了才带上「每天/工作日/一三五」的简写 */
+.fc-recur {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 0.72rem;
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.fc-card:hover .fc-recur,
+.fc-recur:focus-visible { opacity: 1; }
+.fc-recur.active {
+  opacity: 1;
+  color: var(--accent-deep);
+  background: var(--accent-bg);
+}
+.fc-recur:hover { background: var(--accent-bg); color: var(--accent-deep); }
+.fc-recur-label { font-weight: 600; }
+
+/* 日选择面板贴着卡片正文展开，不浮空——卡片本身会跟着变高，位置可预期 */
+.fc-card .recurring-day-picker {
+  margin-top: 8px;
+  border-top: 1px solid var(--accent-border);
+  border-radius: 10px;
+}
 .fc-title-input {
   flex: 1;
   padding: 6px 10px;
@@ -319,6 +350,9 @@
   font-size: 0.76rem;
   font-weight: 600;
   color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .fc-editor-cell { flex: 1; min-width: 0; }
 

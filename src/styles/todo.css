@@ -1,13 +1,5 @@
-/* Todo 容器、表单、列表项、勾选框、统计与相关动画。 */
-
-.todo-container {
-  width: 100%;
-  max-width: 680px;
-  background: var(--card);
-  border-radius: 24px;
-  padding: 20px 20px 24px;
-  border: 1px solid var(--border-input);
-}
+/* 任务库共用的零件样式：页头、空状态、通用按钮、↺ 固定日选择面板、📎 打开文件。
+   （原来的整套 Todo 列表界面已被任务库 /tasks 取代，那部分样式随组件一并删除。） */
 
 .header {
   display: flex;
@@ -24,62 +16,6 @@
   letter-spacing: 0.2px;
 }
 
-.filter-tabs {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.filter-tabs .tab {
-  background: transparent;
-  border: none;
-  padding: 6px 10px;
-  font-size: 0.95rem;
-  color: var(--muted);
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  transition:
-    color var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease),
-    transform var(--dur-fast) var(--ease);
-}
-.filter-tabs .tab:hover {
-  transform: translateY(-1px);
-}
-.filter-tabs .tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-  font-weight: 600;
-}
-
-.todo-form-section {
-  margin-bottom: 16px;
-}
-
-.todo-form {
-  display: flex;
-  gap: 10px;
-}
-
-.todo-input {
-  flex: 1;
-  padding: 12px 18px;
-  border-radius: 40px;
-  border: 1px solid var(--border-input);
-  font-size: 16px;
-  outline: none;
-  background: transparent;
-  transition:
-    border-color var(--dur-fast) var(--var(--ease)),
-    transform var(--dur-fast) var(--var(--ease));
-}
-.todo-input::placeholder {
-  color: var(--text-placeholder);
-}
-.todo-input:focus {
-  border-color: var(--accent-glow);
-  transform: translateY(-1px);
-}
-
 .add-btn {
   padding: 10px 14px;
   background: var(--accent-solid);
@@ -89,52 +25,13 @@
   cursor: pointer;
   transition: transform var(--dur-fast) var(--var(--ease));
 }
+
 .add-btn:hover {
   transform: scale(1.03);
 }
+
 .add-btn:active {
   transform: scale(0.97);
-}
-
-.recurring-toggle {
-  flex-shrink: 0;
-  min-width: 36px;
-  height: 36px;
-  border-radius: 18px;
-  padding: 0 8px;
-  border: 1.5px solid var(--border-input);
-  background: transparent;
-  color: var(--muted);
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  transition:
-    color var(--dur-fast) var(--var(--ease)),
-    border-color var(--dur-fast) var(--var(--ease)),
-    background var(--dur-fast) var(--var(--ease)),
-    transform var(--dur-fast) var(--var(--ease));
-}
-.recurring-toggle:hover {
-  color: var(--accent);
-  border-color: var(--accent-border);
-  transform: scale(1.05);
-}
-.recurring-toggle.active {
-  color: var(--accent);
-  border-color: var(--accent);
-  background: var(--accent-bg);
-}
-.recurring-toggle:active {
-  transform: scale(0.93);
-}
-
-.todo-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
 }
 
 .empty-state {
@@ -142,80 +39,14 @@
   padding: 28px 12px;
   color: var(--muted);
 }
+
 .empty-emoji {
   font-size: 28px;
   margin-bottom: 8px;
 }
+
 .empty-text {
   font-size: 14px;
-}
-
-.todo-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: var(--card);
-  border: 1px solid var(--border-input);
-  transition:
-    transform var(--dur-fast) var(--var(--ease)),
-    background var(--dur-fast) var(--var(--ease)),
-    border-color var(--dur-fast) var(--var(--ease)),
-    opacity var(--dur-fast) var(--var(--ease));
-  cursor: pointer;
-  user-select: none;
-}
-.todo-item:hover {
-  transform: translateY(-2px);
-  background: var(--accent-hover);
-  border-color: var(--accent-border);
-}
-.todo-item:active {
-  transform: translateY(0);
-}
-.todo-item.editing {
-  cursor: default;
-  background: var(--card);
-  border-color: var(--accent-glow);
-}
-
-/* 当前选中进入专注的任务 — 扁平高亮，无阴影 */
-.todo-item.selected {
-  background: var(--accent-bg);
-  border-color: var(--accent);
-}
-.todo-item.selected:hover {
-  background: var(--accent-bg);
-  border-color: var(--accent);
-}
-
-.todo-item.new {
-  animation: fadeInDown 320ms var(--ease) both;
-}
-.todo-item.removing {
-  animation: fadeOutLeft 280ms var(--ease) both;
-}
-
-.todo-text {
-  font-size: 16px;
-  line-height: 1.4;
-  color: var(--text-body);
-}
-.todo-text.completed {
-  text-decoration: line-through;
-  color: var(--muted);
-  opacity: 0.8;
-}
-
-.todo-item.recurring .todo-text:not(.completed) {
-  opacity: 0.78;
-}
-.recurring-icon {
-  margin-right: 5px;
-  opacity: 0.45;
-  font-size: 0.82em;
-  display: inline-block;
 }
 
 .delete-btn {
@@ -232,15 +63,18 @@
     color var(--dur-fast) var(--var(--ease)),
     background var(--dur-fast) var(--var(--ease));
 }
+
 .delete-btn:hover {
   color: var(--danger);
   background: var(--danger-subtle);
 }
+
 .delete-btn:active {
   transform: scale(0.9);
 }
 
 /* 编辑按钮（铅笔）— 默认隐藏，hover/聚焦行时淡入 */
+
 .edit-btn {
   background: transparent;
   border: none;
@@ -257,83 +91,19 @@
     color var(--dur-fast) var(--var(--ease)),
     background var(--dur-fast) var(--var(--ease));
 }
-.todo-item:hover .edit-btn,
-.edit-btn:focus-visible {
-  opacity: 1;
-}
+
 .edit-btn:hover {
   color: var(--accent);
   background: var(--accent-bg);
 }
+
 .edit-btn:active {
   transform: scale(0.9);
 }
 
-/* ↺ 固定任务切换按钮（行内，hover 显示） */
-.recurring-item-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-faint);
-  cursor: pointer;
-  font-size: 13px;
-  padding: 4px 6px;
-  border-radius: 8px;
-  line-height: 1;
-  opacity: 0;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  white-space: nowrap;
-  transition:
-    opacity var(--dur-fast) var(--var(--ease)),
-    color var(--dur-fast) var(--var(--ease)),
-    background var(--dur-fast) var(--var(--ease));
-}
-.todo-item:hover .recurring-item-btn,
-.recurring-item-btn:focus-visible,
-.recurring-item-btn.active {
-  opacity: 1;
-}
-.recurring-item-btn.active {
-  color: var(--accent);
-}
-.recurring-item-btn:hover {
-  color: var(--accent);
-  background: var(--accent-bg);
-}
-
-.recurring-btn-label {
-  font-size: 11px;
-  opacity: 0.85;
-}
-
-/* todo-text + tag chips stacked vertically */
-.todo-text-wrap {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-/* Tag chips on todo items (read-only display) */
-.todo-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.todo-tag-chip {
-  font-size: 11px;
-  padding: 2px 7px;
-  border-radius: 10px;
-  background: var(--accent-bg);
-  color: var(--accent-deep);
-  border: 1px solid var(--accent-border);
-  white-space: nowrap;
-}
-
 /* 📎 拖进来的文件：点一下用系统默认程序打开（只有桌面版会有这个字段）。
    做得比标签还轻——它是这条任务的附属物，不该比任务本身还显眼。 */
+
 .todo-file-open {
   margin-top: 4px;
   font-size: 11px;
@@ -356,103 +126,8 @@
   border-style: solid;
 }
 
-/* 🏷 tag picker toggle button */
-.tag-item-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-faint);
-  cursor: pointer;
-  font-size: 13px;
-  padding: 4px 6px;
-  border-radius: 8px;
-  line-height: 1;
-  opacity: 0;
-  transition:
-    opacity var(--dur-fast) var(--var(--ease)),
-    color var(--dur-fast) var(--var(--ease)),
-    background var(--dur-fast) var(--var(--ease));
-}
-.todo-item:hover .tag-item-btn,
-.tag-item-btn:focus-visible,
-.tag-item-btn.active {
-  opacity: 1;
-}
-.tag-item-btn.active {
-  color: var(--accent);
-}
-.tag-item-btn:hover {
-  color: var(--accent);
-  background: var(--accent-bg);
-}
-
-/* Wrapper for todo item + day picker panel */
-.todo-item-wrap {
-  display: flex;
-  flex-direction: column;
-}
-
-.todo-item-wrap.picker-open .todo-item,
-.todo-item-wrap.tags-open .todo-item {
-  border-radius: 12px 12px 0 0;
-  border-bottom-color: var(--accent-border);
-}
-
-/* Task tag picker panel — same visual as recurring-day-picker */
-.task-tag-picker {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 12px;
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
-  border-top: none;
-  border-radius: 0 0 12px 12px;
-  flex-wrap: wrap;
-}
-
-/* Tag buttons inside picker are wider than day buttons */
-.task-tag-picker .day-btn {
-  width: auto;
-  height: auto;
-  border-radius: 12px;
-  padding: 3px 9px;
-  font-size: 12px;
-}
-
-/* Scenario filter badge */
-.scenario-filter-badge {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 6px 12px;
-  margin-bottom: 10px;
-  border-radius: 10px;
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
-}
-.scenario-filter-label {
-  font-size: 13px;
-  color: var(--accent-deep);
-  font-weight: 500;
-}
-.scenario-filter-clear {
-  background: transparent;
-  border: none;
-  color: var(--muted);
-  font-size: 12px;
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 6px;
-  white-space: nowrap;
-  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
-}
-.scenario-filter-clear:hover {
-  color: var(--danger, #e57373);
-  background: var(--danger-subtle, rgba(229,115,115,0.08));
-}
-
 /* Day picker panel */
+
 .recurring-day-picker {
   display: flex;
   align-items: center;
@@ -465,12 +140,6 @@
   flex-wrap: wrap;
 }
 
-.todo-form-section .recurring-day-picker {
-  margin-top: 6px;
-  border-top: 1px solid var(--accent-border);
-  border-radius: 12px;
-}
-
 .day-preset-btn {
   padding: 3px 9px;
   border-radius: 12px;
@@ -481,6 +150,7 @@
   cursor: pointer;
   transition: all var(--dur-fast) var(--ease);
 }
+
 .day-preset-btn:hover,
 .day-preset-btn.active {
   background: var(--accent-solid);
@@ -509,6 +179,7 @@
   flex-shrink: 0;
   transition: all var(--dur-fast) var(--ease);
 }
+
 .day-btn:hover,
 .day-btn.active {
   background: var(--accent-solid);
@@ -527,70 +198,11 @@
   cursor: pointer;
   transition: all var(--dur-fast) var(--ease);
 }
+
 .day-cancel-btn:hover {
   color: var(--danger, #e57373);
   border-color: var(--danger, #e57373);
   background: var(--danger-subtle, rgba(229,115,115,0.08));
-}
-
-/* 内联编辑输入框 */
-.todo-edit-input {
-  flex: 1;
-  min-width: 0;
-  font-size: 16px;
-  line-height: 1.4;
-  color: var(--text-body);
-  padding: 4px 8px;
-  border: 1px solid var(--accent-glow);
-  border-radius: 8px;
-  background: var(--card);
-  outline: none;
-  transition: border-color var(--dur-fast) var(--var(--ease));
-}
-.todo-edit-input:focus {
-  border-color: var(--accent);
-}
-
-/* custom checkbox */
-.checkbox-wrap {
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-}
-.native-checkbox {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-  width: 0;
-  height: 0;
-}
-.custom-checkbox {
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
-  display: inline-block;
-  margin-right: 6px;
-  border: 1.5px solid var(--border-checkbox);
-  background: var(--card);
-  transition: all var(--dur-fast) var(--ease);
-  position: relative;
-}
-.custom-checkbox.checked {
-  background: var(--accent);
-  border-color: transparent;
-  transform: rotate(0deg) scale(1);
-}
-.custom-checkbox.checked::after {
-  content: "";
-  position: absolute;
-  left: 5px;
-  top: 2px;
-  width: 6px;
-  height: 10px;
-  border: 2px solid white;
-  border-top: 0;
-  border-left: 0;
-  transform: rotate(40deg);
 }
 
 .stats {
@@ -600,46 +212,11 @@
   text-align: right;
 }
 
-
-/* 固定任务分组 */
-.recurring-section {
-  margin-bottom: 4px;
-}
-.recurring-section + .recurring-section {
-  margin-top: 8px;
-}
-.recurring-section-header {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--muted);
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  padding: 6px 4px 4px;
-  border-bottom: 1px solid var(--border-input);
-  margin-bottom: 2px;
-}
-
-/* 非今天的固定任务：弱化但可操作 */
-.todo-item-wrap.other-day .todo-item {
-  opacity: 0.4;
-  transition: opacity var(--dur-fast) var(--ease);
-}
-.todo-item-wrap.other-day:hover .todo-item,
-.todo-item-wrap.other-day:focus-within .todo-item {
-  opacity: 0.8;
-}
-
 /* Responsive adjustments */
+
 @media (max-width: 480px) {
-  .todo-container {
-    padding: 14px;
-    border-radius: 16px;
-  }
   .title {
     font-size: 1rem;
-  }
-  .todo-input {
-    padding: 10px 14px;
   }
   .add-btn {
     padding: 9px 10px;

@@ -24,13 +24,14 @@
   }
 }
 
-/* ── 入场：三个模块错峰淡入上浮，给首屏一点节奏感 ── */
+/* ── 入场：各模块错峰淡入上浮，给首屏一点节奏感 ── */
 .page-home > * {
   animation: home-enter 460ms var(--ease, ease) both;
 }
 .page-home > *:nth-child(1) { animation-delay: 40ms; }
-.page-home > *:nth-child(2) { animation-delay: 130ms; }
-.page-home > *:nth-child(3) { animation-delay: 220ms; }
+.page-home > *:nth-child(2) { animation-delay: 120ms; }
+.page-home > *:nth-child(3) { animation-delay: 200ms; }
+.page-home > *:nth-child(4) { animation-delay: 280ms; }
 
 @keyframes home-enter {
   from {
@@ -43,11 +44,13 @@
   }
 }
 
-/* ── 快速开始按钮 ── */
+/* ── 快速开始按钮 ──
+   移到首屏第一位后它是页面的主行动点，所以比原先更宽、更高一点，
+   一进门不用找就能按下去。 */
 .home-quickstart {
   width: 100%;
-  max-width: 480px;
-  padding: 20px 24px;
+  max-width: 560px;
+  padding: 22px 24px;
   border-radius: 20px;
   border: none;
   background: var(--accent-solid);

@@ -3,7 +3,7 @@ export default {
   "memo.title": { en: "Memos", zh: "备忘录" },
   "memo.subtitle": {
     en: "Jot things down anytime — notes taken while focusing land here too",
-    zh: "随时记下想法，专注时的随记也会汇总到这里",
+    zh: "随时记下想法，专注时的备忘也会汇总到这里",
   },
 
   // ── 新建 ──────────────────────────────────────────────────────────────────
@@ -15,14 +15,14 @@ export default {
 
   // ── 筛选 ──────────────────────────────────────────────────────────────────
   "memo.filter.all": { en: "All", zh: "全部" },
-  "memo.filter.memo": { en: "Manual", zh: "手动" },
-  "memo.filter.focus": { en: "Focus notes", zh: "专注随记" },
+  "memo.filter.memo": { en: "General Notes", zh: "常规备忘" },
+  "memo.filter.focus": { en: "Focus Notes", zh: "专注备忘" },
   "memo.clearTagFilter": { en: "Clear tag filter", zh: "清除标签筛选" },
 
   // ── 空状态 ────────────────────────────────────────────────────────────────
   "memo.emptyFocus": {
     en: "No focus notes yet — jot one down during an immersive session",
-    zh: "还没有专注随记，去沉浸式专注里记录一条吧",
+    zh: "还没有专注备忘，去沉浸式专注里记录一条吧",
   },
   "memo.empty": {
     en: "No memos yet — write down your first thought",
@@ -31,8 +31,8 @@ export default {
 
   // ── 单条备忘 ──────────────────────────────────────────────────────────────
   "memo.item.selectHint": { en: "Select to turn into tasks", zh: "选中以整理成任务" },
-  "memo.item.badgeFocus": { en: "⛯ Focus note", zh: "⛯ 专注随记" },
-  "memo.item.badgeManual": { en: "✎ Manual", zh: "✎ 手动" },
+  "memo.item.badgeFocus": { en: "⛯ Focus Notes", zh: "⛯ 专注备忘" },
+  "memo.item.badgeManual": { en: "✎ General Notes", zh: "✎ 常规备忘" },
   "memo.item.edit": { en: "Edit", zh: "编辑" },
   "memo.item.delete": { en: "Delete", zh: "删除" },
   "memo.item.save": { en: "Save", zh: "保存" },

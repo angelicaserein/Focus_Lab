@@ -26,6 +26,12 @@ export function buildQueryFields(attrs = []) {
       ],
     },
     { key: "createdAt", nameKey: "tasks.field.createdAt", type: "date", builtin: true },
+    // 固定任务的重复日：当成一个「星期几」多选字段，于是「只看固定任务」＝ 非空，
+    // 「只看每周一要做的」＝ 含周一，都不用为它单开一种运算符。
+    {
+      key: "recurring", nameKey: "tasks.field.recurring", type: "multiselect", builtin: true,
+      options: [0, 1, 2, 3, 4, 5, 6].map(d => ({ id: d, labelKey: `day.short.${d}` })),
+    },
   ];
   const attrFields = attrs.map(a => ({
     key: a.id, name: a.name, nameKey: a.nameKey, type: a.type,
@@ -88,6 +94,7 @@ function getFilterValue(todo, field) {
     case "name":      return todo.text ?? "";
     case "status":    return todo.completed ? "completed" : "active";
     case "createdAt": return todo.createdAt ? toYMD(todo.createdAt) : "";
+    case "recurring": return todo.recurringDays ?? [];
     default:          return todo.attrs?.[field.key];
   }
 }
@@ -97,6 +104,7 @@ function getSortValue(todo, field) {
     case "name":      return todo.text ?? "";
     case "status":    return todo.completed ? "completed" : "active";
     case "createdAt": return todo.createdAt ?? 0;
+    case "recurring": return todo.recurringDays ?? [];
     default:          return todo.attrs?.[field.key];
   }
 }

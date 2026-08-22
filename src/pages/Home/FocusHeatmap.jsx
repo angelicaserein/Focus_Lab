@@ -74,6 +74,37 @@ export default function FocusHeatmap({ records }) {
     return { weeks, totalSecs };
   }, [records]);
 
+  // 371 个格子的 level / tooltip 全部预先算好：日期格式化和 t() 拼串都不便宜，
+  // 留在 render 里就是每次重渲染跑 371 次（父组件一动、语言一切都会触发）。
+  // 这里只在数据或语言真的变了时算一次，渲染阶段就只剩铺 div。
+  const cells = useMemo(() => {
+    const fmt = new Intl.DateTimeFormat(lang === "zh" ? "zh-CN" : "en-US", {
+      month: "long",
+      day: "numeric",
+    });
+    const out = [];
+    for (let wi = 0; wi < weeks.length; wi++) {
+      const week = weeks[wi];
+      for (let di = 0; di < week.length; di++) {
+        const cell = week[di];
+        if (cell.isFuture) {
+          out.push({ key: `${wi}-${di}`, level: "future", title: "" });
+          continue;
+        }
+        const date = fmt.format(cell.date);
+        out.push({
+          key: `${wi}-${di}`,
+          level: getLevel(cell.secs),
+          title:
+            cell.secs > 0
+              ? t("heatmap.cellFocus", { date, duration: formatDuration(cell.secs) })
+              : t("heatmap.cellEmpty", { date }),
+        });
+      }
+    }
+    return out;
+  }, [weeks, lang, t]);
+
   // Month label: show name at the first column where the month changes
   const monthLabels = useMemo(
     () =>
@@ -132,31 +163,14 @@ export default function FocusHeatmap({ records }) {
 
           {/* Heatmap grid */}
           <div className="heatmap-grid">
-            {weeks.map((week, wi) =>
-              week.map((cell, di) => {
-              const level = cell.isFuture ? "future" : getLevel(cell.secs);
-              const dateStr = cell.date.toLocaleDateString(
-                lang === "zh" ? "zh-CN" : "en-US",
-                { month: "long", day: "numeric" },
-              );
-              const title = cell.isFuture
-                ? ""
-                : cell.secs > 0
-                  ? t("heatmap.cellFocus", {
-                      date: dateStr,
-                      duration: formatDuration(cell.secs),
-                    })
-                  : t("heatmap.cellEmpty", { date: dateStr });
-              return (
-                <div
-                  key={`${wi}-${di}`}
-                  className="heatmap-cell"
-                  data-level={level}
-                  title={title}
-                />
-              );
-              }),
-            )}
+            {cells.map((cell) => (
+              <div
+                key={cell.key}
+                className="heatmap-cell"
+                data-level={cell.level}
+                title={cell.title}
+              />
+            ))}
           </div>
         </div>
       </div>

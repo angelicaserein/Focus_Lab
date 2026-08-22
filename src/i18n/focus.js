@@ -85,6 +85,11 @@ export default {
   "focus.imm.resume": { en: "Resume", zh: "继续" },
   "focus.imm.reset": { en: "Reset", zh: "重置" },
   "focus.imm.stop": { en: "End session", zh: "结束专注" },
+  "focus.imm.done": { en: "All done", zh: "都做完了" },
+  "focus.imm.doneTitle": {
+    en: "Mark every task in this session done and end it",
+    zh: "把本次专注的任务全部标记完成并结束",
+  },
   "focus.imm.picker.replacePlaceholder": { en: "Type a new task to replace it…", zh: "输入新任务替换…" },
   "focus.imm.picker.addPlaceholder": { en: "Type a new task, Enter to add…", zh: "输入新任务，回车添加…" },
   "focus.imm.picker.inputAria": { en: "New task", zh: "新建任务" },

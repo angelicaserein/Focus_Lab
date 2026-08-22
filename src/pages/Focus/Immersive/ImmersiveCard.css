@@ -416,6 +416,13 @@
   color: var(--accent-deep);
 }
 
+/* 「都做完了」：与「结束专注」并排，用完成色区分——它才是收尾的正向出口 */
+.immersive-btn.done {
+  background: color-mix(in srgb, var(--ok-fill) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ok-fill) 40%, transparent);
+  color: var(--ok-text);
+}
+
 .immersive-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(var(--accent-rgb), 0.22);

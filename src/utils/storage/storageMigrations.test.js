@@ -62,11 +62,11 @@ describe("runMigrations", () => {
     runMigrations();
 
     const [todo] = readKey(STORAGE_KEYS.TODOS);
+    // estimatedMins 不在里面：它被后面的 v9→v10 顺手清掉了（那一列已经没有了）
     expect(todo.attrs).toEqual({
       priority: "important",
       tags: ["project"],
       dueDate: "2026-09-01",
-      estimatedMins: 90,
       notes: "第三章",
     });
     // 平铺字段要真的搬走，不能一份数据两处放着各自漂移
@@ -196,6 +196,30 @@ describe("runMigrations", () => {
 
     expect(localStorage.getItem("research_daily_v1")).toBeNull();
     expect(readKey(STORAGE_KEYS.TODOS)).toEqual([{ id: "a", text: "别动我" }]);
+  });
+
+  it("v9→v10：预计时长列从各库摘掉，任务上残留的值也清干净", () => {
+    seed(9, {
+      [STORAGE_KEYS.DATABASES]: [{
+        id: "default",
+        attrs: [
+          { id: "priority", options: [] },
+          { id: "estimatedMins", nameKey: "tasks.attr.estimatedMins", type: "number" },
+          { id: "notes", type: "text" },
+        ],
+      }],
+      [STORAGE_KEYS.TODOS]: [
+        { id: "a", attrs: { estimatedMins: 90, notes: "留着" } },
+        { id: "b", attrs: { notes: "本来就没填" } },
+      ],
+    });
+
+    runMigrations();
+
+    expect(readKey(STORAGE_KEYS.DATABASES)[0].attrs.map(a => a.id)).toEqual(["priority", "notes"]);
+    const todos = readKey(STORAGE_KEYS.TODOS);
+    expect(todos[0].attrs).toEqual({ notes: "留着" });
+    expect(todos[1].attrs).toEqual({ notes: "本来就没填" });
   });
 
   it("已经是最新版本时直接短路，不重写盘上的数据", () => {

@@ -9,6 +9,7 @@ export default {
   "settings.tab.language": { en: "Language", zh: "语言" },
   "settings.tab.data": { en: "Data", zh: "数据" },
   "settings.tab.privacy": { en: "Privacy", zh: "隐私" },
+  "settings.deprecatedEntry": { en: "Retired pages…", zh: "废弃页面…" },
   "settings.theme.title": { en: "Appearance theme", zh: "外观主题" },
   "settings.theme.hint": { en: "Unlock skins in the Rewards shop, then switch them here.", zh: "在「奖励」商城解锁皮肤后即可在此切换" },
   "settings.theme.default": { en: "Default", zh: "默认" },

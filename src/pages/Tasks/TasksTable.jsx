@@ -20,7 +20,7 @@ const TYPE_COL_WIDTHS = {
  * 用来批量看 / 批量改。数据由任务库页面统一算好后传进来。
  */
 export default function TasksTable({ todos, visibleAttrs, activeDatabaseId, isDbEmpty, sort }) {
-  const { addTodo, toggleTodo, editTodo, setTodoAttr, deleteTodo, deleteTodos, setTodosDone } = useTodos();
+  const { addTodo, toggleTodo, editTodo, setTodoAttr, deleteTodo, deleteTodos, setTodosDone, toggleRecurring } = useTodos();
   const { taskAttrs } = useTaskAttrs();
   const { t } = useLanguage();
   const [confirm, confirmDialog] = useConfirm();
@@ -176,6 +176,7 @@ export default function TasksTable({ todos, visibleAttrs, activeDatabaseId, isDb
                 onEditText={editTodo}
                 onToggle={toggleTodo}
                 onDelete={deleteTodo}
+                onSetRecurring={toggleRecurring}
                 selected={selected.has(todo.id)}
                 onSelect={toggleSelect}
               />
