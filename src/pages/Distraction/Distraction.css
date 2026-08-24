@@ -66,23 +66,15 @@
   width: 48px;
 }
 
-/* 切去别的软件那种记录：时间列是「起–止」，止的那半压暗一点，
-   让一竖排扫下来时对齐的仍然是起始时刻。 */
-.dst-time-end {
-  color: var(--text-faint);
-}
-
-.dst-app-name {
-  color: var(--accent-mid);
-}
-
 /* 会话明细卡放在 section 里，标题由 SectionHead 提供，卡内不再重复表头 */
 .dst-sessions {
   padding: 8px 20px 14px;
 }
 
+/* 整页铺开：这里不是侧栏卡片，全部会话直接列出来，别塞进 420px 的小滚动框 */
 .dst-sessions .session-summary-scroll {
-  max-height: 420px;
+  max-height: none;
+  overflow-y: visible;
 }
 
 @media (max-width: 720px) {

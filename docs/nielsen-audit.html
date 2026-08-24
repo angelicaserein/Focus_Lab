@@ -1,0 +1,446 @@
+<title>FocusLab 启发式体检</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700&family=Noto+Sans+SC:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --ground:#faf7f9;
+  --surface:#ffffff;
+  --surface-2:#f3edf1;
+  --line:#e4d8e0;
+  --line-strong:#cdb9c7;
+  --ink:#2c222a;
+  --ink-2:#5d4f58;
+  --ink-3:#8b7c86;
+  --accent:#ac6c9f;
+  --accent-soft:rgba(172,108,159,.12);
+  --good:#3f7f6d;
+  --good-bg:rgba(63,127,109,.13);
+  --warn:#a9762c;
+  --warn-bg:rgba(169,118,44,.14);
+  --bad:#b04a50;
+  --bad-bg:rgba(176,74,80,.13);
+  --shadow:0 1px 2px rgba(44,34,42,.05), 0 8px 24px -16px rgba(44,34,42,.22);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#17131a;
+    --surface:#1f1a23;
+    --surface-2:#272030;
+    --line:#332b3b;
+    --line-strong:#4a3f55;
+    --ink:#ece5ee;
+    --ink-2:#b9adc0;
+    --ink-3:#8b7f94;
+    --accent:#d194c4;
+    --accent-soft:rgba(209,148,196,.15);
+    --good:#79bfa8;
+    --good-bg:rgba(121,191,168,.14);
+    --warn:#d7a75c;
+    --warn-bg:rgba(215,167,92,.14);
+    --bad:#e08a8f;
+    --bad-bg:rgba(224,138,143,.14);
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px -18px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#17131a;
+  --surface:#1f1a23;
+  --surface-2:#272030;
+  --line:#332b3b;
+  --line-strong:#4a3f55;
+  --ink:#ece5ee;
+  --ink-2:#b9adc0;
+  --ink-3:#8b7f94;
+  --accent:#d194c4;
+  --accent-soft:rgba(209,148,196,.15);
+  --good:#79bfa8;
+  --good-bg:rgba(121,191,168,.14);
+  --warn:#d7a75c;
+  --warn-bg:rgba(215,167,92,.14);
+  --bad:#e08a8f;
+  --bad-bg:rgba(224,138,143,.14);
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px -18px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:"Noto Sans SC",-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  font-weight:400;
+  line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:52rem;margin:0 auto;padding:clamp(2rem,5vw,4.5rem) clamp(1.1rem,4vw,2rem) 6rem}
+h1,h2,h3{font-family:"Noto Serif SC",Georgia,serif;text-wrap:balance;margin:0}
+.mono{font-family:"IBM Plex Mono","Noto Sans SC",monospace;font-variant-numeric:tabular-nums}
+
+/* ── 报头 ── */
+.masthead{border-bottom:1px solid var(--line-strong);padding-bottom:2.2rem;margin-bottom:2.6rem}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--accent);margin:0 0 1rem
+}
+h1{font-size:clamp(2rem,5.5vw,3rem);font-weight:700;line-height:1.2;letter-spacing:-.01em}
+.dek{color:var(--ink-2);font-size:1.02rem;margin:1rem 0 0;max-width:36em;font-weight:300}
+.meta{
+  display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.6rem;
+  font-family:"IBM Plex Mono",monospace;font-size:.75rem;color:var(--ink-3)
+}
+
+/* ── 总分 ── */
+.verdict{
+  display:grid;grid-template-columns:auto 1fr;gap:1.6rem;align-items:center;
+  background:var(--surface);border:1px solid var(--line);border-radius:4px;
+  padding:1.6rem 1.7rem;box-shadow:var(--shadow);margin-bottom:2.8rem
+}
+.score-big{font-family:"Noto Serif SC",serif;font-size:3.4rem;font-weight:700;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.score-big small{font-size:1.1rem;color:var(--ink-3);font-weight:500}
+.verdict p{margin:0;color:var(--ink-2);font-size:.94rem}
+.verdict strong{color:var(--ink)}
+@media(max-width:520px){.verdict{grid-template-columns:1fr;gap:.8rem}}
+
+/* ── 记分卡 ── */
+.card-scroll{overflow-x:auto;margin-bottom:3.4rem}
+table.scorecard{width:100%;border-collapse:collapse;font-size:.9rem;min-width:34rem}
+.scorecard th{
+  text-align:left;font-family:"IBM Plex Mono",monospace;font-weight:500;
+  font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);
+  border-bottom:1px solid var(--line-strong);padding:0 .7rem .6rem 0
+}
+.scorecard td{border-bottom:1px solid var(--line);padding:.72rem .7rem .72rem 0;vertical-align:middle}
+.scorecard td:first-child{width:2.4rem;color:var(--ink-3);font-family:"IBM Plex Mono",monospace;font-size:.8rem}
+.scorecard tr:hover td{background:var(--accent-soft)}
+.scorecard a{color:inherit;text-decoration:none;border-bottom:1px solid transparent}
+.scorecard a:hover,.scorecard a:focus-visible{border-bottom-color:var(--accent);color:var(--accent);outline:none}
+.bar{display:flex;gap:2px;align-items:center}
+.bar i{width:11px;height:11px;border-radius:2px;background:var(--line-strong);display:block}
+.bar i.on{background:var(--accent)}
+.bar i.half{background:linear-gradient(90deg,var(--accent) 50%,var(--line-strong) 50%)}
+.num{color:var(--ink-2);font-size:.8rem;margin-left:.5rem}
+.pill{
+  display:inline-block;padding:.12rem .5rem;border-radius:2px;
+  font-family:"IBM Plex Mono",monospace;font-size:.68rem;letter-spacing:.06em;white-space:nowrap
+}
+.pill.g{background:var(--good-bg);color:var(--good)}
+.pill.w{background:var(--warn-bg);color:var(--warn)}
+.pill.b{background:var(--bad-bg);color:var(--bad)}
+
+/* ── 各条 ── */
+section.h{
+  border-top:1px solid var(--line-strong);padding-top:2rem;margin-top:2.8rem;
+  scroll-margin-top:1.5rem
+}
+.h-head{display:flex;gap:1rem;align-items:baseline;flex-wrap:wrap;margin-bottom:.2rem}
+.h-num{font-family:"IBM Plex Mono",monospace;color:var(--accent);font-size:.8rem;letter-spacing:.1em}
+h2{font-size:1.42rem;font-weight:700;flex:1;min-width:12rem}
+.h-sub{color:var(--ink-3);font-size:.82rem;font-family:"IBM Plex Mono",monospace;margin:0 0 1.3rem}
+
+.finds{display:flex;flex-direction:column;gap:.85rem;margin:1.2rem 0 0}
+.f{
+  display:grid;grid-template-columns:auto 1fr;gap:.85rem;
+  background:var(--surface);border:1px solid var(--line);border-left-width:3px;
+  border-radius:3px;padding:.85rem 1rem
+}
+.f.ok{border-left-color:var(--good)}
+.f.gap{border-left-color:var(--bad)}
+.f.note{border-left-color:var(--warn)}
+.f .mk{font-family:"IBM Plex Mono",monospace;font-size:.68rem;letter-spacing:.08em;padding-top:.28rem;white-space:nowrap}
+.f.ok .mk{color:var(--good)}
+.f.gap .mk{color:var(--bad)}
+.f.note .mk{color:var(--warn)}
+.f p{margin:0;font-size:.93rem;color:var(--ink-2)}
+.f p + p{margin-top:.4rem}
+.f strong{color:var(--ink);font-weight:500}
+code{
+  font-family:"IBM Plex Mono",monospace;font-size:.82em;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:2px;
+  padding:.06em .34em;color:var(--ink);white-space:nowrap
+}
+.fix{
+  margin-top:1.1rem;background:var(--accent-soft);border-radius:3px;
+  padding:.8rem 1rem;font-size:.9rem;color:var(--ink-2)
+}
+.fix b{
+  font-family:"IBM Plex Mono",monospace;font-size:.68rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--accent);display:block;margin-bottom:.25rem
+}
+
+/* ── 行动清单 ── */
+.actions{margin-top:3.6rem;border-top:3px double var(--line-strong);padding-top:2.2rem}
+ol.todo{list-style:none;counter-reset:t;padding:0;margin:1.4rem 0 0;display:flex;flex-direction:column;gap:.9rem}
+ol.todo li{
+  counter-increment:t;display:grid;grid-template-columns:auto 1fr;gap:1rem;
+  padding-bottom:.9rem;border-bottom:1px solid var(--line)
+}
+ol.todo li::before{
+  content:counter(t,decimal-leading-zero);
+  font-family:"IBM Plex Mono",monospace;font-size:.78rem;color:var(--accent);padding-top:.3rem
+}
+ol.todo b{display:block;font-weight:500;color:var(--ink);font-size:.98rem}
+ol.todo span{font-size:.88rem;color:var(--ink-2)}
+.tag{
+  font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.06em;
+  color:var(--ink-3);margin-left:.5rem
+}
+footer{margin-top:3rem;color:var(--ink-3);font-size:.78rem;font-family:"IBM Plex Mono",monospace;line-height:1.9}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">Nielsen 10 Usability Heuristics · 代码级审计</p>
+  <h1>FocusLab 启发式体检</h1>
+  <p class="dek">对照尼尔森十大可用性原则，逐条核到实际代码。结论只写有证据支撑的部分，每条缺口都指到具体文件行。</p>
+  <div class="meta">
+    <span>2026-08-24</span>
+    <span>分支 main · 28589bd</span>
+    <span>23 条路由 · 143 个 JSX · 1000+ 双语词条</span>
+  </div>
+</header>
+
+<div class="verdict">
+  <div class="score-big">3.9<small>/5</small></div>
+  <p><strong>整体高于同类自研项目的平均水平</strong>，强项集中在一致性与用户控制——i18n 有守护测试、删除可撤销、功能开关全程可逆且不删数据。三处集中扣分：<strong>信息密度</strong>（默认全开的 24 个侧栏入口）、<strong>快捷路径</strong>（无命令面板、无快捷键索引）、<strong>帮助体系</strong>（Tutorial 单薄且埋得深）。都是加法能解决的问题，没有需要推翻的结构性错误。</p>
+</div>
+
+<div class="card-scroll">
+<table class="scorecard">
+  <thead>
+    <tr><th></th><th>原则</th><th>评分</th><th>主要缺口</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="mono">01</td><td><a href="#h1">系统状态可见</a></td><td><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="num mono">4.0</span></td><td><span class="pill w">AI 静默降级</span></td></tr>
+    <tr><td class="mono">02</td><td><a href="#h2">贴近真实世界</a></td><td><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="half"></i></span><span class="num mono">4.5</span></td><td><span class="pill g">自创隐喻需首次学习</span></td></tr>
+    <tr><td class="mono">03</td><td><a href="#h3">用户控制与自由</a></td><td><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="half"></i></span><span class="num mono">4.5</span></td><td><span class="pill w">撤销只覆盖两处</span></td></tr>
+    <tr><td class="mono">04</td><td><a href="#h4">一致性与标准</a></td><td><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="num mono">4.0</span></td><td><span class="pill w">两套确认交互并存</span></td></tr>
+    <tr><td class="mono">05</td><td><a href="#h5">防错</a></td><td><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="half"></i><i></i></span><span class="num mono">3.5</span></td><td><span class="pill b">专注中关窗无拦截</span></td></tr>
+    <tr><td class="mono">06</td><td><a href="#h6">识别优于回忆</a></td><td><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="half"></i></span><span class="num mono">4.5</span></td><td><span class="pill g">搜索缺键盘导航</span></td></tr>
+    <tr><td class="mono">07</td><td><a href="#h7">灵活与效率</a></td><td><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span><span class="num mono">3.0</span></td><td><span class="pill b">无快捷键体系</span></td></tr>
+    <tr><td class="mono">08</td><td><a href="#h8">美观与极简</a></td><td><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="half"></i><i></i></span><span class="num mono">3.5</span></td><td><span class="pill b">首启 24 个入口全开</span></td></tr>
+    <tr><td class="mono">09</td><td><a href="#h9">错误诊断与恢复</a></td><td><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="half"></i><i></i></span><span class="num mono">3.5</span></td><td><span class="pill w">错误文案过于笼统</span></td></tr>
+    <tr><td class="mono">10</td><td><a href="#h10">帮助与文档</a></td><td><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span><span class="num mono">3.0</span></td><td><span class="pill b">Tutorial 单薄且埋深</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ─────────────── 01 ─────────────── -->
+<section class="h" id="h1">
+  <div class="h-head"><span class="h-num mono">01</span><h2>系统状态可见性</h2></div>
+  <p class="h-sub">Visibility of system status · 4.0 / 5</p>
+
+  <div class="finds">
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>存储写满有不可忽略的警报。</strong><code>StorageQuotaBanner</code> 用 <code>role="alert" aria-live="assertive"</code>，刻意不自动消失，并且关闭后再次写失败会重新弹出——注释里明说「关闭不等于永久静音」。这是全项目对状态可见性最认真的一处。</p></div></div>
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>AI 的「示例模式」在界面上标了出来。</strong>沉浸聊天有 <code>focus.imm.chat.demoBadge</code>、时间轴有 <code>history.aiDemoNote</code>、角色页有 <code>gm.localNote</code>、场景助手有 <code>scenario.ai.noKey</code>、设置语气包有 <code>settings.tone.exampleNote</code>——五处入口都提示了「这是离线示例，不是真 AI」。</p></div></div>
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>加载态不闪。</strong><code>AppRoutes</code> 在首屏渲染后用 <code>requestIdleCallback</code> 预取全部路由 chunk，让大多数导航根本触发不到 Suspense，避免骨架屏「闪一下」。设置页还直接显示 localStorage 占用（<code>settings.data.usage</code>）。</p></div></div>
+    <div class="f gap"><span class="mk">缺口</span><div>
+      <p><strong>AI 运行时失败会静默降级成示例回复。</strong><code>src/utils/ai/aiChat.js:68</code> 与 <code>:79</code> 两处 <code>catch { return sampleReply(); }</code> 不带任何标记。配了 key 的用户断网时会拿到一条示例回复，却以为伙伴真的这么回答了——这比报错更糟，因为它污染的是用户对 AI 是否可信的判断。</p>
+      <p>对照组：<code>Memo/AiTaskModal.jsx</code> 做对了，把 <code>error</code> / <code>refineFailed</code> / <code>refineNone</code> 分成三种文案显示。</p></div></div>
+    <div class="f note"><span class="mk">观察</span><div>
+      <p><strong>没有任何「已保存」指示。</strong>所有数据静默写入 localStorage。对多数用户这没问题（无保存按钮即无保存焦虑），但用户没有任何依据判断「刚才那条随记进去了没有」，尤其在配额已满、写入实际失败但还没触发警报的窗口期。</p></div></div>
+  </div>
+
+  <div class="fix"><b>建议</b>给 <code>sampleReply()</code> 的返回值打上 <code>degraded: true</code>，聊天气泡上复用已有的 demoBadge 样式显示「AI 未连上 · 这是示例回复」。改动局限在 aiChat.js 与两个聊天组件。</div>
+</section>
+
+<!-- ─────────────── 02 ─────────────── -->
+<section class="h" id="h2">
+  <div class="h-head"><span class="h-num mono">02</span><h2>贴近用户的真实世界</h2></div>
+  <p class="h-sub">Match between system and the real world · 4.5 / 5</p>
+
+  <div class="finds">
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>信息架构照着真实工作流排，不是照着数据模型排。</strong><code>Tutorial/index.jsx</code> 的六个阶段——捕捉 → 理清 → 专注 → 复盘 → 成长 → 定制——就是用户脑子里的顺序，每个阶段挂真实入口而不是术语解释。</p></div></div>
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>侧栏分区名说的是用途不是模块。</strong>「每日 / 奖励 / 回顾 / 配置」，加上主页单独领头（注释：「它是回到一切的入口，别埋在每日列表中间」）。回顾三页还写死了各管一件事的边界：时间轴＝何时发生、数据分析＝统计图表、分心统计＝只管分心。</p></div></div>
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>语言不评判。</strong>空态文案是「没有临近的截止日，路上很空旷 🌿」「去开始一次专注吧！」，而不是「0 条记录」或「你还没有完成任何任务」。这对 ADHD 目标人群是设计决策，不是修辞。</p></div></div>
+    <div class="f note"><span class="mk">观察</span><div>
+      <p><strong>自创隐喻有学习成本。</strong>「功能树」「场景」「标本瓶架」「生态缸」「委托」这些词在第一次见到时无法从字面推断作用。这是游戏化的必要代价，但意味着首启引导比一般工具软件更重要——见 <a href="#h10" style="color:var(--accent)">原则 10</a>。</p></div></div>
+  </div>
+</section>
+
+<!-- ─────────────── 03 ─────────────── -->
+<section class="h" id="h3">
+  <div class="h-head"><span class="h-num mono">03</span><h2>用户控制与自由</h2></div>
+  <p class="h-sub">User control and freedom · 4.5 / 5</p>
+
+  <div class="finds">
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>删除可撤销，并且恢复回原位置。</strong><code>useUndoDelete.js</code> 记住 <code>index</code>，撤销时 <code>RESTORE</code> 把条目插回原下标而不是追加到末尾；<code>onDelete</code> 返回的 <code>meta</code> 让副作用也能一并回滚。<code>Toast</code> 带 <code>aria-live="polite"</code>，并保留内容到离场动画结束。</p></div></div>
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>功能开关全程可逆且不删数据。</strong><code>FeatureContext</code> 用两份方向相反的名单（功能树默认全开、废弃页面默认全关），关掉组时子项自己的记忆不动，重开即恢复原样。核心页永远不可关。这是「用户随时能反悔」原则少见的彻底实现。</p></div></div>
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>老链接不会走死。</strong><code>/flow-tasks → /tasks</code>、<code>/history → /calendar</code>、以及 <code>*</code> 兜底全部 <code>Navigate replace</code>，被关掉的功能直接弹回主页而不是白屏。数据可整体导出/导入。</p></div></div>
+    <div class="f gap"><span class="mk">缺口</span><div>
+      <p><strong>撤销只覆盖两条数据线。</strong><code>useUndoDelete</code> 只接进了 <code>TodoContext</code> 与 <code>ScenarioContext</code>。随记删除（<code>Memo/MemoItem.jsx</code>）与 DDL 检查点删除（<code>DDLReminders/index.jsx:113</code>）——后者是一次点击直接销毁，既无确认也无撤销。同一个动作在不同页面后果不同，这同时也是 <a href="#h4" style="color:var(--accent)">原则 4</a> 的问题。</p></div></div>
+    <div class="f note"><span class="mk">观察</span><div>
+      <p><strong>5 秒撤销窗口对目标人群偏短。</strong><code>UNDO_WINDOW_MS = 5000</code>。注意力容易被打断的用户，很可能在 toast 消失后才反应过来点错了。10 秒是更贴合人群的默认值，成本是一行常量。</p></div></div>
+  </div>
+
+  <div class="fix"><b>建议</b>把 <code>useUndoDelete</code> 接到随记与 DDL 检查点上（hook 已经是通用形状，接入成本低），并把窗口调到 10 秒。</div>
+</section>
+
+<!-- ─────────────── 04 ─────────────── -->
+<section class="h" id="h4">
+  <div class="h-head"><span class="h-num mono">04</span><h2>一致性与标准</h2></div>
+  <p class="h-sub">Consistency and standards · 4.0 / 5</p>
+
+  <div class="finds">
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>一致性有自动化守护，不靠人眼。</strong><code>i18n/i18n.test.js</code> 用 <code>import.meta.glob</code> 抓全部命名空间，钉死四条约定：每条词条中英都在、没有拼错的语言字段、同一 key 不在两个文件里重复定义、中英占位符集合一致。1000+ 词条靠人守不住，这是正确的工程判断。</p></div></div>
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>导航是单一数据源。</strong><code>navSections.js</code> 同时喂侧栏、全局搜索的页面结果、沉浸浮层导航和分心记录的页面名还原（<code>PAGE_LABEL_KEYS</code>）。注释直说：「两处各写一份的话，加个页面必然漏掉一边。」</p></div></div>
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>视觉与 AI 调用都收在一处。</strong><code>styles/theme.css</code> 把所有透明衍生色从 <code>--accent-rgb</code> 派生，换主色只改一行；六个 AI 模块共用 <code>aiClient.js</code> 的三模式底座，形状统一。</p></div></div>
+    <div class="f gap"><span class="mk">缺口</span><div>
+      <p><strong>确认交互有两套并存。</strong>一套是 <code>useConfirm</code> + <code>ConfirmDialog</code>（焦点陷阱、Esc 关闭、danger 样式），用在 6 处；另一套是 <code>Settings/DataSection.jsx</code> 里的内联「确认清空 / 取消」按钮对。清空数据是全站最危险的操作，反而用了较弱的那套。</p>
+      <p>结果是同一类破坏性动作在三种形态之间跳：模态确认、内联确认、以及上一条提到的什么都没有。</p></div></div>
+  </div>
+
+  <div class="fix"><b>建议</b>把 DataSection 的两处清空改用 <code>useConfirm({ danger: true })</code>，让「破坏性操作 ⇒ 模态确认」成为无例外的规则。</div>
+</section>
+
+<!-- ─────────────── 05 ─────────────── -->
+<section class="h" id="h5">
+  <div class="h-head"><span class="h-num mono">05</span><h2>防错</h2></div>
+  <p class="h-sub">Error prevention · 3.5 / 5</p>
+
+  <div class="finds">
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>危险选项默认关闭且要显式打开。</strong>导入数据的「替换现有数据」是独立勾选（<code>settings.data.importReplace</code>），不勾就是合并。核心功能在 <code>FeatureContext</code> 里硬编码为不可关，路由层再由 <code>FeatureGate</code> 兜一次——用户不可能把自己锁在门外。</p></div></div>
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>对模型输出的防御是真的。</strong><code>extractJson</code> 剥代码围栏、定位首尾括号、解析失败返回 <code>null</code> 而非抛错，调用方各自决定兜底。这挡掉了 LLM 应用里最常见的一类崩溃。</p></div></div>
+    <div class="f gap"><span class="mk">缺口</span><div>
+      <p><strong>专注进行中关窗或刷新，没有任何拦截。</strong>全仓库 <code>beforeunload</code> 零命中。一次误关标签页丢掉的是正在计时的会话——在一个核心价值就是「专注被记录下来」的应用里，这是代价最高的可预防错误。</p></div></div>
+    <div class="f note"><span class="mk">观察</span><div>
+      <p><strong>表单校验以宽松为主。</strong>甘特/任务的日期与时长字段依赖 input 原生类型约束，没有跨字段校验（如结束早于开始）。对当前数据模型不致命，但会静默产生不合理记录，之后在统计页才暴露。</p></div></div>
+  </div>
+
+  <div class="fix"><b>建议</b>计时中注册 <code>beforeunload</code>；Electron 侧同理拦一次关闭。这是本次审计中投入产出比最高的一项。</div>
+</section>
+
+<!-- ─────────────── 06 ─────────────── -->
+<section class="h" id="h6">
+  <div class="h-head"><span class="h-num mono">06</span><h2>识别优于回忆</h2></div>
+  <p class="h-sub">Recognition rather than recall · 4.5 / 5</p>
+
+  <div class="finds">
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>一个搜索框同时搜页面和内容。</strong><code>GlobalSearch</code> 把页面 / 任务 / 随记 / 场景四类结果同框呈现，命中字符 <code>&lt;mark&gt;</code> 加粗。组件注释点出了关键判断：「用户不必先想清楚要找的是页面还是某条任务。」——正是这条原则的定义。</p></div></div>
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>记录存路径而非译文。</strong>分心明细存的是 <code>/focus</code> 这样的路径，显示时经 <code>PAGE_LABEL_KEYS</code> 还原成当前语言的页面名。切换语言后历史记录不会僵在另一种语言上——一个容易被忽略、这里却处理对了的细节。</p></div></div>
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>该出现的地方有旁注。</strong>67 个组件用了 <code>aria-label</code>，共 351 处 aria 属性；图标按钮普遍配 <code>title</code>；42 条空态词条中相当一部分带 <code>emptyHint</code> 直接教下一步（<code>ddl.page.emptyLine1/2</code> 明说「在任务库中为任务设置截止日期后，这里会自动显示」）。</p></div></div>
+    <div class="f gap"><span class="mk">缺口</span><div>
+      <p><strong>搜索结果不能用键盘走。</strong><code>GlobalSearch.jsx</code> 没有上下键选中与回车跳转，也没有 <code>aria-activedescendant</code>；必须离开键盘去点。且它固定挂在侧栏顶部，侧栏折叠时得先触发 peek 才够得着。</p></div></div>
+  </div>
+</section>
+
+<!-- ─────────────── 07 ─────────────── -->
+<section class="h" id="h7">
+  <div class="h-head"><span class="h-num mono">07</span><h2>使用的灵活性与效率</h2></div>
+  <p class="h-sub">Flexibility and efficiency of use · 3.0 / 5</p>
+
+  <div class="finds">
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>界面本身可被用户裁剪。</strong>功能树让每个用户把用不到的页面整块关掉，废弃页面也能随时捡回。侧栏可折叠，折叠后左缘热区悬停即「窥视」滑出——常用与偶用两种节奏都照顾到了。</p></div></div>
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>局部有加速器。</strong>Esc 关闭在弹层里基本统一（<code>ConfirmDialog</code> 还用了捕获阶段监听）；<code>ScenarioConfigAssistant.jsx:78</code> 支持 Ctrl/⌘+Enter 直接触发；<code>PresetRow</code> 提供预设复用。</p></div></div>
+    <div class="f gap"><span class="mk">缺口</span><div>
+      <p><strong>没有全局快捷键，也没有命令面板。</strong>全仓库 <code>metaKey|ctrlKey</code> 只有两处命中，其一还是排除条件。搜索框没有 <code>Ctrl/⌘+K</code>，「开始专注」「新建任务」这类高频动作必须每次走鼠标导航。在一个有 23 个页面的应用里，熟练用户没有任何提速路径。</p></div></div>
+    <div class="f gap"><span class="mk">缺口</span><div>
+      <p><strong>已有的快捷键无处可查。</strong>Esc 关闭、Ctrl+Enter 触发这些都靠用户碰巧撞上。Tutorial 与设置页都没有快捷键一览。</p></div></div>
+    <div class="f note"><span class="mk">观察</span><div>
+      <p><strong>主题被金币解锁挡着。</strong><code>settings.theme.unlockHint</code> 显示价格。对只是想要暗色以便夜里用的用户，把外观选项做成消耗品是一道摩擦——游戏化和可用性在这里正面冲突，值得单独定夺是否让暗色主题免费。</p></div></div>
+  </div>
+
+  <div class="fix"><b>建议</b>给 <code>GlobalSearch</code> 加 <code>Ctrl/⌘+K</code> 聚焦与上下键选中，顺手把它升格成命令面板（页面、任务、以及「开始专注」等几个动作项）。既补原则 7，也补原则 6 的键盘缺口。</div>
+</section>
+
+<!-- ─────────────── 08 ─────────────── -->
+<section class="h" id="h8">
+  <div class="h-head"><span class="h-num mono">08</span><h2>美观与极简设计</h2></div>
+  <p class="h-sub">Aesthetic and minimalist design · 3.5 / 5</p>
+
+  <div class="finds">
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>关键页面克制。</strong>主页只有三块：今日待办、临近截止、专注热力图。隐私首启卡只有三条 + 一个按钮，写法统一为「粗体一句说完 + 小字补一句」，注释还特意规定「别把结论藏进小字里」。回顾三页互不塞摘要。</p></div></div>
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>视觉系统是收敛的。</strong>单一 accent 派生全部衍生色，40 处 <code>prefers-reduced-motion</code> 适配，39 处 <code>:focus-visible</code>。</p></div></div>
+    <div class="f gap"><span class="mk">缺口</span><div>
+      <p><strong>首次启动时侧栏是全开的 24 个入口、5 个分区。</strong><code>FeatureContext</code> 的 <code>disabled</code> 默认空数组，即默认全开。对一个明确面向 ADHD 用户的产品，第一屏恰恰是认知负担最重的那一屏——而这时用户还没有任何依据判断哪些功能自己用得上。</p>
+      <p>功能树正是这个问题的解药，但它自己排在第四个分区「配置」里，用户往往在已经被淹没之后才发现它。</p></div></div>
+  </div>
+
+  <div class="fix"><b>建议</b>把首启默认改成精简集（专注 / 任务库 / 随记 / 截止日 / 时间轴 + 主页设置），并在隐私卡之后接一屏「想先开哪些？」的三选一（精简 / 全部 / 自定义 → 功能树）。默认全开与默认全关都不如让用户在第一分钟做一次选择。</div>
+</section>
+
+<!-- ─────────────── 09 ─────────────── -->
+<section class="h" id="h9">
+  <div class="h-head"><span class="h-num mono">09</span><h2>帮助用户识别、诊断与恢复错误</h2></div>
+  <p class="h-sub">Help users recognize, diagnose, and recover from errors · 3.5 / 5</p>
+
+  <div class="finds">
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>最危险的错误配了最直接的出口。</strong>存储写满时，警报条上直接放「导出」按钮——注释写明「用户不导出备份就点掉的话，丢的是真数据，所以只给一个明确的出口」。诊断与恢复合成了一次点击。</p></div></div>
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>导入结果双分支带具体信息。</strong>成功给出条数（<code>importSuccess {count}</code>），失败给出原因（<code>importError {error}</code>），而不是一句「操作失败」。</p></div></div>
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>页面级崩溃有兜底。</strong><code>ErrorBoundary</code> 包住路由出口，渲染错误不会整站白屏，并提供刷新按钮，文案走 i18n。</p></div></div>
+    <div class="f gap"><span class="mk">缺口</span><div>
+      <p><strong>网络与鉴权错误在界面上无法区分。</strong><code>aiClient.js:68</code> 的 <code>postProxy</code> 只抛 <code>HTTP ${status}</code>。401（key 失效）、429（限流，等一会儿就好）、5xx（服务端问题）和断网在用户眼里长得一模一样，而这四种情况用户该采取的动作完全不同。</p></div></div>
+    <div class="f note"><span class="mk">观察</span><div>
+      <p><strong>ErrorBoundary 的文案过于笼统。</strong>只显示 <code>common.error</code> ＋刷新按钮，不说是哪一页出的问题，也不提「你的数据还在，刷新不会丢」——而后者恰恰是用户此刻最担心的事。</p></div></div>
+  </div>
+
+  <div class="fix"><b>建议</b><code>postProxy</code> 按状态码分类抛出，UI 侧映射成三条可执行文案：「AI 密钥无效，去设置检查」「请求太频繁，稍后再试」「连不上服务器，检查网络」。</div>
+</section>
+
+<!-- ─────────────── 10 ─────────────── -->
+<section class="h" id="h10">
+  <div class="h-head"><span class="h-num mono">10</span><h2>帮助与文档</h2></div>
+  <p class="h-sub">Help and documentation · 3.0 / 5</p>
+
+  <div class="finds">
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>有一页说清了整套工作流。</strong>Tutorial 的六阶段把 23 个页面串成一条线，每阶段直接给入口链接，label 复用 <code>nav.*</code> 文案——不另造一套说法，因此永远不会和侧栏对不上。</p></div></div>
+    <div class="f ok"><span class="mk">做到</span><div>
+      <p><strong>帮助是嵌在情境里的。</strong>设置每个分区有 <code>settings-section-hint</code>；空态不止说「没有」，还说「怎么才会有」。这类就地引导比集中式帮助页更容易被真正读到。</p></div></div>
+    <div class="f gap"><span class="mk">缺口</span><div>
+      <p><strong>Tutorial 的体量撑不住 23 个页面。</strong><code>i18n/tutorial.js</code> 只有 36 条词条，平均每阶段一句话。祈愿、生态缸、标本瓶架、技能树、场景这些自创系统，没有任何一处解释它们怎么运作、和别的系统什么关系。</p></div></div>
+    <div class="f gap"><span class="mk">缺口</span><div>
+      <p><strong>新用户走不到 Tutorial。</strong>首启只有隐私卡，看完直接落在主页；主页三块里没有教程入口；Tutorial 埋在侧栏第四个分区。也没有任何页面级的 <code>?</code> 帮助控件——本次审计未发现统一的 tooltip / 帮助体系。</p></div></div>
+  </div>
+
+  <div class="fix"><b>建议</b>隐私卡的按钮之后直接接 Tutorial（一次性），并在主页放一个可永久关闭的「看看怎么用」入口。文档写得再好，走不到就等于没有。</div>
+</section>
+
+<!-- ─────────────── 行动 ─────────────── -->
+<section class="actions">
+  <h2>按投入产出排序的行动清单</h2>
+  <p class="dek" style="margin-top:.6rem">前四项都是小改动、大回报；后三项需要一次设计决策。</p>
+  <ol class="todo">
+    <li><div><b>专注计时中注册 beforeunload<span class="tag">H5 · 数行代码</span></b><span>目前误关标签页＝丢掉整段会话，是全项目单次代价最高的可预防错误。</span></div></li>
+    <li><div><b>AI 静默降级改为显式标记<span class="tag">H1 · H9 · 小</span></b><span><code>aiChat.js</code> 两处 catch 返回值带上降级标记，气泡复用已有 demoBadge 样式。</span></div></li>
+    <li><div><b>撤销覆盖到随记与 DDL 检查点，窗口 5s → 10s<span class="tag">H3 · H4 · 小</span></b><span>hook 已是通用形状，接入即可；顺带消除「同一动作后果不同」的不一致。</span></div></li>
+    <li><div><b>清空数据改用 ConfirmDialog<span class="tag">H4 · 小</span></b><span>让「破坏性操作 ⇒ 模态确认」成为无例外规则。</span></div></li>
+    <li><div><b>Ctrl/⌘+K 命令面板<span class="tag">H6 · H7 · 中</span></b><span>在现有 GlobalSearch 上扩展键盘导航与动作项，一次补齐两条原则的主要缺口。</span></div></li>
+    <li><div><b>首启功能选择屏 + 精简默认集<span class="tag">H8 · H10 · 中</span></b><span>把功能树前置到第一分钟，同时成为 Tutorial 的自然入口。需要一次产品决策。</span></div></li>
+    <li><div><b>AI 错误按状态码分类＋可执行文案<span class="tag">H9 · 中</span></b><span>401 / 429 / 5xx / 断网四种情况，用户该做的事完全不同。</span></div></li>
+  </ol>
+</section>
+
+<footer>
+  方法：对照 Nielsen (1994) 十项启发式，逐条核查 <code>src/</code> 下 143 个组件、23 条路由、i18n 字典与测试。<br>
+  评分为审计者判断，非用户测试数据；正式结论仍需真实 ADHD 被试的可用性测试佐证。<br>
+  缺口条目均可按文中文件路径复查。
+</footer>
+
+</div>

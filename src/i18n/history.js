@@ -32,6 +32,8 @@ export default {
   "history.activity.delete": { en: "Deleted", zh: "删除" },
   // 同类动作挤在 5 分钟内会并成一条，这是并起来的条数后缀（前导空格是与正文的间隔）
   "history.activityMore": { en: " +{count} more", zh: " 等 {count} 项" },
+  "history.activityExpand": { en: "Show all", zh: "展开全部" },
+  "history.activityCollapse": { en: "Collapse", zh: "收起" },
   "history.dayEmpty": { en: "Nothing recorded on this day", zh: "这一天还没有记录" },
 
   // ── 会话详情：聊天与随记 ──────────────────────────────────────────────────
@@ -53,4 +55,5 @@ export default {
   "history.sameAsLast": { en: "Same as last time", zh: "与上次持平" },
   "history.nthDistraction": { en: "Distraction #{n}", zh: "第 {n} 次分心" },
   "history.proactivePause": { en: "proactive pause", zh: "主动暂停" },
+  "history.toggleDistractions": { en: "Show distractions in this session", zh: "看这次专注的分心记录" },
 };

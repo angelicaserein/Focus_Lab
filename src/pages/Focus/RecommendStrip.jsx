@@ -1,13 +1,14 @@
 import React from "react";
 import useScenarioRecommend from "@/hooks/scenario/useScenarioRecommend";
 import RecommendItem from "@/components/ui/RecommendItem";
+import { aiErrorMessageKey } from "@/utils/ai/aiClient";
 import { useLanguage } from "@/context/LanguageContext";
 
 // 专注页左栏推荐条：基于当前情景 + 候选任务（未在专注、未完成）主动推荐。
 // 每条「+ 加入专注」调 onPick（= addToFocus）。仅在有激活情景且有候选时渲染。
 export default function RecommendStrip({ availableTodos, onPick }) {
   const { t } = useLanguage();
-  const { hasScenario, ranked, aiStatus, aiEnabled, runAi } = useScenarioRecommend({
+  const { hasScenario, ranked, aiStatus, aiErrorKind, aiEnabled, runAi } = useScenarioRecommend({
     todos: availableTodos,
     limit: 3,
   });
@@ -47,6 +48,13 @@ export default function RecommendStrip({ availableTodos, onPick }) {
             }
           />
         ))}
+        {/* AI 精排失败原来是完全静默的：按钮转一圈、列表没变，用户不知道发生了什么。
+            推荐本身仍是规则层算出来的，照常可用，所以这里只补一句归因。 */}
+        {aiStatus === "error" && (
+          <div className="rec-ai-error" role="status">
+            {aiErrorKind ? t(aiErrorMessageKey(aiErrorKind)) : t("scenario.rec.aiError")}
+          </div>
+        )}
       </div>
     </div>
   );

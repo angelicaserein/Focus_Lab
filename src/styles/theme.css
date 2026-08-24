@@ -313,21 +313,6 @@
   --on-accent-light: #d6e8f7;
 }
 
-/* 森林绿 <html data-theme="forest"> */
-:root[data-theme="forest"] {
-  --bg:   #eef7f0;
-  --card: #f8fdf9;
-
-  --accent:      #4a9d6e;
-  --accent-rgb:  74, 157, 110;
-  --accent-mid:  #3a7d57;
-  --accent-deep: #418c61;
-  --accent-solid: #3d815b;
-
-  --text-heading:    #123024;
-  --on-accent-light: #d6ede0;
-}
-
 /* 蜜橘暖阳 <html data-theme="sunset"> —— 旧主色 S78% 是全站最艳的一支，压到 60% */
 :root[data-theme="sunset"] {
   --bg:   #fcf4ee;
@@ -341,21 +326,6 @@
 
   --text-heading:    #402616;
   --on-accent-light: #f6e9df;
-}
-
-/* 薰衣草 <html data-theme="lavender"> */
-:root[data-theme="lavender"] {
-  --bg:   #f3f0fc;
-  --card: #faf9ff;
-
-  --accent:      #9d8ce4;
-  --accent-rgb:  157, 140, 228;
-  --accent-mid:  #7a68c8;
-  --accent-deep: #8877d6;
-  --accent-solid: #7861da;
-
-  --text-heading:    #2a2150;
-  --on-accent-light: #e8e3f8;
 }
 
 /* 薄荷青 <html data-theme="teal"> —— 主色相从 174°（近纯青，在近白底上发「荧光/医用」）
@@ -374,18 +344,3 @@
   --on-accent-light: #e3f2f0;
 }
 
-/* 蜜桃 <html data-theme="peach"> —— 旧主色 S76%/L74% 又亮又艳，成了荧光鲑鱼色，
-   且当图标/文字时对白卡只有 ~1.9:1。压暗到 L66%、降饱和，回到真正的蜜桃珊瑚 */
-:root[data-theme="peach"] {
-  --bg:   #fcf3f0;
-  --card: #fefcfb;
-
-  --accent:      #de8173;
-  --accent-rgb:  222, 129, 115;
-  --accent-mid:  #a14436;
-  --accent-deep: #ca5a49;
-  --accent-solid: #ce4631;
-
-  --text-heading:    #3f1d18;
-  --on-accent-light: #f7e7e3;
-}

@@ -47,14 +47,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   padding: 0;
   border: 1.5px solid var(--border-input);
   border-radius: 50%;
   background: transparent;
   color: var(--text-muted);
-  font: 700 0.7rem/1 inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
   cursor: help;
   transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
@@ -76,7 +78,9 @@
   border: 1px solid var(--border-input);
   background: var(--card);
   color: var(--text-body);
-  font: 500 0.74rem/1.5 inherit;
+  font-size: 0.74rem;
+  font-weight: 500;
+  line-height: 1.5;
   letter-spacing: normal;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
   opacity: 0;
@@ -282,6 +286,12 @@ body.aq-grabbing [role="button"] { cursor: grabbing !important; }
   max-width: 100%;
 }
 .aq-slot.locked .aq-slot-name { color: var(--text-faint); }
+/* 图鉴计数后面那句「还有 n 枚卵没显形」：补充口径，别和 n/总数 一样响 */
+.aq-dex-eggs {
+  margin-left: 8px;
+  color: var(--accent);
+  opacity: 0.85;
+}
 /* 还没长大的那格：底下多一行「卵 · 还有 12 分钟」，格子仍是同一个正方形，故字要小 */
 .aq-slot-grow {
   position: relative;
@@ -345,6 +355,8 @@ body.aq-grabbing [role="button"] { cursor: grabbing !important; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* 还没破膜那行：名字位上是「还看不出是谁」，读起来该比真名淡一档 */
+.aq-grow-name.unknown { color: var(--text-muted); font-style: italic; }
 /* 同名多只时的序号：小到只在需要分辨时才被注意到 */
 .aq-grow-nth {
   display: inline-block;

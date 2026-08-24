@@ -97,7 +97,6 @@ export default function ImmersiveCard({ flaskProgress }) {
             <div className="immersive-eyebrow" {...handlers}>
               <span className={`immersive-status-dot ${isRunning ? "running" : ""}`} />
               {isRunning ? t("focus.imm.running") : t("focus.imm.paused")}
-              <span className="immersive-time">{clockText}</span>
             </div>
 
             {scenarioTitle && (
@@ -107,7 +106,11 @@ export default function ImmersiveCard({ flaskProgress }) {
               <div className="immersive-scenario-desc">{scenarioDescription}</div>
             )}
 
-            <FocusFlask progress={debugMode ? debugProgress : flaskProgress} />
+            {/* 时间平时藏着——盯着秒数走是分心源。把指针挪到烧瓶上（或键盘聚焦）才浮出来。 */}
+            <div className="immersive-flask-peek" tabIndex={0} aria-label={clockText}>
+              <FocusFlask progress={debugMode ? debugProgress : flaskProgress} />
+              <span className="immersive-time">{clockText}</span>
+            </div>
 
             {selectedTodos.length > 0 ? (
               <ul className="immersive-task-list">

@@ -17,10 +17,12 @@
 // 否则用户会失去「回到开关页把东西重新打开」的入口。其余功能都可关。
 export const CORE_PATHS = ["/", "/settings", "/functiontree", "/deprecated"];
 
-// 已退居二线的旧功能（角色 / 技能树 / 祈愿 / 世界地图 / 工业点数 / 甘特图 / 教程 / 研究记录）
-// 不在这棵树里，它们搬去了「废弃页面」——见 pages/Deprecated/deprecatedData，那边默认全关。
+// 已退居二线的旧功能（角色 / 技能树 / 祈愿 / 世界地图 / 工业点数 / 甘特图 / 教程 / 研究记录
+// / 情境功能整组）不在这棵树里，它们搬去了「废弃页面」——见 pages/Deprecated/deprecatedData，
+// 那边默认全关。
 
 // 非路由的开关 key。用 "前缀:名字" 与路由（一律以 / 开头）区分，避免撞车。
+// 情境这两个 key 现在归废弃页面管（默认关），但定义留在这里——它是「非路由开关 key」的出处。
 export const FEATURE_KEYS = {
   SCENARIO_GROUP: "group:scenario",
   SCENARIO_PICKER: "scenario:picker",
@@ -53,22 +55,6 @@ export const FUNCTION_BRANCHES = [
       { path: "/calendar",       labelKey: "nav.calendar",      icon: "📆" },
       { path: "/analytics",      labelKey: "nav.analytics",     icon: "📈" },
       { path: "/distraction",    labelKey: "nav.distraction",   icon: "⚡" },
-    ],
-  },
-  {
-    id: "config", // → nav.section.config
-    color: "#f59e0b",
-    features: [
-      {
-        key: FEATURE_KEYS.SCENARIO_GROUP,
-        labelKey: "functiontree.group.scenario",
-        icon: "🧩",
-        children: [
-          { path: "/scenario",       labelKey: "nav.scenario",            icon: "⚙️" },
-          { path: "/scenario-stats", labelKey: "nav.scenarioStats",       icon: "🥧" },
-          { key: FEATURE_KEYS.SCENARIO_PICKER, labelKey: "sidebar.currentScenario", icon: "🎚️" },
-        ],
-      },
     ],
   },
 ];

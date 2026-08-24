@@ -21,8 +21,8 @@ export default function Scenario() {
       <ScenarioList />
 
       <Toast
-        pendingDelete={pendingDelete}
-        undoDelete={undoDelete}
+        pending={pendingDelete}
+        undo={undoDelete}
         getText={(item) => item.title}
       />
     </main>

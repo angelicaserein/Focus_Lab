@@ -3,8 +3,8 @@ import React from "react";
 import useDistractionAnalytics from "@/hooks/focus/useDistractionAnalytics";
 import { useLanguage } from "@/context/LanguageContext";
 import { UNTAGGED } from "@/utils/analytics/distractionStats";
-import { PAGE_LABEL_KEYS } from "@/components/layout/navSections";
-import { formatTimestamp, formatSessionDate, formatDuration } from "@/utils/time";
+import { formatSessionDate, formatDuration } from "@/utils/time";
+import DistractionDetail from "@/components/records/DistractionDetail";
 import "@/components/records/records.css";
 import "@/components/records/SessionSummary.css";
 import "../Analytics/Analytics.css";
@@ -13,13 +13,6 @@ import "./Distraction.css";
 // 只在关键刻度显示小时标签（与数据分析页一致）
 // 横轴刻度：两种语言同形（"0:00" 一类），中文保留「时」以贴合原样。
 const HOUR_TICKS = [0, 6, 12, 18, 23];
-
-// 沉浸层里翻过的页面：记录存的是路径，按当前语言重新取名；
-// 页面后来被改名/移出侧栏时退回记录里那份译文，再退回路径。
-function pageName(t, item) {
-  const key = PAGE_LABEL_KEYS[item.pagePath];
-  return key ? t(key) : item.pageLabel || item.tag || item.pagePath;
-}
 
 function SectionHead({ title, badge }) {
   return (
@@ -215,74 +208,7 @@ export default function DistractionPage() {
                   <span className="session-stat distraction">⚡ {session.items.length}</span>
                 </div>
 
-                <div className="distraction-insight-row">
-                  {session.distractionRate && (
-                    <span className="distraction-insight-item">
-                      {t("history.distractPerHour", { rate: session.distractionRate })}
-                    </span>
-                  )}
-                  {session.bestTag && (
-                    <span className="distraction-insight-item tag">
-                      {t("history.mostly", { tag: session.bestTag })}
-                    </span>
-                  )}
-                  {session.diffVsPrev !== null && (
-                    <span
-                      className={`distraction-insight-item diff${session.diffVsPrev < 0 ? " better" : session.diffVsPrev > 0 ? " worse" : ""}`}
-                    >
-                      {session.diffVsPrev < 0
-                        ? t("history.fewerThanLast", { n: Math.abs(session.diffVsPrev) })
-                        : session.diffVsPrev > 0
-                          ? t("history.moreThanLast", { n: session.diffVsPrev })
-                          : t("history.sameAsLast")}
-                    </span>
-                  )}
-                </div>
-
-                <ul className="session-summary-list">
-                  {session.items.map((item) => (
-                    <li key={item.id} className="session-summary-row distraction">
-                      {/* 切去别的软件那种是一段时间，不是一个瞬间：时间列直接写成起止 */}
-                      <span className="session-summary-time">
-                        {formatTimestamp(item.ts)}
-                        {(item.type === "app" || item.type === "page") && item.endTs && (
-                          <span className="dst-time-end">–{formatTimestamp(item.endTs)}</span>
-                        )}
-                      </span>
-                      <span className="session-summary-text muted">
-                        {item.type === "app" ? (
-                          <span className="dst-app-name">
-                            {t("distraction.away.row", { app: item.appLabel || item.tag })}
-                          </span>
-                        ) : item.type === "page" ? (
-                          <span className="dst-app-name">
-                            {t("distraction.away.page", { page: pageName(t, item) })}
-                          </span>
-                        ) : (
-                          <>
-                            {t("history.nthDistraction", { n: item.nth })}
-                            {item.type === "proactive" && (
-                              <span className="distraction-tag-inline">
-                                {" "}· {t("history.proactivePause")}
-                              </span>
-                            )}
-                            {item.tag && (
-                              <span className="distraction-tag-inline"> · {distractionTagLabel(t, item.tag)}</span>
-                            )}
-                          </>
-                        )}
-                        {item.durationSecs != null && item.durationSecs > 0 && (
-                          <span className="distraction-note-inline">
-                            {" "}({formatDuration(item.durationSecs)})
-                          </span>
-                        )}
-                        {item.note && (
-                          <span className="distraction-note-inline"> {item.note}</span>
-                        )}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                <DistractionDetail session={session} />
               </div>
             ))}
           </div>

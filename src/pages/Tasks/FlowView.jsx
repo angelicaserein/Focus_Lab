@@ -1,17 +1,12 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Shuffle, Check, Timer, Plus, RotateCcw } from "lucide-react";
+import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { Plus, RotateCcw } from "lucide-react";
 import { useTodos } from "@/context/TodoContext";
-import { useFocus } from "@/context/FocusContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { formatDate, isDuePast, optionLabel } from "@/utils/task/taskAttrUtils";
 import TaskCard from "@/pages/Tasks/TaskCard";
 import {
-  activeDue,
   makeWeightOf,
   bucketTasks,
   stickyBuckets,
-  pickRightNow,
 } from "@/pages/Tasks/taskFlowUtils";
 import "./FlowView.css";
 
@@ -22,36 +17,17 @@ const BUCKET_META = {
   anytime:  { emoji: "🌿", label: "flow.bucket.anytime",  hint: "flow.bucket.anytimeHint" },
 };
 
-// 「现在就做」卡片里那排只读小徽标：优先级 / 截止，一眼看清份量。
-function HeroChips({ todo, priorityAttr, t }) {
-  const chips = [];
-  const pOpt = priorityAttr?.options?.find((o) => o.id === todo.attrs?.priority);
-  if (pOpt) {
-    chips.push(
-      <span key="p" className="fc-hero-chip" style={{ "--badge-color": pOpt.color }}>
-        {optionLabel(t, pOpt)}
-      </span>,
-    );
-  }
-  const due = activeDue(todo);
-  if (due) {
-    const overdue = isDuePast(due) && !todo.completed;
-    chips.push(
-      <span key="d" className={`fc-hero-chip due${overdue ? " overdue" : ""}`}>
-        {overdue ? t("flow.overdue") : "🗓 "}{formatDate(due)}
-      </span>,
-    );
-  }
-  return chips.length ? <div className="fc-hero-chips">{chips}</div> : null;
-}
-
 /**
- * 分堆并「冻结」卡片位置：改属性、勾完成都不该让卡片当场换堆乱跳，
- * 位置只在换库 / 换筛选（scopeKey 变）或用户点「整理一下」时才重排。
+ * 分堆并「冻结」卡片位置：改属性不该让卡片当场换堆乱跳，
+ * 位置只在换库 / 换筛选（scopeKey 变）、用户点「整理一下」，
+ * 或某一张被 settle() 显式放行（勾完成 / 取消勾）时才变。
  */
 function useStickyBuckets(todos, weightOf, scopeKey) {
   const placementRef = useRef(new Map());
   const [tidyNonce, setTidyNonce] = useState(0);
+  const [settleNonce, setSettleNonce] = useState(0);
+  // 后勾完的排在先勾完的后面：递增序号即可，不必给任务加 completedAt 字段
+  const doneTailRef = useRef(1e6);
   const resetKey = `${scopeKey}|${tidyNonce}`;
   const lastResetRef = useRef(resetKey);
 
@@ -59,79 +35,97 @@ function useStickyBuckets(todos, weightOf, scopeKey) {
   if (lastResetRef.current !== resetKey) {
     lastResetRef.current = resetKey;
     placementRef.current = new Map();
+    doneTailRef.current = 1e6;
   }
 
   const buckets = useMemo(() => {
     const res = stickyBuckets(bucketTasks(todos, weightOf), placementRef.current);
     placementRef.current = res.placement;
     return res.buckets;
-    // resetKey 也是依赖：清空落位后要立刻重算
+    // resetKey / settleNonce 也是依赖：落位表被改过就要立刻重算
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [todos, weightOf, resetKey]);
+  }, [todos, weightOf, resetKey, settleNonce]);
 
-  return [buckets, () => setTidyNonce((n) => n + 1)];
+  /** 放行一张卡：勾完成的落到「已完成」堆末尾，取消勾的回到它数据上该在的位置。 */
+  const settle = useCallback((id, done) => {
+    if (done) placementRef.current.set(id, { bucket: "done", index: doneTailRef.current++ });
+    else placementRef.current.delete(id);
+    setSettleNonce((n) => n + 1);
+  }, []);
+
+  return [buckets, () => setTidyNonce((n) => n + 1), settle];
 }
 
+// 勾完 → 卡片就地收起 → 归位到「已完成」堆。两段之间隔一个动画时长，
+// 手指底下那张卡才不会瞬移，注意力跟得上。与 .fc-slot 的过渡时长一致。
+const SINK_MS = 300;
+
 /**
- * 心流视图：任务库的 ADHD 友好版排布——托举一件 hero + 三堆宽松卡片。
+ * 心流视图：任务库的 ADHD 友好版排布——三堆宽松卡片 + 快速捕获。
  * 数据（当前库 / 情景 / 搜索筛选排序）由任务库页面统一算好后传进来，
  * 所以两个视图看到的永远是同一批任务。
  */
 export default function FlowView({ todos, visibleAttrs, priorityAttr, activeDatabaseId, scopeKey, highlightId }) {
   const { addTodo, toggleTodo, editTodo, setTodoAttr, deleteTodo, toggleRecurring } = useTodos();
-  const { addFocusTodo } = useFocus();
   const { t } = useLanguage();
-  const navigate = useNavigate();
 
-  const [soloMode, setSoloMode] = useState(false);          // 「一次只看一件」专注模式
-  const [heroId, setHeroId] = useState(null);               // 当前托举的那一件
   const [showDone, setShowDone] = useState(false);          // 已完成堆默认收起
   const [newText, setNewText] = useState("");
   const captureRef = useRef(null);
 
   const weightOf = useMemo(() => makeWeightOf(priorityAttr), [priorityAttr]);
-  const incomplete = useMemo(() => todos.filter((t) => !t.completed), [todos]);
-  const [buckets, tidy] = useStickyBuckets(todos, weightOf, scopeKey);
+  const [buckets, tidy, settle] = useStickyBuckets(todos, weightOf, scopeKey);
+
+  // 正在「收起 → 归位」途中的卡片：先加类播完动画，再真正换堆。
+  const [leaving, setLeaving] = useState(() => new Set());
+  const timersRef = useRef(new Map());
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => { timers.forEach(clearTimeout); timers.clear(); };
+  }, []);
+
+  // 收起动画跑完再干活的公共壳：勾完成、删除都要先让卡片平滑退场。
+  const runAfterSink = useCallback((id, done) => {
+    clearTimeout(timersRef.current.get(id));
+    setLeaving((prev) => new Set(prev).add(id));
+    timersRef.current.set(id, setTimeout(() => {
+      timersRef.current.delete(id);
+      done();
+      setLeaving((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }, SINK_MS));
+  }, []);
+
+  const handleToggle = useCallback((id, nextDone) => {
+    toggleTodo(id);
+    runAfterSink(id, () => settle(id, nextDone));
+  }, [toggleTodo, settle, runAfterSink]);
+
+  // 删除同理：卡片先收起来再真正删掉，不是「点一下整列往上蹦一格」。
+  const handleDelete = useCallback(
+    (id) => runAfterSink(id, () => deleteTodo(id)),
+    [deleteTodo, runAfterSink],
+  );
 
   // 跨页搜索定位到一件已完成的任务时，把已完成堆展开——它默认折叠，
-  // 不展开的话卡片根本没渲染，滚过去和高亮都落空；专注模式同理，先退出来。
+  // 不展开的话卡片根本没渲染，滚过去和高亮都落空。
   useEffect(() => {
     if (!highlightId) return;
     const target = todos.find((t) => t.id === highlightId);
-    if (!target) return;
-    if (target.completed) setShowDone(true);
-    setSoloMode(false);
+    if (target?.completed) setShowDone(true);
   }, [highlightId, todos]);
 
   const doneCount = useMemo(() => todos.filter((t) => t.completed).length, [todos]);
   const total = todos.length;
   const allDone = total > 0 && doneCount === total;
 
-  // 现在就做：定住不动。只有这件被完成 / 删除 / 筛掉，或用户点「换一个」时才换人——
-  // 否则随手改个属性都会让 hero 跳到别的任务上，注意力当场断掉。
-  const pinned = incomplete.find((t) => t.id === heroId) ?? null;
-  const autoPick = useMemo(() => pickRightNow(incomplete, weightOf), [incomplete, weightOf]);
-  const hero = pinned ?? autoPick ?? null;
-  useEffect(() => {
-    if (!pinned && autoPick) setHeroId(autoPick.id);
-  }, [pinned, autoPick]);
-
-  const shuffle = () => {
-    const pool = incomplete.filter((t) => t.id !== hero?.id);
-    if (!pool.length) return;
-    setHeroId(pool[Math.floor(Math.random() * pool.length)].id);
-  };
-
-  // 「去专注」把这件任务一起带过去：到专注页它已是选中状态，不用再挑一遍。
-  const goFocus = () => {
-    if (hero) addFocusTodo(hero.id);
-    navigate("/focus");
-  };
-
   const capture = () => {
-    const t = newText.trim();
-    if (!t) return;
-    addTodo(t, { databaseId: activeDatabaseId });
+    const text = newText.trim();
+    if (!text) return;
+    addTodo(text, { databaseId: activeDatabaseId });
     setNewText("");
     captureRef.current?.focus();
   };
@@ -140,14 +134,22 @@ export default function FlowView({ todos, visibleAttrs, priorityAttr, activeData
     if (e.key === "Escape") setNewText("");
   };
 
-  const cardProps = {
+  // memo 化：TaskCard 是 React.memo，props 每次新建的话整堆卡片会跟着白重渲染一遍
+  const cardProps = useMemo(() => ({
     visibleAttrs,
-    onToggle: toggleTodo,
+    onToggle: handleToggle,
     onEditText: editTodo,
     onSaveAttr: setTodoAttr,
-    onDelete: deleteTodo,
+    onDelete: handleDelete,
     onSetRecurring: toggleRecurring,
-  };
+  }), [visibleAttrs, handleToggle, handleDelete, editTodo, setTodoAttr, toggleRecurring]);
+
+  // 卡片外面套一层「槽」：离场时把槽的高度收到 0，下面的卡片才是滑上来而不是瞬移。
+  const renderCard = (todo) => (
+    <div key={todo.id} className={`fc-slot${leaving.has(todo.id) ? " leaving" : ""}`}>
+      <TaskCard todo={todo} {...cardProps} />
+    </div>
+  );
 
   return (
     <div className="flow-view">
@@ -165,44 +167,16 @@ export default function FlowView({ todos, visibleAttrs, priorityAttr, activeData
               ? t("flow.allDone")
               : t("todo.stats", { done: doneCount, total })}
           </span>
-          <button
-            type="button"
-            className={`fc-solo-toggle${soloMode ? " active" : ""}`}
-            onClick={() => setSoloMode((v) => !v)}
-          >
-            {soloMode ? t("flow.soloOff") : t("flow.soloOn")}
-          </button>
         </div>
       )}
 
-      {/* 现在就做这一件 —— 反过载的核心：屏蔽其它，只托举一件 */}
-      {hero ? (
-        <section className="fc-hero">
-          <div className="fc-hero-eyebrow">{t("flow.heroEyebrow")}</div>
-          <div className="fc-hero-title">{hero.text}</div>
-          <HeroChips todo={hero} priorityAttr={priorityAttr} t={t} />
-          <div className="fc-hero-actions">
-            <button
-              type="button"
-              className="fc-hero-btn primary"
-              onClick={() => { toggleTodo(hero.id); setHeroId(null); }}
-            >
-              <Check size={18} strokeWidth={2.5} aria-hidden="true" /> {t("flow.heroDone")}
-            </button>
-            <button type="button" className="fc-hero-btn" onClick={shuffle} disabled={incomplete.length < 2}>
-              <Shuffle size={17} aria-hidden="true" /> {t("flow.heroShuffle")}
-            </button>
-            <button type="button" className="fc-hero-btn" onClick={goFocus}>
-              <Timer size={17} aria-hidden="true" /> {t("flow.heroFocus")}
-            </button>
-          </div>
-        </section>
-      ) : (
-        <section className="fc-hero empty">
-          <div className="fc-hero-title">
+      {/* 一件未完成的都没有时给句落脚的话，别是一片空白 */}
+      {doneCount === total && (
+        <section className="fc-empty">
+          <div className="fc-empty-title">
             {total === 0 ? t("flow.emptyNoTasks") : t("flow.emptyAllDone")}
           </div>
-          <p className="fc-hero-empty-hint">
+          <p className="fc-empty-hint">
             {total === 0 ? t("flow.emptyNoTasksHint") : t("flow.emptyAllDoneHint")}
           </p>
         </section>
@@ -211,8 +185,10 @@ export default function FlowView({ todos, visibleAttrs, priorityAttr, activeData
       {/* 快速捕获：随时把闪过的念头倒出来，减少「记不住」的心理负担 */}
       <div className="fc-capture">
         <Plus size={18} aria-hidden="true" className="fc-capture-icon" />
+        {/* data-compose-target：命令面板的「新建任务」跳进来时，光标直接落在这儿 */}
         <input
           ref={captureRef}
+          data-compose-target=""
           className="fc-capture-input"
           placeholder={t("flow.capturePlaceholder")}
           aria-label={t("flow.capturePlaceholder")}
@@ -227,56 +203,45 @@ export default function FlowView({ todos, visibleAttrs, priorityAttr, activeData
         )}
       </div>
 
-      {/* 专注模式下只保留上面的「现在就做」+ 捕获框，其余分堆全部隐去 */}
-      {!soloMode && (
-        <div className="fc-buckets">
-          {["today", "upcoming", "anytime"].map((key) => {
-            const list = buckets[key];
-            if (!list.length) return null;
-            const meta = BUCKET_META[key];
-            return (
-              <section key={key} className="fc-bucket">
-                <div className="fc-bucket-head">
-                  <span className="fc-bucket-title">
-                    <span className="fc-bucket-emoji">{meta.emoji}</span>
-                    {t(meta.label)}
-                    <span className="fc-bucket-count">{list.length}</span>
-                  </span>
-                  <span className="fc-bucket-hint">{t(meta.hint)}</span>
-                </div>
-                <div className="fc-bucket-list">
-                  {list.map((todo) => (
-                    <TaskCard key={todo.id} todo={todo} {...cardProps} />
-                  ))}
-                </div>
-              </section>
-            );
-          })}
-
-          {buckets.done.length > 0 && (
-            <section className="fc-bucket">
-              <button type="button" className="fc-done-toggle" onClick={() => setShowDone((v) => !v)}>
-                {t("flow.bucket.done")} <span className="fc-bucket-count">{buckets.done.length}</span>
-                <span className="fc-done-caret">{showDone ? t("flow.collapse") : t("flow.expand")}</span>
-              </button>
-              {showDone && (
-                <div className="fc-bucket-list">
-                  {buckets.done.map((todo) => (
-                    <TaskCard key={todo.id} todo={todo} {...cardProps} />
-                  ))}
-                </div>
-              )}
+      <div className="fc-buckets">
+        {["today", "upcoming", "anytime"].map((key) => {
+          const list = buckets[key];
+          if (!list.length) return null;
+          const meta = BUCKET_META[key];
+          return (
+            <section key={key} className="fc-bucket">
+              <div className="fc-bucket-head">
+                <span className="fc-bucket-title">
+                  <span className="fc-bucket-emoji">{meta.emoji}</span>
+                  {t(meta.label)}
+                  <span className="fc-bucket-count">{list.length}</span>
+                </span>
+                <span className="fc-bucket-hint">{t(meta.hint)}</span>
+              </div>
+              <div className="fc-bucket-list">{list.map(renderCard)}</div>
             </section>
-          )}
+          );
+        })}
 
-          {/* 勾完的卡片留在原位不乱跳；攒够了想收干净时点这里重排 */}
-          {total > 0 && (
-            <button type="button" className="fc-tidy" onClick={tidy}>
-              <RotateCcw size={14} aria-hidden="true" /> {t("flow.tidy")}
+        {buckets.done.length > 0 && (
+          <section className="fc-bucket">
+            <button type="button" className="fc-done-toggle" onClick={() => setShowDone((v) => !v)}>
+              {t("flow.bucket.done")} <span className="fc-bucket-count">{buckets.done.length}</span>
+              <span className="fc-done-caret">{showDone ? t("flow.collapse") : t("flow.expand")}</span>
             </button>
-          )}
-        </div>
-      )}
+            {showDone && (
+              <div className="fc-bucket-list">{buckets.done.map(renderCard)}</div>
+            )}
+          </section>
+        )}
+
+        {/* 勾完的卡片留在原位不乱跳；攒够了想收干净时点这里重排 */}
+        {total > 0 && (
+          <button type="button" className="fc-tidy" onClick={tidy}>
+            <RotateCcw size={14} aria-hidden="true" /> {t("flow.tidy")}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

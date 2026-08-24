@@ -1,7 +1,7 @@
 import "@/types";
-import React, { useReducer, useEffect, useRef, useContext } from "react";
+import React, { useReducer, useEffect, useRef, useState, useContext } from "react";
 import { loadVersioned, WRAPPER_VERSION } from "@/utils/storage/storage";
-import useUndoDelete from "@/hooks/common/useUndoDelete";
+import useUndoDelete, { UNDO_WINDOW_MS } from "@/hooks/common/useUndoDelete";
 import { useActivityLog } from "@/context/ActivityContext";
 import usePersistedWrite from "@/hooks/common/usePersistedWrite";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
@@ -172,13 +172,40 @@ export function TodoProvider({ children }) {
   const deleteTodosByDatabase = (databaseId) =>
     dispatch({ type: DELETE_BY_DB, payload: databaseId });
 
-  // log:false 供专注结算调用 —— 那次完成已经写进专注记录，时间轴上不必再多一个点。
+  // 勾完一条给 5 秒撤销窗。手滑点错在 ADHD 用户身上很常见，而「找回来再取消勾选」
+  // 要先想起它去了哪；一条 toast 就地撤回，比让人回头翻列表省事得多。
+  // 只有「标记完成」弹——取消完成本身就是撤销动作，再给一条撤销条反而绕。
+  const [pendingComplete, setPendingComplete] = useState(null);
+  const completeTimerRef = useRef(null);
+
+  // log:false 供专注结算调用 —— 那次完成已经写进专注记录，时间轴上不必再多一个点，
+  // 也不弹撤销条（结算卡自己就是那一刻的界面，不该被 toast 抢话）。
   const toggleTodo = (id, { log = true } = {}) => {
     const todo = todos.find((t) => t.id === id);
     dispatch({ type: TOGGLE, payload: id });
-    if (log && todo) {
-      logActivity(todo.completed ? "uncomplete" : "complete", { taskId: id, text: todo.text });
+    if (!todo) return;
+    const meta = log
+      ? logActivity(todo.completed ? "uncomplete" : "complete", { taskId: id, text: todo.text })
+      : null;
+    if (!log || todo.completed) return;
+    if (completeTimerRef.current) clearTimeout(completeTimerRef.current);
+    setPendingComplete({ item: todo, kind: "complete", meta });
+    completeTimerRef.current = setTimeout(() => {
+      setPendingComplete(null);
+      completeTimerRef.current = null;
+    }, UNDO_WINDOW_MS);
+  };
+
+  const undoComplete = () => {
+    if (!pendingComplete) return;
+    if (completeTimerRef.current) {
+      clearTimeout(completeTimerRef.current);
+      completeTimerRef.current = null;
     }
+    const { item, meta } = pendingComplete;
+    dispatch({ type: TOGGLE, payload: item.id });
+    dropActivity(meta);
+    setPendingComplete(null);
   };
 
   const toggleRecurring = (id, days) => dispatch({ type: TOGGLE_RECURRING, payload: { id, days } });
@@ -206,7 +233,7 @@ export function TodoProvider({ children }) {
   });
 
   /**
-   * 批量删除（表格视图全选后一次删掉、倒脑子撤回）。一次 dispatch 删完，
+   * 批量删除（倒脑子撤回等一次删一批）。一次 dispatch 删完，
    * 不走 useUndoDelete —— 那个只记得住最后一条。
    * undoAdd:true 表示「当作没发生过」：不记删除，反而把这些任务的新增记录
    * 一并抹掉，时间轴上不留痕。
@@ -225,7 +252,7 @@ export function TodoProvider({ children }) {
   };
 
   /**
-   * 批量勾选 / 取消勾选（表格视图的批量条）。一次 dispatch + 一次记录写入，
+   * 批量勾选 / 取消勾选。一次 dispatch + 一次记录写入，
    * 而不是逐条 toggleTodo —— 那样每条都要重建一遍整个任务数组和整条时间轴。
    */
   const setTodosDone = (ids, done) => {
@@ -236,6 +263,10 @@ export function TodoProvider({ children }) {
     logActivities(done ? "complete" : "uncomplete", hit.map((t) => ({ taskId: t.id, text: t.text })));
     return hit.length;
   };
+
+  // 两个撤销窗共用一条 toast：谁新显示谁（同时挂起极罕见，删除那条静默走完即可）
+  const pendingUndo = pendingComplete ?? pendingDelete;
+  const undoLast = pendingComplete ? undoComplete : undoDelete;
 
   const value = {
     todos,
@@ -249,8 +280,8 @@ export function TodoProvider({ children }) {
     deleteTodos,
     setTodosDone,
     deleteTodosByDatabase,
-    pendingDelete,
-    undoDelete,
+    pendingUndo,
+    undoLast,
   };
 
   return <TodoContext.Provider value={value}>{children}</TodoContext.Provider>;

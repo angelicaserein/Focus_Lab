@@ -32,8 +32,6 @@ export const STORAGE_KEYS = {
   // 废弃页面：被用户主动「捡回来」的旧功能路径列表。与上面相反是「反向名单」——
   // 废弃页默认全部关闭，只有出现在这个列表里才可见可达。
   ENABLED_DEPRECATED: "enabled_deprecated_v1",
-  // 角色卡/结算卡的「语气包」：用户输入 prompt 后 AI 生成的一整套质化文案覆盖
-  TONE_PACK: "tone_pack_v1",
   // 倒脑子的拆分偏好（设置页「任务拆分」）：粒度档位 / 是否先反问 / 是否推断日期 / 自定义规则
   TASK_SPLIT_PREFS: "task_split_prefs_v1",
   // 伙伴 / 祈愿（二游式无损收集）：已遇见的图鉴 id 列表、当前佩戴的立绘皮肤 id

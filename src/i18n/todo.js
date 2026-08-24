@@ -12,6 +12,7 @@ export default {
   "todo.item.openFile": { en: "Open file", zh: "打开文件" },
   "todo.item.openFileFailed": { en: "Can't open it — the file may have been moved or deleted", zh: "打不开 —— 文件可能被移走或删掉了" },
   "toast.deleted": { en: "Deleted “{text}”", zh: "已删除「{text}」" },
+  "toast.completed": { en: "Marked “{text}” done", zh: "已完成「{text}」" },
   "toast.undo": { en: "Undo", zh: "撤销" },
   "brainDump.title": { en: "🧠 Brain dump", zh: "🧠 倒脑子" },
   "brainDump.close": { en: "Close", zh: "关闭" },
@@ -36,14 +37,9 @@ export default {
   "brainDump.clarify.skip": { en: "Skip, just split it", zh: "跳过，直接拆" },
   "brainDump.clarify.submit": { en: "Split it this way", zh: "按这些拆" },
 
-  // 任务库页头 + 双视图切换
+  // 任务库页头
   "tasks.title": { en: "Task library", zh: "任务库" },
   "tasks.count": { en: "{count} tasks", zh: "{count} 个任务" },
-  "tasks.viewSwitchAria": { en: "Switch view", zh: "切换视图" },
-  "tasks.view.flow": { en: "Flow", zh: "心流" },
-  "tasks.view.flowTitle": { en: "Flow: one at a time, roomy cards", zh: "心流：一次一件，宽松卡片" },
-  "tasks.view.table": { en: "Table", zh: "表格" },
-  "tasks.view.tableTitle": { en: "Table: bulk view & edit, all attributes at a glance", zh: "表格：批量看改，全部属性一览" },
   "tasks.dueAssist": { en: "🗓 Set due dates · {count}", zh: "🗓 排截止日 · {count}" },
 
   // 工具条：搜索 / 情景 / 筛选 / 排序
@@ -54,79 +50,12 @@ export default {
   "tasks.filter": { en: "Filter", zh: "筛选" },
   "tasks.sort": { en: "Sort", zh: "排序" },
 
-  // 任务卡 / 表格行
+  // 任务卡
   "tasks.markIncomplete": { en: "Mark as not done", zh: "标记为未完成" },
   "tasks.markComplete": { en: "Mark as done", zh: "标记为已完成" },
   "tasks.clickToEdit": { en: "Click to edit", zh: "点击修改" },
   "tasks.collapseAttrs": { en: "Collapse attributes", zh: "收起属性" },
   "tasks.expandAttrs": { en: "Expand attributes", zh: "展开属性" },
-  "tasks.delete": { en: "Delete", zh: "删除" },
-
-  // 表格视图
-  "tasks.colName": { en: "Task", zh: "任务" },
-  "tasks.editAttr": { en: "Edit attribute", zh: "编辑属性" },
-  "tasks.addAttr": { en: "Add attribute", zh: "添加属性" },
-  "tasks.newRowPlaceholder": { en: "Task name — Enter to confirm, Esc to cancel…", zh: "输入任务名称，Enter 确认，Esc 取消…" },
-  "tasks.newTask": { en: "+ New task", zh: "+ 新建任务" },
-  "tasks.emptyNoTasks": { en: "No tasks yet — hit “+ New task” below to start", zh: "还没有任务，点击下方「+ 新建任务」开始吧" },
-  "tasks.emptyNoMatch": { en: "No tasks match these filters", zh: "没有符合条件的任务" },
-
-  // 表格视图：勾选 + 批量操作
-  "tasks.selectAll": { en: "Select all tasks shown", zh: "全选当前任务" },
-  "tasks.selectRowAria": { en: "Select {text}", zh: "选中 {text}" },
-  "tasks.colDone": { en: "Done", zh: "完成" },
-  "tasks.toggleDoneAria": { en: "Mark {text} done", zh: "把「{text}」标记为完成" },
-  "tasks.batch.aria": { en: "Bulk actions", zh: "批量操作" },
-  "tasks.batch.selected": { en: "{count} selected", zh: "已选 {count} 个" },
-  "tasks.batch.complete": { en: "Mark done", zh: "标记完成" },
-  "tasks.batch.uncomplete": { en: "Mark not done", zh: "标记未完成" },
-  "tasks.batch.delete": { en: "Delete", zh: "删除" },
-  "tasks.batch.clear": { en: "Clear selection", zh: "取消选择" },
-  "tasks.batch.confirmDelete": {
-    en: "Delete {count} tasks?",
-    zh: "删除这 {count} 个任务？",
-  },
-  "tasks.batch.confirmDeleteDetail": {
-    en: "They'll be removed from this database. This cannot be undone.",
-    zh: "它们会从这个库里移除，此操作不可撤销。",
-  },
-
-  // 数据库（任务库分库）标签条
-  "tasks.db.options": { en: "Database options", zh: "库选项" },
-  "tasks.db.create": { en: "New database", zh: "新建库" },
-  "tasks.db.createShort": { en: "+ New", zh: "+ 新建" },
-  "tasks.db.rename": { en: "Rename", zh: "重命名" },
-  "tasks.db.delete": { en: "Delete this database", zh: "删除此库" },
-  "tasks.db.deleteDefault": { en: "The default database can't be deleted", zh: "默认库不可删除" },
-  "tasks.db.confirmDelete": {
-    en: "Delete database “{name}”?",
-    zh: "删除库「{name}」？",
-  },
-  "tasks.db.confirmDeleteDetail": {
-    en: "Every task in it will be deleted too. This cannot be undone.",
-    zh: "其下所有任务也会被删除，此操作不可撤销。",
-  },
-  "tasks.db.reset": { en: "Restore default columns", zh: "恢复默认库" },
-  "tasks.db.confirmReset": {
-    en: "Restore the default database?",
-    zh: "恢复默认库？",
-  },
-  "tasks.db.confirmResetDetail": {
-    en: "Priority, Tags, Due date and Notes come back with their default settings — renamed or deleted ones are restored. Columns you added yourself and all tasks are kept.",
-    zh: "优先级、标签、截止日期、备注这四个内置列会按出厂配置补回来（改过名或删掉的都会还原），库名也回到默认。你自己加的列和所有任务都会保留。",
-  },
-  "tasks.db.resetOk": { en: "Restore", zh: "恢复" },
-
-  // 属性列删除确认
-  "tasks.attr.confirmDelete": {
-    en: "Delete attribute “{name}”?",
-    zh: "删除属性「{name}」？",
-  },
-  "tasks.attr.confirmDeleteDetail": {
-    en: "This field's data will be lost on every task. This cannot be undone.",
-    zh: "所有任务的该字段数据都会丢失，此操作不可撤销。",
-  },
-
 
   // 内置属性列 / 选项 / 单位（用户改名后就变成自定义名，不再走这些 key）
   "tasks.attr.priority": { en: "Priority", zh: "优先级" },
@@ -138,33 +67,12 @@ export default {
   "tasks.priority.urgent": { en: "Urgent, not important", zh: "紧急不重要" },
   "tasks.priority.trivial": { en: "Neither", zh: "不重要不紧急" },
 
-  // 属性编辑器
-  "tasks.attr.newName": { en: "New attribute", zh: "新属性" },
-  "tasks.attr.fallbackName": { en: "Attribute", zh: "属性" },
-  "tasks.attr.nameLabel": { en: "Name", zh: "名称" },
-  "tasks.attr.namePlaceholder": { en: "Attribute name", zh: "属性名称" },
-  "tasks.attr.typeLabel": { en: "Type", zh: "类型" },
-  "tasks.attr.unitLabel": { en: "Unit (optional)", zh: "单位（可选）" },
-  "tasks.attr.unitPlaceholder": { en: "e.g. min, $, times", zh: "如：分钟、元、次" },
-  "tasks.attr.colActions": { en: "Column", zh: "列操作" },
-  "tasks.attr.moveLeft": { en: "← Left", zh: "← 左移" },
-  "tasks.attr.moveLeftTitle": { en: "Move this column left", zh: "左移此列" },
-  "tasks.attr.moveRight": { en: "Right →", zh: "右移 →" },
-  "tasks.attr.moveRightTitle": { en: "Move this column right", zh: "右移此列" },
-  "tasks.attr.hide": { en: "Hide", zh: "隐藏" },
-  "tasks.attr.hideTitle": { en: "Hide this column in the task library", zh: "在任务库中隐藏此列" },
+  // 属性类型名
   "tasks.type.select": { en: "Select", zh: "单选" },
   "tasks.type.multiselect": { en: "Multi-select", zh: "多选" },
   "tasks.type.text": { en: "Text", zh: "文本" },
   "tasks.type.date": { en: "Date", zh: "日期" },
   "tasks.type.number": { en: "Number", zh: "数字" },
-
-  // 选项编辑器
-  "tasks.option.label": { en: "Options", zh: "选项" },
-  "tasks.option.newName": { en: "Option", zh: "选项" },
-  "tasks.option.placeholder": { en: "Option name", zh: "选项名称" },
-  "tasks.option.color": { en: "Change color", zh: "更改颜色" },
-  "tasks.option.add": { en: "+ Add option", zh: "+ 添加选项" },
 
   // 筛选 / 排序弹层
   "tasks.field.name": { en: "Task name", zh: "任务名" },
@@ -198,9 +106,6 @@ export default {
   // 库（database）
   "tasks.db.defaultName": { en: "Tasks", zh: "任务" },
   "tasks.db.newName": { en: "New database", zh: "新建库" },
-  "tasks.db.namePlaceholder": { en: "e.g. Reading list", zh: "例如：阅读清单" },
-  "tasks.db.template": { en: "Template", zh: "模板" },
-  "tasks.db.confirmCreate": { en: "Create", zh: "创建" },
   "tasks.tpl.blank": { en: "Blank", zh: "空白" },
   "tasks.tpl.blankDesc": { en: "Task names only — build every column yourself", zh: "只有任务名，列全部自己搭建" },
   "tasks.tpl.classic": { en: "Classic tasks", zh: "经典任务" },
@@ -233,17 +138,12 @@ export default {
     en: "Just a date, not a deadline · click to make it a deadline",
     zh: "仅作日期，不计入截止 · 点击设为截止日期",
   },
+  "tasks.quickToday": { en: "Today only", zh: "只看今日" },
+  "tasks.quickUrgent": { en: "Urgent & important only", zh: "只看重要紧急" },
   "tasks.addedToast": { en: "Added {count} tasks", zh: "已加入 {count} 条任务" },
 
   // 心流视图（任务库的 ADHD 友好视图）
   "flow.allDone": { en: "🎉 All done — go take a break!", zh: "🎉 全部搞定，好好休息一下！" },
-  "flow.soloOn": { en: "One at a time", zh: "一次只看一件" },
-  "flow.soloOff": { en: "Show all tasks", zh: "显示全部任务" },
-  "flow.heroEyebrow": { en: "Do this one right now", zh: "现在就做这一件" },
-  "flow.heroDone": { en: "Done", zh: "搞定" },
-  "flow.heroShuffle": { en: "Swap", zh: "换一个" },
-  "flow.heroFocus": { en: "Focus on it", zh: "去专注" },
-  "flow.overdue": { en: "⚠ Overdue · ", zh: "⚠ 已逾期 · " },
   "flow.emptyNoTasks": { en: "No tasks yet", zh: "还没有任务" },
   "flow.emptyNoTasksHint": { en: "Dump what's in your head, then start with the first one.", zh: "把脑子里的事写下来，从第一件开始。" },
   "flow.emptyAllDone": { en: "🎉 Nothing left to do", zh: "🎉 没有待办了" },

@@ -65,6 +65,16 @@
   color: var(--accent);
 }
 
+/* 开了「先反问」却没问成时的说明行，压在勾选提示上方 */
+.ait-note {
+  margin: 0 0 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--accent-bg);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
 .ait-hint {
   margin: 0 0 12px;
   font-size: 0.82rem;

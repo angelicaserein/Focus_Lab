@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import useLocalStorage from "@/hooks/common/useLocalStorage";
+import useUndoDelete from "@/hooks/common/useUndoDelete";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 
 // 备忘录数据层：
@@ -27,15 +28,6 @@ export default function useMemos() {
     setterFor(source)((prev) => prev.map((m) => (m.id === id ? { ...m, text: t } : m)));
   };
 
-  const removeMemo = (id, source = "memo") => {
-    setterFor(source)((prev) => prev.filter((m) => m.id !== id));
-  };
-
-  // 覆写某条备忘的标签数组（增删标签由页面用 memoTags 纯函数算好后写入）。
-  const setMemoTags = (id, tags, source = "memo") => {
-    setterFor(source)((prev) => prev.map((m) => (m.id === id ? { ...m, tags } : m)));
-  };
-
   // 合并时间线：手动备忘（source="memo"）+ 专注随记（source="focus"），按时间倒序。
   const timeline = useMemo(() => {
     const manual = memos.map((m) => ({ ...m, source: "memo" }));
@@ -43,10 +35,42 @@ export default function useMemos() {
     return [...manual, ...fromFocus].sort((a, b) => b.ts - a.ts);
   }, [memos, focusNotes]);
 
+  // 删除可撤销：同一个「删」在任务库能反悔、在备忘录不能的话，
+  // 用户没法凭页面之外的东西预判后果。走通用 hook，与任务 / 情景同一套 toast。
+  //
+  // 撤销不必记住数组下标：时间线是按 ts 排的，放回哪一格由时间戳决定，
+  // 塞回队首即可。source 是合并时间线时贴上的，写回存储前摘掉。
+  const undo = useUndoDelete({
+    items: timeline,
+    remove: (id, item) => {
+      setterFor(item.source)((prev) => prev.filter((m) => m.id !== id));
+    },
+    restore: (item) => {
+      const { source, ...stored } = item;
+      setterFor(source)((prev) => [stored, ...prev]);
+    },
+  });
+
+  const removeMemo = (id) => undo.deleteFn(id);
+
+  // 覆写某条备忘的标签数组（增删标签由页面用 memoTags 纯函数算好后写入）。
+  const setMemoTags = (id, tags, source = "memo") => {
+    setterFor(source)((prev) => prev.map((m) => (m.id === id ? { ...m, tags } : m)));
+  };
+
   const counts = useMemo(
     () => ({ all: timeline.length, memo: memos.length, focus: focusNotes.length }),
     [timeline.length, memos.length, focusNotes.length],
   );
 
-  return { timeline, counts, addMemo, updateMemo, removeMemo, setMemoTags };
+  return {
+    timeline,
+    counts,
+    addMemo,
+    updateMemo,
+    removeMemo,
+    setMemoTags,
+    pendingUndo: undo.pendingDelete,
+    undoLast: undo.undoDelete,
+  };
 }

@@ -2,7 +2,7 @@ import React, { useContext, useCallback, useMemo } from "react";
 import useLocalStorage from "@/hooks/common/useLocalStorage";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 import { isCorePath, parentKeyOf } from "@/pages/FunctionTree/functionTreeData";
-import { isDeprecatedPath } from "@/pages/Deprecated/deprecatedData";
+import { isDeprecatedPath, deprecatedParentOf } from "@/pages/Deprecated/deprecatedData";
 
 // 功能开关的单一数据源：哪些功能对用户可见可达。
 // 放进 Context 而非各组件各自 useLocalStorage——因为 Sidebar、功能树页、废弃页面、路由守卫
@@ -28,7 +28,8 @@ export function FeatureProvider({ children }) {
   const isEnabled = useCallback(
     (key) => {
       if (isCorePath(key)) return true;
-      if (isDeprecatedPath(key)) return deprecatedSet.has(key);
+      // 废弃名单里的组（如情境功能）只有一个开关，组内子项没有自己的记忆，一律跟着组走。
+      if (isDeprecatedPath(key)) return deprecatedSet.has(deprecatedParentOf(key) ?? key);
       const parent = parentKeyOf(key);
       if (parent && disabledSet.has(parent)) return false;
       return !disabledSet.has(key);
@@ -39,16 +40,22 @@ export function FeatureProvider({ children }) {
   // 节点自身的开关记忆，无视父组。功能树里子节点要照原样显示自己的开 / 关，
   // 否则关掉组会让子项看起来「被抹平」，重开时用户无从预期恢复成什么样。
   const isSelfEnabled = useCallback(
-    (key) => (isDeprecatedPath(key) ? deprecatedSet.has(key) : !disabledSet.has(key)),
+    (key) =>
+      isDeprecatedPath(key)
+        ? deprecatedSet.has(deprecatedParentOf(key) ?? key)
+        : !disabledSet.has(key),
     [disabledSet, deprecatedSet],
   );
 
   const toggle = useCallback(
     (path) => {
       if (isCorePath(path)) return; // 核心功能不可关
-      const setList = isDeprecatedPath(path) ? setEnabledDeprecated : setDisabled;
+      const deprecated = isDeprecatedPath(path);
+      // 点组内子项等于点它的组——废弃页面只列组本身，这里兜住误传子 key 的调用。
+      const target = deprecated ? (deprecatedParentOf(path) ?? path) : path;
+      const setList = deprecated ? setEnabledDeprecated : setDisabled;
       setList((prev) =>
-        prev.includes(path) ? prev.filter((p) => p !== path) : [...prev, path],
+        prev.includes(target) ? prev.filter((p) => p !== target) : [...prev, target],
       );
     },
     [setDisabled, setEnabledDeprecated],

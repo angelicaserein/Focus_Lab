@@ -145,8 +145,15 @@
   transition: background var(--dur-fast) var(--ease);
 }
 
-.gs-row:hover {
+/* 鼠标 hover 与键盘选中是同一个视觉：光标走到哪，哪一条就亮着 */
+.gs-row:hover,
+.gs-row.active {
   background: var(--accent-hover);
+}
+
+.gs-row.active {
+  outline: 1px solid var(--border-accent);
+  outline-offset: -1px;
 }
 
 /* 已完成的任务不隐藏（找旧东西时正需要它），只压低对比度并划掉 */
@@ -187,6 +194,28 @@
 .gs-row-tag {
   margin-right: 6px;
   color: var(--accent);
+}
+
+/* 输入框右侧的快捷键提示（有内容时让位给清空按钮） */
+.gs-kbd {
+  flex-shrink: 0;
+  padding: 1px 5px;
+  border: 1px solid var(--border-input);
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 0.66rem;
+  color: var(--text-placeholder);
+  white-space: nowrap;
+}
+
+/* 面板底部的按键说明：Esc / 上下键这些原本只能靠碰巧撞上 */
+.gs-keyhint {
+  margin: 2px 0 0;
+  padding: 6px 8px 2px;
+  border-top: 1px solid var(--border-input);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-align: center;
 }
 
 /* 侧栏收起时整条侧栏滑出屏幕，搜索框跟着走，无需单独处理 */

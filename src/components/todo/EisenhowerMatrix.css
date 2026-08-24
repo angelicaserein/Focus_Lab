@@ -173,9 +173,9 @@
    余量不足托盘的 flex-basis 时自动换行，回到「托盘在平面下方」的窄屏排法。 */
 .matrix-board {
   display: flex;
-  /* 平面在上、未分类清单在下：清单是一列待办，横着挤在平面右边读不成行 */
-  flex-direction: column;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
   gap: 10px;
   /* 天平的观察透视：让平面的 3D 倾倒有纵深感 */
   perspective: 1100px;
@@ -344,10 +344,11 @@
   margin: auto;
 }
 
-/* 未分类清单：整行摆在平面下方 */
+/* 未分类清单：整行摆在矩阵下方 */
 .matrix-tray {
   width: 100%;
   min-width: 0;
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -414,7 +415,108 @@
   color: var(--text-muted);
 }
 
-/* 待办清单：一行一件事，从上到下就是建议的动手顺序 */
+/* 平面右侧的待办清单面板：吃掉宽屏下平面右侧的留白，窄屏折到平面下方 */
+.matrix-todolist {
+  flex: 1 1 240px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1.5px solid var(--border-input);
+  background: var(--card);
+}
+
+/* 清单条目：并排时被拉到与平面同高，从顶部排起，多了就在面板内滚动 */
+.matrix-todo-items {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.matrix-todo-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 2px;
+  border-radius: 10px;
+}
+
+.matrix-todo-row + .matrix-todo-row {
+  border-top: 1px solid var(--border-pill);
+}
+
+/* 已加入本次专注的行：整行浅浅点亮，与左栏「已选任务」对上号 */
+.matrix-todo-row.focused {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.matrix-todo-check {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-pill);
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+
+.matrix-todo-check:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* 行主体本身是按钮：点一下＝加入/移出本次专注 */
+.matrix-todo-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.matrix-todo-rank {
+  flex: none;
+  width: 1.5em;
+  text-align: right;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+.matrix-todo-text {
+  min-width: 0;
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.matrix-todo-row.focused .matrix-todo-text {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* 未分类清单：一行一件事，从上到下就是建议的动手顺序 */
 .matrix-tray-list {
   display: flex;
   flex-direction: column;

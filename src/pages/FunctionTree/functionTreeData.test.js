@@ -8,7 +8,7 @@ import {
   isCorePath,
   parentKeyOf,
 } from "@/pages/FunctionTree/functionTreeData";
-import { DEPRECATED_PATHS } from "@/pages/Deprecated/deprecatedData";
+import { DEPRECATED_ALL_KEYS } from "@/pages/Deprecated/deprecatedData";
 
 describe("功能树数据不变量", () => {
   it("TOGGLEABLE_PATHS = 所有节点 key 的扁平合集（含组自身与组内子项），且无重复", () => {
@@ -40,7 +40,7 @@ describe("功能树数据不变量", () => {
   });
 
   it("废弃页面的旧功能已从功能树移走，不在两处重复出现", () => {
-    for (const path of DEPRECATED_PATHS) {
+    for (const path of DEPRECATED_ALL_KEYS) {
       expect(TOGGLEABLE_PATHS).not.toContain(path);
       expect(isCorePath(path)).toBe(false);
     }
@@ -66,25 +66,10 @@ describe("功能树数据不变量", () => {
     }
   });
 
-  it("parentKeyOf：子节点认得自己的组，组自身与独立叶子无父", () => {
-    expect(parentKeyOf("/scenario")).toBe(FEATURE_KEYS.SCENARIO_GROUP);
-    expect(parentKeyOf("/scenario-stats")).toBe(FEATURE_KEYS.SCENARIO_GROUP);
-    expect(parentKeyOf(FEATURE_KEYS.SCENARIO_PICKER)).toBe(FEATURE_KEYS.SCENARIO_GROUP);
-    expect(parentKeyOf(FEATURE_KEYS.SCENARIO_GROUP)).toBe(null);
+  it("parentKeyOf：树里现在没有组，叶子一律无父", () => {
     expect(parentKeyOf("/focus")).toBe(null);
+    // 情境整组已搬去废弃页面，它的父子关系归 deprecatedParentOf 管
+    expect(parentKeyOf(FEATURE_KEYS.SCENARIO_PICKER)).toBe(null);
   });
 
-  it("情境功能收在一个组里：配置页 / 统计页 / 侧栏选择器都不再是散落的顶层开关", () => {
-    const group = FUNCTION_BRANCHES.flatMap((b) => b.features).find(
-      (f) => featureKey(f) === FEATURE_KEYS.SCENARIO_GROUP,
-    );
-    expect(group.children.map(featureKey)).toEqual([
-      "/scenario",
-      "/scenario-stats",
-      FEATURE_KEYS.SCENARIO_PICKER,
-    ]);
-    // 顶层（各分支的直接子项）里不应再出现这些 key
-    const topLevel = FUNCTION_BRANCHES.flatMap((b) => b.features.map(featureKey));
-    for (const k of group.children.map(featureKey)) expect(topLevel).not.toContain(k);
-  });
 });

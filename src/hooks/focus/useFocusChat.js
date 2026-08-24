@@ -6,7 +6,9 @@ import { useLanguage } from "@/context/LanguageContext";
 
 // 专注页 AI 陪伴对话的状态。消息持久化到 localStorage，
 // 沉浸式左下角对话框与 Focus 页「聊天记录」共用同一份数据。
-// 消息结构：{ id, role: 'user' | 'ai', text, ts }
+// 消息结构：{ id, role: 'user' | 'ai', text, ts, degraded?, errorKind? }
+// degraded 的那条是「AI 没连上、垫的离线示例」，两个显示端都要标出来
+// （见 ImmersiveChat / ChatHistory）——不标的话用户会当成伙伴的真回答。
 export default function useFocusChat() {
   const [messages, setMessages] = useLocalStorage(STORAGE_KEYS.CHAT, []);
   const [sending, setSending] = useState(false);
@@ -27,8 +29,14 @@ export default function useFocusChat() {
 
       setSending(true);
       try {
-        const reply = await getAiReply(history, lang);
-        const aiMsg = { id: `a-${Date.now()}`, role: "ai", text: reply, ts: Date.now() };
+        const { text: reply, degraded, errorKind } = await getAiReply(history, lang);
+        const aiMsg = {
+          id: `a-${Date.now()}`,
+          role: "ai",
+          text: reply,
+          ts: Date.now(),
+          ...(degraded ? { degraded: true, errorKind } : {}),
+        };
         setMessages((prev) => [...prev, aiMsg]);
       } finally {
         setSending(false);

@@ -4,6 +4,7 @@ import Sidebar from "@/components/layout/Sidebar";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import PageSkeleton from "@/components/ui/PageSkeleton";
 import { useFeatures } from "@/context/FeatureContext";
+import useComposeFocus from "@/hooks/common/useComposeFocus";
 import ROUTES from "@/routes/routeTable";
 
 // 每个路由项预先绑定好 lazy 组件，避免渲染期反复创建。
@@ -17,6 +18,10 @@ function FeatureGate({ path, children }) {
 }
 
 export default function AppRoutes() {
+  // 命令面板的「新建任务 / 记一条随记」跳过来之后，把光标送进目标页的输入框。
+  // 挂在这里而不是各页各挂一次：它只认 data-compose-target，与具体是哪一页无关。
+  useComposeFocus();
+
   // 首屏渲染完后，趁浏览器空闲把其余页面的 chunk 预取下来。
   // 这样大多数导航在点击时 chunk 已就绪、Suspense 根本不触发，
   // 也就不会出现骨架屏「闪一下」。预取失败无所谓，静默忽略。

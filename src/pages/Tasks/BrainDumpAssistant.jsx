@@ -50,6 +50,7 @@ export default function BrainDumpAssistant({ onClose, onAdded }) {
         candidates={ai.candidates}
         error={ai.error}
         database={activeDatabase}
+        clarifySkipped={ai.clarifySkipped}
         onRefine={ai.refine}
         onCommit={handleCommit}
         onClose={ai.close}

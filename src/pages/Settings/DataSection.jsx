@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { exportAllData, importAllData, freezeWrites, KEY_MAP } from "@/utils/storage/storage";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
+import useConfirm from "@/hooks/common/useConfirm";
 import { useLanguage } from "@/context/LanguageContext";
 
 // 纳入用量统计的存储项；label 在渲染时按 settings.data.label.{name} 翻译。
@@ -30,8 +31,10 @@ export default function DataSection() {
   const fileInputRef = useRef(null);
   const [importMsg, setImportMsg] = useState(null);
   const [replaceOnImport, setReplaceOnImport] = useState(false);
-  const [confirmClearHistory, setConfirmClearHistory] = useState(false);
-  const [confirmClearChat, setConfirmClearChat] = useState(false);
+  // 清空走全站统一的模态确认（焦点陷阱 / Esc 关闭 / 危险色），
+  // 不再用这里自己那对内联「确认 / 取消」按钮——全站最危险的操作反倒用最弱的确认，
+  // 会让「破坏性操作 ⇒ 模态确认」这条规则在用户眼里失效。
+  const [confirm, confirmDialog] = useConfirm();
 
   const handleExport = () => exportAllData();
 
@@ -54,26 +57,32 @@ export default function DataSection() {
     e.target.value = "";
   };
 
-  const handleClearHistory = () => {
-    if (confirmClearHistory) {
-      // 先落闸：不然 reload 的 pagehide 会让 FocusContext 把刚删掉的记录写回来，
-      // 页面刷完历史还在（见 storage.js 的「写入闸门」）。
-      freezeWrites();
-      localStorage.removeItem(STORAGE_KEYS.FOCUS_RECORDS);
-      window.location.reload();
-    } else {
-      setConfirmClearHistory(true);
-    }
+  const handleClearHistory = async () => {
+    const ok = await confirm({
+      title: t("settings.data.clearFocusConfirm"),
+      message: t("settings.data.clearFocusConfirmBody"),
+      confirmLabel: t("settings.data.confirmClear"),
+      danger: true,
+    });
+    if (!ok) return;
+    // 先落闸：不然 reload 的 pagehide 会让 FocusContext 把刚删掉的记录写回来，
+    // 页面刷完历史还在（见 storage.js 的「写入闸门」）。
+    freezeWrites();
+    localStorage.removeItem(STORAGE_KEYS.FOCUS_RECORDS);
+    window.location.reload();
   };
 
-  const handleClearChat = () => {
-    if (confirmClearChat) {
-      freezeWrites(); // 同上：不落闸的话，聊天记录会在 reload 时被内存里那份写回来
-      localStorage.removeItem(STORAGE_KEYS.CHAT);
-      window.location.reload();
-    } else {
-      setConfirmClearChat(true);
-    }
+  const handleClearChat = async () => {
+    const ok = await confirm({
+      title: t("settings.data.clearChatConfirm"),
+      message: t("settings.data.clearChatConfirmBody"),
+      confirmLabel: t("settings.data.confirmClear"),
+      danger: true,
+    });
+    if (!ok) return;
+    freezeWrites(); // 同上：不落闸的话，聊天记录会在 reload 时被内存里那份写回来
+    localStorage.removeItem(STORAGE_KEYS.CHAT);
+    window.location.reload();
   };
 
   const storageInfo = getStorageInfo();
@@ -134,36 +143,16 @@ export default function DataSection() {
       <div className="settings-danger-zone">
         <div className="settings-danger-title">{t("settings.data.dangerTitle")}</div>
         <div className="settings-data-actions">
-          {confirmClearHistory ? (
-            <>
-              <button className="settings-data-btn danger confirm" onClick={handleClearHistory}>
-                {t("settings.data.confirmClear")}
-              </button>
-              <button className="settings-data-btn" onClick={() => setConfirmClearHistory(false)}>
-                {t("settings.data.cancel")}
-              </button>
-            </>
-          ) : (
-            <button className="settings-data-btn danger" onClick={handleClearHistory}>
-              {t("settings.data.clearFocus")}
-            </button>
-          )}
-          {confirmClearChat ? (
-            <>
-              <button className="settings-data-btn danger confirm" onClick={handleClearChat}>
-                {t("settings.data.confirmClear")}
-              </button>
-              <button className="settings-data-btn" onClick={() => setConfirmClearChat(false)}>
-                {t("settings.data.cancel")}
-              </button>
-            </>
-          ) : (
-            <button className="settings-data-btn danger" onClick={handleClearChat}>
-              {t("settings.data.clearChat")}
-            </button>
-          )}
+          <button className="settings-data-btn danger" onClick={handleClearHistory}>
+            {t("settings.data.clearFocus")}
+          </button>
+          <button className="settings-data-btn danger" onClick={handleClearChat}>
+            {t("settings.data.clearChat")}
+          </button>
         </div>
       </div>
+
+      {confirmDialog}
     </div>
   );
 }

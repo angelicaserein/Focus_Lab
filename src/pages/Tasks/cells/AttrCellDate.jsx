@@ -3,7 +3,7 @@ import { addDays } from "@/utils/time";
 import { useLanguage } from "@/context/LanguageContext";
 
 // 截止日期编辑：快捷预设（今天/明天/+3天/+1周/清除）+ 原生日期框。
-// 点预设或改日期即提交（onPick），免翻日历。渲染在 Popover 里，不挤占表格单元格。
+// 点预设或改日期即提交（onPick），免翻日历。渲染在 Popover 里，不挤占卡片。
 const PRESETS = [
   { labelKey: "common.today", days: 0 },
   { labelKey: "tasks.due.tomorrow", days: 1 },

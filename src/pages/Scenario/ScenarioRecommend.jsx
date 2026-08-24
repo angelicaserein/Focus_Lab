@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useScenarios } from "@/context/ScenarioContext";
 import { useTodos } from "@/context/TodoContext";
 import { useDatabases } from "@/context/DatabaseContext";
+import { aiErrorMessageKey } from "@/utils/ai/aiClient";
 import { useLanguage } from "@/context/LanguageContext";
 import useScenarioRecommend from "@/hooks/scenario/useScenarioRecommend";
 import RecommendItem from "@/components/ui/RecommendItem";
@@ -22,7 +23,7 @@ export default function ScenarioRecommend() {
     [todos, activeDatabaseId],
   );
 
-  const { hasScenario, envProfile, ranked, aiStatus, aiEnabled, runAi } =
+  const { hasScenario, envProfile, ranked, aiStatus, aiErrorKind, aiEnabled, runAi } =
     useScenarioRecommend({ todos: dbTodos, limit: 5 });
 
   const goFocus = () =>
@@ -74,7 +75,9 @@ export default function ScenarioRecommend() {
             />
           ))}
           {aiStatus === "error" && (
-            <div className="rec-ai-error">{t("scenario.rec.aiError")}</div>
+            <div className="rec-ai-error">
+              {aiErrorKind ? t(aiErrorMessageKey(aiErrorKind)) : t("scenario.rec.aiError")}
+            </div>
           )}
         </div>
       )}

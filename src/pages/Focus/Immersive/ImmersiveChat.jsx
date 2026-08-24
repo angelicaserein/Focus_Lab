@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./ImmersiveChat.css";
 import { hasApiKey } from "@/utils/ai/aiChat";
+import { aiErrorMessageKey } from "@/utils/ai/aiClient";
 import { useLanguage } from "@/context/LanguageContext";
 
 // 沉浸式专注页左下角的极简 AI 陪伴对话：无框 / 无气泡 / 无背景，
@@ -41,6 +42,12 @@ export default function ImmersiveChat({ messages, sending, onSend }) {
         {isDemo && <span className="immersive-chat-demo-badge">{t("focus.imm.chat.demoBadge")}</span>}
         {recent.map((m) => (
           <p key={m.id} className={`immersive-chat-line ${m.role}`}>
+            {/* 这条是 AI 没连上时垫的离线示例，标一下——复用演示模式那枚角标 */}
+            {m.degraded && (
+              <span className="immersive-chat-demo-badge inline">
+                {t(m.errorKind ? aiErrorMessageKey(m.errorKind) : "common.aiDegraded")}
+              </span>
+            )}
             {m.text}
           </p>
         ))}

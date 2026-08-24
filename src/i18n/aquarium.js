@@ -36,8 +36,25 @@ export default {
   "aquarium.dexTitle": { en: "Residents", zh: "已入住" },
   "aquarium.dexCount": { en: "{n} / {total} kinds", zh: "{n} / {total} 种" },
   "aquarium.unmet": { en: "Not yet met", zh: "尚未相遇" },
-  "aquarium.new": { en: "New find", zh: "新发现" },
   "aquarium.collect": { en: "Take it in ✓", zh: "收下它 ✓" },
+
+  // —— 卵：换回来的是一颗看不出品种的卵，破膜才显形（见 pages/Aquarium）——
+  "aquarium.eggNew": { en: "An egg", zh: "一枚卵" },
+  "aquarium.eggName": { en: "Unnamed egg", zh: "还没名字的卵" },
+  "aquarium.eggMystery": {
+    en: "Something is curled up inside. Which one, you'll know when it hatches.",
+    zh: "里面蜷着谁还看不出来，等它破膜那天就知道了。",
+  },
+  "aquarium.eggWait": {
+    en: "Eggs don't eat. Just leave it be — it hatches on its own time.",
+    zh: "卵不吃东西，放着别管，它自己会到时候破膜。",
+  },
+  "aquarium.eggPut": { en: "Put it in the tank ✓", zh: "放进缸里 ✓" },
+  "aquarium.eggUnknown": { en: "Not showing yet", zh: "还看不出是谁" },
+  "aquarium.eggsPending": { en: "{n} egg(s) yet to hatch", zh: "还有 {n} 枚卵没显形" },
+  // 破膜那一下：卡上第一次报出名字，图鉴同时解锁
+  "aquarium.hatchedEye": { en: "It hatched", zh: "破膜了" },
+  "aquarium.meet": { en: "Nice to meet you ✓", zh: "认识一下 ✓" },
 
   // —— 成长（卵 → 幼体 → 成体，见 data/aquarium/growth）——
   "aquarium.stage.0": { en: "Egg", zh: "卵" },
@@ -54,10 +71,6 @@ export default {
   "aquarium.feedNote": {
     en: "Feeding helps: every pellet eaten moves that one a couple of minutes ahead. Eggs don't eat — they hatch on their own time.",
     zh: "喂食有用：吃到一粒饵，那一只就往前赶两分钟。卵不吃东西，得自己等到破膜。",
-  },
-  "aquarium.eggNote": {
-    en: "It goes in as an egg — give it a while to grow into this.",
-    zh: "放进缸里的是一颗卵，过一阵子才会长成这个样子。",
   },
 
   // —— 标本（封进烧瓶保存，见 data/specimen）——

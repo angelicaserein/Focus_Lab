@@ -8,13 +8,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 // data-highlight-id={id}，本 hook 负责找到它、滚过去、加上 .is-highlighted，
 // 到点自行摘掉（样式见 styles/global.css）。
 //
-// 返回值是本次要定位的 id（无则 null），给页面做「让它先可见」的准备工作用——
-// 任务库就靠它把当前库切到目标任务所在的那个库。
+// 返回值是本次要定位的 id（无则 null），给页面做「让它先可见」的准备工作用。
 //
-// 直接操作 DOM 而不是往下传 highlightId props：目标行在任务库里要穿过
-// FlowView → 分堆 → TaskCard、或 TasksTable → TodoRow 两条不同的路，
-// 每条都加一个只为闪一下而存在的 prop 不划算；而这个类是纯瞬时装饰，
-// 不参与任何状态。代价是行若在这 2 秒内重渲染会把类冲掉，闪光提前结束——
+// 直接操作 DOM 而不是往下传 highlightId props：目标卡在任务库里要穿过
+// FlowView → 分堆 → TaskCard，一路加一个只为闪一下而存在的 prop 不划算；
+// 而这个类是纯瞬时装饰，不参与任何状态。代价是卡片若在这 2 秒内重渲染会把类
+// 冲掉，闪光提前结束——
 // 只是提示少闪一会儿，不影响定位。
 const FLASH_MS = 2200;
 const FLASH_CLASS = "is-highlighted";

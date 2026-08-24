@@ -66,6 +66,11 @@ export default {
     zh: "勾选要加入的任务，可直接修改标题。确认后加入当前任务库。",
   },
   "memo.ai.taskPlaceholder": { en: "Task title", zh: "任务标题" },
+  // 开了「先反问」但这轮没问：模型认为不必问，或反问那步失败了（两者对用户是一回事）
+  "memo.ai.noClarify": {
+    en: "No questions this time — split directly.",
+    zh: "本次无追问，已直接拆。",
+  },
   // 逐条「再细化」：把一行原地换成它拆出来的几条（只有倒脑子给了 onRefine 才出现）
   "memo.ai.refine": { en: "Break down", zh: "再细化" },
   "memo.ai.refining": { en: "Breaking down…", zh: "拆解中…" },

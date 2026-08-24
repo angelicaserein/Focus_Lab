@@ -12,7 +12,7 @@
 
 const {
   app, BrowserWindow, ipcMain, Tray, Menu, globalShortcut,
-  screen, protocol, net, nativeImage, shell, powerMonitor,
+  screen, protocol, net, nativeImage, shell, powerMonitor, dialog,
 } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
@@ -744,6 +744,34 @@ function updateTray() {
   tray.setToolTip(tip);
 }
 
+// 退出的统一入口。正在专注时先问一声：这段计时活在页面组件里，
+// 进程一没就跟着没了——点 X 只是藏起来不会丢，只有真退出会。
+// 网页版对应的是 beforeunload（见 hooks/common/useUnloadGuard），
+// 桌面版不能用那条：Electron 里 beforeunload 的返回值会静默取消关闭。
+function requestQuit() {
+  const f = lastState?.focus;
+  // seconds > 0 表示会话还在（可能只是暂停着）
+  const alive = !!f && (f.isRunning || Number(f.seconds) > 0);
+  if (alive) {
+    const mins = Math.floor((Number(f.seconds) || 0) / 60);
+    const picked = dialog.showMessageBoxSync({
+      type: "warning",
+      buttons: ["继续专注", "仍然退出"],
+      defaultId: 0,
+      cancelId: 0,
+      title: "还有一次专注在进行",
+      message: `这次专注已经计了 ${mins} 分钟`,
+      detail: "现在退出的话，这段时间不会被记下来。要先回去把它结束掉吗？",
+    });
+    if (picked === 0) {
+      showMainWindow("#/focus");
+      return;
+    }
+  }
+  quitting = true;
+  app.quit();
+}
+
 function buildTrayMenu() {
   const petVisible = !!petWindow && !petWindow.isDestroyed() && petWindow.isVisible();
   return Menu.buildFromTemplate([
@@ -761,7 +789,7 @@ function buildTrayMenu() {
     },
     { type: "separator" },
     { label: "检查更新", click: () => { checkNow(); } },
-    { label: "退出", click: () => { quitting = true; app.quit(); } },
+    { label: "退出", click: () => { requestQuit(); } },
   ]);
 }
 

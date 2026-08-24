@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useScenarios } from "@/context/ScenarioContext";
 import { useDatabases } from "@/context/DatabaseContext";
+import { aiErrorMessageKey } from "@/utils/ai/aiClient";
 import { useLanguage } from "@/context/LanguageContext";
 import { optionLabel } from "@/utils/task/taskAttrUtils";
 import { suggestScenarioConfig, hasApiKey } from "@/utils/ai/aiScenarioConfig";
@@ -25,6 +26,8 @@ export default function ScenarioConfigAssistant({ scenario }) {
 
   const [prompt, setPrompt] = useState("");
   const [status, setStatus] = useState("idle"); // idle | loading | error
+  // 失败的归因（auth / rate / server / network），决定错误条上那句话该说什么
+  const [errKind, setErrKind] = useState(null);
   const [plan, setPlan] = useState(null);
 
   const run = async () => {
@@ -46,7 +49,8 @@ export default function ScenarioConfigAssistant({ scenario }) {
       });
       setPlan(next);
       setStatus("idle");
-    } catch {
+    } catch (e) {
+      setErrKind(e?.kind ?? null);
       setStatus("error");
     }
   };
@@ -90,7 +94,9 @@ export default function ScenarioConfigAssistant({ scenario }) {
       </div>
 
       {status === "error" && (
-        <div className="scenario-ai-error">{t("scenario.ai.error")}</div>
+        <div className="scenario-ai-error">
+          {errKind ? t(aiErrorMessageKey(errKind)) : t("scenario.ai.error")}
+        </div>
       )}
 
       {!hasApiKey() && status !== "loading" && !plan && (

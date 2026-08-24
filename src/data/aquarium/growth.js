@@ -101,9 +101,19 @@ export function numberResidents(list) {
   return { rows, many };
 }
 
-// 已入住的物种（去重）。图鉴与「是否收集满」看的是物种，不是只数。
+// 物种口径有两个，别混用（去重，都不是只数）：
+//   ownedSpecies   已经拿到手的，含还没破膜的卵——抽取时用它避开重复、判「是否收集满」
+//   hatchedSpecies 已经显形的——图鉴解锁、报得出名字的是这一份
+// 换回来的是一颗看不出品种的卵：破膜那一刻才知道是谁（见 pages/Aquarium）。
 export const ownedSpecies = (list) =>
   new Set(normalizeCollection(list).map((e) => e.id));
+
+export const hatchedSpecies = (list, now = Date.now()) =>
+  new Set(
+    normalizeCollection(list)
+      .filter((e) => growthOf(e.born, now).stage !== STAGE.EGG)
+      .map((e) => e.id),
+  );
 
 // 吃到一粒饵，往前赶一点进度。
 // 喂食本来只是「点着好玩」，有了这一下才成立：你喂的那只确实长得比没喂的快。

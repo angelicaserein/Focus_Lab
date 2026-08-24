@@ -107,17 +107,3 @@ export function stickyBuckets(fresh, placement) {
   }
   return { buckets: out, placement: next };
 }
-
-/**
- * 「现在就做这一件」的自动挑选：逾期/今天的优先，其次重要，再次紧急，最后最早创建。
- * 返回单个 todo 或 undefined。
- */
-export function pickRightNow(incomplete, weightOf) {
-  if (!incomplete.length) return undefined;
-  const sort = makeImportanceSort(weightOf);
-  const urgency = (t) => {
-    const d = daysUntil(activeDue(t));
-    return d !== null && d <= 0 ? 0 : 1; // 逾期/今天排最前
-  };
-  return [...incomplete].sort((a, b) => urgency(a) - urgency(b) || sort(a, b))[0];
-}

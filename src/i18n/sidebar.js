@@ -10,6 +10,4 @@ export default {
   "sidebar.expandNav": { en: "Expand sidebar", zh: "展开侧边栏" },
   "sidebar.coins": { en: "Coins: {count} — go to Rewards", zh: "金币：{count} — 前往奖励" },
   "sidebar.toggleLang": { en: "Switch language", zh: "切换语言" },
-  "sidebar.cycleTheme": { en: "Switch theme", zh: "切换主题" },
-  "sidebar.unlockThemes": { en: "Unlock more themes in Rewards", zh: "在奖励商店解锁更多主题" },
 };

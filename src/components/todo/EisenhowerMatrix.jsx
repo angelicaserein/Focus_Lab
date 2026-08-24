@@ -29,6 +29,7 @@ import { countdownLabel, countdownClass, isActiveDeadline } from "@/utils/ddlUti
 import MatrixSortDialog from "./MatrixSortDialog";
 import BrainDumpAssistant from "@/pages/Tasks/BrainDumpAssistant";
 import Toast from "@/components/ui/Toast";
+import { aiErrorMessageKey } from "@/utils/ai/aiClient";
 import "./EisenhowerMatrix.css";
 
 // 紧急/重要优先级平面（艾森豪威尔矩阵的连续版）：
@@ -44,6 +45,47 @@ import "./EisenhowerMatrix.css";
 
 // 卡片默认只显示任务名。单击＝在卡片右上方浮出「完成/编辑/删除」扁平小菜单（不撑宽卡片本身，
 // 菜单由父组件在矩阵层单独渲染，见 MatrixCardMenu），双击＝直接进入沉浸式专注。
+// 待办清单的一行：点整行＝加入/移出本次专注，左侧勾选＝直接完成。
+// 刻意不做拖拽——同一任务在平面上已经有一张可拖的卡，两处都能拖会打架。
+function TodoListRow({ todo, index, days, focused, onToggleFocus, onComplete, t }) {
+  const priority = todo.attrs?.priority;
+  return (
+    <li className={`matrix-todo-row${focused ? " focused" : ""}`}>
+      <button
+        type="button"
+        className="matrix-todo-check"
+        onClick={() => onComplete(todo.id)}
+        aria-label={t("focus.matrix.completeAria", { text: todo.text })}
+      >
+        <Check size={13} />
+      </button>
+      <button
+        type="button"
+        className="matrix-todo-main"
+        onClick={() => onToggleFocus(todo.id)}
+        aria-pressed={focused}
+        aria-label={t("focus.matrix.focusToggleAria", { text: todo.text })}
+        title={todo.text}
+      >
+        <span className="matrix-todo-rank" aria-hidden="true">{index}</span>
+        <span className="matrix-todo-text">{todo.text}</span>
+      </button>
+      <span className="matrix-tray-meta">
+        {priority && (
+          <span className={`matrix-tray-prio ${priority}`}>
+            {t(PRIORITY_LABEL_KEY[priority])}
+          </span>
+        )}
+        {days !== null && (
+          <span className={`matrix-tray-ddl ${countdownClass(days)}`}>
+            {countdownLabel(days, t)}
+          </span>
+        )}
+      </span>
+    </li>
+  );
+}
+
 // —— 未分类清单的排序 ——
 // 未分类任务不再是一堆散标签，而是一份「先做哪件」的清单：越靠前越该先动手。
 // 排序键取「优先级标签」与「DDL 紧迫度」里更急的那一个（两者都可能缺）：
@@ -68,8 +110,9 @@ function ddlRank(days) {
   return 3;
 }
 
-// 未分类任务 → 「先做哪件」的顺序：紧迫档位 → DDL 早的在前 → 优先级高的在前 → 原顺序
-export function sortUnplaced(todos) {
+// 任务 → 「先做哪件」的顺序：紧迫档位 → DDL 早的在前 → 优先级高的在前 → 原顺序。
+// 右侧总清单与下方未分类清单共用这把尺子。
+export function sortByUrgency(todos) {
   return todos
     .map((todo, i) => {
       // 必须过 isActiveDeadline：任务库里关掉了「截止」开关的日期只是个普通日期，
@@ -249,7 +292,7 @@ function MatrixCardMenu({
 export default function EisenhowerMatrix({ onStartImmersive }) {
   const {
     todos, addTodo, toggleTodo, editTodo, updateTodoProps, setTodoAttr, deleteTodo,
-    pendingDelete, undoDelete,
+    pendingUndo, undoLast,
   } = useTodos();
   const { isFocused, toggleFocusTodo } = useFocus();
   const { t } = useLanguage();
@@ -273,7 +316,7 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
   // 「分一下」两步问答：sortId=正在归类的任务，sortUrgent=第一题答案（null 表示还在第一步）
   const [sortId, setSortId] = useState(null);
   const [sortUrgent, setSortUrgent] = useState(null);
-  // AI 自动分配：aiBusy=正在请求，aiError=上次失败提示
+  // AI 自动分配：aiBusy=正在请求，aiError=上次失败提示（true=笼统失败，字符串=失败归因）
   const [aiBusy, setAiBusy] = useState(false);
   const [aiError, setAiError] = useState(false);
 
@@ -426,7 +469,14 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
   }, [todos]);
 
   // 未分类清单：按紧迫度排好序（含各自的剩余天数，行尾直接显示倒计时）
-  const unplacedList = useMemo(() => sortUnplaced(unplaced), [unplaced]);
+  const unplacedList = useMemo(() => sortByUrgency(unplaced), [unplaced]);
+
+  // 平面右侧的总待办清单：所有未完成任务（含已摆上平面的）按同一把尺子排序，
+  // 于是「热力图看格局、清单看先后」两种读法并排放在一起。
+  const todoList = useMemo(
+    () => sortByUrgency(todos.filter((td) => !td.completed)),
+    [todos],
+  );
 
   // 标签 ↔ 落点对账（每次 todos 变化各卡片各写一次，改动才写，写完即收敛）：
   //   ① 已落位的卡片：把优先级标签对齐到落点所在象限，并把落点夹进该象限（清掉旧数据
@@ -595,9 +645,10 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
         setAiError(true);
       }
     } catch (e) {
-      // API 调用本身抛错（网络/鉴权/模型报错）
+      // API 调用本身抛错（网络/鉴权/模型报错）。带归因的就把归因存下来——
+      // 这四种情况用户该做的事完全不同，不能都显示成同一句「分配失败」。
       console.error("[matrixAssign] 调用失败", e);
-      setAiError(true);
+      setAiError(e?.kind ?? true);
     } finally {
       setAiBusy(false);
     }
@@ -746,61 +797,90 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
           })}
         </div>
 
-        {/* 未分类清单：新建任务先落这里，拖入平面完成摆放。
-            始终整行摆在平面下方，内容是一份按紧迫度排好序的待办清单——
-            越靠上越该先动手，行尾给出优先级标签与 DDL 倒计时。 */}
-        <div
-          ref={trayRef}
-          className={`matrix-tray${overTray ? " drag-over" : ""}`}
-        >
+        {/* 平面右侧的待办清单：宽屏（电脑）平面被屏高封顶后本栏会剩出横向余量，
+            清单就贴在平面右边把它吃掉；余量不够时自动折到平面下方（见 CSS 的 flex-wrap）。
+            排序＝轻重紧急与 DDL 里更急的那一个，从上往下就是建议的动手顺序。 */}
+        <div className="matrix-todolist">
           <div className="matrix-tray-head">
-            <span className="matrix-tray-label">{t("focus.matrix.unclassified")}</span>
-            {unplaced.length > 0 && (
-              <button
-                type="button"
-                className="matrix-ai-assign"
-                onClick={autoAssign}
-                disabled={aiBusy}
-                aria-label={t("focus.matrix.aiAssignAria")}
-              >
-                <span className="matrix-ai-assign-icon" aria-hidden="true">✨</span>
-                {aiBusy ? t("focus.matrix.aiAssigning") : t("focus.matrix.aiAssign")}
-              </button>
-            )}
+            <span className="matrix-tray-label">{t("focus.matrix.todoList")}</span>
           </div>
-          {aiError && (
-            <span className="matrix-ai-error" role="status">
-              {t("focus.matrix.aiAssignError")}
-            </span>
-          )}
-          {unplacedList.length > 0 ? (
-            <ol className="matrix-tray-list">
-              {unplacedList.map(({ todo, days }, i) => {
-                const priority = todo.attrs?.priority;
-                return (
-                  <li key={todo.id} className="matrix-tray-row">
-                    <span className="matrix-tray-rank" aria-hidden="true">{i + 1}</span>
-                    {renderTag(todo, true)}
-                    <span className="matrix-tray-meta">
-                      {priority && (
-                        <span className={`matrix-tray-prio ${priority}`}>
-                          {t(PRIORITY_LABEL_KEY[priority])}
-                        </span>
-                      )}
-                      {days !== null && (
-                        <span className={`matrix-tray-ddl ${countdownClass(days)}`}>
-                          {countdownLabel(days, t)}
-                        </span>
-                      )}
-                    </span>
-                  </li>
-                );
-              })}
+          {todoList.length > 0 ? (
+            <ol className="matrix-todo-items">
+              {todoList.map(({ todo, days }, i) => (
+                <TodoListRow
+                  key={todo.id}
+                  todo={todo}
+                  index={i + 1}
+                  days={days}
+                  focused={isFocused(todo.id)}
+                  onToggleFocus={toggleFocusTodo}
+                  onComplete={completeTask}
+                  t={t}
+                />
+              ))}
             </ol>
           ) : (
-            <span className="matrix-cell-empty">{t("focus.matrix.trayEmpty")}</span>
+            <span className="matrix-cell-empty">{t("focus.matrix.todoListEmpty")}</span>
           )}
         </div>
+      </div>
+
+      {/* 未分类清单：新建任务先落这里，拖入平面完成摆放。
+          始终整行摆在平面下方，内容是一份按紧迫度排好序的待办清单——
+          越靠上越该先动手，行尾给出优先级标签与 DDL 倒计时。 */}
+      <div
+        ref={trayRef}
+        className={`matrix-tray${overTray ? " drag-over" : ""}`}
+      >
+        <div className="matrix-tray-head">
+          <span className="matrix-tray-label">{t("focus.matrix.unclassified")}</span>
+          {unplaced.length > 0 && (
+            <button
+              type="button"
+              className="matrix-ai-assign"
+              onClick={autoAssign}
+              disabled={aiBusy}
+              aria-label={t("focus.matrix.aiAssignAria")}
+            >
+              <span className="matrix-ai-assign-icon" aria-hidden="true">✨</span>
+              {aiBusy ? t("focus.matrix.aiAssigning") : t("focus.matrix.aiAssign")}
+            </button>
+          )}
+        </div>
+        {aiError && (
+          <span className="matrix-ai-error" role="status">
+            {typeof aiError === "string"
+              ? t(aiErrorMessageKey(aiError))
+              : t("focus.matrix.aiAssignError")}
+          </span>
+        )}
+        {unplacedList.length > 0 ? (
+          <ol className="matrix-tray-list">
+            {unplacedList.map(({ todo, days }, i) => {
+              const priority = todo.attrs?.priority;
+              return (
+                <li key={todo.id} className="matrix-tray-row">
+                  <span className="matrix-tray-rank" aria-hidden="true">{i + 1}</span>
+                  {renderTag(todo, true)}
+                  <span className="matrix-tray-meta">
+                    {priority && (
+                      <span className={`matrix-tray-prio ${priority}`}>
+                        {t(PRIORITY_LABEL_KEY[priority])}
+                      </span>
+                    )}
+                    {days !== null && (
+                      <span className={`matrix-tray-ddl ${countdownClass(days)}`}>
+                        {countdownLabel(days, t)}
+                      </span>
+                    )}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+        ) : (
+          <span className="matrix-cell-empty">{t("focus.matrix.trayEmpty")}</span>
+        )}
       </div>
 
       {/* 跟随光标的「幽灵卡」：实时缩放，越靠左上越大 */}
@@ -833,11 +913,11 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
         t={t}
       />
 
-      {/* 删除的撤销条：deleteTodo 本来就留了 5 秒撤销窗（useUndoDelete），
+      {/* 删除 / 勾完的撤销条：TodoContext 本来就留了 5 秒撤销窗，
           但这条一直只在任务库页渲染——专注页上删卡片等于直接没了。补上。 */}
       <Toast
-        pendingDelete={pendingDelete}
-        undoDelete={undoDelete}
+        pending={pendingUndo}
+        undo={undoLast}
         getText={(item) => item.text}
       />
 

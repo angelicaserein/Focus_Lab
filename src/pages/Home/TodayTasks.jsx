@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTodos } from "@/context/TodoContext";
 import { useFocus } from "@/context/FocusContext";
 import { useLanguage } from "@/context/LanguageContext";
+import Toast from "@/components/ui/Toast";
 import { collectTodayTasks } from "@/utils/taskReminderUtils";
 import { countdownLabel, countdownClass } from "@/utils/ddlUtils";
 import "./TodayTasks.css";
@@ -22,7 +23,7 @@ const SECTIONS = [
 ];
 
 export default function TodayTasks() {
-  const { todos, toggleTodo } = useTodos();
+  const { todos, toggleTodo, pendingUndo, undoLast } = useTodos();
   const { addFocusTodo, clearFocusTodos } = useFocus();
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -100,6 +101,9 @@ export default function TodayTasks() {
       ) : (
         <p className="today-empty">{t("reminder.modal.empty")}</p>
       )}
+
+      {/* 这张卡上勾错很容易（条目挨得近），撤销条得跟着一起在首页出现 */}
+      <Toast pending={pendingUndo} undo={undoLast} getText={(item) => item.text} />
     </section>
   );
 }

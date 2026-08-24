@@ -9,7 +9,7 @@ import {
 } from "@/pages/Focus/flaskShapes";
 
 // 烧瓶外形编辑器：三个烧瓶各自独立编辑与保存。
-// 点缩略图＝选为专注页使用的烧瓶；拖滑杆／切换敞口＝只改这一个烧瓶；
+// 点缩略图＝选为专注页使用的烧瓶；拖滑杆＝只改这一个烧瓶；
 // 「恢复默认形状」＝把该烧瓶还原到它的预设参数（一共 3 个，各管各的）。
 // 「存进烧瓶架」＝把此刻的参数拷一份到烧瓶架（/flasks），之后继续调滑杆不影响存下的那只。
 export default function FlaskShapeEditor({ flaskShape, setFlaskShape }) {
@@ -35,11 +35,6 @@ export default function FlaskShapeEditor({ flaskShape, setFlaskShape }) {
     setFlaskShape({
       ...flaskShape,
       presets: { ...presets, [key]: { ...presets[key], [param]: value } },
-    });
-  const toggleOpen = (key) =>
-    setFlaskShape({
-      ...flaskShape,
-      presets: { ...presets, [key]: { ...presets[key], open: !presets[key].open } },
     });
   const restoreDefault = (key) =>
     setFlaskShape({
@@ -87,17 +82,6 @@ export default function FlaskShapeEditor({ flaskShape, setFlaskShape }) {
                 </label>
               ))}
               <div className="settings-flask-actions">
-                <button
-                  type="button"
-                  className={`settings-toggle-btn settings-flask-open${params.open ? " active" : ""}`}
-                  onClick={() => toggleOpen(key)}
-                  aria-pressed={params.open}
-                >
-                  <span className="settings-toggle-track">
-                    <span className="settings-toggle-thumb" />
-                  </span>
-                  {params.open ? t("settings.prefs.flaskOpen") : t("settings.prefs.flaskCapped")}
-                </button>
                 <button
                   type="button"
                   className="settings-flask-restore"

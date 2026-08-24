@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { Archive, RotateCcw } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useFeatures } from "@/context/FeatureContext";
-import { DEPRECATED_FEATURES, DEPRECATED_PATHS } from "./deprecatedData";
+import { DEPRECATED_FEATURES, DEPRECATED_PATHS, deprecatedKey } from "./deprecatedData";
 import "@/pages/FunctionTree/FunctionTree.css";
 
 // 废弃页面：不再进主线、但也没被删掉的旧功能，都收在这里。
@@ -57,15 +57,16 @@ export default function DeprecatedPage() {
 
           <div className="ft-nodes">
             {DEPRECATED_FEATURES.map((f) => {
-              const on = isEnabled(f.path);
+              const key = deprecatedKey(f);
+              const on = isEnabled(key);
               return (
                 <button
-                  key={f.path}
+                  key={key}
                   type="button"
                   role="switch"
                   aria-checked={on}
                   className={`ft-node${on ? " on" : " off"}`}
-                  onClick={() => toggle(f.path)}
+                  onClick={() => toggle(key)}
                   aria-label={`${t(f.labelKey)} — ${t(on ? "functiontree.on" : "functiontree.off")}`}
                 >
                   <span className="ft-node-icon" aria-hidden="true">{f.icon}</span>

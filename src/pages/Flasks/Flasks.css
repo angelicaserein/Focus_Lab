@@ -10,7 +10,6 @@
   --flask-glass-mid: color-mix(in srgb, var(--text-body) 4%, transparent);
   --flask-glass-bot: color-mix(in srgb, var(--text-body) 7%, transparent);
   --flask-highlight: color-mix(in srgb, var(--text-body) 14%, transparent);
-  --flask-rim-fill: color-mix(in srgb, var(--text-body) 12%, transparent);
 
   width: 100%;
   max-width: 1040px;

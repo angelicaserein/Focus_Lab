@@ -523,7 +523,9 @@ const AquariumTank = forwardRef(function AquariumTank(
     // 把 24×24 的部件画到缸里：scale 里的 /24 把造型坐标换算成「这只生物在缸中的像素大小」。
     // 目标上下文由调用方给：缸里那些画进 ctx，被拎出去的那只画进手上那层 hctx（坐标系同一套）。
     function drawCreature(cx, id, glyph, x, y, rot, scale, flip) {
-      const c = tintOf(id);
+      // 卵取中性色（tintOf 认不得 "egg"，给的就是不带物种色偏的那支）：
+      // 缸里那颗也不能透出是哪一种，否则破膜前就被颜色剧透了。
+      const c = tintOf(glyph === "egg" ? "egg" : id);
       const k = scale / 24;
       cx.save();
       cx.translate(x, y);

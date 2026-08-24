@@ -13,7 +13,7 @@ import { buildFlask } from "@/pages/Focus/flaskShapes";
 const BASE_Y = 128; // 瓶底，与 flaskShapes 的坐标系一致
 
 export function FlaskGraphic({ progress = 0, params, hitLayer = false, drainToNeck = false }) {
-  const { path, highlight, cap, rim } = buildFlask(params);
+  const { path, highlight, cap } = buildFlask(params);
   // 每个实例独立的 id：设置页会同时渲染多个烧瓶，共用 id 会互相错切
   const uid = useId();
   const clipId = `${uid}-clip`;
@@ -113,30 +113,19 @@ export function FlaskGraphic({ progress = 0, params, hitLayer = false, drainToNe
           fill="none" stroke="var(--flask-highlight, rgba(255,255,255,0.22))"
           strokeWidth="2.5" strokeLinecap="round"
         />
-        {cap && (
-          // 瓶塞：偏透明的玻璃塞，仅比瓶身略实一点，保持通透质感
-          <path
-            className="flask-cap" d={cap}
-            fill={`url(#${glassId})`} stroke="var(--flask-stroke, rgba(255,255,255,0.5))"
-            strokeWidth="1.2" strokeLinejoin="round"
-          />
-        )}
-        {rim && (
-          // 敞口（烧杯）：瓶口画一圈椭圆，像从斜上方看进空瓶。
-          // 内侧填一层暗色，不然敞口和封口的轮廓完全一样，分不出来。
-          <ellipse
-            className="flask-rim" cx={rim.cx} cy={rim.cy} rx={rim.rx} ry={rim.ry}
-            fill="var(--flask-rim-fill, rgba(0,0,0,0.22))" stroke="var(--flask-stroke, rgba(255,255,255,0.55))"
-            strokeWidth="1.4"
-          />
-        )}
+        {/* 瓶塞：偏透明的玻璃塞，仅比瓶身略实一点，保持通透质感 */}
+        <path
+          className="flask-cap" d={cap}
+          fill={`url(#${glassId})`} stroke="var(--flask-stroke, rgba(255,255,255,0.5))"
+          strokeWidth="1.2" strokeLinejoin="round"
+        />
 
         {hitLayer && (
           // 桌宠专用：一份不上色的轮廓副本，只用来做命中判定（见 PetApp.css）。
           // 描边加宽是给指针留的余量——正好贴着瓶壁的话，边缘一像素之差就点空。
           <>
             <path className="flask-hit" d={path} strokeWidth="12" strokeLinejoin="round" />
-            {cap && <path className="flask-hit" d={cap} strokeWidth="12" strokeLinejoin="round" />}
+            <path className="flask-hit" d={cap} strokeWidth="12" strokeLinejoin="round" />
           </>
         )}
       </svg>

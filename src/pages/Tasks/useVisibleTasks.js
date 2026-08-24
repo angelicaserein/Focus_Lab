@@ -4,6 +4,14 @@ import { useTaskAttrs, useDatabases } from "@/context/DatabaseContext";
 import { useScenarios } from "@/context/ScenarioContext";
 import useTaskQuery from "@/pages/Tasks/useTaskQuery";
 import { applyQuery, buildQueryFields } from "@/pages/Tasks/taskQuery";
+import { activeDue, daysUntil } from "@/pages/Tasks/taskFlowUtils";
+
+// 工具栏右端的两个一键筛选：把最常问的「今天要做什么 / 哪些是重要紧急」压成一次点击，
+// 不必每次去筛选弹层里搭规则。与筛选/排序叠加生效，再点一次即取消。
+const QUICK = {
+  today:  (t) => { const d = daysUntil(activeDue(t)); return d !== null && d <= 0; },
+  urgent: (t) => t.attrs?.priority === "urgent_important",
+};
 
 // 任务库的「显示哪些任务」派生管线，从页面组件中抽出：
 // 当前库 → 情景筛选 → 用户查询（筛选/排序/搜索），再顺带算出可见列、查询字段与「未排截止日」候选。
@@ -50,24 +58,28 @@ export default function useVisibleTasks() {
     );
   }, [dbTodos, scenarioFilter]);
 
-  const filtered = useMemo(
-    () => applyQuery(scenarioScoped, query.query, fields),
-    [scenarioScoped, query.query, fields],
-  );
+  const [quick, setQuick] = useState(null); // null | "today" | "urgent"
+  const filtered = useMemo(() => {
+    const list = applyQuery(scenarioScoped, query.query, fields);
+    return quick ? list.filter(QUICK[quick]) : list;
+  }, [scenarioScoped, query.query, fields, quick]);
 
   // 工具栏用的情景开关描述；无情景筛选时为 null。
   const scenario = hasScenarioFilter
     ? { name: activeScenario.title, on: scenarioFilterOn, toggle: () => setScenarioFilterOn(v => !v) }
     : null;
 
+  // 再点一次同一个就取消；两个互斥，避免筛到空还看不出是哪一层筛掉的。
+  const quickFilter = { value: quick, toggle: (k) => setQuick((v) => (v === k ? null : k)) };
+
   return {
     filtered,
+    quickFilter,
     visibleAttrs,
     fields,
     query,
     undatedTodos,
     scenario,
-    isDbEmpty: dbTodos.length === 0,
     activeDatabaseId,
   };
 }

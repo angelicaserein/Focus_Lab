@@ -433,7 +433,7 @@ function DistractionSk() {
   );
 }
 
-// ── 任务库：标题+新建 / 数据库标签 / 工具栏 / 表格 ──────────────────────────
+// ── 任务库：标题 / 工具栏 / 「现在就做」大卡 + 分堆卡片流 ──────────────────
 function TasksSk() {
   return (
     <div className="sk-page skp-tasks">
@@ -444,34 +444,34 @@ function TasksSk() {
         </div>
         <Sk w={110} h={36} r={12} />
       </div>
-      <div className="sk-row sk-tabs">
-        {rep(3).map((i) => (
-          <Sk key={i} w={90} h={32} r={10} />
-        ))}
-      </div>
       <div className="sk-row sk-toolbar">
         <Sk w={200} h={36} r={10} />
         <Sk w={100} h={36} r={10} />
         <Sk w={100} h={36} r={10} style={right} />
       </div>
-      <div className="sk-table">
-        <div className="sk-trow sk-trow--head">
-          <Sk w={18} h={14} />
-          <Sk w={120} h={14} />
-          <Sk w={70} h={14} style={right} />
-          <Sk w={70} h={14} />
-          <Sk w={70} h={14} />
+      <Card cn="sk-flow-hero">
+        <Sk w={110} h={12} />
+        <Sk w="60%" h={24} r={10} />
+        <div className="sk-row">
+          <Sk w={70} h={22} r={99} />
+          <Sk w={90} h={22} r={99} />
         </div>
-        {rep(8).map((i) => (
-          <div className="sk-trow" key={i}>
-            <Sk w={18} h={18} r={6} />
-            <Sk w="40%" h={14} />
-            <Sk w={60} h={14} style={right} />
-            <Sk w={60} h={14} />
-            <Sk w={60} h={14} />
+      </Card>
+      {rep(2).map((b) => (
+        <div className="sk-flow-bucket" key={b}>
+          <div className="sk-row">
+            <Sk w={80} h={16} />
+            <Sk w={40} h={12} />
           </div>
-        ))}
-      </div>
+          {rep(3).map((i) => (
+            <Card cn="sk-flow-card" key={i}>
+              <Sk w={20} h={20} r={99} />
+              <Sk w="45%" h={14} />
+              <Sk w={64} h={20} r={99} style={right} />
+            </Card>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }

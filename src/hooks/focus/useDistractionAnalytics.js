@@ -3,7 +3,11 @@ import { useFocus } from "@/context/FocusContext";
 import useLocalStorage from "@/hooks/common/useLocalStorage";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 import { distractionByHour } from "@/utils/analytics/analyticsUtils";
-import { buildSessions, enrichDistractionSessions } from "@/utils/analytics/sessionSummaryUtils";
+import {
+  buildSessions,
+  enrichDistractionSessions,
+  toDistractionItem,
+} from "@/utils/analytics/sessionSummaryUtils";
 import {
   sessionDurationMap,
   distractionOverview,
@@ -33,20 +37,7 @@ export default function useDistractionAnalytics() {
   const sessions = useMemo(
     () =>
       enrichDistractionSessions(
-        buildSessions(distractions, (d) => ({
-          id: d.id,
-          ts: d.ts,
-          tag: d.tag ?? null,
-          note: d.note ?? null,
-          type: d.type ?? "reactive",
-          durationSecs: d.durationSecs ?? null,
-          // 桌面端自动记的那种：明细行要显示「几点到几点 · 哪个程序」
-          endTs: d.endTs ?? null,
-          appLabel: d.appLabel ?? null,
-          // 沉浸层里翻的应用内页面：存的是路径，展示时再按当前语言取页面名
-          pagePath: d.pagePath ?? null,
-          pageLabel: d.pageLabel ?? null,
-        })),
+        buildSessions(distractions, toDistractionItem),
         durationBySession,
       ),
     [distractions, durationBySession],

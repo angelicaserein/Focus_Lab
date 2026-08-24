@@ -47,7 +47,7 @@ function TaskCard({ todo, visibleAttrs, onToggle, onEditText, onSaveAttr, onDele
       <button
         type="button"
         className="fc-check"
-        onClick={() => onToggle(todo.id)}
+        onClick={() => onToggle(todo.id, !todo.completed)}
         aria-label={todo.completed ? t("tasks.markIncomplete") : t("tasks.markComplete")}
       >
         {todo.completed && <Check size={16} strokeWidth={3} aria-hidden="true" />}

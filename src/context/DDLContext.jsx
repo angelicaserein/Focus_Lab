@@ -1,5 +1,6 @@
-import React, { useContext, useMemo, useCallback, useState } from "react";
+import React, { useContext, useMemo, useCallback, useRef, useState } from "react";
 import useLocalStorage from "@/hooks/common/useLocalStorage";
+import useUndoDelete from "@/hooks/common/useUndoDelete";
 import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 import { collectDueReminders } from "@/utils/ddlUtils";
 
@@ -42,12 +43,47 @@ export function DDLProvider({ children }) {
     }));
   }, [setCheckpointsMap]);
 
-  const deleteCheckpoint = useCallback((todoId, cpId) => {
-    setCheckpointsMap((prev) => ({
-      ...prev,
-      [todoId]: (prev[todoId] || []).filter((cp) => cp.id !== cpId),
-    }));
-  }, [setCheckpointsMap]);
+  // 删检查点原来是「点一下就没了」：既没有确认也没有撤销，而同一个删除动作
+  // 在任务库 / 备忘录都能反悔。这里接上同一套撤销 toast，行为对齐。
+  //
+  // 摊平成一维只为让通用 hook 能按 id 找到它；放回去时不必还原数组下标——
+  // 页面本来就按 daysBeforeDeadline 排序显示，追加到末尾看起来完全一样。
+  const flatCheckpoints = useMemo(
+    () =>
+      Object.entries(checkpointsMap).flatMap(([todoId, list]) =>
+        (list || []).map((cp) => ({ ...cp, todoId })),
+      ),
+    [checkpointsMap],
+  );
+
+  const undo = useUndoDelete({
+    items: flatCheckpoints,
+    remove: (cpId, item) => {
+      setCheckpointsMap((prev) => ({
+        ...prev,
+        [item.todoId]: (prev[item.todoId] || []).filter((cp) => cp.id !== cpId),
+      }));
+    },
+    restore: (item) => {
+      const { todoId, ...cp } = item;
+      setCheckpointsMap((prev) => ({
+        ...prev,
+        [todoId]: [...(prev[todoId] || []), cp],
+      }));
+    },
+  });
+
+  // hook 返回的两个函数每次渲染都是新引用，直接进依赖会让整个 context value
+  // 每渲染重建一次。走 ref 取最新值，对外暴露的引用保持稳定。
+  const undoApi = useRef(null);
+  undoApi.current = undo;
+
+  // 签名保持 (todoId, cpId) 不变：调用点不必知道撤销是怎么实现的。
+  const deleteCheckpoint = useCallback((_todoId, cpId) => {
+    undoApi.current.deleteFn(cpId);
+  }, []);
+
+  const undoLast = useCallback(() => undoApi.current.undoDelete(), []);
 
   const toggleCheckpointDone = useCallback((todoId, cpId) => {
     setCheckpointsMap((prev) => ({
@@ -75,7 +111,11 @@ export function DDLProvider({ children }) {
     computeBadgeCount,
     modalForcedOpen,
     setModalForcedOpen,
+    pendingUndo: undo.pendingDelete,
+    undoLast,
   }), [
+    undo.pendingDelete,
+    undoLast,
     checkpointsMap,
     getCheckpoints,
     addCheckpoint,

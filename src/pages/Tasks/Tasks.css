@@ -1,5 +1,6 @@
 /* ── Layout ── */
 .tasks-page {
+  /* 页宽只由这一条决定 */
   width: min(980px, 100%);
   margin: 0 auto;
   padding: 8px 0 80px;
@@ -8,11 +9,12 @@
   gap: 20px;
 }
 
-/* 顶部的 TO DO LIST 与专注页共用组件，其 .todo-container 自带 max-width:680px
-   （为专注页窄列设计）。在任务库这里要撑满页宽，才能和下方任务库表格左右对齐，
-   否则卡片只有 680px、左对齐，右侧留一大块空。 */
-/* 心流视图窄一档：整页跟着卡片流收窄，工具栏/库标签才不会比内容宽出一大截 */
-.tasks-page.flow { width: min(760px, 100%); }
+/* 进页淡入，不硬切 */
+.tasks-view-body { animation: tasks-view-in 220ms var(--ease); }
+@keyframes tasks-view-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
 
 /* ── Header ── */
 .tasks-header {
@@ -42,19 +44,6 @@
   font-weight: 500;
 }
 
-.tasks-add-btn {
-  padding: 8px 18px;
-  border-radius: 999px;
-  border: none;
-  background: var(--accent-solid);
-  color: var(--on-accent);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: opacity var(--dur-fast) var(--ease);
-}
-.tasks-add-btn:hover { opacity: 0.85; }
 
 /* 标题右侧动作区：排截止日助手 + 新建任务 */
 .tasks-header-actions {
@@ -76,36 +65,6 @@
   transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 .tasks-assist-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-/* 视图切换：心流 / 表格，同一份数据的两种排布 */
-.tasks-view-switch {
-  display: flex;
-  padding: 3px;
-  gap: 2px;
-  border-radius: 999px;
-  border: 1.5px solid var(--border-card);
-  background: var(--card);
-}
-.tasks-view-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 14px;
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
-}
-.tasks-view-btn:hover { color: var(--accent); }
-.tasks-view-btn.active {
-  background: var(--accent-solid);
-  color: var(--on-accent);
-}
 
 /* 倒脑子助手：一大块随便写的输入区 */
 .bd-input {
@@ -242,9 +201,9 @@
 }
 .dda-clear:hover { color: var(--danger); }
 
-/* ── 库标签 + 查询工具同一条 ──
-   工具栏原本是标签栏下面一整张卡片（搜索独占一行、筛选排序又一行），
-   把任务推得很低。改成贴在标签栏右端，共用同一条下边线。 */
+/* ── 查询工具条 ──
+   工具栏原本是一整张卡片（搜索独占一行、筛选排序又一行），把任务推得很低。
+   改成靠右贴边的一条，只留一条下边线。 */
 .tasks-bar {
   display: flex;
   align-items: flex-end;
@@ -253,12 +212,6 @@
   flex-wrap: wrap;
   border-bottom: 1.5px solid var(--border-card);
   padding-bottom: 2px;
-}
-.tasks-bar .db-tabs {
-  flex: 1 1 auto;
-  min-width: 0;
-  border-bottom: none;
-  padding-bottom: 0;
 }
 
 /* ── Toolbar ── */
@@ -607,294 +560,6 @@
 }
 .query-clear-btn:hover { color: var(--danger); background: var(--danger-subtle); }
 
-/* ── Table ── */
-.tasks-table-wrap {
-  background: var(--card);
-  border: 1.5px solid var(--border-card);
-  border-radius: 16px;
-  box-shadow: 0 2px 12px var(--shadow-sm);
-  overflow: hidden;
-}
-
-/* ── 批量操作条：勾选了任务才出现，压在表格上方 ── */
-.tasks-batch-bar {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 8px 12px;
-  border-bottom: 1.5px solid var(--border-input);
-  background: var(--accent-bg);
-}
-.tbb-count {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--text-heading);
-  margin-right: 2px;
-}
-.tbb-btn {
-  padding: 5px 12px;
-  border-radius: 99px;
-  border: 1.5px solid var(--border-input);
-  background: var(--card);
-  color: var(--text-body);
-  font-size: 0.8rem;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
-}
-.tbb-btn:hover { border-color: var(--accent-border); color: var(--accent); }
-.tbb-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
-.tbb-clear {
-  margin-left: auto;
-  border: none;
-  background: none;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  font-family: inherit;
-  cursor: pointer;
-}
-.tbb-clear:hover { color: var(--accent); }
-
-/* Horizontal scroll lives here so many columns scroll inside the card
-   instead of overflowing it. Popups are portaled to <body>, so this
-   container clipping its overflow no longer hides them. */
-.tasks-table-scroll {
-  overflow-x: auto;
-}
-
-.tasks-table {
-  width: max-content;
-  min-width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-/* Column widths */
-.tasks-table .th-select,
-.tasks-table .td-select { width: 40px; text-align: center; }
-.tasks-table .th-check,
-.tasks-table .td-check { width: 48px; }
-.tasks-table .th-check { text-align: center; padding-left: 4px; padding-right: 4px; }
-.tasks-table .th-text,
-.tasks-table .td-text  { width: 220px; min-width: 220px; }
-.tasks-table .th-attr  { position: relative; }
-.tasks-table .td-attr  { position: relative; }
-.tasks-table .th-add-col { width: 36px; text-align: center; position: relative; }
-.tasks-table .th-del,
-.tasks-table .td-del { width: 40px; }
-
-/* ── Frozen left columns (select + done checkbox + task name) ── */
-.tasks-table .th-select,
-.tasks-table .td-select {
-  position: sticky;
-  left: 0;
-  z-index: 2;
-}
-.tasks-table .th-check,
-.tasks-table .td-check {
-  position: sticky;
-  left: 40px;
-  z-index: 2;
-}
-.tasks-table .th-text,
-.tasks-table .td-text {
-  position: sticky;
-  left: 88px;
-  z-index: 2;
-  border-right: 1.5px solid var(--border-input);
-}
-/* Frozen body cells need an opaque background to cover scrolled content */
-.tasks-table .td-select,
-.tasks-table .td-check,
-.tasks-table .td-text { background: var(--card); }
-.tasks-row:hover .td-select,
-.tasks-row:hover .td-check,
-.tasks-row:hover .td-text { background: var(--accent-hover); }
-/* Selected rows stay tinted, frozen cells included */
-.tasks-row.selected,
-.tasks-row.selected .td-select,
-.tasks-row.selected .td-check,
-.tasks-row.selected .td-text { background: var(--accent-bg); }
-/* Header frozen cells sit above body frozen cells */
-.tasks-table thead .th-select,
-.tasks-table thead .th-check,
-.tasks-table thead .th-text { z-index: 3; }
-
-/* Header */
-.tasks-table thead tr {
-  border-bottom: 1.5px solid var(--border-dark);
-}
-
-.tasks-table th {
-  padding: 10px 10px;
-  text-align: left;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--text-faint);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  background: var(--bg);
-  user-select: none;
-}
-.tasks-table th:first-child { border-radius: 14px 0 0 0; }
-.tasks-table th:last-child  { border-radius: 0 14px 0 0; }
-
-.tasks-table th.sortable { cursor: pointer; }
-.tasks-table th.sortable:hover { color: var(--accent-mid); }
-
-/* Body rows */
-.tasks-row {
-  border-bottom: 1px solid var(--border-input);
-  transition: background var(--dur-fast) var(--ease);
-}
-.tasks-row:last-child { border-bottom: none; }
-.tasks-row:hover { background: var(--accent-hover); }
-.tasks-row.done { opacity: 0.55; }
-
-.tasks-table td {
-  padding: 9px 10px;
-  vertical-align: middle;
-  font-size: 0.875rem;
-  color: var(--text-body);
-}
-
-/* Editable cells show hover cue */
-.editable {
-  cursor: pointer;
-  position: relative;
-}
-.editable:hover::after {
-  content: "";
-  position: absolute;
-  inset: 2px;
-  border-radius: 6px;
-  background: var(--accent-bg-dim);
-  pointer-events: none;
-}
-
-/* Checkbox —— 两种勾选框刻意做成不同形状，避免「完成」和「多选」混淆：
-   完成 = 圆形 + 主题色实心；多选 = 方形 + 中性灰虚线框 */
-.td-check { text-align: center; }
-.task-check {
-  appearance: none;
-  -webkit-appearance: none;
-  position: relative;
-  flex: none;
-  width: 17px;
-  height: 17px;
-  margin: 0;
-  cursor: pointer;
-  background: var(--card);
-  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
-}
-
-/* 完成框：圆形 */
-.task-check:not(.row-select) {
-  border: 2px solid var(--accent);
-  border-radius: 50%;
-}
-.task-check:not(.row-select):hover { background: var(--accent-bg); }
-.task-check:not(.row-select):checked {
-  background: var(--accent);
-  border-color: var(--accent);
-}
-.task-check:not(.row-select):checked::after {
-  content: "";
-  position: absolute;
-  left: 4px;
-  top: 1px;
-  width: 4px;
-  height: 8px;
-  border: solid #fff;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-
-/* 多选框：方形 + 虚线中性框 */
-.task-check.row-select {
-  width: 15px;
-  height: 15px;
-  border: 1.5px dashed var(--text-faint);
-  border-radius: 4px;
-}
-.task-check.row-select:hover { border-style: solid; }
-.task-check.row-select:checked,
-.task-check.row-select:indeterminate {
-  background: var(--text-faint);
-  border-style: solid;
-  border-color: var(--text-faint);
-}
-.task-check.row-select:checked::after {
-  content: "";
-  position: absolute;
-  left: 3.5px;
-  top: 0.5px;
-  width: 3px;
-  height: 7px;
-  border: solid var(--card);
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-.task-check.row-select:indeterminate::after {
-  content: "";
-  position: absolute;
-  left: 2.5px;
-  top: 5px;
-  width: 7px;
-  height: 2px;
-  background: var(--card);
-}
-.task-check.row-select:disabled {
-  cursor: default;
-  opacity: 0.4;
-}
-
-/* Task text */
-.task-text {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.done .task-text { text-decoration: line-through; }
-
-/* ↺ 固定任务按钮（表格视图）。td-text 是冻结列，面板要浮在它上层 */
-.row-recur {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  margin-left: 4px;
-  padding: 1px 5px;
-  border: none;
-  border-radius: 9px;
-  background: transparent;
-  color: var(--text-faint);
-  font-size: 0.7rem;
-  cursor: pointer;
-  opacity: 0.4;
-  transition: opacity var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
-}
-.tasks-row:hover .row-recur,
-.row-recur:focus-visible { opacity: 1; }
-.row-recur.active {
-  opacity: 1;
-  color: var(--accent-deep);
-  background: var(--accent-bg);
-}
-.row-recur:hover { background: var(--accent-bg); color: var(--accent-deep); }
-.row-recur-label { font-weight: 600; }
-
-/* 面板就地展开、把这一行撑高，不做浮层：td-text 是冻结列又在横向滚动容器里，
-   浮层要么被裁掉要么跟不上滚动，行变高反而是最稳的。 */
-.row-recur-panel { margin-top: 6px; }
-.row-recur-panel .recurring-day-picker {
-  border-top: 1px solid var(--accent-border);
-  border-radius: 10px;
-  padding: 6px 8px;
-}
-
 /* Cell inline inputs */
 .cell-input {
   width: 100%;
@@ -1085,21 +750,6 @@
   color: var(--text-muted);
 }
 
-/* Delete button */
-.td-del { text-align: center; }
-.del-btn {
-  border: none;
-  background: none;
-  color: var(--text-faint);
-  font-size: 1rem;
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 4px;
-  transition: all var(--dur-fast) var(--ease);
-  opacity: 0;
-}
-.tasks-row:hover .del-btn { opacity: 1; }
-.del-btn:hover { color: var(--danger); background: var(--danger-subtle); }
 
 /* ── Popups ── */
 .attr-popup,
@@ -1157,341 +807,12 @@
 }
 .popup-opt.clear-opt:hover { color: var(--danger); background: var(--danger-subtle); }
 
-/* ── New task row ── */
-.tasks-new-row td {
-  padding: 8px 10px;
-  background: var(--accent-bg-dim);
-}
-
-.new-task-input {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1.5px solid var(--accent);
-  background: var(--card);
-  color: var(--text-body);
-  font-size: 0.875rem;
-  outline: none;
-}
-.new-task-input::placeholder { color: var(--text-placeholder); }
-
-/* ── Add bottom button ── */
-.tasks-add-bottom {
-  display: block;
-  width: 100%;
-  padding: 12px;
-  border: none;
-  background: transparent;
-  color: var(--text-faint);
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  text-align: left;
-  border-radius: 0 0 14px 14px;
-  transition: all var(--dur-fast) var(--ease);
-}
-.tasks-add-bottom:hover {
-  background: var(--accent-hover);
-  color: var(--accent);
-}
-
-/* ── Empty state ── */
-.tasks-empty {
-  padding: 48px 24px;
-  text-align: center;
-  color: var(--text-faint);
-  font-size: 0.9rem;
-}
-
-/* ── Column header inner layout ── */
-.th-inner {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  min-height: 20px;
-}
-.th-inner.sortable { cursor: pointer; }
-.th-inner.sortable:hover .th-name { color: var(--accent-mid); }
-
-/* 属性表头：点击打开编辑器（不排序） */
-.th-inner.th-attr-edit { cursor: pointer; }
-.th-inner.th-attr-edit:hover .th-name { color: var(--accent-mid); }
-
-.th-name { flex: 1; min-width: 0; }
-
-/* "+" add-column header cell */
-.th-add-col {
-  position: relative;
-  width: 36px;
-  padding: 0 !important;
-}
-.th-add-btn {
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: none;
-  color: var(--text-faint);
-  font-size: 1rem;
-  cursor: pointer;
-  padding: 8px 6px;
-  border-radius: 0;
-  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
-  display: block;
-}
-.th-add-btn:hover { color: var(--accent); background: var(--accent-hover); }
-
-/* th-attr needs relative positioning for the editor popup */
-.tasks-table .th-attr { position: relative; }
-
-/* ── Attribute editor popup ── */
-.attr-editor {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  z-index: 300;
-  width: 260px;
-  background: var(--card);
-  border: 1.5px solid var(--border-card);
-  border-radius: 14px;
-  box-shadow: 0 12px 32px var(--shadow-sm);
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.attr-editor-title {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-faint);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.attr-editor-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.attr-editor-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.attr-editor-input {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 7px 10px;
-  border-radius: 8px;
-  border: 1.5px solid var(--border-input);
-  background: var(--bg);
-  color: var(--text-body);
-  font-size: 0.875rem;
-  outline: none;
-  transition: border-color var(--dur-fast) var(--ease);
-}
-.attr-editor-input:focus { border-color: var(--accent); }
-.attr-editor-input-sm { max-width: 120px; }
-
-.attr-editor-hint {
-  margin: 0;
-  font-size: 0.72rem;
-  color: var(--text-faint);
-}
-
-/* Type selector */
-.type-selector {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.type-opt {
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1.5px solid var(--border-dark);
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 0.78rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--dur-fast) var(--ease);
-}
-.type-opt:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
-.type-opt.active {
-  background: var(--accent-bg);
-  border-color: var(--accent);
-  color: var(--accent-mid);
-  font-weight: 700;
-}
-.type-opt:disabled { opacity: 0.45; cursor: default; }
-
-/* Options list */
-.options-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.option-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-
-.option-color-swatch {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  border: 2px solid rgba(0,0,0,0.12);
-  cursor: pointer;
-  padding: 0;
-  transition: transform var(--dur-fast) var(--ease);
-}
-.option-color-swatch:hover { transform: scale(1.2); }
-
-.option-label-input {
-  flex: 1;
-  min-width: 80px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  border: 1.5px solid var(--border-input);
-  background: var(--bg);
-  color: var(--text-body);
-  font-size: 0.82rem;
-  outline: none;
-}
-.option-label-input:focus { border-color: var(--accent); }
-
-.option-remove {
-  border: none;
-  background: none;
-  color: var(--text-faint);
-  font-size: 0.9rem;
-  cursor: pointer;
-  padding: 2px 5px;
-  border-radius: 4px;
-  transition: all var(--dur-fast) var(--ease);
-}
-.option-remove:hover { color: var(--danger); background: var(--danger-subtle); }
-
-/* Color swatches row (inline below option row) */
-.color-swatches {
-  width: 100%;
-  display: flex;
-  gap: 5px;
-  padding: 6px 0 2px 24px;
-  flex-wrap: wrap;
-}
-
-.color-dot {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  cursor: pointer;
-  padding: 0;
-  transition: transform var(--dur-fast) var(--ease);
-}
-.color-dot:hover { transform: scale(1.2); }
-.color-dot.selected {
-  border-color: var(--text-body);
-  transform: scale(1.15);
-}
-
-.add-option-btn {
-  align-self: flex-start;
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1.5px dashed var(--border-dashed);
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 0.78rem;
-  cursor: pointer;
-  transition: all var(--dur-fast) var(--ease);
-}
-.add-option-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-/* Editor footer */
-.attr-editor-footer {
-  display: flex;
-  gap: 6px;
-  padding-top: 4px;
-  border-top: 1px solid var(--border-input);
-}
-
-.attr-editor-save {
-  flex: 1;
-  padding: 7px 0;
-  border-radius: 8px;
-  border: none;
-  background: var(--accent-solid);
-  color: var(--on-accent);
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity var(--dur-fast) var(--ease);
-}
-.attr-editor-save:hover { opacity: 0.85; }
-
-.attr-editor-delete {
-  padding: 7px 10px;
-  border-radius: 8px;
-  border: 1.5px solid var(--danger);
-  background: transparent;
-  color: var(--danger);
-  font-size: 0.82rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--dur-fast) var(--ease);
-}
-.attr-editor-delete:hover { background: var(--danger-subtle); }
-
-.attr-editor-cancel {
-  padding: 7px 10px;
-  border-radius: 8px;
-  border: 1.5px solid var(--border-dark);
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 0.82rem;
-  cursor: pointer;
-  transition: all var(--dur-fast) var(--ease);
-}
-.attr-editor-cancel:hover { border-color: var(--accent); color: var(--accent); }
 
 /* ── Portal popover layer (Popover.jsx) ──
-   The layer itself is position:fixed (set inline). Reset the inner panels'
-   own absolute positioning so they sit at the layer origin. */
-.popover-layer .attr-popup,
-.popover-layer .attr-editor {
+   The layer itself is position:fixed (set inline). Reset the inner panel's
+   own absolute positioning so it sits at the layer origin. */
+.popover-layer .attr-popup {
   position: static;
   top: auto;
   left: auto;
 }
-
-/* Column reorder / hide actions inside the header editor */
-.attr-col-actions {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.attr-col-btn {
-  padding: 5px 10px;
-  border-radius: 8px;
-  border: 1.5px solid var(--border-dark);
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 0.78rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--dur-fast) var(--ease);
-}
-.attr-col-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
-.attr-col-btn:disabled { opacity: 0.4; cursor: default; }

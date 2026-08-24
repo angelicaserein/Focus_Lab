@@ -22,6 +22,15 @@ export default function GanttProjectModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  // 起止不能倒过来：min 只是浏览器的建议，手打 / 粘贴照样能填出「结束早于开始」的
+  // 时间轴，之后整张图会算出负宽度。改一头就顶着另一头走（同任务弹窗的做法）。
+  const setStart = (startDate) => {
+    onUpdate(startDate > project.endDate ? { startDate, endDate: startDate } : { startDate });
+  };
+  const setEnd = (endDate) => {
+    onUpdate(endDate < project.startDate ? { endDate, startDate: endDate } : { endDate });
+  };
+
   const addLane = () => {
     onAddLane(newLane);
     setNewLane("");
@@ -56,7 +65,7 @@ export default function GanttProjectModal({
         <div className="gantt-field-row">
           <label className="gantt-field">
             <span>{t("gantt.project.startDate")}</span>
-            <input type="date" value={project.startDate} onChange={(e) => onUpdate({ startDate: e.target.value })} />
+            <input type="date" value={project.startDate} onChange={(e) => setStart(e.target.value)} />
           </label>
           <label className="gantt-field">
             <span>{t("gantt.project.endDate")}</span>
@@ -64,7 +73,7 @@ export default function GanttProjectModal({
               type="date"
               value={project.endDate}
               min={project.startDate}
-              onChange={(e) => onUpdate({ endDate: e.target.value })}
+              onChange={(e) => setEnd(e.target.value)}
             />
           </label>
         </div>

@@ -12,6 +12,7 @@ import {
   isActiveDeadline,
 } from "@/utils/ddlUtils";
 import DDLDebugPanel from "@/pages/DDLReminders/DDLDebugPanel";
+import Toast from "@/components/ui/Toast";
 import "./DDLReminders.css";
 
 const QUICK_DAYS = [1, 3, 7, 14, 30];
@@ -210,7 +211,7 @@ function TodayReminders({ items }) {
 // ── 主页面 ────────────────────────────────────────────────────────────────────
 export default function DDLRemindersPage() {
   const { todos } = useTodos();
-  const { checkpointsMap } = useDDL();
+  const { checkpointsMap, pendingUndo, undoLast } = useDDL();
   const { t } = useLanguage();
 
   const todosWithDueDate = useMemo(
@@ -262,6 +263,9 @@ export default function DDLRemindersPage() {
           </div>
         </>
       )}
+
+      {/* 删掉的检查点能立刻捡回来（同任务库 / 备忘录的那套撤销） */}
+      <Toast pending={pendingUndo} undo={undoLast} getText={(cp) => cp.message} />
 
       {import.meta.env.DEV && <DDLDebugPanel />}
     </div>

@@ -6,15 +6,10 @@ import {
 import { useFocus } from "@/context/FocusContext";
 import { useActivityLog } from "@/context/ActivityContext";
 import { useLanguage } from "@/context/LanguageContext";
-import useLocalStorage from "@/hooks/common/useLocalStorage";
-import useFocusChat from "@/hooks/focus/useFocusChat";
-import { STORAGE_KEYS } from "@/utils/storage/storageKeys";
 import { totalFocusSecs } from "@/utils/records/focusRecords";
 import { formatDuration } from "@/utils/time";
 import DayLog from "@/components/records/DayLog";
 import RecordList from "@/components/records/RecordList";
-import SessionSummary from "@/components/records/SessionSummary";
-import ChatHistory from "@/components/records/ChatHistory";
 import "@/components/records/records.css";
 import {
   dayKey,
@@ -31,15 +26,11 @@ import "./Calendar.css";
 const WEEKDAY_IDX = [0, 1, 2, 3, 4, 5, 6];
 
 // 时间轴 = 原「时间轴」+「历史记录」两页合一：
-// 上半是日历（按天挑），下半在「日历 / 全部记录」两个视图间切；
-// 随记与 AI 聊天记录跟着流水一起看，所以常驻在页尾。
+// 上半是日历（按天挑），下半在「日历 / 全部记录」两个视图间切。
 // 汇总数字与图表仍然只归 /analytics，这里不重复摆。
 export default function CalendarPage() {
   const { focusRecords, clearFocusRecords } = useFocus();
   const { activities } = useActivityLog();
-  // 随记 / 聊天：与专注页共用同一份持久化数据，这里只读展示。
-  const [notes] = useLocalStorage(STORAGE_KEYS.NOTES, []);
-  const { messages: chatMessages, clearChat } = useFocusChat();
   const { t, lang } = useLanguage();
 
   // "calendar"=挑一天看；"all"=一条条原始流水按天铺开
@@ -69,8 +60,8 @@ export default function CalendarPage() {
     month: today.getMonth(),
   }));
   const [selectedKey, setSelectedKey] = useState(todayKey);
-  // 平时只留一行本周，点「展开」才铺开整月
-  const [expanded, setExpanded] = useState(false);
+  // 默认铺开整月，点「收起」才只留一行本周
+  const [expanded, setExpanded] = useState(true);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(today));
 
   const dayMap = useMemo(() => groupRecordsByDay(focusRecords), [focusRecords]);
@@ -312,10 +303,6 @@ export default function CalendarPage() {
             </div>
         </>
       )}
-
-      {/* 随记与聊天不分视图，两种看法下都在页尾 */}
-      <SessionSummary notes={notes} />
-      <ChatHistory messages={chatMessages} onClear={clearChat} />
     </div>
   );
 }

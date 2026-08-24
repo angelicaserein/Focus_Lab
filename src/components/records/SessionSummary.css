@@ -124,6 +124,16 @@
   font-style: italic;
 }
 
+/* 切去别的软件那种记录：时间列是「起–止」，止的那半压暗一点，
+   让一竖排扫下来时对齐的仍然是起始时刻。 */
+.dst-time-end {
+  color: var(--text-faint);
+}
+
+.dst-app-name {
+  color: var(--accent-mid);
+}
+
 /* 分心洞察行 */
 .distraction-insight-row {
   display: flex;

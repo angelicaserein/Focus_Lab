@@ -4,14 +4,14 @@ import { useLanguage } from "@/context/LanguageContext";
 import LanguageSection from "@/pages/Settings/LanguageSection";
 import ThemeSection from "@/pages/Settings/ThemeSection";
 import PrefsSection from "@/pages/Settings/PrefsSection";
+import ShortcutsSection from "@/pages/Settings/ShortcutsSection";
 import AppWatchSection from "@/pages/Settings/AppWatchSection";
-import ToneSection from "@/pages/Settings/ToneSection";
 import TaskSplitSection from "@/pages/Settings/TaskSplitSection";
 import DataSection from "@/pages/Settings/DataSection";
 import PrivacySection from "@/pages/Settings/PrivacySection";
 import "./Settings.css";
 
-const TABS = ["appearance", "timing", "tasks", "tone", "language", "data", "privacy"];
+const TABS = ["appearance", "timing", "tasks", "language", "data", "privacy"];
 
 export default function SettingsPage() {
   const { t } = useLanguage();
@@ -44,6 +44,8 @@ export default function SettingsPage() {
           <>
             <ThemeSection />
             <PrefsSection group="appearance" />
+            {/* 快捷键一览放这儿：它讲的是「怎么更快地用」，和外观同属界面本身 */}
+            <ShortcutsSection />
           </>
         )}
         {tab === "timing" && (
@@ -54,7 +56,6 @@ export default function SettingsPage() {
           </>
         )}
         {tab === "tasks" && <TaskSplitSection />}
-        {tab === "tone" && <ToneSection />}
         {tab === "language" && <LanguageSection />}
         {tab === "data" && <DataSection />}
         {tab === "privacy" && <PrivacySection />}

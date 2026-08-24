@@ -326,32 +326,26 @@
   border-radius: 24px;
 }
 
-/* ── 任务库表格 ── */
-.sk-tabs {
-  flex-wrap: wrap;
-}
+/* ── 任务库：工具条 + 卡片流 ── */
 .sk-toolbar {
   flex-wrap: wrap;
 }
-.sk-table {
-  background: var(--card);
-  border: 1.5px solid var(--border-card);
-  border-radius: 16px;
-  box-shadow: 0 2px 12px var(--shadow-sm);
-  overflow: hidden;
+.sk-flow-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 22px;
 }
-.sk-trow {
+.sk-flow-bucket {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sk-flow-card {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   padding: 14px 18px;
-  border-bottom: 1px solid var(--border-card);
-}
-.sk-trow:last-child {
-  border-bottom: none;
-}
-.sk-trow--head {
-  background: var(--accent-bg-dim);
 }
 
 /* ── 占位灰块：底色 + 流动微光 ── */

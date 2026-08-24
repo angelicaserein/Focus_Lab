@@ -44,3 +44,21 @@ export function enrichDistractionSessions(sessions, durationBySession) {
     return { ...s, items, distractionRate, diffVsPrev, bestTag };
   });
 }
+
+// 一条原始分心记录 → 明细行要用的那几个字段（分心统计页与时间轴共用）。
+export function toDistractionItem(d) {
+  return {
+    id: d.id,
+    ts: d.ts,
+    tag: d.tag ?? null,
+    note: d.note ?? null,
+    type: d.type ?? "reactive",
+    durationSecs: d.durationSecs ?? null,
+    // 桌面端自动记的那种：明细行要显示「几点到几点 · 哪个程序」
+    endTs: d.endTs ?? null,
+    appLabel: d.appLabel ?? null,
+    // 沉浸层里翻的应用内页面：存的是路径，展示时再按当前语言取页面名
+    pagePath: d.pagePath ?? null,
+    pageLabel: d.pageLabel ?? null,
+  };
+}

@@ -15,27 +15,11 @@ export const SHOP_ITEMS = [
     tag: "皮肤",
   },
   {
-    id: "theme-night",
-    icon: "🌙",
-    price: 50,
-    type: "unlock",
-    accent: "#7c6cf0",
-    tag: "皮肤",
-  },
-  {
     id: "theme-ocean",
     icon: "🌊",
     price: 40,
     type: "unlock",
     accent: "#4a90d9",
-    tag: "皮肤",
-  },
-  {
-    id: "theme-forest",
-    icon: "🌿",
-    price: 45,
-    type: "unlock",
-    accent: "#4a9d6e",
     tag: "皮肤",
   },
   {
@@ -47,27 +31,11 @@ export const SHOP_ITEMS = [
     tag: "皮肤",
   },
   {
-    id: "theme-lavender",
-    icon: "🪻",
-    price: 55,
-    type: "unlock",
-    accent: "#9d8ce4",
-    tag: "皮肤",
-  },
-  {
     id: "theme-teal",
     icon: "🫧",
     price: 45,
     type: "unlock",
     accent: "#3fb3a8",
-    tag: "皮肤",
-  },
-  {
-    id: "theme-peach",
-    icon: "🍑",
-    price: 50,
-    type: "unlock",
-    accent: "#ef9a8a",
     tag: "皮肤",
   },
 
@@ -174,6 +142,28 @@ export const SHOP_ITEMS = [
   },
 ];
 
+// 不用买的皮肤。暗夜不是犒赏而是需求——夜里要用深色的人，不该先攒够金币才配用；
+// 把外观做成消耗品在这一支上是游戏化压过了可用性。所以它不在商城里，
+// 和「默认」一样常驻外观设置（见 Settings/ThemeSection）。
+// 结构与 SHOP_ITEMS 的皮肤条目一致（少个 price），名称描述同样走 reward.item.<id>.*。
+export const FREE_THEMES = [
+  {
+    id: "theme-night",
+    icon: "🌙",
+    type: "unlock",
+    accent: "#7c6cf0",
+    tag: "皮肤",
+  },
+];
+
+// 全部可选皮肤的 id（含默认）。主题存档对不上这张表时回落默认——
+// 皮肤下架过（森林绿 / 薰衣草 / 蜜桃），旧存档还指着它的话整站会变成一套没人定义的变量。
+export const THEME_IDS = new Set([
+  "default",
+  ...FREE_THEMES.map((it) => it.id),
+  ...SHOP_ITEMS.filter((it) => it.id.startsWith("theme-")).map((it) => it.id),
+]);
+
 // 分类顺序（用于分组展示）。tag 与 SHOP_ITEMS 中一致。
 export const SHOP_CATEGORIES = [
   { tag: "皮肤", labelKey: "reward.cat.theme",  icon: "🎨" },
@@ -184,7 +174,7 @@ export const SHOP_CATEGORIES = [
 
 // 内置商品 id 集合：这些商品的名称/描述走 i18n（reward.item.<id>.*），
 // 自定义商品是用户自己写的，原样显示不翻译。
-const BUILTIN_IDS = new Set(SHOP_ITEMS.map((it) => it.id));
+const BUILTIN_IDS = new Set([...SHOP_ITEMS, ...FREE_THEMES].map((it) => it.id));
 
 export function shopItemName(t, item) {
   return BUILTIN_IDS.has(item.id) ? t(`reward.item.${item.id}.name`) : item.name;

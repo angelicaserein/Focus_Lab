@@ -8,14 +8,13 @@ import RandomTaskDrawer from "@/pages/Focus/RandomTaskDrawer";
 import RecommendStrip from "@/pages/Focus/RecommendStrip";
 import FocusDurationPicker from "@/pages/Focus/FocusDurationPicker";
 
-// 普通（非沉浸）视图：上=四象限，中=计时控制台（今天做什么/正倒计时/时长/开始）+情景与推荐，
-// 下=已选任务卡，纵向堆叠。
+// 普通（非沉浸）视图：上=四象限，中=计时控制台（今天做什么/正倒计时/时长/开始）+情景与推荐，纵向堆叠。
+// 已选任务不再单独成卡：选中状态直接由四象限里任务标签的高亮体现（星标 / .focused）。
 // 随记 / 分心 / 聊天记录已移至历史页统一回顾，本页专注于「开始一次专注」。
 // React.memo：计时器每 500ms tick 会让 FocusPage 重渲染，但本组件不消费 seconds，
 // props 引用稳定（计时器回调已 useCallback，context 方法来自不随 tick 重渲染的祖先），
 // memo 后即可在 tick 时跳过，连带跳过内部的四象限任务板。
 function FocusConsole({
-  selectedTodos,
   hasSelection,
   canReset,
   scenarios = [],
@@ -30,8 +29,6 @@ function FocusConsole({
   canEditDuration = true,
   onStart,
   onReset,
-  onClear,
-  onRemoveFocus,
   onDrawerSelect,
   availableTodos = [],
   onAddFocus,
@@ -71,8 +68,7 @@ function FocusConsole({
             <EisenhowerMatrix onStartImmersive={onStartImmersive} />
           </div>
 
-          {/* 中：计时控制台（今天做什么 → 正/倒计时 → 时长 → 开始）+ 情景；
-              已选任务单独成卡，落在整页最下方 */}
+          {/* 中：计时控制台（今天做什么 → 正/倒计时 → 时长 → 开始）+ 情景 */}
           <div className="focus-col-left">
             <div className="focus-card focus-card-wide">
               {hasScenarioSide && (
@@ -190,47 +186,6 @@ function FocusConsole({
 
             {/* 情景推荐：有「当前情景」时，主动推荐候选任务 */}
             <RecommendStrip availableTodos={availableTodos} onPick={onAddFocus} />
-
-            {/* 下：已选任务（可多选）独立成卡，收在整页最底部 */}
-            <div className="focus-card focus-selected-card">
-              <div className="focus-card-header">
-                <span className="card-label">
-                  {t("focus.selectedTasks")}
-                  {hasSelection && <span className="focus-count">{selectedTodos.length}</span>}
-                </span>
-                <button
-                  type="button"
-                  className="clear-focus"
-                  onClick={onClear}
-                  disabled={!hasSelection}
-                >
-                  {t("focus.clear")}
-                </button>
-              </div>
-
-              {hasSelection ? (
-                <div className="focus-chip-list">
-                  {selectedTodos.map((todo) => (
-                    <span key={todo.id} className="focus-chip">
-                      <span className="focus-chip-text">{todo.text}</span>
-                      <button
-                        type="button"
-                        className="focus-chip-remove"
-                        onClick={() => onRemoveFocus(todo.id)}
-                        aria-label={t("focus.removeTask", { text: todo.text })}
-                        title={t("focus.remove")}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <div className="focus-task-placeholder">
-                  {t("focus.taskPlaceholder")}
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </div>

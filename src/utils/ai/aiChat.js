@@ -12,7 +12,7 @@
 //
 //  三模式的机械件（配置 / hasApiKey / delay / SDK 直连 / 代理请求）见 aiClient.js。
 // ──────────────────────────────────────────────────────────────
-import { IS_PROD, hasApiKey, delay, chatComplete, postProxy } from "@/utils/ai/aiClient";
+import { IS_PROD, hasApiKey, delay, chatComplete, postProxy, toAiError } from "@/utils/ai/aiClient";
 
 const systemPrompt = (lang) =>
   lang === "en"
@@ -49,12 +49,22 @@ const toChatMsgs = (messages) =>
   }));
 
 // messages: [{ role: 'user' | 'ai', text }]；lang 决定回复语言与离线示例语言。
+//
+// 返回 { text, degraded, errorKind }：
+//   degraded=true 表示这句不是模型说的，是断网 / 出错后垫上的离线示例。
+//   陪伴对话仍然不在界面上留一条报错（那对目标人群太硬），但一定要标出来——
+//   配了 key 的人断网时拿到一条示例回复却以为伙伴真这么回答，比报错更糟。
+//   无 key 的示例模式不算降级：界面上本来就一直挂着「演示模式」。
 export async function getAiReply(messages, lang = "zh") {
   const userCount = messages.filter((m) => m.role === "user").length;
   const samples = SAMPLE_REPLIES[lang] ?? SAMPLE_REPLIES.zh;
-  const sampleReply = async () => {
+  const sampleReply = async (errorKind = null) => {
     await delay(500 + Math.random() * 400);
-    return samples[userCount % samples.length];
+    return {
+      text: samples[userCount % samples.length],
+      degraded: Boolean(errorKind),
+      errorKind,
+    };
   };
 
   // 本地开发且无 API key → 示例回复
@@ -64,19 +74,20 @@ export async function getAiReply(messages, lang = "zh") {
   if (IS_PROD) {
     try {
       const { text } = await postProxy("/api/chat", { messages: toChatMsgs(messages), lang });
-      return text;
-    } catch {
-      return sampleReply();
+      return { text, degraded: false, errorKind: null };
+    } catch (err) {
+      return sampleReply(toAiError(err).kind);
     }
   }
 
   // 本地开发 + 有 API key → 直接调用 SDK
   try {
-    return await chatComplete({
+    const text = await chatComplete({
       messages: [{ role: "system", content: systemPrompt(lang) }, ...toChatMsgs(messages)],
       maxTokens: 256,
     });
-  } catch {
-    return sampleReply();
+    return { text, degraded: false, errorKind: null };
+  } catch (err) {
+    return sampleReply(toAiError(err).kind);
   }
 }

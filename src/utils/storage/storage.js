@@ -228,8 +228,7 @@ const KEY_MAP = {
   // 功能树 / 废弃页面的开关名单
   disabledFeatures:  { key: STORAGE_KEYS.DISABLED_FEATURES  },
   enabledDeprecated: { key: STORAGE_KEYS.ENABLED_DEPRECATED },
-  // AI 生成的语气包与任务拆分偏好：都是用户提过 prompt / 调过档位才有的
-  tonePack:       { key: STORAGE_KEYS.TONE_PACK        },
+  // 任务拆分偏好：用户调过档位才有的
   taskSplitPrefs: { key: STORAGE_KEYS.TASK_SPLIT_PREFS },
   // 偏好设置
   prefCountupFullMins: { key: STORAGE_KEYS.PREF_COUNTUP_FULL_MINS },

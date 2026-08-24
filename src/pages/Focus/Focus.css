@@ -60,11 +60,6 @@
   border-left: none;
 }
 
-/* 已选任务卡：整页最下方，横向铺满 */
-.focus-card.focus-selected-card {
-  gap: 12px;
-}
-
 @media (max-width: 768px) {
   .focus-main {
     gap: 16px;
@@ -116,43 +111,6 @@
   color: var(--accent);
 }
 
-.clear-focus {
-  background: transparent;
-  border: 1.5px solid var(--border-accent);
-  color: var(--accent-mid);
-  padding: 7px 14px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
-}
-
-.clear-focus:hover:not(:disabled) {
-  background: var(--accent-hover);
-}
-
-.clear-focus:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.focus-task-name {
-  font-size: 1.2rem;
-  font-weight: 600;
-  line-height: 1.5;
-  color: var(--text-heading);
-  min-height: 56px;
-}
-
-.focus-task-placeholder {
-  font-size: 1rem;
-  font-weight: 400;
-  color: var(--text-faint);
-  min-height: 40px;
-  line-height: 1.6;
-}
-
 /* 今天做什么？抽卡入口 */
 .focus-draw-btn {
   width: 100%;
@@ -173,75 +131,6 @@
   background: var(--accent-hover);
   border-color: var(--accent);
   color: var(--accent);
-}
-
-/* 已选任务计数徽章 */
-.focus-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  margin-left: 8px;
-  padding: 0 5px;
-  border-radius: 9px;
-  background: var(--accent-solid);
-  color: var(--on-accent);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0;
-  vertical-align: middle;
-}
-
-/* 已选任务 chip 列表（普通视图） */
-.focus-chip-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  min-height: 56px;
-  align-content: flex-start;
-}
-
-.focus-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  max-width: 100%;
-  padding: 7px 8px 7px 12px;
-  border-radius: 14px;
-  background: var(--accent-bg);
-  border: 1.5px solid var(--border-accent);
-  color: var(--text-heading);
-  font-size: 0.92rem;
-  font-weight: 600;
-}
-
-.focus-chip-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 220px;
-}
-
-.focus-chip-remove {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--accent-mid);
-  font-size: 1.05rem;
-  line-height: 1;
-  cursor: pointer;
-  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
-}
-
-.focus-chip-remove:hover {
-  background: var(--accent-solid);
-  color: var(--on-accent);
 }
 
 

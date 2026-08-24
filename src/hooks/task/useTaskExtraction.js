@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { aiErrorText } from "@/utils/ai/aiClient";
 import { useTodos } from "@/context/TodoContext";
 import { useDatabases } from "@/context/DatabaseContext";
 import {
@@ -13,7 +14,9 @@ import { useLanguage } from "@/context/LanguageContext";
 // 编排「AI 笔记 → 任务」的一次会话。
 // 状态机：idle → (asking →) loading → review → (commit) → idle ；出错则 error。
 //   · request(text)   发起。若设置页开了「先反问」且模型确实有要问的，
-//                     先进 asking 持有问题；否则直接进 loading 抽取
+//                     先进 asking 持有问题；否则直接进 loading 抽取。
+//                     后一种情况置 clarifySkipped，让评审面板能说明「这次没问」——
+//                     否则「模型觉得不用问」和「反问那步失败了」在界面上长得一模一样。
 //   · answer(answers) 带着反问答案继续抽取（跳过 = 传 []）
 //   · commit(tasks)   把用户审核后的任务落到当前激活的任务库
 //   · refine(task)    把某一条再拆细，返回新任务数组（不改状态机，评审面板自己就地替换）
@@ -31,6 +34,8 @@ export default function useTaskExtraction() {
   const [candidates, setCandidates] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [pendingText, setPendingText] = useState("");
+  // 开了「先反问」却没问成（模型返回空 / 这一步失败）
+  const [clarifySkipped, setClarifySkipped] = useState(false);
   const [error, setError] = useState(null);
 
   // 真正去抽取。answers = [{ question, answer }]，没有反问环节时为 []。
@@ -49,7 +54,9 @@ export default function useTaskExtraction() {
         setQuestions([]);
         setStatus("review");
       } catch (e) {
-        setError(e?.message || t("brainDump.failed"));
+        // 认得出的失败（401/429/5xx/断网）给一句「该怎么办」，
+        // 而不是把 `HTTP 500` 这种只报现象的话原样贴到界面上。
+        setError(aiErrorText(t, e, "brainDump.failed"));
         setStatus("error");
       }
     },
@@ -61,6 +68,8 @@ export default function useTaskExtraction() {
       const input = (text ?? "").trim();
       if (!input || status === "loading") return;
       setPendingText(input);
+
+      setClarifySkipped(false);
 
       if (!prefs.askFirst) {
         await extract(input, []);
@@ -80,6 +89,7 @@ export default function useTaskExtraction() {
         setQuestions(qs);
         setStatus("asking");
       } else {
+        setClarifySkipped(true);
         await extract(input, []);
       }
     },
@@ -130,5 +140,8 @@ export default function useTaskExtraction() {
 
   const isOpen = status !== "idle";
 
-  return { status, isOpen, candidates, questions, error, request, answer, refine, commit, close };
+  return {
+    status, isOpen, candidates, questions, clarifySkipped,
+    error, request, answer, refine, commit, close,
+  };
 }

@@ -46,7 +46,7 @@ describe("getAiReply", () => {
       { role: "user", content: "还是卡" },
     ]);
     expect(body.lang).toBe("zh");
-    expect(out).toBe("慢慢来");
+    expect(out).toEqual({ text: "慢慢来", degraded: false, errorKind: null });
   });
 
   it("本地有 key 时直连 SDK，system 提示词跟随语言", async () => {
@@ -66,8 +66,10 @@ describe("getAiReply", () => {
     const zh = await getAiReply(msgs("我卡住了"), "zh");
     const en = await getAiReply(msgs("stuck"), "en");
 
-    expect(zh).toMatch(/[一-鿿]/);
-    expect(en).not.toMatch(/[一-鿿]/);
+    expect(zh.text).toMatch(/[一-鿿]/);
+    expect(en.text).not.toMatch(/[一-鿿]/);
+    // 无 key 是「一直就是演示模式」，不是降级——界面上另有常驻角标
+    expect(zh.degraded).toBe(false);
     expect(shell.postProxy).not.toHaveBeenCalled();
   });
 
@@ -77,28 +79,38 @@ describe("getAiReply", () => {
     const first = await getAiReply(msgs("一"), "zh");
     const second = await getAiReply(msgs("一", "回", "二"), "zh");
 
-    expect(second).not.toBe(first);
+    expect(second.text).not.toBe(first.text);
   });
 
   it("未知语言回落中文示例，而不是给一句 undefined", async () => {
     shell.hasKey = false;
 
-    expect(typeof await getAiReply(msgs("嗨"), "de")).toBe("string");
+    expect(typeof (await getAiReply(msgs("嗨"), "de")).text).toBe("string");
   });
 
-  it("代理挂了就回退示例回复——陪伴对话不该在界面上留一条报错", async () => {
+  it("代理挂了就回退示例回复——但要标成降级，不能冒充伙伴的真回答", async () => {
     shell.isProd = true;
-    shell.postProxy.mockRejectedValue(new Error("HTTP 503"));
+    shell.postProxy.mockRejectedValue(Object.assign(new Error("HTTP 503"), { status: 503 }));
 
     const out = await getAiReply(msgs("我卡住了"), "zh");
 
-    expect(typeof out).toBe("string");
-    expect(out.length).toBeGreaterThan(0);
+    expect(out.text.length).toBeGreaterThan(0);
+    expect(out.degraded).toBe(true);
+    expect(out.errorKind).toBe("server");
   });
 
-  it("SDK 抛错时同样回退示例", async () => {
-    shell.chatComplete.mockRejectedValue(new Error("boom"));
+  it("SDK 抛错时同样回退示例并标记降级", async () => {
+    shell.chatComplete.mockRejectedValue(Object.assign(new Error("bad key"), { status: 401 }));
 
-    expect(typeof await getAiReply(msgs("我卡住了"), "zh")).toBe("string");
+    const out = await getAiReply(msgs("我卡住了"), "zh");
+
+    expect(out.degraded).toBe(true);
+    expect(out.errorKind).toBe("auth");
+  });
+
+  it("断网（连请求都没发出去）归到 network，而不是笼统的未知错误", async () => {
+    shell.chatComplete.mockRejectedValue(new TypeError("Failed to fetch"));
+
+    expect((await getAiReply(msgs("我卡住了"), "zh")).errorKind).toBe("network");
   });
 });

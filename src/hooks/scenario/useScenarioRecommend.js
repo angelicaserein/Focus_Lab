@@ -34,6 +34,8 @@ export default function useScenarioRecommend({ todos: todosArg, limit = 5 } = {}
   // AI 结果：{ order, reasons }。重置依据 base 的 id 指纹（候选变了就作废旧 AI 结果）。
   const [ai, setAi] = useState(null);
   const [aiStatus, setAiStatus] = useState("idle"); // idle | loading | done | error
+  // 失败归因（auth / rate / server / network），供界面给出「该怎么办」而非一句「失败了」
+  const [aiErrorKind, setAiErrorKind] = useState(null);
 
   const baseKey = base.map((b) => b.todo.id).join(",");
 
@@ -67,7 +69,8 @@ export default function useScenarioRecommend({ todos: todosArg, limit = 5 } = {}
       });
       setAi({ ...result, baseKey });
       setAiStatus("done");
-    } catch {
+    } catch (e) {
+      setAiErrorKind(e?.kind ?? null);
       setAiStatus("error");
     }
   }, [base, aiStatus, activeScenario, ctx, baseKey, lang, t]);
@@ -77,6 +80,7 @@ export default function useScenarioRecommend({ todos: todosArg, limit = 5 } = {}
     envProfile: ctx?.envProfile ?? null,
     ranked,
     aiStatus,
+    aiErrorKind,
     aiEnabled: hasApiKey(),
     runAi,
   };

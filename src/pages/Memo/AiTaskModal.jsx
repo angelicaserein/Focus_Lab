@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { sanitizeTaskAttrs } from "@/utils/ai/aiTasks";
 import { optionLabel } from "@/utils/task/taskAttrUtils";
+import { aiErrorText } from "@/utils/ai/aiClient";
 import { useLanguage } from "@/context/LanguageContext";
 import "./AiTaskModal.css";
 
@@ -35,8 +36,10 @@ function attrChips(attrs, database, t) {
 let refineSeq = 0;
 
 // onRefine?: (task) => Promise<[{text, attrs}]>，给了才显示每行的「再细化」。
-// 目前只有倒脑子传它；备忘录/截止日期助手不传，那两处行为原样不变。
-export default function AiTaskModal({ status, candidates, error, database, onRefine, onCommit, onClose }) {
+// 倒脑子和备忘录「整理成任务」都传；截止日期助手不调 AI，不传。
+export default function AiTaskModal({
+  status, candidates, error, database, clarifySkipped, onRefine, onCommit, onClose,
+}) {
   const { t } = useLanguage();
   // 本地可编辑副本：候选变化时重新播种（标题可改、勾选可切换）。
   const [rows, setRows] = useState([]);
@@ -81,8 +84,8 @@ export default function AiTaskModal({ status, candidates, error, database, onRef
         }));
         return [...prev.slice(0, at), ...made, ...prev.slice(at + 1)];
       });
-    } catch {
-      setRefineError(t("memo.ai.refineFailed"));
+    } catch (e) {
+      setRefineError(aiErrorText(t, e, "memo.ai.refineFailed"));
     } finally {
       setRefining(null);
     }
@@ -165,6 +168,7 @@ export default function AiTaskModal({ status, candidates, error, database, onRef
 
         {status === "review" && rows.length > 0 && (
           <>
+            {clarifySkipped && <p className="ait-note">{t("memo.ai.noClarify")}</p>}
             <p className="ait-hint">{t("memo.ai.hint")}</p>
 
             <ul className="ait-list">

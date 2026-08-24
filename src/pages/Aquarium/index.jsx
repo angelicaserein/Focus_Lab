@@ -19,6 +19,7 @@ import {
   STAGE,
   growthOf,
   feedResident,
+  hatchedSpecies,
   newResident,
   normalizeCollection,
   numberResidents,
@@ -33,10 +34,15 @@ import "./Aquarium.css";
 const DEBUG_ENABLED = import.meta.env.DEV;
 
 // 生态缸：金币换鱼的收集页。花金币必出一件「还没入住」的新物种（无损、无重复挫败，
-// 沿用祈愿页的收集观）——弹一张收集卡揭晓是谁，收下后落进缸里，从此是常驻住客。
+// 沿用祈愿页的收集观）。
 //
-// 落进缸的是一颗卵：孵成幼体、再长成图鉴里的样子（见 data/aquarium/growth）。故收集进度
-// 存的是 { id, born } 而不只是 id——长到哪一步由 born 与当下时间现算，不存阶段。
+// 但换回来的不是一只成体，而是一颗看不出品种的卵：是谁在抽的那一刻就定了（存进档里），
+// 只是不告诉你——要等它孵成幼体、显形，图鉴那一格才解锁、名字才报得出来。故：
+//   已拿到（含卵）＝ ownedSpecies，抽取避重与「是否收集满」看它；
+//   已显形       ＝ hatchedSpecies，图鉴、生长情况里报名字看它。
+// 卵一律画成中性色的同一颗（见 FishGlyph / AquariumTank 的 tint），颜色也不许剧透。
+//
+// 成长见 data/aquarium/growth：存的是 { id, born }，长到哪一步由 born 与当下时间现算。
 
 // 距离下一阶段还有多久，说人话。不到一小时按分钟，超过按小时（保留一位小数太啰嗦，取整）。
 function remainLabel(ms, t) {
@@ -81,13 +87,27 @@ export default function AquariumPage() {
   }, [swimming]);
 
   const [busy, setBusy] = useState(false);
-  const [card, setCard] = useState(null); // 收集卡：{ id } | null
+  // 卡片队列：{ kind: "egg" | "hatch", id }。买到的卵弹一张（收下才落进缸），
+  // 破膜的弹一张（只是揭晓）。同一刻可能两件事撞上，故排队一张张来。
+  const [cards, setCards] = useState([]);
+  const card = cards[0] ?? null;
 
-  // 图鉴与「是否收集满」看的是物种（去重），不是只数。
+  // 成长随时间走，得有人推着重渲染（图鉴解锁、破膜揭晓都挂在这个 now 上）。全长大了就不再跑。
+  const [now, setNow] = useState(() => Date.now());
+
+  // 已拿到的物种（含还是卵的）：抽取避重、判「收集满」用它——卵也占着那一格，
+  // 不然会抽到一个你已经有卵在孵的物种。
   const ownedSet = useMemo(() => ownedSpecies(entries), [entries]);
   const allMet = ownedSet.size >= TOTAL_SPECIES;
+  // 已显形的物种：图鉴只解锁这些。
+  const metSet = useMemo(() => hatchedSpecies(entries, now), [entries, now]);
+  const eggCount = useMemo(
+    () => entries.filter((e) => growthOf(e.born, now).stage === STAGE.EGG).length,
+    [entries, now],
+  );
 
   // 同一物种养了不止一只时看最早那只：图鉴显示的是「你养得最久的那只长到哪了」。
+  // 最早那只必然是长得最靠前的那只，故已显形的物种在图鉴里不会显示成卵。
   const bornOf = useMemo(() => {
     const m = new Map();
     entries.forEach((e) => {
@@ -97,8 +117,6 @@ export default function AquariumPage() {
     return m;
   }, [entries]);
 
-  // 图鉴里的成长是随时间走的，得有人推着重渲染。全长大了就不再跑这个表。
-  const [now, setNow] = useState(() => Date.now());
   const growing = useMemo(
     () => swimming.some((e) => growthOf(e.born, now).stage !== STAGE.ADULT),
     [swimming, now],
@@ -108,11 +126,30 @@ export default function AquariumPage() {
     const id = setInterval(() => setNow(Date.now()), 30000);
     return () => clearInterval(id);
   }, [growing]);
+
+  // 破膜＝显形：开着页面时，卵一变成幼体就弹一张卡揭晓是谁。
+  // eggRef 记的是上一次看到还是卵的那些 uid；挂载那一次只记录不揭晓——
+  // 不在页面时破的膜不补弹卡（回来时图鉴里已经解锁了，看得到）。
+  const eggRef = useRef(null);
+  useEffect(() => {
+    const stillEgg = new Set(
+      entries.filter((e) => growthOf(e.born, now).stage === STAGE.EGG).map((e) => e.uid),
+    );
+    const prev = eggRef.current;
+    eggRef.current = stillEgg;
+    if (!prev) return;
+    // 「不再是卵」里要剔掉存档里已经没了的那些（调试删掉的不算破膜）
+    const byUid = new Map(entries.map((e) => [e.uid, e]));
+    const hatched = [...prev].filter((uid) => !stillEgg.has(uid) && byUid.has(uid));
+    if (hatched.length) {
+      setCards((q) => [...q, ...hatched.map((uid) => ({ kind: "hatch", id: byUid.get(uid).id }))]);
+    }
+  }, [entries, now]);
+
   const canBuy = coins >= FISH_COST && !busy && !allMet;
   const canBuyExtra = coins >= FISH_COST && !busy;
 
-  // 先揭晓、后安置：抽到就立刻弹解锁卡（这一刻是「你遇到了谁」），
-  // 收下之后才把鱼扔进缸里溅起水花（这一刻是「它住进来了」）。
+  // 抽到谁这一刻就定了，但卡上只给一颗卵——揭晓推迟到破膜那天。
   // 先抽后扣：抽空（理论上 allMet 已拦住）时金币不能已经花出去了——
   // 那会是「按了一下，币没了，什么都没得到」，比不给抽还糟。
   const buy = () => {
@@ -121,7 +158,7 @@ export default function AquariumPage() {
     if (!id) return;
     if (!spendCoins(FISH_COST)) return;
     setBusy(true);
-    setCard({ id });
+    setCards((q) => [...q, { kind: "egg", id }]);
   };
 
   // 存档追加一只，并让它从上面落进缸里。买新物种与「再请一只」走的是同一条路——
@@ -167,11 +204,12 @@ export default function AquariumPage() {
     setCollection([]);
   };
 
-  const collect = () => {
-    if (!card) return;
-    const { id } = card;
-    setCard(null);
-    settle(id); // 落进缸里，溅起水花，从此是常驻住客——先是一颗卵
+  // 关掉队首那张。买来的那颗卵是在这一刻才落进缸里的（先接过卵、再放进去）；
+  // 破膜卡只是揭晓，缸里那只早自己长过去了，没什么要安置。
+  const dismiss = () => {
+    const top = cards[0];
+    setCards((q) => q.slice(1));
+    if (top?.kind === "egg") settle(top.id);
   };
 
   return (
@@ -256,17 +294,21 @@ export default function AquariumPage() {
         </div>
       </div>
 
-      {/* 图鉴：已入住＝彩色，未遇见＝剪影 */}
+      {/* 图鉴：已显形＝彩色，还没显形（含手里正孵着的卵）＝剪影 */}
       <section className="aq-dex">
         <div className="aq-dex-head">
           <h2>{t("aquarium.dexTitle")}</h2>
           <span className="aq-dex-count">
-            {t("aquarium.dexCount", { n: ownedSet.size, total: TOTAL_SPECIES })}
+            {t("aquarium.dexCount", { n: metSet.size, total: TOTAL_SPECIES })}
+            {/* 缸里还孵着几颗——不然「买了却没多一格」会像是没生效 */}
+            {eggCount > 0 && (
+              <span className="aq-dex-eggs">{t("aquarium.eggsPending", { n: eggCount })}</span>
+            )}
           </span>
         </div>
         <div className="aq-grid">
           {FISH_SPECIES.map((sp) => {
-            const owned = ownedSet.has(sp.id);
+            const owned = metSet.has(sp.id);
             // 收集满后，图鉴里的每一格都成了「再买一只」的按钮。
             const buyable = allMet && owned;
             // 还没长大的：格子里就是它此刻的样子（卵/幼体），另附还要多久。
@@ -327,8 +369,8 @@ export default function AquariumPage() {
           先看还在长的，再看已经收好的。 */}
       <SpecimenBoard sealed={sealed} flasks={flasks} t={t} />
 
-      {/* 收集卡 */}
-      {card && <CollectCard id={card.id} t={t} onCollect={collect} />}
+      {/* 卡片：买到的卵（还不知是谁）／破膜显形（第一次报名字） */}
+      {card && <CollectCard kind={card.kind} id={card.id} t={t} onClose={dismiss} />}
     </div>
   );
 }
@@ -375,14 +417,19 @@ function GrowthBoard({ entries, now, t }) {
       <ul className="aq-grow-list" style={{ "--hatch": `${(HATCH_AT * 100).toFixed(1)}%` }}>
         {rows.map((r) => {
           const done = r.gr.stage === STAGE.ADULT;
+          // 还是卵的那行不报品种：名字、序号都得等破膜（序号也是线索——「小鱼 ②」等于说了）
+          const egg = r.gr.stage === STAGE.EGG;
+          const name = egg
+            ? t("aquarium.eggUnknown")
+            : t(`aquarium.species.${r.id}.name`);
           return (
             <li key={r.uid} className={`aq-grow-row${done ? " done" : ""}`}>
               <span className="aq-grow-icon">
                 <FishGlyph glyph={r.sp.glyph} size={26} stage={r.gr.stage} scale={r.gr.scale} />
               </span>
-              <span className="aq-grow-name">
-                {t(`aquarium.species.${r.id}.name`)}
-                {many.has(r.id) && <span className="aq-grow-nth">{r.nth}</span>}
+              <span className={`aq-grow-name${egg ? " unknown" : ""}`}>
+                {name}
+                {!egg && many.has(r.id) && <span className="aq-grow-nth">{r.nth}</span>}
               </span>
               <span className="aq-grow-meta">
                 {t(`aquarium.stage.${r.gr.stage}`)}
@@ -395,7 +442,7 @@ function GrowthBoard({ entries, now, t }) {
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={Math.round(r.gr.grown * 100)}
-                  aria-label={t(`aquarium.species.${r.id}.name`)}
+                  aria-label={name}
                 >
                   <i style={{ width: `${(r.gr.grown * 100).toFixed(1)}%` }} />
                 </span>
@@ -438,34 +485,44 @@ function SpecimenBoard({ sealed, flasks, t }) {
   );
 }
 
-// 收集卡：鱼跃出后弹出，展示物种 + 稀有度 + 一句话，点「收下」入册并潜回缸里。
-function CollectCard({ id, t, onCollect }) {
+// 卡片。两种：
+//   egg   刚换回来的一颗卵——不给名字、不给稀有度（星数也是线索），收下才落进缸里
+//   hatch 它破膜了——这一刻才第一次报出是谁，图鉴同时解锁
+function CollectCard({ kind, id, t, onClose }) {
   const sp = speciesById(id);
   if (!sp) return null;
+  const egg = kind === "egg";
   return (
     <div className="aq-card-veil" role="dialog" aria-modal="true">
-      <div className={`aq-card rarity-${sp.rarity}`}>
+      <div className={`aq-card rarity-${egg ? 1 : sp.rarity}`}>
         <div className="aq-card-glow" aria-hidden="true" />
-        <div className="aq-card-eye">{t("aquarium.new")}</div>
+        <div className="aq-card-eye">{t(egg ? "aquarium.eggNew" : "aquarium.hatchedEye")}</div>
         <div className="aq-card-medal">
-          <FishGlyph glyph={sp.glyph} size={66} />
+          {/* 卵走 stage=EGG：通用卵造型 + 中性色，看不出是哪一种 */}
+          <FishGlyph glyph={sp.glyph} size={66} stage={egg ? STAGE.EGG : STAGE.ADULT} />
         </div>
-        <h3 className="aq-card-name">{t(`aquarium.species.${id}.name`)}</h3>
-        <div className="aq-card-rarity">
-          {[1, 2, 3].map((i) => (
-            <i key={i} className={i <= sp.rarity ? "on" : ""} />
-          ))}
-          <span className="aq-card-rarity-label">{t(`aquarium.rarity.${sp.rarity}`)}</span>
-        </div>
-        <p className="aq-card-cap">{t(`aquarium.species.${id}.desc`)}</p>
-        {/* 卡上给的是成体像——「你遇到了谁」不该被一颗看不出物种的卵替掉；
-            真正落进缸的是卵，故在这里说清楚，免得以为图鉴显示错了。 */}
-        <p className="aq-card-egg">
-          <Egg size={14} aria-hidden="true" />
-          {t("aquarium.eggNote")}
+        <h3 className="aq-card-name">
+          {t(egg ? "aquarium.eggName" : `aquarium.species.${id}.name`)}
+        </h3>
+        {!egg && (
+          <div className="aq-card-rarity">
+            {[1, 2, 3].map((i) => (
+              <i key={i} className={i <= sp.rarity ? "on" : ""} />
+            ))}
+            <span className="aq-card-rarity-label">{t(`aquarium.rarity.${sp.rarity}`)}</span>
+          </div>
+        )}
+        <p className="aq-card-cap">
+          {t(egg ? "aquarium.eggMystery" : `aquarium.species.${id}.desc`)}
         </p>
-        <button type="button" className="aq-card-btn" onClick={onCollect}>
-          {t("aquarium.collect")}
+        {egg && (
+          <p className="aq-card-egg">
+            <Egg size={14} aria-hidden="true" />
+            {t("aquarium.eggWait")}
+          </p>
+        )}
+        <button type="button" className="aq-card-btn" onClick={onClose}>
+          {t(egg ? "aquarium.eggPut" : "aquarium.meet")}
         </button>
       </div>
     </div>

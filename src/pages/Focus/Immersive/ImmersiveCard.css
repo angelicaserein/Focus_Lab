@@ -196,12 +196,38 @@
   max-width: 360px;
 }
 
-/* 已运行时长读数 */
+/* 已运行时长读数：默认不显示，鼠标移到烧瓶上（或键盘聚焦）才浮现 */
+.immersive-flask-peek {
+  position: relative;
+  outline: none;
+}
+
 .immersive-time {
-  margin-left: auto;
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  font-size: 0.95rem;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.05em;
-  color: var(--text-body);
+  color: var(--text-heading);
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.immersive-flask-peek:hover .immersive-time,
+.immersive-flask-peek:focus-visible .immersive-time {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .immersive-time { transition: none; }
 }
 
 /* 情境标签 */

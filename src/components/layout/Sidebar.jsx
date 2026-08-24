@@ -1,10 +1,9 @@
-import React, { useMemo, useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import {
   Settings,
   Coins,
   Languages,
-  Palette,
   Menu,
   X,
   PanelLeftClose,
@@ -14,23 +13,21 @@ import { useTodos } from "@/context/TodoContext";
 import { useDDL } from "@/context/DDLContext";
 import { useScenarios } from "@/context/ScenarioContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { useReward, SHOP_ITEMS } from "@/context/RewardContext";
-import { useTheme } from "@/context/ThemeContext";
+import { useReward } from "@/context/RewardContext";
 import { useFeatures } from "@/context/FeatureContext";
 import { FEATURE_KEYS } from "@/pages/FunctionTree/functionTreeData";
 import { LANGUAGES } from "@/i18n/translations";
 import NAV_SECTIONS from "@/components/layout/navSections";
 import GlobalSearch from "@/components/search/GlobalSearch";
+import { useOpenPalette } from "@/components/search/commandPalette";
 
 export default function Sidebar() {
   const { pathname } = useLocation();
-  const navigate = useNavigate();
   const { todos } = useTodos();
   const { computeBadgeCount } = useDDL();
   const { scenarios, activeScenarioId, setActiveScenario } = useScenarios();
   const { t, lang, setLang } = useLanguage();
-  const { coins, isOwned } = useReward();
-  const { activeTheme, setTheme } = useTheme();
+  const { coins } = useReward();
   const { isEnabled } = useFeatures();
 
   // 功能树里被关掉的功能，从导航中隐去；某分区被清空后连标题一起省略。
@@ -44,27 +41,6 @@ export default function Sidebar() {
   );
 
   const ddlBadge = useMemo(() => computeBadgeCount(todos), [todos, computeBadgeCount]);
-
-  // 已解锁的主题 id 列表（default 永远可用 + 商店里已购买的主题）。
-  const unlockedThemes = useMemo(
-    () => [
-      "default",
-      ...SHOP_ITEMS.filter((i) => i.id.startsWith("theme-") && isOwned(i.id)).map(
-        (i) => i.id,
-      ),
-    ],
-    [isOwned],
-  );
-
-  // 在已解锁主题间循环切换；只有默认主题时，引导去奖励商店解锁。
-  const cycleTheme = () => {
-    if (unlockedThemes.length <= 1) {
-      navigate("/reward");
-      return;
-    }
-    const idx = unlockedThemes.indexOf(activeTheme);
-    setTheme(unlockedThemes[(idx + 1) % unlockedThemes.length]);
-  };
 
   // 在支持的语言间循环切换（当前 en / zh）。
   const toggleLang = () => {
@@ -94,6 +70,15 @@ export default function Sidebar() {
     setOpen(false);
     setPeek(false);
   }, [pathname]);
+
+  // Ctrl/⌘+K 时侧栏可能正折叠着（或窄屏抽屉关着），搜索框此刻在屏幕外——
+  // 先把它露出来，聚焦那一下由 GlobalSearch 自己做。
+  useOpenPalette(
+    useCallback(() => {
+      setPeek(true);
+      setOpen(true);
+    }, []),
+  );
 
   // 抽屉打开时按 Esc 关闭。
   useEffect(() => {
@@ -233,23 +218,6 @@ export default function Sidebar() {
             title={t("sidebar.toggleLang")}
           >
             <Languages size={18} strokeWidth={2} aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            className="sidebar-icon-btn"
-            onClick={cycleTheme}
-            aria-label={
-              unlockedThemes.length <= 1
-                ? t("sidebar.unlockThemes")
-                : t("sidebar.cycleTheme")
-            }
-            title={
-              unlockedThemes.length <= 1
-                ? t("sidebar.unlockThemes")
-                : t("sidebar.cycleTheme")
-            }
-          >
-            <Palette size={18} strokeWidth={2} aria-hidden="true" />
           </button>
           <Link
             to="/settings"

@@ -6,7 +6,7 @@ import { useLanguage } from "@/context/LanguageContext";
 // 任务库工具栏（对标 Notion）：搜索 + 「筛选 / 排序」两个紧凑按钮，点开各自弹层。
 // 整条挂在库标签栏右端（见 .tasks-bar），所以这里是一行横排、无卡片外框。
 // 查询状态与操作来自 useTaskQuery（经 query 传入），本组件负责编排 UI。
-export default function TasksToolbar({ query, fields, scenario = null }) {
+export default function TasksToolbar({ query, fields, scenario = null, quickFilter = null }) {
   const {
     search, setSearch,
     filter, sorts,
@@ -72,6 +72,23 @@ export default function TasksToolbar({ query, fields, scenario = null }) {
       >
         {t("tasks.sort")}{sortCount ? ` · ${sortCount}` : ""}
       </button>
+
+      {quickFilter && (
+        <>
+          <button
+            className={`query-btn${quickFilter.value === "today" ? " active" : ""}`}
+            onClick={() => quickFilter.toggle("today")}
+          >
+            {t("tasks.quickToday")}
+          </button>
+          <button
+            className={`query-btn${quickFilter.value === "urgent" ? " active" : ""}`}
+            onClick={() => quickFilter.toggle("urgent")}
+          >
+            {t("tasks.quickUrgent")}
+          </button>
+        </>
+      )}
 
       {open === "filter" && (
         <FilterPopover

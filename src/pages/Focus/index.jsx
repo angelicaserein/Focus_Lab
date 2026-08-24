@@ -7,6 +7,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import useFocusTimer from "@/hooks/focus/useFocusTimer";
 import useFocusChat from "@/hooks/focus/useFocusChat";
 import usePrefs from "@/hooks/common/usePrefs";
+import useUnloadGuard from "@/hooks/common/useUnloadGuard";
 import useSessionEvents from "@/hooks/session/useSessionEvents";
 import useDistractionTracking from "@/hooks/focus/useDistractionTracking";
 import { usePageBrowsingState, useRegisterBrowsingHost } from "@/context/PageBrowsingContext";
@@ -49,7 +50,7 @@ function ImmersiveLoading() {
 
 export default function FocusPage() {
   const { todos, toggleTodo, addTodo } = useTodos();
-  const { focusedTodoIds, addFocusTodo, removeFocusTodo, clearFocusTodos, addFocusRecord, focusRecords } =
+  const { focusedTodoIds, addFocusTodo, removeFocusTodo, addFocusRecord, focusRecords } =
     useFocus();
   const { addCoins, coins } = useReward();
   const { t } = useLanguage();
@@ -238,6 +239,11 @@ export default function FocusPage() {
     onSessionReward: showSessionReward,
   });
 
+  // 会话开着的时候拦一次关窗 / 刷新：这段计时活在本组件里，页面一没就跟着没了。
+  // 判据用 sessionStartTs 而不是 isRunning——暂停中同样是「会话还没结束」，
+  // 这时关掉照样丢；秒数为 0 的空会话（刚开就想关）没什么可丢的，不打扰。
+  useUnloadGuard(sessionStartTs != null && seconds > 0);
+
   // 主页一键开专注：带 autoStart 进来的直接开会话、进沉浸层（不走仪式）。
   useAutoStartFromRoute(hasSelection, handleStart);
 
@@ -392,7 +398,6 @@ export default function FocusPage() {
       )}
 
       <FocusConsole
-        selectedTodos={selectedTodos}
         hasSelection={hasSelection}
         canReset={hasSelection && seconds > 0}
         scenarios={scenarios}
@@ -407,8 +412,6 @@ export default function FocusPage() {
         canEditDuration={!isImmersive && seconds === 0}
         onStart={beginRitual}
         onReset={resetTimer}
-        onClear={clearFocusTodos}
-        onRemoveFocus={removeFocusTodo}
         onDrawerSelect={handleDrawerSelect}
         availableTodos={availableTodos}
         onAddFocus={addToFocus}

@@ -7,7 +7,7 @@
 // 瓶口顶端 y 不再写死：由 neckLen（瓶口长度）自 shoulderY 上推得到，
 // 这样瓶口长度可独立于瓶肩位置自由调节。
 const CX = 40;
-const NECK_TOP_MIN = 10; // 瓶口顶端最高只能到这，给瓶塞/杯沿留出画布空间
+const NECK_TOP_MIN = 10; // 瓶口顶端最高只能到这，给瓶塞留出画布空间
 const BASE_Y = 128;
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
@@ -22,15 +22,15 @@ export const FLASK_PARAM_DEFS = [
 ];
 
 export const FLASK_PRESETS = {
-  round:    { neckHalf: 14, neckLen: 28, shoulderY: 44, bodyHalf: 34, bottomRound: 30, open: false },
-  triangle: { neckHalf: 8,  neckLen: 26, shoulderY: 42, bodyHalf: 34, bottomRound: 6,  open: false },
-  beaker:   { neckHalf: 26, neckLen: 8,  shoulderY: 24, bodyHalf: 28, bottomRound: 5,  open: true },
+  round:    { neckHalf: 14, neckLen: 28, shoulderY: 44, bodyHalf: 34, bottomRound: 30 },
+  triangle: { neckHalf: 8,  neckLen: 26, shoulderY: 42, bodyHalf: 34, bottomRound: 6 },
+  beaker:   { neckHalf: 26, neckLen: 8,  shoulderY: 24, bodyHalf: 28, bottomRound: 5 },
 };
 
 export const FLASK_PRESET_ORDER = ["round", "triangle", "beaker"];
 export const DEFAULT_FLASK_PRESET = "round";
 
-// 由参数生成瓶体轮廓、内壁高光、瓶塞/杯沿。各参数先夹取到合法范围，
+// 由参数生成瓶体轮廓、内壁高光、瓶塞。各参数先夹取到合法范围，
 // 保证任意输入都得到不自相交的形状。
 export function buildFlask(raw = {}) {
   const bodyHalf = clamp(raw.bodyHalf ?? 34, 18, 37);
@@ -40,7 +40,6 @@ export function buildFlask(raw = {}) {
   const shoulderY = clamp(raw.shoulderY ?? 44, 20, BASE_Y - bottomRound - 8);
   // 瓶口顶端 = 瓶肩上推 neckLen；夹取到 [NECK_TOP_MIN, 瓶肩上方 6px]，保证瓶口始终可见
   const neckTop = clamp(shoulderY - (raw.neckLen ?? 28), NECK_TOP_MIN, shoulderY - 6);
-  const open = !!raw.open;
 
   const lNeck = CX - neckHalf, rNeck = CX + neckHalf;
   const lBody = CX - bodyHalf, rBody = CX + bodyHalf;
@@ -64,27 +63,23 @@ export function buildFlask(raw = {}) {
     `L ${lBody + 4},${Math.max(shoulderY + 4, yCorner - 6)}`,
   ].join(" ");
 
-  // 带瓶塞：一枚上宽下窄的软木塞，坐在瓶口上，明显高出瓶身。
-  // 敞口：把瓶口画成一圈深色椭圆开口（像从上往下看进空瓶），一眼可辨。
+  // 瓶塞：一枚上宽下窄的软木塞，坐在瓶口上，明显高出瓶身。所有烧瓶一律带塞。
   const capTopHalf = neckHalf + 3;
   const capBotHalf = neckHalf + 0.5;
   const capTopY = neckTop - 9;
   const capBotY = neckTop + 4;
-  const cap = open
-    ? null
-    : [
-        `M ${CX - capTopHalf + 2},${capTopY}`,
-        `L ${CX + capTopHalf - 2},${capTopY}`,
-        `Q ${CX + capTopHalf},${capTopY} ${CX + capTopHalf},${capTopY + 2}`,
-        `L ${CX + capBotHalf},${capBotY}`,
-        `L ${CX - capBotHalf},${capBotY}`,
-        `L ${CX - capTopHalf},${capTopY + 2}`,
-        `Q ${CX - capTopHalf},${capTopY} ${CX - capTopHalf + 2},${capTopY}`,
-        "Z",
-      ].join(" ");
-  const rim = open ? { cx: CX, cy: neckTop, rx: neckHalf, ry: 3.4 } : null;
+  const cap = [
+    `M ${CX - capTopHalf + 2},${capTopY}`,
+    `L ${CX + capTopHalf - 2},${capTopY}`,
+    `Q ${CX + capTopHalf},${capTopY} ${CX + capTopHalf},${capTopY + 2}`,
+    `L ${CX + capBotHalf},${capBotY}`,
+    `L ${CX - capBotHalf},${capBotY}`,
+    `L ${CX - capTopHalf},${capTopY + 2}`,
+    `Q ${CX - capTopHalf},${capTopY} ${CX - capTopHalf + 2},${capTopY}`,
+    "Z",
+  ].join(" ");
 
-  return { path, highlight, cap, rim };
+  return { path, highlight, cap };
 }
 
 // 由「当前预设 + 各预设参数覆盖」组装规范结构。三个烧瓶各自独立保存微调，

@@ -1,8 +1,8 @@
 // ──────────────────────────────────────────────────────────────
 //  AI 封装共用底座
 //
-//  六个 AI 模块（aiChat / aiTasks / aiRecommend / aiMatrixAssign /
-//  aiTone / aiNarrate）都照搬同一套「三模式分流」：
+//  五个 AI 模块（aiChat / aiTasks / aiRecommend / aiMatrixAssign /
+//  aiNarrate）都照搬同一套「三模式分流」：
 //    1. 生产环境（Vercel）→ 调用 /api/* 代理，API key 在服务器侧
 //    2. 本地开发 + 有 VITE_OPENAI_API_KEY → 动态 import SDK 直连
 //    3. 本地开发 + 无 key → 各自的离线示例
@@ -41,11 +41,17 @@ export async function chatComplete({ messages, system, user, maxTokens }) {
     ];
   const { default: OpenAI } = await import("openai");
   const client = new OpenAI({ apiKey: API_KEY, dangerouslyAllowBrowser: true });
-  const resp = await client.chat.completions.create({
-    model: AI_MODEL,
-    max_completion_tokens: maxTokens,
-    messages: msgs,
-  });
+  let resp;
+  try {
+    resp = await client.chat.completions.create({
+      model: AI_MODEL,
+      max_completion_tokens: maxTokens,
+      messages: msgs,
+    });
+  } catch (err) {
+    // 和代理那条路合流到同一套分类上：调用方只认 err.kind，不必分辨是 SDK 还是 fetch。
+    throw toAiError(err);
+  }
   return resp.choices[0]?.message?.content ?? "";
 }
 
@@ -54,15 +60,66 @@ export async function chatComplete({ messages, system, user, maxTokens }) {
 // 打包前设 VITE_API_BASE=https://<你的 vercel 域名>（见 package.json 的 desktop:build）。
 const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/$/, "");
 
+// AI 调用失败的分类。界面上四种情况用户该做的事完全不同：
+//   auth    key 失效 → 去设置检查
+//   rate    限流     → 等一会儿再试
+//   server  服务端挂 → 不是你的问题，稍后再来
+//   network 断网     → 检查网络
+// 一律只抛 `HTTP ${status}` 的话，这四种在界面上长得一模一样。
+export const AI_ERROR_KINDS = ["auth", "rate", "server", "network", "unknown"];
+
+// i18n 里对应的可执行文案（common.aiError.*，见 i18n/common.js）。
+export const aiErrorMessageKey = (kind) =>
+  `common.aiError.${AI_ERROR_KINDS.includes(kind) ? kind : "unknown"}`;
+
+// 界面上一句话：认得出的失败给「该怎么办」，认不出的就用调用方自己的兜底文案。
+// 各处 catch 都是这一行，不必各写一遍 kind 判断。
+export const aiErrorText = (t, err, fallbackKey) => {
+  const kind = err?.kind;
+  return kind ? t(aiErrorMessageKey(kind)) : t(fallbackKey);
+};
+
+// 带分类的 AI 错误。catch 到之后读 err.kind 即可映射文案。
+export class AiError extends Error {
+  constructor(kind, message) {
+    super(message || `AI error: ${kind}`);
+    this.name = "AiError";
+    this.kind = kind;
+  }
+}
+
+// HTTP 状态码 → 分类。401/403 是 key 的问题，429 是频率，5xx 是服务端。
+export function classifyStatus(status) {
+  if (status === 401 || status === 403) return "auth";
+  if (status === 429) return "rate";
+  if (status >= 500) return "server";
+  return "unknown";
+}
+
+// 把任意异常（fetch 抛的 TypeError、SDK 的 status 字段…）归到同一套分类上。
+export function toAiError(err) {
+  if (err instanceof AiError) return err;
+  const status = err?.status ?? err?.response?.status;
+  if (Number.isFinite(status)) return new AiError(classifyStatus(status), err?.message);
+  // fetch 只在网络层失败时抛 TypeError；SDK 断网也走到这里。
+  return new AiError("network", err?.message);
+}
+
 // 模式 1：POST 到服务器代理，返回已解析的响应 JSON。
-//  失败抛错，由调用方决定兜底（有的回退示例、有的直接向上抛）。
+//  失败抛 AiError（带 kind），由调用方决定兜底（有的回退示例、有的直接向上抛）。
 export async function postProxy(endpoint, body) {
-  const resp = await fetch(`${API_BASE}${endpoint}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  let resp;
+  try {
+    resp = await fetch(`${API_BASE}${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch (err) {
+    // 连请求都没发出去 —— 断网 / DNS / 被拦截，与「服务器回了个错」不是一回事。
+    throw new AiError("network", err?.message);
+  }
+  if (!resp.ok) throw new AiError(classifyStatus(resp.status), `HTTP ${resp.status}`);
   return resp.json();
 }
 

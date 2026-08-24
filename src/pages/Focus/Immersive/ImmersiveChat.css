@@ -78,6 +78,14 @@
   opacity: 0.65;
 }
 
+/* 挂在某一条回复行内的降级角标（那句不是模型说的，是垫上的离线示例）。
+   顶部那枚是「整个会话都在演示模式」，这枚只管这一条，故改成行内、跟一个空格。 */
+.immersive-chat-demo-badge.inline {
+  margin: 0 6px 0 0;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
 @keyframes chatHintPulse {
   0%   { opacity: 0;    transform: translateY(6px); }
   30%  { opacity: 0.45; transform: translateY(0);   }

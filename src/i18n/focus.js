@@ -1,11 +1,6 @@
 // 专注控制台 + 优先级矩阵 + 今天做什么 + 情景推荐 + 历史会话
 // 每条一行：key -> { en, zh }。新增可见文案时在此补齐两份。
 export default {
-  "focus.selectedTasks": { en: "Selected tasks", zh: "已选任务" },
-  "focus.clear": { en: "Clear", zh: "清除" },
-  "focus.remove": { en: "Remove", zh: "移除" },
-  "focus.removeTask": { en: "Remove {text}", zh: "移除 {text}" },
-  "focus.taskPlaceholder": { en: "Tick tasks from the list to focus on together (multi-select)", zh: "从任务列表勾选要一起专注的任务（可多选）" },
   "focus.whatToday": { en: "✦ What to do today?", zh: "✦ 今天做什么？" },
   "focus.scenario": { en: "Scenario", zh: "情境" },
   "focus.noScenario": { en: "No scenario", zh: "无情境" },
@@ -30,6 +25,8 @@ export default {
   "focus.matrix.addPlaceholder": { en: "Add a task…", zh: "添加任务…" },
   "focus.matrix.add": { en: "Add", zh: "添加" },
   "focus.matrix.brainDump": { en: "Brain dump", zh: "倒脑子" },
+  "focus.matrix.todoList": { en: "To-do list", zh: "待办清单" },
+  "focus.matrix.todoListEmpty": { en: "Nothing on the list — add a task above", zh: "清单是空的，上面加一件事吧" },
   "focus.matrix.unclassified": { en: "Unsorted", zh: "未分类" },
   "focus.matrix.dropHere": { en: "Drag tasks in — drop them into the quadrant that fits", zh: "把任务拖进来，放到你觉得合适的象限" },
   "focus.matrix.trayEmpty": { en: "New tasks land here — tap “Sort it” or drag them in", zh: "新任务先落在这里，点「分一下」或拖进平面" },

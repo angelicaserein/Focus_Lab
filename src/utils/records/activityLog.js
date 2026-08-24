@@ -38,7 +38,8 @@ export function pruneActivities(list, now = Date.now()) {
 /** 同类动作若挤在 CLUSTER_MS 内（如倒脑子一次加十条），并成一条，免得刷屏 */
 export const CLUSTER_MS = 5 * 60 * 1000;
 
-/** @returns [{ id, type, ts, text, count, texts }] —— 按时间升序 */
+/** @returns [{ id, type, ts, text, count, texts, items }] —— 按时间升序。
+ *  items 是并进来的每一条（含各自时刻），供展开卡片逐条列出。 */
 export function clusterActivities(activities) {
   const sorted = [...activities].sort((a, b) => a.ts - b.ts);
   const out = [];
@@ -48,9 +49,13 @@ export function clusterActivities(activities) {
       last.count += 1;
       last.lastTs = a.ts;
       last.texts.push(a.text);
+      last.items.push({ id: a.id, text: a.text, ts: a.ts });
       continue;
     }
-    out.push({ id: a.id, type: a.type, ts: a.ts, lastTs: a.ts, text: a.text, count: 1, texts: [a.text] });
+    out.push({
+      id: a.id, type: a.type, ts: a.ts, lastTs: a.ts, text: a.text,
+      count: 1, texts: [a.text], items: [{ id: a.id, text: a.text, ts: a.ts }],
+    });
   }
   return out.map(({ lastTs: _drop, ...rest }) => rest);
 }

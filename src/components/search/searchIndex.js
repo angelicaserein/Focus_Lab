@@ -3,7 +3,7 @@
 // 这样这一层可以单测，也方便以后接更多数据源。
 
 // 一条搜索结果的形状：
-//   kind   分组（page / task / memo / scenario），决定结果面板里归到哪一栏
+//   kind   分组（action / page / task / memo / scenario），决定结果面板里归到哪一栏
 //   id     该组内唯一
 //   title  主文本，命中高亮就打在这上面
 //   sub    副文本（所属库、日期、页面分区…），可缺省
@@ -26,7 +26,7 @@ function scoreOf(title, haystack, q) {
 
 /**
  * @param {string} raw 用户输入
- * @param {{pages?:any[],tasks?:any[],memos?:any[],scenarios?:any[]}} sources
+ * @param {{actions?:any[],pages?:any[],tasks?:any[],memos?:any[],scenarios?:any[]}} sources
  * @param {{limitPerKind?:number}} [opts]
  * @returns {{kind:string,items:object[]}[]} 只含有命中项的分组，顺序固定
  */
@@ -36,6 +36,9 @@ export function searchAll(raw, sources = {}, opts = {}) {
   const limit = opts.limitPerKind ?? 5;
 
   const buckets = [
+    // 动作排最前：它们是「做一件事」而不是「找一样东西」，输入 "专注" 时
+    // 用户多半是想开一次专注，而不是想读专注页。
+    ["action", sources.actions ?? []],
     ["page", sources.pages ?? []],
     ["task", sources.tasks ?? []],
     ["memo", sources.memos ?? []],
@@ -58,6 +61,20 @@ export function searchAll(raw, sources = {}, opts = {}) {
 
 // ── 各数据源 → 统一条目 ──────────────────────────────────────────────────────
 // 每个 toXxxEntries 只负责「这类数据里哪些字段该被搜到」，形状统一后交给 searchAll。
+
+// 动作：命令面板那几条「直接做点什么」。由调用方（useGlobalSearch）用当前语言拼好，
+// 每条要么带 to（去某页做），要么带 run（就地执行）。keywords 让中英两种输入都能命中。
+export function toActionEntries(actions) {
+  return actions.map((a) => ({
+    id: a.id,
+    title: a.title,
+    sub: a.sub ?? "",
+    to: a.to,
+    state: a.state,
+    run: a.run,
+    haystack: [a.title, a.sub, ...(a.keywords ?? [])].map(norm).join(" "),
+  }));
+}
 
 // 页面：title 是 nav.* 译名，sub 是所属分区译名。两种语言的名字都塞进 haystack——
 // 界面切到中文时输 "focus" 也该找得到专注页，反之亦然。

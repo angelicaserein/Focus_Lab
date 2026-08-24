@@ -4,7 +4,9 @@ import useHighlightTarget from "@/hooks/common/useHighlightTarget";
 import useTaskExtraction from "@/hooks/task/useTaskExtraction";
 import AiTaskModal from "@/pages/Memo/AiTaskModal";
 import MemoItem from "@/pages/Memo/MemoItem";
+import Toast from "@/components/ui/Toast";
 import useMemoAiOrganize from "@/pages/Memo/useMemoAiOrganize";
+import ClarifyPanel from "@/pages/Tasks/ClarifyPanel";
 import { collectTags, itemHasTag } from "@/pages/Memo/memoTags";
 import { useDatabases } from "@/context/DatabaseContext";
 import { useLanguage } from "@/context/LanguageContext";
@@ -35,7 +37,9 @@ function groupByDay(items, lang) {
 }
 
 export default function MemoPage() {
-  const { timeline, counts, addMemo, updateMemo, removeMemo, setMemoTags } = useMemos();
+  const {
+    timeline, counts, addMemo, updateMemo, removeMemo, setMemoTags, pendingUndo, undoLast,
+  } = useMemos();
   const { activeDatabase } = useDatabases();
   const { t, lang } = useLanguage();
   const ai = useTaskExtraction();
@@ -84,7 +88,9 @@ export default function MemoPage() {
 
       {/* 新建备忘 */}
       <div className="memo-compose">
+        {/* data-compose-target：命令面板的「记一条随记」跳进来时光标直接落在这儿 */}
         <textarea
+          data-compose-target=""
           className="memo-compose-input"
           rows={3}
           value={draft}
@@ -202,13 +208,29 @@ export default function MemoPage() {
         <div className="memo-saved" role="status">{organize.savedMsg}</div>
       )}
 
+      {/* 设置页开了「先反问」且模型确实有要问的时候，先插一屏反问（跟倒脑子同一条链路）。
+          少了这屏的话 status 会停在 asking，而 AiTaskModal 不认这个状态，只会弹一个空壳。 */}
+      {ai.status === "asking" && (
+        <ClarifyPanel
+          questions={ai.questions}
+          onSubmit={ai.answer}
+          onSkip={() => ai.answer([])}
+          onClose={ai.close}
+        />
+      )}
+
+      {/* 删错一条能立刻捡回来——没有这个 toast 的话，那份撤销能力就没有入口 */}
+      <Toast pending={pendingUndo} undo={undoLast} getText={(item) => item.text} />
+
       {/* AI 评审面板 */}
-      {ai.isOpen && (
+      {ai.isOpen && ai.status !== "asking" && (
         <AiTaskModal
           status={ai.status}
           candidates={ai.candidates}
           error={ai.error}
           database={activeDatabase}
+          clarifySkipped={ai.clarifySkipped}
+          onRefine={ai.refine}
           onCommit={handleCommit}
           onClose={ai.close}
         />
