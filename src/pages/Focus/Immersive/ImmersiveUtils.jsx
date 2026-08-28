@@ -173,8 +173,8 @@ export default function ImmersiveUtils({
         >
           {t("focus.imm.goDistract")}
         </button>
-        {/* 应用内的其它页面：打开即暂停计时并记账，和「去分心一下」同一个道理，
-            区别只是人没离开这个 app，故不算主动分心、单独一条记录（type: "page"）。 */}
+        {/* 应用内的其它页面：不算离开专注——计时照跑，也不落分心记录。
+            去任务库改个任务、去备忘录记一笔，本来就是本次专注的一部分。 */}
         <button
           type="button"
           className="immersive-util-btn browse"

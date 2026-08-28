@@ -10,7 +10,7 @@ import usePrefs from "@/hooks/common/usePrefs";
 import useUnloadGuard from "@/hooks/common/useUnloadGuard";
 import useSessionEvents from "@/hooks/session/useSessionEvents";
 import useDistractionTracking from "@/hooks/focus/useDistractionTracking";
-import { usePageBrowsingState, useRegisterBrowsingHost } from "@/context/PageBrowsingContext";
+import { usePageBrowsingState } from "@/context/PageBrowsingContext";
 import useSessionLifecycle from "@/hooks/session/useSessionLifecycle";
 import useSessionNotes from "@/hooks/session/useSessionNotes";
 import useFocusSelection from "@/hooks/focus/useFocusSelection";
@@ -22,7 +22,6 @@ import useFlaskFullNotify from "@/hooks/focus/useFlaskFullNotify";
 import useFlaskShelf from "@/hooks/flask/useFlaskShelf";
 import useDesktopFocusSync from "@/hooks/desktop/useDesktopFocusSync";
 import { filterSinceSession } from "@/utils/records/focusRecords";
-import { PAGE_LABEL_KEYS } from "@/components/layout/navSections";
 import { FocusSessionContext } from "@/pages/Focus/FocusSessionContext";
 // 沉浸层里挂着 three.js + 16MB 模型（约 1MB JS chunk）。懒加载后：进专注页只加载控制台，
 // three 的 chunk 不再被打进 Focus 页 chunk、也不随路由空闲预取拉取，真正开专注才下载。
@@ -108,7 +107,6 @@ export default function FocusPage() {
     isProactiveDistraction,
     proactiveDistractionStartTs,
     recordDistraction,
-    recordPageVisit,
     startProactiveDistraction,
     endProactiveDistraction,
     handleDistractionTag,
@@ -117,27 +115,9 @@ export default function FocusPage() {
     flushProactiveDistraction,
   } = useDistractionTracking({ getSession, focusedTodoIds, isRunning, isRunningNow, togglePause });
 
-  // 沉浸层里「看看别的页面」：开着的时候计时器被按停，每看完一页落一条 type: "page" 的记录。
-  // 页面名按记账那一刻的语言存一份，路径也一并存下——展示时优先按路径重新取名，
-  // 切语言后旧记录才不会僵在另一种语言上。
-  const handleRecordVisit = useCallback(
-    (visit) => {
-      const key = PAGE_LABEL_KEYS[visit.path];
-      recordPageVisit({ ...visit, label: key ? t(key) : visit.path });
-    },
-    [recordPageVisit, t],
-  );
-  // 浮层状态住在路由之上的 Provider 里（浮层要自带 MemoryRouter，只能挂在 HashRouter 外面），
-  // 专注页这边把计时器那几件事登记进去。
-  const { openBrowser, flushBrowsing } = usePageBrowsingState();
-  useRegisterBrowsingHost({ isRunningNow, togglePause, getSession, onRecordVisit: handleRecordVisit });
-
-  // 结束专注时把「离开专注的时长」一次算清：主动暂停中的那段 + 正开着的浏览浮层那段。
-  // 两者对计时器的作用一样（都把它按停了），统计口径也该一样。
-  const flushAwayTime = useCallback(
-    () => flushProactiveDistraction() + flushBrowsing(),
-    [flushProactiveDistraction, flushBrowsing],
-  );
+  // 沉浸层里「看看别的页面」：翻应用内的页面不算离开专注，计时照跑、也不落记录，
+  // 所以这里只要一个「打开浮层」的入口（浮层状态住在路由之上的 Provider 里）。
+  const { openBrowser, closeBrowser } = usePageBrowsingState();
 
   // 分心存档后的撤回 toast：{ id, blank }。id 供撤回删除，blank 决定文案。
   const [distractionUndo, setDistractionUndo] = useState(null);
@@ -223,7 +203,7 @@ export default function FocusPage() {
   const { handleStart, settleTask, handleStop } = useSessionLifecycle({
     seconds, start, clearSession, getSession,
     logEvent, resetEvents, getSnapshot,
-    flushProactiveDistraction: flushAwayTime,
+    flushProactiveDistraction,
     sessionDistractions,
     sessionNotes,
     addFocusRecord, addCoins, removeFocusTodo, toggleTodo,
@@ -234,7 +214,8 @@ export default function FocusPage() {
       setIsImmersive(true);
       captureStartSnapshot();
     },
-    onStop: () => setIsImmersive(false),
+    // 会话可能在浏览浮层开着的时候结束（比如从桌宠点了「结束」），浮层得跟着关掉
+    onStop: () => { closeBrowser(); setIsImmersive(false); },
     // 「结束专注」路径：结算所有剩余任务后弹卡。
     onSessionReward: showSessionReward,
   });
@@ -292,9 +273,8 @@ export default function FocusPage() {
     seconds,
     addCoins,
     clearSession,
-    // 任务在浏览浮层里被清空也会走到这儿（沉浸层随之卸载）：
-    // 不结账的话浏览状态会挂着不放，下次再按「看看别的页面」就打不开了。
-    onStop: () => { flushBrowsing(); setIsImmersive(false); },
+    // 任务在浏览浮层里被清空也会走到这儿（沉浸层随之卸载）：浮层得跟着关掉。
+    onStop: () => { closeBrowser(); setIsImmersive(false); },
   });
 
   const handleTogglePause = () => {

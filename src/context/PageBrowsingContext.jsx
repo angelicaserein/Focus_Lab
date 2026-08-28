@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useRef } from "react";
+import React, { createContext, useContext, useMemo } from "react";
 import usePageBrowsing from "@/hooks/focus/usePageBrowsing";
 
 const PageBrowsingContext = createContext(null);
@@ -10,16 +10,14 @@ const PageBrowsingContext = createContext(null);
  * MemoryRouter，而 react-router 不允许 Router 套 Router。所以浮层必须挂在
  * HashRouter 外面，状态也就只能提到它上面这层来。
  *
- * 计时器那一侧（暂停/恢复/当前会话）仍住在专注页里，由它调 registerHost 登记进来。
+ * 浮层不碰计时器也不落记录（翻应用内页面不算分心，见 usePageBrowsing），
+ * 所以这里除了「开在哪一页」没有别的东西要和专注页打通。
  */
 export function PageBrowsingProvider({ children }) {
-  const hostRef = useRef(null);
-  const browsing = usePageBrowsing(hostRef);
-
-  const { browsingPath, browsingStartTs, openBrowser, visitPage, closeBrowser, flushBrowsing } = browsing;
+  const { browsingPath, openBrowser, visitPage, closeBrowser } = usePageBrowsing();
   const value = useMemo(
-    () => ({ browsingPath, browsingStartTs, openBrowser, visitPage, closeBrowser, flushBrowsing, hostRef }),
-    [browsingPath, browsingStartTs, openBrowser, visitPage, closeBrowser, flushBrowsing],
+    () => ({ browsingPath, openBrowser, visitPage, closeBrowser }),
+    [browsingPath, openBrowser, visitPage, closeBrowser],
   );
 
   return <PageBrowsingContext.Provider value={value}>{children}</PageBrowsingContext.Provider>;
@@ -27,19 +25,4 @@ export function PageBrowsingProvider({ children }) {
 
 export function usePageBrowsingState() {
   return useContext(PageBrowsingContext);
-}
-
-// 专注页用它把「怎么暂停计时器 / 当前是哪次会话 / 记录往哪写」登记上来。
-// 专注页卸载时自动摘掉，并把还开着的那段账结掉。
-export function useRegisterBrowsingHost(host) {
-  const { hostRef, flushBrowsing } = usePageBrowsingState();
-
-  useEffect(() => {
-    hostRef.current = host;
-  });
-
-  useEffect(() => () => {
-    flushBrowsing();
-    hostRef.current = null;
-  }, [hostRef, flushBrowsing]);
 }

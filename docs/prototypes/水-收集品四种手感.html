@@ -1,4 +1,4 @@
-<title>水 · 收集品五种手感</title>
+<title>水 · 收集品四种手感</title>
 <style>
   :root{
     --bg:#e6eef1; --panel:#ffffff; --panel2:#f2f7f9;
@@ -190,7 +190,7 @@
   <header>
     <div class="kicker">FocusLab · 收集机制选型</div>
     <h1>一次专注，析出<em>一件水</em></h1>
-    <p class="lede">五种「水主题收集品」的手感对照。每种都复用你现有的<b class="serif" style="font-style:italic">烧瓶灌水</b>，区别只在——灌满之后，掉出来的是什么、怎么攒。点按钮亲自感受即时反馈那一拍。</p>
+    <p class="lede">四种「水主题收集品」的手感对照。每种都复用你现有的<b class="serif" style="font-style:italic">烧瓶灌水</b>，区别只在——灌满之后，掉出来的是什么、怎么攒。点按钮亲自感受即时反馈那一拍。</p>
   </header>
 
   <div class="howto">
@@ -225,30 +225,24 @@ const G = {
 
 const concepts = [
   {
-    id:1, title:'样本瓶 · 标本架', tag:'最省 · 直接复用烧瓶', pick:false,
-    desc:'一次专注 = 灌满并<b>封存一瓶</b>。不同情境采到不同水样，攒满一整面架子。掉落那一下最直白——就是你刚灌的瓶子上架。',
-    kind:'grid', glyph:'vial', count:14, got:5,
-    items:['晨露水','雨水','融雪','山泉','深海水','温泉水','冰川水','湖心水','雾凝水','井水','潮水','溪涧','雪顶水','夜露']
-  },
-  {
-    id:2, title:'水的形态', tag:'⌾ 推荐', pick:true,
+    id:1, title:'天气瓶', tag:'⌾ 推荐', pick:true,
     desc:'专注结束析出一种<b>水的样子</b>：露、霜、雨、雪、雾、冰、虹……<b>有限集合</b>，进度看得见（8/14）。短专注得露、长专注得冰、深夜得霜——收集品顺带记录了你<b>怎么</b>专注。',
     kind:'grid', glyph:'mixed', count:14, got:8,
     items:[['露','drop'],['雨','drop'],['雾','cloud'],['云','cloud'],['雪','snow'],['霜','snow'],['泉','spring'],['潮','wave'],['冰','shard'],['凇','shard'],['虹','arc'],['霰','snow'],['涧','wave'],['渊','drop']]
   },
   {
-    id:3, title:'海洋生物 · 生态缸', tag:'情绪陪伴强', pick:false,
+    id:2, title:'海洋生物 · 生态缸', tag:'情绪陪伴强', pick:false,
     desc:'专注<b>引来一只</b>生物游进你的缸里：鱼、水母、贝、海星……瓶子长成一片小水族。陪伴感最强，但没有硬性终点。',
     kind:'tank', count:6, got:2,
     items:[['小鱼','fish'],['水母','jelly'],['贝','shell'],['海星','star'],['珊瑚','spring'],['幼鲸','fish']]
   },
   {
-    id:4, title:'矿石 · 结晶生长', tag:'奖励长时专注', pick:false,
+    id:3, title:'矿石 · 结晶生长', tag:'奖励长时专注', pick:false,
     desc:'水中<b>析出结晶</b>，越攒越大、越攒越繁。它不集齐——它<b>生长</b>。长时间深度专注让晶体长成一整簇，适合奖励「一坐一下午」。',
     kind:'crystal', count:6, got:1,
   },
   {
-    id:5, title:'潮汐 · 星海拼图', tag:'拼图型 · 目标感强', pick:false,
+    id:4, title:'潮汐 · 星海拼图', tag:'拼图型 · 目标感强', pick:false,
     desc:'每次专注点亮<b>一片水光</b>，慢慢拼出一整幅海图 / 星海。「还差 3 片就完整」最能把 ADHD 拽回来收尾。一图集满再开下一幅。',
     kind:'puzzle', count:16, got:5,
   },

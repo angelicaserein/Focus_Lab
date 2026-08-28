@@ -100,6 +100,36 @@ export function scaleForPriority(priorityId) {
   return PRIORITY_SCALES[priorityId] ?? PRIORITY_SCALES.trivial;
 }
 
+// 卡片渲染缩放的下限：低于这个倍率，卡片上的字在手机上就小到读不出来了。
+//   象限挤不下时宁可让多出来的卡片溢出（改成角落里的「+N」计数），也不再无限缩小——
+//   否则「哪个象限任务多哪个象限的卡就小」，尺寸编码的就成了密度而不是轻重缓急。
+export const MIN_CARD_SCALE = 0.78;
+
+// 某象限允许的最大缩小系数（0..1）：保证 档位缩放 × 系数 ≥ MIN_CARD_SCALE
+export function minShrinkForPriority(priorityId) {
+  return Math.min(1, MIN_CARD_SCALE / scaleForPriority(priorityId));
+}
+
+// 跨象限单调化：保证渲染尺寸严格按「重要且紧急 > 重要 > 紧急 > 都不」排下来。
+//   每个象限自己算出的 shrink 只看本象限挤不挤，四个象限放到一起就可能出现
+//   「任务多的重要象限反而比空荡荡的次要象限小」。这里按优先级顺序逐个封顶：
+//   下一档的渲染尺寸不得超过上一档，同时不低于各自的下限（并列可以，倒挂不行）。
+const PRIORITY_ORDER = ["urgent_important", "important", "urgent", "trivial"];
+
+export function monotonicShrink(shrinkByPriority) {
+  const out = {};
+  let prevEff = Infinity;
+  for (const id of PRIORITY_ORDER) {
+    const base = scaleForPriority(id);
+    const floor = Math.min(base, MIN_CARD_SCALE); // ＝ base × minShrinkForPriority(id)，直接算避免浮点误差
+    const raw = base * clamp(shrinkByPriority[id] ?? 1, 0, 1);
+    const eff = Math.max(floor, Math.min(raw, prevEff));
+    out[id] = eff / base;
+    prevEff = eff;
+  }
+  return out;
+}
+
 export function dimForPriority(priorityId) {
   return PRIORITY_DIMS[priorityId] ?? PRIORITY_DIMS.trivial;
 }
@@ -111,21 +141,23 @@ export function dimForPriority(priorityId) {
 //           渲染时各卡片按自身落点缩放，只会 ≤ 槽位 → 卡片永远待在自己的槽位内，绝不重叠。
 //   bounds: { minX, maxX, minY, maxY } 象限像素范围
 //   gap:    卡片最小间距（未缩小时，像素）
-//   返回 { positions: [{ id, cx, cy }], shrink }：
+//   minShrink: 缩小系数的下限（见 minShrinkForPriority），0 表示不限。
+//   返回 { positions: [{ id, cx, cy }], shrink, overflowIds }：
 //     positions 各卡片中心像素坐标；shrink∈(0,1] 为放下而对整个象限施加的缩小系数——
-//     调用方须把它同乘到卡片渲染缩放上（槽位与渲染同比缩小，故仍不重叠）。
-export function layoutQuadrantGrid(cards, bounds, gap = 12) {
+//     调用方须把它同乘到卡片渲染缩放上（槽位与渲染同比缩小，故仍不重叠）；
+//     overflowIds 是压到下限仍塞不下、被挤出平面的卡片（排在末尾的那几张）。
+export function layoutQuadrantGrid(cards, bounds, gap = 12, minShrink = 0) {
   const availW = bounds.maxX - bounds.minX;
   const availH = bounds.maxY - bounds.minY;
   // 以系数 k 缩放所有卡片与间距后走一遍流式换行，返回槽位与占用高度
-  const flow = (k) => {
+  const flow = (k, list) => {
     const g = gap * k;
-    const rowH = cards.reduce((m, c) => Math.max(m, c.h * k), 0);
+    const rowH = list.reduce((m, c) => Math.max(m, c.h * k), 0);
     const slots = [];
     let x = 0;
     let y = 0;
-    let rows = cards.length ? 1 : 0;
-    for (const c of cards) {
+    let rows = list.length ? 1 : 0;
+    for (const c of list) {
       const w = c.w * k;
       // 放不下就换行；行首那张再宽也先放（避免空行）
       if (x > 0 && x + w > availW) {
@@ -142,17 +174,30 @@ export function layoutQuadrantGrid(cards, bounds, gap = 12) {
   // ① 先压到最宽的卡片能塞进象限宽度 ② 再压到所有行能塞进象限高度
   const maxW = cards.reduce((m, c) => Math.max(m, c.w), 0);
   let k = maxW > availW && maxW > 0 ? availW / maxW : 1;
-  let laid = flow(k);
+  let list = cards;
+  let laid = flow(k, list);
   if (laid.usedH > availH && laid.usedH > 0) {
     k *= availH / laid.usedH;
-    laid = flow(k);
+    laid = flow(k, list);
+  }
+  // 缩到读不出字了就不再缩：把 k 抬回下限，末尾放不下的卡片改为「溢出」，
+  //   由调用方在象限角上收成一个 +N 计数（任务本身仍在右侧清单里）。
+  const overflowIds = [];
+  if (minShrink > 0 && k < minShrink) {
+    k = Math.min(1, minShrink);
+    list = cards.slice();
+    laid = flow(k, list);
+    while (list.length > 1 && laid.usedH > availH) {
+      overflowIds.push(list.pop().id);
+      laid = flow(k, list);
+    }
   }
   const positions = laid.slots.map((s) => ({
     id: s.id,
     cx: bounds.minX + s.x + s.w / 2,
     cy: bounds.minY + s.y + s.rowH / 2,
   }));
-  return { positions, shrink: k };
+  return { positions, shrink: k, overflowIds };
 }
 
 // 防重叠松弛：把一组卡片矩形沿「穿透较浅」的轴相互推开，直到互不重叠或到迭代上限。

@@ -8,7 +8,6 @@ import PageSkeleton from "@/components/ui/PageSkeleton";
 import { useFeatures } from "@/context/FeatureContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { usePageBrowsingState } from "@/context/PageBrowsingContext";
-import { formatClock } from "@/utils/time";
 
 // 专注页自己不进这个浮层：把 FocusPage 套进自己的沉浸层里只会是一团乱麻。
 const EXCLUDED = new Set(["/focus"]);
@@ -48,21 +47,11 @@ function BrowserBridge({ path, onVisit, onClose }) {
 }
 
 // 沉浸专注里的「看看别的页面」浮层：整页应用内页面浏览器。
-// 打开时计时器已被按停（见 usePageBrowsing），这里只负责渲染与导航。
+// 翻应用内页面不算离开专注：计时照跑，也不落分心记录（见 usePageBrowsing）。
 export default function ImmersiveBrowser() {
   const { t } = useLanguage();
   const { isEnabled } = useFeatures();
-  const { browsingPath, browsingStartTs, visitPage, closeBrowser } = usePageBrowsingState();
-
-  // 已离开多久：和「去分心一下」那个计时同一套读数
-  const [awaySecs, setAwaySecs] = useState(0);
-  useEffect(() => {
-    if (!browsingStartTs) return undefined;
-    const tick = () => setAwaySecs(Math.floor((Date.now() - browsingStartTs) / 1000));
-    tick();
-    const id = window.setInterval(tick, 1000);
-    return () => window.clearInterval(id);
-  }, [browsingStartTs]);
+  const { browsingPath, visitPage, closeBrowser } = usePageBrowsingState();
 
   // Esc 回到专注
   useEffect(() => {
@@ -94,9 +83,8 @@ export default function ImmersiveBrowser() {
           ← {t("focus.imm.browse.back")}
         </button>
         <div className="imm-browser-status">
-          <span className="imm-browser-paused-dot" />
-          {t("focus.imm.browse.paused")}
-          <span className="imm-browser-away">{formatClock(awaySecs)}</span>
+          <span className="imm-browser-running-dot" />
+          {t("focus.imm.browse.running")}
         </div>
         <div className="imm-browser-here">
           {currentLabelKey ? t(currentLabelKey) : browsingPath}

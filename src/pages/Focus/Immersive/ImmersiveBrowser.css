@@ -56,16 +56,11 @@
   color: var(--text-muted);
 }
 
-.imm-browser-paused-dot {
+.imm-browser-running-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--warn-fill, #fbbf24);
-}
-
-.imm-browser-away {
-  font-variant-numeric: tabular-nums;
-  color: var(--text-body);
+  background: var(--ok-fill, #34d399);
 }
 
 .imm-browser-here {

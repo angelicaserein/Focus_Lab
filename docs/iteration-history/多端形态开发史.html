@@ -116,7 +116,7 @@ footer{border-top:1px solid var(--hair);padding:22px 0 60px;color:var(--muted);f
 <header>
   <p class="eyebrow">Focus Lab · 桌面版与手机端</p>
   <h1>多端形态开发史</h1>
-  <p class="lede">前两份讲的是「功能」和「需求」，这一份讲的是<b>壳</b>：同一份 <code>src/</code>，怎么长出网页、手机（PWA）和 Windows 桌面（Electron）三种形态，各自加了哪些别处没有的东西。结论先放在这里——手机端确实只有「优化 + 装进主屏的壳」，一件独占功能都没有；桌面端才是真正长出新能力的那一路：桌宠悬浮窗、托盘、全局快捷键、前台应用探测、屏幕底部积水、拖文件建任务、自动更新。</p>
+  <p class="lede">前两份讲的是「功能」和「需求」，这一份讲的是<b>壳</b>：同一份 <code>src/</code>，怎么长出网页、手机（PWA）和 Windows 桌面（Electron）三种形态，各自加了哪些别处没有的东西。结论先放在这里——手机端确实只有「优化 + 装进主屏的壳」，一件独占功能都没有；桌面端才是真正长出新能力的那一路：桌宠悬浮窗、托盘、全局快捷键、前台应用探测、屏幕底部积水、拖文件建任务、自动更新、退出前拦住正在计时的那次专注。</p>
   <div class="legend">
     <span><i class="a"></i>常规改动</span>
     <span><i class="o"></i>该形态独占（另一端做不到）</span>
@@ -183,7 +183,7 @@ footer{border-top:1px solid var(--hair);padding:22px 0 60px;color:var(--muted);f
 </div>
 
 <section class="blk" id="desk-timeline">
-  <h3>时间线 <span class="path">三次提交，三周</span></h3>
+  <h3>时间线 <span class="path">六次提交，四周</span></h3>
   <ul class="log">
     <li><time>08-04</time><ul class="pts">
       <li><b>Electron 打包起步</b>：主进程 + preload + 桌宠悬浮窗 + 托盘 + 单实例锁；<code>pet.html</code> 成为第二个 Vite 入口<span class="sha">94d0230</span></li>
@@ -198,6 +198,19 @@ footer{border-top:1px solid var(--hair);padding:22px 0 60px;color:var(--muted);f
       <li><b>拖文件建任务</b>（任务记住文件在硬盘上的位置，点一下用系统默认程序打开）</li>
       <li><b>托盘图标跟着水位变</b>：手绘 BGRA 位图，一只从底部注水的小瓶子</li>
       <li><b>自动更新</b>：GitHub Releases 后台下载，退出时才装<span class="sha">b8b7831</span></li>
+      <li>主窗口<b>显式给图标</b>：打包版由 electron-builder 写进 exe，但 dev 和 <code>--dir</code> 直跑时不给就是默认的 Electron 原子图标<span class="sha">f43acbe</span></li>
+      <li>积水窗<b>水退干净后停掉 rAF</b>，不再空转吃电；<b>主题跟着水位一起推</b>，水和桌宠瓶里那摊颜色统一<span class="sha">f43acbe</span></li>
+      <li>SW 换成<b>构建清单驱动</b>的旧产物清理，缓存不再只涨不清<span class="sha">b8b7831</span></li>
+    </ul></li>
+    <li><time>08-18</time><ul class="pts">
+      <li>更新器<b>加载失败要吼一声</b>：<code>require("electron-updater")</code> 挂掉和「网络不通」是两回事，前者说明这个安装包本身缺东西，重试多少次都一样<span class="sha">bdfb765</span></li>
+    </ul></li>
+    <li><time>08-22</time><ul class="pts">
+      <li>探测器<b>重试计数在收到第一行输出时清零</b>：不清的话，一天里偶尔崩一次、崩到第四次也会被判成「这台机器不支持」，此后功能永久关闭<span class="sha">28589bd</span></li>
+    </ul></li>
+    <li><time>08-25</time><ul class="pts">
+      <li><b>退出前拦住正在计时的会话</b>：托盘「退出」改走统一入口，专注还活着就先弹一个系统对话框问一声<span class="sha">7d474aa</span></li>
+      <li>设置页的<b>快捷键一览</b>把两个全局键写了出来，此前它们只能靠碰巧撞上<span class="sha">7d474aa</span></li>
     </ul></li>
   </ul>
 </section>
@@ -267,6 +280,7 @@ footer{border-top:1px solid var(--hair);padding:22px 0 60px;color:var(--muted);f
     <li class="why"><b>标题关键词</b>这一道：浏览器整个勾进来是没办法的事，查论文和刷视频是同一个 <code>msedge.exe</code>，只有窗口标题分得开。但标题只在内存里比一次，比完就丢 —— 不落盘、不进记录、也不发给渲染层，分心明细里留下的仍然只有「Microsoft Edge」。</li>
     <li>切走的一段会按程序分段结账（<code>10:03–10:07 Chrome、10:07–10:12 微信</code>），短于 5 秒的「路过」不写进记录 —— 计时器照旧暂停，只是不留一条几秒钟的账。</li>
     <li>探测器在这台机器上跑不起来时会通知渲染层，设置页据此<b>自己把开关关掉并说明原因</b>（08-11），而不是留一个永远不生效的勾。</li>
+    <li class="why"><b>重试计数收到第一行输出就清零</b>（08-22）：原来是「连续三次起不来 = 这台机器不支持」，但计数只增不减 —— 一天里偶尔崩一次，崩到第四次同样会被判成不支持，此后功能永久关闭，直到用户重启整个 app。收到 stdout 的第一行就说明这一次是真的起来了，那之前的账不该再算。</li>
   </ul>
 </section>
 
@@ -279,6 +293,8 @@ footer{border-top:1px solid var(--hair);padding:22px 0 60px;color:var(--muted);f
     <li>水一旦开始积就至少 56px 深：刚分心的头半分钟水位只有百分之几，在 1080p 上是最底下一条看不见的线 —— 而「有水了」本身才是那条信息，深浅只是量级。缓动会把这一跳抹成半秒的涌入。</li>
     <li>高 DPI 屏上 DPR 封顶 1.5、帧率封顶 30：水是一团模糊的色块，看不出锯齿，但这块半屏大的 canvas 按物理像素画填充量会翻几倍。</li>
     <li>分辨率变了 / 拔了外接屏就销毁重建（监听 <code>display-metrics-changed</code> 等三个事件），下次要用时按新尺寸摆。</li>
+    <li class="why"><b>水退干净就把循环停掉</b>（08-17）：这扇窗开着 <code>backgroundThrottling: false</code> —— 它的全部意义就是「用户在别的程序里的时候还在动」，代价是主进程把它藏起来之后 rAF 照样一秒钟醒 60 次。一次不专注的下午过去，这个空转就一直挂在那儿吃电。有水了再由 <code>flood:level</code> 把它叫醒，重起循环时要清掉上一帧时刻，否则停很久再回来那一帧会被帧率上限判成「刚画过」而白白丢掉。</li>
+    <li class="why"><b>皮肤跟着水位一起推</b>（08-17）：桌宠是靠主窗口推 <code>app.theme</code> 自己写 <code>&lt;html data-theme&gt;</code> 的，这扇窗一直没人给它推 —— 于是无论用户选了哪套皮，水都画成默认皮的强调色。水和瓶子是同一摊水，颜色不该是两个。主题也一并算进去重的 key，不然换皮时水位没怎么变，这条推送就被阈值挡下了。</li>
   </ul>
 </section>
 
@@ -289,6 +305,8 @@ footer{border-top:1px solid var(--hair);padding:22px 0 60px;color:var(--muted);f
     <li class="why">锁屏（<code>lock-screen</code>）<b>没有</b>一并接进来：那是「人还在不在」的判断，跟这里「机器停了多久」不是一回事，要不要算暂停得先有个产品口径。</li>
     <li class="only"><b>渲染进程崩溃自愈</b>：主窗口的渲染进程挂了（OOM、GPU 崩、three.js 把页面拖死）不能就这么算了 —— 它是全部状态的唯一 owner，没有它桌宠就没有数据来源，而用户看到的只是「桌宠不动了」，没有任何报错。所以就地重建；这次专注的计时跟着页面一起没了，与其让桌宠停在一个永不前进的进度上，不如干净地退回待机态。崩之前是藏着的（托盘常驻用法），重建后也不会突然弹到用户脸上。</li>
     <li><b>单实例锁</b>：第二次启动只是把已有窗口唤到前面。<b>开机静默启动</b>：注册表里那条命令带 <code>--hidden</code>，主窗口照样创建（它是数据源），只是不弹出来，开机后看到的只有托盘和桌宠。</li>
+    <li class="only"><b>退出前拦住正在计时的会话</b>（08-25）：这段计时活在页面组件里，进程一没就跟着没了 —— 点 X 只是藏起来，不会丢；只有真退出会。所以托盘的「退出」改走一个统一入口：会话还活着（跑着或只是暂停着）就先弹一个系统对话框——「这次专注已经计了 N 分钟 / 现在退出的话，这段时间不会被记下来」，两个按钮是<kbd>继续专注</kbd>与<kbd>仍然退出</kbd>，选前者直接把主窗口唤到专注页。</li>
+    <li class="why">网页版对应的是 <code>beforeunload</code>（<code>useUnloadGuard</code>，同一天上线），但桌面版<b>不能用那条</b>：Electron 里 beforeunload 的返回值会静默取消关闭 —— 窗口关不掉，用户也看不到任何提示。</li>
     <li>退出时 <code>globalShortcut.unregisterAll()</code> + 停掉探测子进程 —— 那是我们 spawn 出来的，不收拾会留在任务管理器里。</li>
     <li>外链走系统浏览器（<code>setWindowOpenHandler</code> 一律 deny + <code>shell.openExternal</code>），不在 app 里开一个没有导航栏的窗口。</li>
   </ul>
@@ -311,6 +329,7 @@ footer{border-top:1px solid var(--hair);padding:22px 0 60px;color:var(--muted);f
   <p>网页版改一版、刷新就是新的；装在硬盘上的 exe 不会自己变。</p>
   <ul class="pts">
     <li class="why">三条克制的规矩：① <b>绝不主动重启</b> —— 下载完只是备好，安装发生在用户自己退出之后。中途弹一个「立即重启」会直接打断正在计时的会话，<b>那是这个 app 最不该做的事</b>。② 后台检查<b>失败一律静默</b> —— 墙内从 GitHub 拉东西失败是常态，弹红框既没可操作性也只是打扰；只有用户从托盘主动点「检查更新」时才每种结果都回话。③ 只在打包后的正式版里跑。</li>
+    <li class="why"><b>唯一不静默的那一处</b>（08-18）：<code>require("electron-updater")</code> 本身失败，跟「网络不通」是两回事 —— 它是主进程运行时 require 的，得靠 <code>electron-builder.yml</code> 里那份手写的 <code>files</code> 清单把它和十来个依赖一起打进包；漏一个，正式版里自动更新就是死的，而用户侧一点动静都没有（检查是静默的、失败也是静默的）。所以这一种失败往控制台吼一声，并把核对命令写在日志里；托盘主动检查时也换一句话说清楚「这个安装包里没带更新组件」，不再往「稍后再试」上引。已经失败过就直接认输，不每点一次刷一遍。</li>
     <li>启动后延迟 10 秒才查：开机自启时别一上来就抢网。</li>
     <li>打包 <code>files:</code> 只带 <code>dist/</code> + <code>electron/</code> + <code>package.json</code>，前端依赖已经在 vite build 时打进 dist 了。唯一例外是 electron-updater 及其整条依赖链 —— 它是主进程运行时 <code>require</code> 的，必须真的进包。</li>
     <li>产物：Windows NSIS（可改安装目录、建桌面和开始菜单快捷方式）、macOS dmg（x64 + arm64）、Linux AppImage。发版时 <code>latest.yml</code> 必须跟安装包一起传到 Release，少传这个文件客户端永远发现不了新版本。</li>
@@ -432,6 +451,7 @@ footer{border-top:1px solid var(--hair);padding:22px 0 60px;color:var(--muted);f
       <tr><td class="k">知道你切去了哪个程序</td><td class="no">浏览器沙箱不给</td><td class="no">浏览器沙箱不给</td><td class="yes">✓ 前台进程探测</td></tr>
       <tr><td class="k">分心时屏幕本身有反应</td><td class="no">—</td><td class="no">—</td><td class="yes">✓ 底部积水层</td></tr>
       <tr><td class="k">拖进来的文件能被再打开</td><td class="no">只拿得到内容</td><td class="no">只拿得到内容</td><td class="yes">✓ 真实路径 + shell.openPath</td></tr>
+      <tr><td class="k">退出前拦住正在计时的会话</td><td class="no">— beforeunload 只能给一句浏览器自带的话</td><td class="no">—</td><td class="yes">✓ 系统对话框，说清楚会丢多少分钟</td></tr>
       <tr><td class="k">合盖睡眠不算进专注</td><td class="no">—</td><td class="no">—</td><td class="yes">✓ powerMonitor</td></tr>
       <tr><td class="k">开机自启</td><td class="no">—</td><td class="no">—</td><td class="yes">✓ 静默启动</td></tr>
       <tr><td class="k">自动更新</td><td class="yes">✓ 刷新即最新</td><td class="yes">✓ SW 换版</td><td class="yes">✓ 退出时装</td></tr>
@@ -466,7 +486,7 @@ footer{border-top:1px solid var(--hair);padding:22px 0 60px;color:var(--muted);f
 </div>
 
 <footer class="wrap">
-  Focus Lab · 多端形态开发史 —— 与《功能点迭代表》《需求演变史》《提交时间轴》同属 docs/iteration-history/。日期取自改动落地的提交。
+  Focus Lab · 多端形态开发史 —— 与《功能点迭代表》《需求演变史》《提交时间轴》同属 docs/iteration-history/。日期取自改动落地的提交。数据截至 2026-08-25 提交 <span class="mono">7d474aa</span>。
 </footer>
 </div>
 </body>

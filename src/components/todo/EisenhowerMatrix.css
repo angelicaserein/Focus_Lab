@@ -288,6 +288,29 @@
   }
 }
 
+/* 挤出平面的卡片：留在 DOM 里供布局量尺寸，但不可见、不可点 */
+.matrix-node.overflowed {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* 象限角上的「+N」：告诉你这个象限还有几件没画出来（在右侧清单里） */
+.matrix-overflow-chip {
+  position: absolute;
+  z-index: 150;
+  transform: translate(-100%, -100%);
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--border-pill);
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 /* 跟随光标的幽灵卡：固定定位、实时缩放，不吃指针事件 */
 .matrix-drag-ghost {
   position: fixed;
@@ -1008,9 +1031,28 @@
   -webkit-backdrop-filter: none;
 }
 
+/* 窄屏（手机 / PWA）：平面只有一屏宽，四个象限各自很小。
+   这里让卡片「变窄」而不是「变小」——字号反而略微抬高，内边距收紧、标题收窄，
+   于是同样的格子里还能塞下几张，且每张都还读得出字。放不下的走 +N 计数。 */
+@media (max-width: 640px) {
+  .matrix-plane .matrix-tag {
+    padding: 4px 5px 4px 7px;
+    font-size: 0.86rem;
+    gap: 3px;
+  }
+
+  .matrix-plane .matrix-tag-text {
+    max-width: 84px;
+  }
+}
+
 /* 窄屏：标签文字进一步收窄 */
 @media (max-width: 480px) {
   .matrix-tag-text {
     max-width: 96px;
+  }
+
+  .matrix-plane .matrix-tag-text {
+    max-width: 72px;
   }
 }

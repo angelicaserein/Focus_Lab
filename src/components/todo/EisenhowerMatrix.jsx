@@ -11,6 +11,8 @@ import {
   dimForPriority,
   isPlaced,
   layoutQuadrantGrid,
+  minShrinkForPriority,
+  monotonicShrink,
   quadrantOfPos,
   quadrantBounds,
   confineToQuadrant,
@@ -313,6 +315,8 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
   const containerRef = useRef(null);
   // 各象限为放下全部卡片而施加的整体缩小系数（priorityId → 0..1），网格布局算出，乘到卡片渲染缩放上
   const [quadShrink, setQuadShrink] = useState({});
+  // 象限压到尺寸下限仍塞不下、被挤出平面的卡片（priorityId → id 数组），在象限角上收成一个 +N
+  const [quadOverflow, setQuadOverflow] = useState({});
   // 「分一下」两步问答：sortId=正在归类的任务，sortUrgent=第一题答案（null 表示还在第一步）
   const [sortId, setSortId] = useState(null);
   const [sortUrgent, setSortUrgent] = useState(null);
@@ -526,6 +530,7 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
     }
 
     const nextShrink = {};
+    const nextOverflow = {};
     const writes = [];
     for (const [priority, list] of groups) {
       const b = quadrantBounds(priority);
@@ -547,14 +552,25 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
         minY: b.yMin * planeH,
         maxY: b.yMax * planeH,
       };
-      const { positions, shrink } = layoutQuadrantGrid(cards, bounds);
+      const { positions, shrink, overflowIds } = layoutQuadrantGrid(
+        cards,
+        bounds,
+        12,
+        minShrinkForPriority(priority),
+      );
       nextShrink[priority] = shrink;
+      if (overflowIds.length) nextOverflow[priority] = overflowIds;
       for (const p of positions) {
         writes.push({
           id: p.id,
           x: clamp(p.cx / planeW, PLANE_X_MIN, PLANE_X_MAX),
           y: clamp(p.cy / planeH, PLANE_Y_MIN, PLANE_Y_MAX),
         });
+      }
+      // 溢出的卡片落点写到象限末角：它们本来就排在最后，钉在角上后排序不再变动，
+      //   下一轮仍是同一批溢出——否则每帧换一批，平面会闪。
+      for (const id of overflowIds) {
+        writes.push({ id, x: b.xMax, y: b.yMax });
       }
     }
 
@@ -569,11 +585,22 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
         updateTodoProps(w.id, { matrixPos: { x: w.x, y: w.y } });
       }
     }
+    // 单调化：四个象限各自算出的缩小系数放到一起可能出现「任务多的重要象限反而更小」，
+    //   这里按优先级顺序封顶，保证尺寸永远是轻重缓急的编码，而不是密度的编码。
+    const monotone = monotonicShrink(nextShrink);
+
     // 缩小系数有变才更新（否则维持引用，避免重渲染循环）
     setQuadShrink((prev) => {
-      const keys = new Set([...Object.keys(prev), ...Object.keys(nextShrink)]);
+      const keys = new Set([...Object.keys(prev), ...Object.keys(monotone)]);
       for (const k of keys) {
-        if (Math.abs((prev[k] ?? 1) - (nextShrink[k] ?? 1)) > 0.005) return nextShrink;
+        if (Math.abs((prev[k] ?? 1) - (monotone[k] ?? 1)) > 0.005) return monotone;
+      }
+      return prev;
+    });
+    setQuadOverflow((prev) => {
+      const keys = new Set([...Object.keys(prev), ...Object.keys(nextOverflow)]);
+      for (const k of keys) {
+        if ((prev[k] ?? []).join() !== (nextOverflow[k] ?? []).join()) return nextOverflow;
       }
       return prev;
     });
@@ -678,6 +705,12 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
 
   const expandedTodo = expandedId != null ? todos.find((td) => td.id === expandedId) : null;
 
+  // 被挤出平面的卡片 id 集合（各象限溢出合并）
+  const overflowIds = useMemo(
+    () => new Set(Object.values(quadOverflow).flat()),
+    [quadOverflow],
+  );
+
   const overPlane = drag?.zone === "plane";
   const overTray = drag?.zone === "tray";
 
@@ -775,10 +808,13 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
             const weight = (1 - todo.matrixPos.x) * 0.5 + (1 - todo.matrixPos.y) * 0.5;
             // 网格布局给该象限的整体缩小系数（象限装不下时 <1），乘到档位缩放上——渲染仍 ≤ 槽位，不重叠
             const scale = scaleForPriority(priority) * (quadShrink[priority] ?? 1);
+            // 挤出平面的卡片仍留在 DOM 里（只是不可见）：布局要靠它量尺寸，删掉就会来回抖
+            const hidden = overflowIds.has(todo.id);
             return (
               <div
                 key={todo.id}
-                className="matrix-node"
+                className={`matrix-node${hidden ? " overflowed" : ""}`}
+                aria-hidden={hidden || undefined}
                 data-todo-id={todo.id}
                 style={{
                   left: `${todo.matrixPos.x * 100}%`,
@@ -793,6 +829,23 @@ export default function EisenhowerMatrix({ onStartImmersive }) {
               >
                 {renderTag(todo)}
               </div>
+            );
+          })}
+
+          {/* 象限挤不下时的「+N」：不再无限缩小卡片，多出来的收成一个计数，
+              任务本身在右侧清单里照样能读能点。 */}
+          {Object.entries(quadOverflow).map(([priority, ids]) => {
+            if (!ids.length) return null;
+            const b = quadrantBounds(priority);
+            return (
+              <span
+                key={`overflow-${priority}`}
+                className="matrix-overflow-chip"
+                style={{ left: `${b.xMax * 100}%`, top: `${b.yMax * 100}%` }}
+                title={t("focus.matrix.overflow", { count: ids.length })}
+              >
+                +{ids.length}
+              </span>
             );
           })}
         </div>

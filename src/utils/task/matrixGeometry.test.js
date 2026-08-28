@@ -7,6 +7,9 @@ import {
   GUTTER,
   relaxOverlaps,
   layoutQuadrantGrid,
+  minShrinkForPriority,
+  monotonicShrink,
+  MIN_CARD_SCALE,
   quadrantOfPos,
   quadrantBounds,
   confineToQuadrant,
@@ -293,7 +296,7 @@ describe("layoutQuadrantGrid", () => {
   });
 
   it("空数组返回空布局", () => {
-    expect(layoutQuadrantGrid([], bounds)).toEqual({ positions: [], shrink: 1 });
+    expect(layoutQuadrantGrid([], bounds)).toEqual({ positions: [], shrink: 1, overflowIds: [] });
   });
 });
 
@@ -302,5 +305,60 @@ describe("平面安全边距常量", () => {
     expect(PLANE_X_MIN).toBeGreaterThan(0);
     expect(PLANE_X_MAX).toBeLessThan(1);
     expect(PLANE_X_MIN + PLANE_X_MAX).toBeCloseTo(1, 5);
+  });
+});
+
+
+describe("尺寸下限与溢出（手机小屏）", () => {
+  const bounds = { minX: 0, maxX: 120, minY: 0, maxY: 120 };
+  const cards = Array.from({ length: 12 }, (_, i) => ({ id: `t${i}`, w: 90, h: 34 }));
+
+  it("不给下限时会一直缩小，卡片小到读不出字", () => {
+    const { shrink, overflowIds } = layoutQuadrantGrid(cards, bounds);
+    expect(shrink).toBeLessThan(0.5);
+    expect(overflowIds).toEqual([]);
+  });
+
+  it("给了下限就不再缩，多出来的卡片改为溢出", () => {
+    const min = minShrinkForPriority("urgent_important");
+    const { shrink, positions, overflowIds } = layoutQuadrantGrid(cards, bounds, 12, min);
+    expect(shrink).toBeCloseTo(min, 5);
+    expect(overflowIds.length).toBeGreaterThan(0);
+    expect(positions.length + overflowIds.length).toBe(cards.length);
+    // 溢出的是排在末尾的那几张
+    expect(overflowIds).toContain("t11");
+  });
+
+  it("下限保证渲染尺寸不低于 MIN_CARD_SCALE", () => {
+    for (const id of ["urgent_important", "important", "urgent", "trivial"]) {
+      expect(scaleForPriority(id) * minShrinkForPriority(id)).toBeGreaterThanOrEqual(
+        MIN_CARD_SCALE - 1e-9,
+      );
+    }
+  });
+});
+
+describe("跨象限单调化", () => {
+  const eff = (m) =>
+    ["urgent_important", "important", "urgent", "trivial"].map(
+      (id) => scaleForPriority(id) * m[id],
+    );
+
+  it("重要象限挤爆时也不会比次要象限小（密度不该决定大小）", () => {
+    const m = monotonicShrink({ urgent_important: 0.5, important: 1, urgent: 1, trivial: 1 });
+    const [a, b, c, d] = eff(m);
+    expect(a).toBeGreaterThanOrEqual(b - 1e-9);
+    expect(b).toBeGreaterThanOrEqual(c - 1e-9);
+    expect(c).toBeGreaterThanOrEqual(d - 1e-9);
+  });
+
+  it("都不挤时保持四档原样", () => {
+    const m = monotonicShrink({});
+    expect(eff(m)).toEqual([
+      scaleForPriority("urgent_important"),
+      scaleForPriority("important"),
+      scaleForPriority("urgent"),
+      scaleForPriority("trivial"),
+    ]);
   });
 });

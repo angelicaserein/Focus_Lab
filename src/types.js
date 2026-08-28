@@ -108,8 +108,9 @@
  *   app       —— 桌面版自动记的「切去别的软件」，计时器同时被按停
  *                （见 electron/main.cjs 的 applyVerdict）。ts 是切走那一刻，
  *                endTs 是回来的那一刻，tag 就是 appLabel。
- *   page      —— 沉浸专注里点开应用内别的页面（见 usePageBrowsing），计时器同样被按停。
- *                ts 是离开那一刻、endTs 是回到专注那一刻，pagePath 是路径、tag 是页面名。
+ *   page      —— 【历史遗留，不再新增】沉浸专注里点开应用内别的页面。
+ *                翻应用内页面已改为不算分心（计时照跑、不落记录，见 usePageBrowsing），
+ *                这一支只为已存在的旧记录还能正常显示与统计而保留。
  *
  * @typedef {{
  *   id:        string,

@@ -27,8 +27,8 @@ export function distractionOverview(distractions, durationBySession) {
   // 它跟主动暂停一样会停表，但不是用户自己按下的，混在一起会看不出区别。
   let appCount = 0;
   let appSecs = 0;
-  // 沉浸专注里翻应用内别的页面（type: "page"）：同样会停表，但人还在这个 app 里，
-  // 和「切去别的软件」是两回事，也单列一组。
+  // type: "page"：沉浸专注里翻应用内别的页面。现已不算分心、不再新增，
+  // 这一组只为已存在的旧记录保留。
   let pageCount = 0;
   let pageSecs = 0;
 
