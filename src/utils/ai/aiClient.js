@@ -130,11 +130,21 @@ export function extractJson(raw, kind = "object") {
   const s = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
   const [open, close] = kind === "array" ? ["[", "]"] : ["{", "}"];
   const start = s.indexOf(open);
-  const end = s.lastIndexOf(close);
-  if (start === -1 || end === -1 || end < start) return null;
-  try {
-    return JSON.parse(s.slice(start, end + 1));
-  } catch {
-    return null;
+  if (start === -1) return null;
+  // 收尾括号从最后一个往前退着试：模型很爱在 JSON 后面再补一句人话，
+  // 那句话里只要出现一个 ] 或 }（脚注 [1]、清单编号、英文括号、颜文字），
+  // 「首个 open 到末个 close」就会把这段人话一起框进来，JSON.parse 必然失败，
+  // 整批结果静默变成空——退到上一个 close 就能救回来。
+  let end = s.lastIndexOf(close);
+  for (let tries = 0; end > start && tries < MAX_CLOSE_TRIES; tries++) {
+    try {
+      return JSON.parse(s.slice(start, end + 1));
+    } catch {
+      end = s.lastIndexOf(close, end - 1);
+    }
   }
+  return null;
 }
+
+// 退着试的次数上限：每退一步就多一次 JSON.parse，别让一段畸形长文本把主线程占死。
+const MAX_CLOSE_TRIES = 20;

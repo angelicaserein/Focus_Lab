@@ -8,6 +8,8 @@ import {
   groupBySession,
   last7DaysData,
   computeFocusStats,
+  isRecordable,
+  MIN_RECORD_SECS,
 } from "@/utils/records/focusRecords";
 
 // 聚合类用例的时间基准：2026-06-14 14:30（本地），冻结后断言字面日期标签。
@@ -261,5 +263,101 @@ describe("computeFocusStats", () => {
       rec({ taskText: `任务${i}`, sessionId: `s${i}`, durationSecs: i + 1 }),
     );
     expect(computeFocusStats(rows).taskBreakdown).toHaveLength(6);
+  });
+});
+
+// ── 以下为独立审查补充的边界用例（2026-09-01）─────────────────────────────
+// 依据 docs/test-edge-cases.md：0 / 负数 / 阈值卡点 / 类型不对。
+
+describe("isRecordable（记账 = 发币的同一条门槛）", () => {
+  it("门槛常量是 10 秒", () => {
+    expect(MIN_RECORD_SECS).toBe(10);
+  });
+
+  it("恰好卡在阈值上要算数（>= 而非 >）", () => {
+    expect(isRecordable(10)).toBe(true);
+    expect(isRecordable(9)).toBe(false);
+    expect(isRecordable(9.999)).toBe(false);
+    expect(isRecordable(10.001)).toBe(true);
+  });
+
+  it("0 与负数一律不记账（时钟回拨 / 秒表没走）", () => {
+    expect(isRecordable(0)).toBe(false);
+    expect(isRecordable(-1)).toBe(false);
+    expect(isRecordable(-3600)).toBe(false);
+  });
+
+  it("数字字符串按数值判定，脏值一律不记账", () => {
+    expect(isRecordable("15")).toBe(true);
+    expect(isRecordable("5")).toBe(false);
+    expect(isRecordable(null)).toBe(false);      // Number(null) = 0
+    expect(isRecordable("")).toBe(false);        // Number("") = 0
+    expect(isRecordable(undefined)).toBe(false); // NaN 与任何数比较都是 false
+    expect(isRecordable("abc")).toBe(false);
+    expect(isRecordable(NaN)).toBe(false);
+  });
+});
+
+describe("时长为 0 / 负数时的聚合", () => {
+  it("0 秒记录不污染合计，也不产生 NaN", () => {
+    const rows = [rec({ durationSecs: 0 }), rec({ sessionId: "s2", durationSecs: 40 })];
+    expect(totalFocusSecs(rows)).toBe(40);
+    expect(sessionMaxSecsMap(rows).get("s1")).toBe(0);
+  });
+
+  it("负时长被 0 顶掉，不会把合计拉成负数", () => {
+    // Math.max(map.get(key) ?? 0, -5) → 0：单条负记录记成 0，而不是 -5
+    expect(totalFocusSecs([rec({ durationSecs: -5 })])).toBe(0);
+    expect(groupBySession([rec({ durationSecs: -5 })])[0].totalSecs).toBe(0);
+  });
+
+  it("同会话里负数不会盖掉正常时长", () => {
+    const rows = [rec({ durationSecs: 90 }), rec({ taskId: "b", durationSecs: -90 })];
+    expect(totalFocusSecs(rows)).toBe(90);
+  });
+
+  it("全 0 记录时平均值是 0 而非 NaN", () => {
+    const s = computeFocusStats([rec({ durationSecs: 0 }), rec({ sessionId: "s2", durationSecs: 0 })]);
+    expect(s.avgSecs).toBe(0);
+    expect(s.longestSecs).toBe(0);
+  });
+});
+
+describe("computeFocusStats 的今日边界", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it("今天 00:00:00 整的记录算今天，前一毫秒的算昨天", () => {
+    const midnight = new Date(2026, 5, 14, 0, 0, 0).getTime();
+    const s = computeFocusStats([
+      rec({ sessionId: "s1", startedAt: midnight, durationSecs: 70 }),
+      rec({ sessionId: "s2", startedAt: midnight - 1, durationSecs: 30 }),
+    ]);
+    expect(s.todaySecs).toBe(70);
+    expect(s.totalSecs).toBe(100);
+  });
+
+  it("longest 取单条最大值，与去重后的会话时长不是一个口径", () => {
+    // 同一会话两条 60s：会话墙钟 60，但 longest 也只有 60（不是 120）
+    const s = computeFocusStats([
+      rec({ taskId: "a", durationSecs: 60 }),
+      rec({ taskId: "b", durationSecs: 60 }),
+    ]);
+    expect(s.totalSecs).toBe(60);
+    expect(s.longestSecs).toBe(60);
+    expect(s.avgSecs).toBe(60);
+  });
+
+  it("任务排行按记录求和（与会话去重口径不同，同会话会叠加）", () => {
+    const s = computeFocusStats([
+      rec({ taskText: "写论文", taskId: "a", durationSecs: 60 }),
+      rec({ taskText: "写论文", taskId: "b", durationSecs: 60 }),
+    ]);
+    expect(s.totalSecs).toBe(60);          // 会话去重
+    expect(s.taskBreakdown[0].totalSecs).toBe(120); // 排行不去重
+    expect(s.taskBreakdown[0].sessions).toBe(2);
   });
 });
