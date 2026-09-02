@@ -4,7 +4,6 @@ export default {
   "todo.form.recurringSet": { en: "Fixed: {label}", zh: "固定：{label}" },
   "todo.form.add": { en: "Add", zh: "添加" },
   "todo.stats": { en: "Done {done} / {total}", zh: "已完成 {done} / 总计 {total}" },
-  "todo.deleteAria": { en: "Delete {text}", zh: "删除 {text}" },
   "todo.deleteTitle": { en: "Delete task", zh: "删除任务" },
   "todo.item.setRecurring": { en: "Set as fixed task", zh: "设为固定任务" },
   "todo.drop.hint": { en: "Drop to create tasks", zh: "松手 → 建成任务" },
@@ -66,13 +65,6 @@ export default {
   "tasks.priority.important": { en: "Important, not urgent", zh: "重要不紧急" },
   "tasks.priority.urgent": { en: "Urgent, not important", zh: "紧急不重要" },
   "tasks.priority.trivial": { en: "Neither", zh: "不重要不紧急" },
-
-  // 属性类型名
-  "tasks.type.select": { en: "Select", zh: "单选" },
-  "tasks.type.multiselect": { en: "Multi-select", zh: "多选" },
-  "tasks.type.text": { en: "Text", zh: "文本" },
-  "tasks.type.date": { en: "Date", zh: "日期" },
-  "tasks.type.number": { en: "Number", zh: "数字" },
 
   // 筛选 / 排序弹层
   "tasks.field.name": { en: "Task name", zh: "任务名" },

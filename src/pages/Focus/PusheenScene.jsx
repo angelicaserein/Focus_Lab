@@ -30,7 +30,7 @@ function measureSkinnedBox(root) {
   return box;
 }
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
-import pusheenGlb from "../../../assets/model/pusheen_-_im_busy.glb?url";
+import pusheenGlb from "../../assets/model/pusheen_-_im_busy.glb?url";
 import { useLanguage } from "@/context/LanguageContext";
 
 // 组件而非常量：文案要跟随语言，得在 LanguageProvider 内部读 t()。

@@ -34,4 +34,7 @@ FocusLab 是面向 ADHD 的参与式设计研究项目，RQ2（GenAI 整合）�
 
 ## 其他文档
 
-- [技术栈](docs/tech-stack.md) · [TDD](docs/TDD.md) · [桌面版](docs/desktop.md) · [z-index 分层](docs/z-index.md)
+[docs/README.md](docs/README.md) 是 docs 目录的索引。常用：
+[技术栈](docs/tech-stack.md) · [TDD](docs/TDD.md) · [桌面版](docs/desktop.md) · [z-index 分层](docs/z-index.md)
+
+本地临时产物（截图、`npm run data:example` 生成的示例备份）统一落在 `.tmp/`，已 gitignore。

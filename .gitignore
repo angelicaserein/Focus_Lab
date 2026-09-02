@@ -10,8 +10,16 @@ release/
 # Test coverage report
 coverage/
 
-# 桌面版驱动脚本的截图（.claude/skills/run-desktop）
-.tmp-shots/
+# Playwright（scripts/shot.mjs 用）跑出来的报告
+playwright-report/
+test-results/
+
+# Vercel CLI 的本地链接信息
+.vercel/
+
+# 本地临时产物统一放这里：截图（.claude/skills/run-desktop、scripts/shot.mjs）、
+# scripts/gen-example-data.mjs 生成的示例备份 json
+.tmp/
 
 # Logs
 *.log
@@ -25,7 +33,9 @@ npm-debug.log*
 # Editor / OS
 .DS_Store
 Thumbs.db
-.vscode/
+desktop.ini
+.vscode/*
+!.vscode/tasks.json
 .idea/
 
 # 本地待办 / 临时笔记（不进版本库）

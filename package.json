@@ -13,6 +13,8 @@
     "desktop:pack": "vite build && electron-builder --dir",
     "desktop:build": "vite build && electron-builder",
     "journal": "node scripts/git-notion-logger/index.mjs",
+    "shot": "node scripts/shot.mjs",
+    "data:example": "node scripts/gen-example-data.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",

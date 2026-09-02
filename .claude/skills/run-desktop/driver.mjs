@@ -20,7 +20,7 @@ import * as readline from "node:readline";
 import { pathToFileURL } from "node:url";
 
 const APP_DIR = path.resolve(import.meta.dirname, "../../..");
-const SHOT_DIR = process.env.SCREENSHOT_DIR || path.join(APP_DIR, ".tmp-shots");
+const SHOT_DIR = process.env.SCREENSHOT_DIR || path.join(APP_DIR, ".tmp/shots");
 fs.mkdirSync(SHOT_DIR, { recursive: true });
 
 // 这个脚本在 .claude/ 里，裸 import 解析不到项目的 node_modules，走绝对 file URL。
